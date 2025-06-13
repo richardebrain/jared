@@ -1,37 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/lib/auth-context";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
+import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
 import MultilingualBearyAI from "@/components/MultilingualBearyAI";
 import ActivityBlockComponent from "@/components/ActivityBlockComponent";
@@ -84,45 +66,21 @@ import {
   Gamepad,
   GripVertical,
   Wrench,
-  RefreshCw,
-} from "lucide-react";
-import StepByStepModuleBuilder from "@/components/StepByStepModuleBuilder";
-import PowerPointImporter from "@/components/PowerPointImporter";
-import ModulePublishingDialog from "@/components/ModulePublishingDialog";
-import InteractiveActivityBuilder from "@/components/InteractiveActivityBuilder";
-import CaseStudyBuilder from "@/components/CaseStudyBuilder";
-import ReflectionBuilder from "@/components/ReflectionBuilder";
+  RefreshCw
+} from 'lucide-react';
+import StepByStepModuleBuilder from '@/components/StepByStepModuleBuilder';
+import PowerPointImporter from '@/components/PowerPointImporter';
+import ModulePublishingDialog from '@/components/ModulePublishingDialog';
 
 interface ModuleSection {
   title: string;
   content: string;
   videoUrl: string;
   imageUrl: string;
-  type:
-    | "text"
-    | "quiz"
-    | "scenario-match"
-    | "podcast"
-    | "slide"
-    | " n"
-    | "story"
-    | "example"
-    | "matching"
-    | "scenario"
-    | "triage"
-    | "mnemonic"
-    | "simulation";
+  type: 'text' | 'quiz' | 'scenario-match' | 'podcast' | 'slide' | 'video' | 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'mnemonic' | 'simulation';
   duration: number;
   activities: Array<{
-    type:
-      | "watch"
-      | "read"
-      | "practice"
-      | "reflect"
-      | "quiz"
-      | "journal"
-      | "breathing"
-      | "recording";
+    type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
     title: string;
     duration: number;
     content: string;
@@ -170,179 +128,149 @@ export default function ComprehensiveModuleCreator() {
   // Extract URL parameters for AI-generated module data
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const aiGeneratedData = urlParams.get("ai-generated");
-
+    const aiGeneratedData = urlParams.get('ai-generated');
+    
     if (aiGeneratedData) {
       try {
         const moduleData = JSON.parse(decodeURIComponent(aiGeneratedData));
-        console.log("Loading AI-generated module data:", moduleData);
-
+        console.log('Loading AI-generated module data:', moduleData);
+        
         // Update newModule with the AI-generated data, preserving the original topic and description
-        setNewModule((prev) => ({
+        setNewModule(prev => ({
           ...prev,
           title: moduleData.title || moduleData.originalTopic || prev.title,
-          description:
-            moduleData.originalTopic ||
-            moduleData.description ||
-            prev.description,
+          description: moduleData.originalTopic || moduleData.description || prev.description,
           category: moduleData.category || prev.category,
           difficulty: moduleData.difficulty || prev.difficulty,
           estimatedTime: moduleData.estimatedTime || prev.estimatedTime,
           sections: moduleData.sections || prev.sections,
           // Store original form data for quiz builder reference
-          originalFormData: moduleData.formData,
+          originalFormData: moduleData.formData
         }));
-
+        
         // Set workflow to section builder mode
-        setCreationMethod("manual");
-        setAiWorkflowStep("section-builder");
-
+        setCreationMethod('manual');
+        setAiWorkflowStep('section-builder');
+        
         toast({
           title: "AI Module Loaded",
           description: "Your AI-generated module is ready for customization",
         });
       } catch (error) {
-        console.error("Error parsing AI-generated module data:", error);
+        console.error('Error parsing AI-generated module data:', error);
       }
     }
   }, [location]);
-
+  
   // Universal quiz conversion function - applies to all module creation tools
   const convertContentToQuiz = (content: string, sectionTitle: string) => {
-    if (!content || typeof content !== "string") return null;
-
+    if (!content || typeof content !== 'string') return null;
+    
     try {
-      const lines = content.split("\n").filter((line) => line.trim());
+      const lines = content.split('\n').filter(line => line.trim());
       const questions = [];
-
+      
       let currentQuestion: any = null;
       for (const line of lines) {
         // Detect question lines
-        if (
-          line.match(/^\d+\./) ||
-          line.toLowerCase().includes("question") ||
-          line.match(/^q\d+/i) ||
-          line.endsWith("?")
-        ) {
+        if (line.match(/^\d+\./) || 
+            line.toLowerCase().includes('question') || 
+            line.match(/^q\d+/i) ||
+            line.endsWith('?')) {
           if (currentQuestion) questions.push(currentQuestion);
           currentQuestion = {
-            question: line
-              .replace(/^\d+\.?\s*/, "")
-              .replace(/question:\s*/i, "")
-              .replace(/^q\d+[:.]\s*/i, ""),
+            question: line.replace(/^\d+\.?\s*/, '')
+                         .replace(/question:\s*/i, '')
+                         .replace(/^q\d+[:.]\s*/i, ''),
             answers: [] as string[],
             correctAnswer: 0,
-            explanation: "",
+            explanation: ''
           };
-        }
+        } 
         // Detect answer options
         else if (line.match(/^[a-d]\)/i) && currentQuestion) {
-          currentQuestion.answers.push(line.replace(/^[a-d]\)\s*/i, ""));
+          currentQuestion.answers.push(line.replace(/^[a-d]\)\s*/i, ''));
         }
         // Alternative answer format: A. B. C. D.
         else if (line.match(/^[A-D]\./i) && currentQuestion) {
-          currentQuestion.answers.push(line.replace(/^[A-D]\.\s*/i, ""));
+          currentQuestion.answers.push(line.replace(/^[A-D]\.\s*/i, ''));
         }
         // Numbered answers: 1. 2. 3. 4.
-        else if (
-          line.match(/^\d+\.\s/) &&
-          currentQuestion &&
-          currentQuestion.answers.length < 4
-        ) {
-          currentQuestion.answers.push(line.replace(/^\d+\.\s*/, ""));
+        else if (line.match(/^\d+\.\s/) && currentQuestion && currentQuestion.answers.length < 4) {
+          currentQuestion.answers.push(line.replace(/^\d+\.\s*/, ''));
         }
         // Detect correct answer
-        else if (
-          (line.toLowerCase().includes("answer:") ||
-            line.toLowerCase().includes("correct:")) &&
-          currentQuestion
-        ) {
-          const answerText = line
-            .replace(/answer:\s*/i, "")
-            .replace(/correct:\s*/i, "");
+        else if ((line.toLowerCase().includes('answer:') || 
+                  line.toLowerCase().includes('correct:')) && currentQuestion) {
+          const answerText = line.replace(/answer:\s*/i, '').replace(/correct:\s*/i, '');
           // Find which answer option matches
-          const matchIndex = currentQuestion.answers.findIndex(
-            (ans: string) =>
-              ans.toLowerCase().includes(answerText.toLowerCase()) ||
-              answerText.toLowerCase().includes(ans.toLowerCase()),
+          const matchIndex = currentQuestion.answers.findIndex((ans: string) => 
+            ans.toLowerCase().includes(answerText.toLowerCase()) || 
+            answerText.toLowerCase().includes(ans.toLowerCase())
           );
           if (matchIndex !== -1) currentQuestion.correctAnswer = matchIndex;
-
+          
           // Handle letter-based answers (a, b, c, d)
           const letterMatch = answerText.match(/^[a-d]/i);
           if (letterMatch) {
-            const letterIndex =
-              letterMatch[0].toLowerCase().charCodeAt(0) - "a".charCodeAt(0);
-            if (
-              letterIndex >= 0 &&
-              letterIndex < currentQuestion.answers.length
-            ) {
+            const letterIndex = letterMatch[0].toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0);
+            if (letterIndex >= 0 && letterIndex < currentQuestion.answers.length) {
               currentQuestion.correctAnswer = letterIndex;
             }
           }
         }
         // Detect explanation
-        else if (
-          line.toLowerCase().includes("explanation:") &&
-          currentQuestion
-        ) {
-          currentQuestion.explanation = line.replace(/explanation:\s*/i, "");
+        else if (line.toLowerCase().includes('explanation:') && currentQuestion) {
+          currentQuestion.explanation = line.replace(/explanation:\s*/i, '');
         }
         // If we have a question but no specific markers, treat as part of question text
-        else if (
-          currentQuestion &&
-          !currentQuestion.answers.length &&
-          !line.toLowerCase().includes("answer")
-        ) {
-          currentQuestion.question += " " + line;
+        else if (currentQuestion && !currentQuestion.answers.length && !line.toLowerCase().includes('answer')) {
+          currentQuestion.question += ' ' + line;
         }
       }
-
+      
       // Add the last question
       if (currentQuestion && currentQuestion.question.trim()) {
         questions.push(currentQuestion);
       }
-
+      
       // Validate questions have minimum required data
-      const validQuestions = questions.filter(
-        (q) =>
-          q.question.trim() &&
-          q.answers.length >= 2 &&
-          q.correctAnswer >= 0 &&
-          q.correctAnswer < q.answers.length,
+      const validQuestions = questions.filter(q => 
+        q.question.trim() && 
+        q.answers.length >= 2 && 
+        q.correctAnswer >= 0 && 
+        q.correctAnswer < q.answers.length
       );
-
+      
       if (validQuestions.length > 0) {
         return {
-          type: "quiz",
+          type: 'quiz',
           questions: validQuestions,
           content: `Interactive Quiz: ${sectionTitle}`,
-          title: sectionTitle,
+          title: sectionTitle
         };
       }
     } catch (error) {
-      console.error("Error parsing quiz content:", error);
+      console.error('Error parsing quiz content:', error);
     }
-
+    
     return null;
   };
-
+  
   // Voice feature helper functions for workshop
   const generateQuickVoice = async (text: string, language: string) => {
     try {
-      const endpoint =
-        language === "en"
-          ? "/api/voice/generate-speech"
-          : "/api/voice/generate-multilingual-speech";
-
-      const requestBody =
-        language === "en"
-          ? { text, voiceType: "friendly-female", optimize: true }
-          : { text, voiceType: "friendly-female", targetLanguage: language };
+      const endpoint = language === 'en' 
+        ? '/api/voice/generate-speech'
+        : '/api/voice/generate-multilingual-speech';
+      
+      const requestBody = language === 'en'
+        ? { text, voiceType: 'friendly-female', optimize: true }
+        : { text, voiceType: 'friendly-female', targetLanguage: language };
 
       const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
 
@@ -351,14 +279,14 @@ export default function ComprehensiveModuleCreator() {
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audio.play();
-
+        
         toast({
           title: "Voice Generated",
           description: `Playing in ${language}`,
         });
       }
     } catch (error) {
-      console.error("Voice generation error:", error);
+      console.error('Voice generation error:', error);
       toast({
         title: "Voice Generation Failed",
         description: "Please check your connection and try again",
@@ -369,9 +297,9 @@ export default function ComprehensiveModuleCreator() {
 
   const generateSoundEffect = async (description: string) => {
     try {
-      const response = await fetch("/api/voice/generate-sound-effects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/voice/generate-sound-effects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description, duration: "medium" }),
       });
 
@@ -380,14 +308,14 @@ export default function ComprehensiveModuleCreator() {
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audio.play();
-
+        
         toast({
           title: "Sound Effect Created",
           description: "Playing custom audio effect",
         });
       }
     } catch (error) {
-      console.error("Sound effect generation error:", error);
+      console.error('Sound effect generation error:', error);
       toast({
         title: "Sound Effect Failed",
         description: "Unable to generate sound effect",
@@ -398,10 +326,10 @@ export default function ComprehensiveModuleCreator() {
 
   const generatePronunciationGuide = async (word: string, phonetic: string) => {
     try {
-      const response = await fetch("/api/voice/generate-pronunciation-guide", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ word, phonetic, language: "en" }),
+      const response = await fetch('/api/voice/generate-pronunciation-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, phonetic, language: 'en' }),
       });
 
       if (response.ok) {
@@ -409,14 +337,14 @@ export default function ComprehensiveModuleCreator() {
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audio.play();
-
+        
         toast({
           title: "Pronunciation Guide",
           description: `Playing pronunciation for "${word}"`,
         });
       }
     } catch (error) {
-      console.error("Pronunciation guide error:", error);
+      console.error('Pronunciation guide error:', error);
       toast({
         title: "Pronunciation Failed",
         description: "Unable to generate pronunciation guide",
@@ -427,32 +355,25 @@ export default function ComprehensiveModuleCreator() {
 
   const generateEmotionalStory = async (emotion: string, story: string) => {
     try {
-      const response = await fetch(
-        "/api/voice/generate-emotional-storytelling",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: story,
-            emotion,
-            voiceType: "storytelling",
-          }),
-        },
-      );
+      const response = await fetch('/api/voice/generate-emotional-storytelling', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: story, emotion, voiceType: 'storytelling' }),
+      });
 
       if (response.ok) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audio.play();
-
+        
         toast({
           title: "Emotional Story Generated",
           description: `Playing ${emotion} storytelling voice`,
         });
       }
     } catch (error) {
-      console.error("Emotional storytelling error:", error);
+      console.error('Emotional storytelling error:', error);
       toast({
         title: "Storytelling Failed",
         description: "Unable to generate emotional story",
@@ -463,14 +384,10 @@ export default function ComprehensiveModuleCreator() {
 
   const generateCustomVoice = async (text: string) => {
     try {
-      const response = await fetch("/api/voice/generate-speech", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          voiceType: "friendly-female",
-          optimize: true,
-        }),
+      const response = await fetch('/api/voice/generate-speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voiceType: 'friendly-female', optimize: true }),
       });
 
       if (response.ok) {
@@ -478,14 +395,14 @@ export default function ComprehensiveModuleCreator() {
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         audio.play();
-
+        
         toast({
           title: "Custom Voice Generated",
           description: "Playing custom voice",
         });
       }
     } catch (error) {
-      console.error("Custom voice generation error:", error);
+      console.error('Custom voice generation error:', error);
       toast({
         title: "Voice Generation Failed",
         description: "Please check your text and try again",
@@ -497,18 +414,16 @@ export default function ComprehensiveModuleCreator() {
   // Video search functions
   const searchVideoLibrary = async (query: string) => {
     if (!query.trim()) return;
-
+    
     setIsSearchingVideos(true);
     try {
-      const response = await fetch(
-        `/api/video-search/search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || "")}`,
-      );
+      const response = await fetch(`/api/video-search/search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
       if (response.ok) {
         const results = await response.json();
         setVideoSearchResults(results);
       }
     } catch (error) {
-      console.error("Video library search error:", error);
+      console.error('Video library search error:', error);
       toast({
         title: "Search Failed",
         description: "Unable to search video library. Please try again.",
@@ -520,18 +435,16 @@ export default function ComprehensiveModuleCreator() {
 
   const searchYouTube = async (query: string) => {
     if (!query.trim()) return;
-
+    
     setIsSearchingYoutube(true);
     try {
-      const response = await fetch(
-        `/api/video-search/youtube-search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || "")}`,
-      );
+      const response = await fetch(`/api/video-search/youtube-search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent(newModule.title || '')}`);
       if (response.ok) {
         const results = await response.json();
         setYoutubeSearchResults(results);
       }
     } catch (error) {
-      console.error("YouTube search error:", error);
+      console.error('YouTube search error:', error);
       toast({
         title: "YouTube Search Failed",
         description: "Unable to search YouTube. Please try again.",
@@ -543,102 +456,77 @@ export default function ComprehensiveModuleCreator() {
 
   const handleVideoSearch = async () => {
     if (!videoSearchQuery.trim()) return;
-
+    
     // Search both library and YouTube simultaneously
     await Promise.all([
       searchVideoLibrary(videoSearchQuery),
-      searchYouTube(videoSearchQuery),
+      searchYouTube(videoSearchQuery)
     ]);
   };
 
   const selectVideoForSection = (videoUrl: string, videoTitle: string) => {
     // Use the same targeting logic as other video functions
-    const targetIndex =
-      selectedVideoForSection !== null
-        ? selectedVideoForSection
-        : currentSectionIndex;
-    updateSection(targetIndex, "videoUrl", videoUrl);
-    updateSection(
-      targetIndex,
-      "title",
-      `${newModule.sections[targetIndex]?.title || "Section"} - ${videoTitle}`,
-    );
-
+    const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+    updateSection(targetIndex, 'videoUrl', videoUrl);
+    updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${videoTitle}`);
+    
     toast({
       title: "Video Added",
       description: `Added "${videoTitle}" to the section`,
     });
-
+    
     setShowVideoSearch(false);
     setSelectedVideoForSection(null);
-    setVideoSearchQuery("");
+    setVideoSearchQuery('');
     setVideoSearchResults([]);
     setYoutubeSearchResults([]);
   };
 
   const addCustomVideoUrl = () => {
     if (!customVideoUrl.trim()) return;
-
+    
     // Extract title from URL or use placeholder
-    let videoTitle = "Custom Video";
-    if (
-      customVideoUrl.includes("youtube.com") ||
-      customVideoUrl.includes("youtu.be")
-    ) {
-      videoTitle = "YouTube Video";
-    } else if (customVideoUrl.includes("vimeo.com")) {
-      videoTitle = "Vimeo Video";
+    let videoTitle = 'Custom Video';
+    if (customVideoUrl.includes('youtube.com') || customVideoUrl.includes('youtu.be')) {
+      videoTitle = 'YouTube Video';
+    } else if (customVideoUrl.includes('vimeo.com')) {
+      videoTitle = 'Vimeo Video';
     }
-
+    
     // Use the same targeting logic as other video functions
-    const targetIndex =
-      selectedVideoForSection !== null
-        ? selectedVideoForSection
-        : currentSectionIndex;
-    updateSection(targetIndex, "videoUrl", customVideoUrl);
-    updateSection(
-      targetIndex,
-      "title",
-      `${newModule.sections[targetIndex]?.title || "Section"} - ${videoTitle}`,
-    );
-
+    const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+    updateSection(targetIndex, 'videoUrl', customVideoUrl);
+    updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${videoTitle}`);
+    
     toast({
       title: "Custom Video Added",
       description: `Added "${videoTitle}" to the section`,
     });
-
+    
     setShowVideoSearch(false);
     setSelectedVideoForSection(null);
-    setCustomVideoUrl("");
-    setVideoSearchQuery("");
+    setCustomVideoUrl('');
+    setVideoSearchQuery('');
     setVideoSearchResults([]);
     setYoutubeSearchResults([]);
   };
-
-  const [searchTerm, setSearchTerm] = useState("");
+  
+  const [searchTerm, setSearchTerm] = useState('');
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdatingModule, setIsUpdatingModule] = useState(false);
   const [showStepByStepBuilder, setShowStepByStepBuilder] = useState(false);
   const [showPowerPointImport, setShowPowerPointImport] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [creationMethod, setCreationMethod] = useState<
-    "selection" | "stepByStep" | "powerPoint" | "manual"
-  >("selection");
-
+  const [creationMethod, setCreationMethod] = useState<'selection' | 'stepByStep' | 'powerPoint' | 'manual'>('selection');
+  
   // AI-Assisted workflow states
-  const [aiWorkflowStep, setAiWorkflowStep] = useState<
-    | "method-selection"
-    | "template-selection"
-    | "template-builder"
-    | "section-builder"
-    | "preview"
-  >("method-selection");
+  const [aiWorkflowStep, setAiWorkflowStep] = useState<'method-selection' | 'template-selection' | 'template-builder' | 'section-builder' | 'preview'>('method-selection');
   const [aiSelectedTemplate, setAiSelectedTemplate] = useState<any>(null);
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
-
+  
   // Publishing dialog states
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [publishOptions, setPublishOptions] = useState({
@@ -648,422 +536,282 @@ export default function ComprehensiveModuleCreator() {
     sendToGroups: false,
     selectedTeachers: [] as number[],
     selectedGroups: [] as number[],
-    notificationMessage: "",
+    notificationMessage: ''
   });
+
+
 
   // Proven template types for AI-assisted workflow
   const PROVEN_TEMPLATES = [
     {
-      id: "lightning",
-      title: "Lightning Module",
-      description:
-        "A super-condensed, single-idea burst perfect for quick refreshers (3-4 sections, ~5 min)",
-      duration: "5 min",
+      id: 'lightning',
+      title: 'Lightning Module',
+      description: 'A super-condensed, single-idea burst perfect for quick refreshers (3-4 sections, ~5 min)',
+      duration: '5 min',
       modules: 1,
       icon: Zap,
       sections: [
-        { type: "scenario", title: "Hook (scenario or question)", duration: 1 },
-        {
-          type: "text",
-          title: "Core Concept (AI-generated key points)",
-          duration: 2,
-        },
-        {
-          type: "example",
-          title: "Micro-Activity (2-step interactive prompt)",
-          duration: 1,
-        },
-        { type: "quiz", title: "Quick Quiz (1-2 questions)", duration: 1 },
-      ],
+        { type: 'scenario', title: 'Hook (scenario or question)', duration: 1 },
+        { type: 'text', title: 'Core Concept (AI-generated key points)', duration: 2 },
+        { type: 'example', title: 'Micro-Activity (2-step interactive prompt)', duration: 1 },
+        { type: 'quiz', title: 'Quick Quiz (1-2 questions)', duration: 1 }
+      ]
     },
     {
-      id: "standard",
-      title: "Standard Module",
-      description:
-        "Your go-to template for everyday trainings (5-6 sections, ~10 min)",
-      duration: "10 min",
+      id: 'standard',
+      title: 'Standard Module',
+      description: 'Your go-to template for everyday trainings (5-6 sections, ~10 min)',
+      duration: '10 min',
       modules: 1,
       icon: BookOpen,
       sections: [
-        { type: "text", title: "Intro & Objectives", duration: 1 },
-        { type: "video", title: "Video or Case Story", duration: 3 },
-        {
-          type: "matching",
-          title: "Interactive Activity (matching, drag-and-drop)",
-          duration: 2,
-        },
-        {
-          type: "example",
-          title: "Why & Science (rationale slide)",
-          duration: 2,
-        },
-        {
-          type: "text",
-          title: "Reflection Prompt (text or journal)",
-          duration: 1,
-        },
-        { type: "quiz", title: "Quiz & Feedback", duration: 1 },
-      ],
+        { type: 'text', title: 'Intro & Objectives', duration: 1 },
+        { type: 'video', title: 'Video or Case Story', duration: 3 },
+        { type: 'matching', title: 'Interactive Activity (matching, drag-and-drop)', duration: 2 },
+        { type: 'example', title: 'Why & Science (rationale slide)', duration: 2 },
+        { type: 'text', title: 'Reflection Prompt (text or journal)', duration: 1 },
+        { type: 'quiz', title: 'Quiz & Feedback', duration: 1 }
+      ]
     },
     {
-      id: "deep-dive",
-      title: "Deep-Dive Workshop",
-      description:
-        "A thorough exploration, great for new topics or certifications (8-10 sections, ~15 min)",
-      duration: "15 min",
+      id: 'deep-dive',
+      title: 'Deep-Dive Workshop',
+      description: 'A thorough exploration, great for new topics or certifications (8-10 sections, ~15 min)',
+      duration: '15 min',
       modules: 1,
       icon: Target,
       sections: [
-        { type: "text", title: "Welcome & Agenda", duration: 1 },
-        {
-          type: "quiz",
-          title: "Pre-Check Question (knowledge gauge)",
-          duration: 1,
-        },
-        { type: "video", title: "Foundational Video", duration: 3 },
-        {
-          type: "mnemonic",
-          title: "Key Terms & Definitions (flash cards)",
-          duration: 1,
-        },
-        {
-          type: "example",
-          title: "Guided Activity (step-by-step)",
-          duration: 2,
-        },
-        { type: "story", title: "Case Study / Story", duration: 2 },
-        {
-          type: "text",
-          title: "Why It Matters (science + policy)",
-          duration: 2,
-        },
-        {
-          type: "simulation",
-          title: "Hands-On Practice (AI-guided scenario)",
-          duration: 2,
-        },
-        { type: "text", title: "Reflection & Action Plan", duration: 1 },
-        { type: "quiz", title: "Post-Test Quiz (certification)", duration: 2 },
-      ],
+        { type: 'text', title: 'Welcome & Agenda', duration: 1 },
+        { type: 'quiz', title: 'Pre-Check Question (knowledge gauge)', duration: 1 },
+        { type: 'video', title: 'Foundational Video', duration: 3 },
+        { type: 'mnemonic', title: 'Key Terms & Definitions (flash cards)', duration: 1 },
+        { type: 'example', title: 'Guided Activity (step-by-step)', duration: 2 },
+        { type: 'story', title: 'Case Study / Story', duration: 2 },
+        { type: 'text', title: 'Why It Matters (science + policy)', duration: 2 },
+        { type: 'simulation', title: 'Hands-On Practice (AI-guided scenario)', duration: 2 },
+        { type: 'text', title: 'Reflection & Action Plan', duration: 1 },
+        { type: 'quiz', title: 'Post-Test Quiz (certification)', duration: 2 }
+      ]
     },
     {
-      id: "toolkit",
-      title: "Toolkit Module",
-      description:
-        'Focuses on giving managers a "kit" of resources they can reuse (variable sections, ~5-12 min)',
-      duration: "8 min",
+      id: 'toolkit',
+      title: 'Toolkit Module',
+      description: 'Focuses on giving managers a "kit" of resources they can reuse (variable sections, ~5-12 min)',
+      duration: '8 min',
       modules: 1,
       icon: Wrench,
       sections: [
-        {
-          type: "text",
-          title: "Resource Gallery (videos, PDFs, links)",
-          duration: 2,
-        },
-        {
-          type: "example",
-          title: "Template Launcher (lesson-plan, email-scripts)",
-          duration: 2,
-        },
-        {
-          type: "text",
-          title: "Best-Practice Snippets (AI-written talking points)",
-          duration: 2,
-        },
-        {
-          type: "text",
-          title: 'FAQ Chatbot (embedded "Ask AI" widget)',
-          duration: 2,
-        },
-      ],
+        { type: 'text', title: 'Resource Gallery (videos, PDFs, links)', duration: 2 },
+        { type: 'example', title: 'Template Launcher (lesson-plan, email-scripts)', duration: 2 },
+        { type: 'text', title: 'Best-Practice Snippets (AI-written talking points)', duration: 2 },
+        { type: 'text', title: 'FAQ Chatbot (embedded "Ask AI" widget)', duration: 2 }
+      ]
     },
     {
-      id: "scenario-driven",
-      title: "Scenario-Driven Module",
-      description:
-        "Learners work through a single extended scenario (4-7 sections, ~8 min)",
-      duration: "8 min",
+      id: 'scenario-driven',
+      title: 'Scenario-Driven Module',
+      description: 'Learners work through a single extended scenario (4-7 sections, ~8 min)',
+      duration: '8 min',
       modules: 1,
       icon: Users,
       sections: [
-        { type: "story", title: "Scenario Setup (video or text)", duration: 2 },
-        {
-          type: "triage",
-          title: "Decision Point #1 (choose A/B/C → AI-branch)",
-          duration: 1,
-        },
-        { type: "text", title: "Feedback & Micro-Lesson", duration: 1 },
-        { type: "triage", title: "Decision Point #2", duration: 1 },
-        { type: "example", title: "Why Behind It", duration: 2 },
-        { type: "text", title: "Reflection", duration: 1 },
-        { type: "quiz", title: "Knowledge Check", duration: 1 },
-      ],
-    },
+        { type: 'story', title: 'Scenario Setup (video or text)', duration: 2 },
+        { type: 'triage', title: 'Decision Point #1 (choose A/B/C → AI-branch)', duration: 1 },
+        { type: 'text', title: 'Feedback & Micro-Lesson', duration: 1 },
+        { type: 'triage', title: 'Decision Point #2', duration: 1 },
+        { type: 'example', title: 'Why Behind It', duration: 2 },
+        { type: 'text', title: 'Reflection', duration: 1 },
+        { type: 'quiz', title: 'Knowledge Check', duration: 1 }
+      ]
+    }
   ];
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "mindfulness":
-        return Heart;
-      case "classroom-management":
-        return Users;
-      case "child-development":
-        return Brain;
-      case "health-safety":
-        return CheckCircle2;
-      case "professional-development":
-        return Trophy;
-      default:
-        return BookOpen;
+      case 'mindfulness': return Heart;
+      case 'classroom-management': return Users;
+      case 'child-development': return Brain;
+      case 'health-safety': return CheckCircle2;
+      case 'professional-development': return Trophy;
+      default: return BookOpen;
     }
   };
 
   // Get existing user modules as additional template options
   const getUserModuleTemplates = () => {
     if (!modules || !Array.isArray(modules)) return [];
-
-    return modules
-      .filter((module) => module.isVisible && module.sections)
-      .map((module) => ({
-        id: `user-${module.id}`,
-        title: `${module.title} (Your Module)`,
-        description: module.description,
-        duration: module.estimatedTime + " min",
-        modules: 1,
-        icon: getCategoryIcon(module.category),
-        sections: JSON.parse(module.sections).map((section: any) => ({
-          type: section.type || "text",
-          title: section.title,
-          duration: section.duration || 5,
-        })),
-        isUserModule: true,
-        originalModuleId: module.id,
-      }));
+    
+    return modules.filter(module => module.isVisible && module.sections).map(module => ({
+      id: `user-${module.id}`,
+      title: `${module.title} (Your Module)`,
+      description: module.description,
+      duration: module.estimatedTime + ' min',
+      modules: 1,
+      icon: getCategoryIcon(module.category),
+      sections: JSON.parse(module.sections).map((section: any) => ({
+        type: section.type || 'text',
+        title: section.title,
+        duration: section.duration || 5
+      })),
+      isUserModule: true,
+      originalModuleId: module.id
+    }));
   };
 
   // Section type definitions with AI assistance
   const SECTION_TYPES = [
-    {
-      type: "text",
-      icon: FileText,
-      title: "Text Content",
-      description: "Written educational content with AI assistance",
-    },
-    {
-      type: "video",
-      icon: Play,
-      title: "Video Content",
-      description: "Video resources with AI-generated questions",
-    },
-    {
-      type: "quiz",
-      icon: HelpCircle,
-      title: "Knowledge Quiz",
-      description: "AI-generated assessment questions",
-    },
-    {
-      type: "story",
-      icon: BookOpen,
-      title: "Story/Scenario",
-      description: "Engaging narratives with AI storytelling",
-    },
-    {
-      type: "example",
-      icon: Lightbulb,
-      title: "Examples",
-      description: "Real-world examples with AI insights",
-    },
-    {
-      type: "matching",
-      icon: Link,
-      title: "Matching Exercise",
-      description: "Interactive matching with AI generation",
-    },
-    {
-      type: "scenario",
-      icon: Users,
-      title: "Scenario Practice",
-      description: "Practice scenarios with AI feedback",
-    },
-    {
-      type: "triage",
-      icon: Zap,
-      title: "Decision Triage",
-      description: "Quick decision-making exercises",
-    },
-    {
-      type: "mnemonic",
-      icon: Brain,
-      title: "Memory Aids",
-      description: "AI-generated memory devices",
-    },
-    {
-      type: "simulation",
-      icon: Gamepad,
-      title: "Interactive Simulation",
-      description: "Hands-on practice simulations",
-    },
+    { type: 'text', icon: FileText, title: 'Text Content', description: 'Written educational content with AI assistance' },
+    { type: 'video', icon: Play, title: 'Video Content', description: 'Video resources with AI-generated questions' },
+    { type: 'quiz', icon: HelpCircle, title: 'Knowledge Quiz', description: 'AI-generated assessment questions' },
+    { type: 'story', icon: BookOpen, title: 'Story/Scenario', description: 'Engaging narratives with AI storytelling' },
+    { type: 'example', icon: Lightbulb, title: 'Examples', description: 'Real-world examples with AI insights' },
+    { type: 'matching', icon: Link, title: 'Matching Exercise', description: 'Interactive matching with AI generation' },
+    { type: 'scenario', icon: Users, title: 'Scenario Practice', description: 'Practice scenarios with AI feedback' },
+    { type: 'triage', icon: Zap, title: 'Decision Triage', description: 'Quick decision-making exercises' },
+    { type: 'mnemonic', icon: Brain, title: 'Memory Aids', description: 'AI-generated memory devices' },
+    { type: 'simulation', icon: Gamepad, title: 'Interactive Simulation', description: 'Hands-on practice simulations' }
   ];
-
+  
   // Module Creator state - comprehensive version
   const [newModule, setNewModule] = useState({
-    title: "",
-    description: "",
-    category: "classroom-management",
-    difficulty: "beginner",
-    estimatedTime: "15",
-    customPoints: "",
+    title: '',
+    description: '',
+    category: 'classroom-management',
+    difficulty: 'beginner',
+    estimatedTime: '15',
+    customPoints: '',
     shareWithCommunity: false,
-    moduleType: "single" as "single" | "course" | "interactive",
+    moduleType: 'single' as 'single' | 'course' | 'interactive',
     sections: [
       {
-        title: "Introduction",
-        content: "",
-        videoUrl: "",
-        imageUrl: "",
-        type: "text" as const,
+        title: 'Introduction',
+        content: '',
+        videoUrl: '',
+        imageUrl: '',
+        type: 'text' as const,
         duration: 5,
-        activities: [
-          {
-            type: "read" as const,
-            title: "Introduction",
-            duration: 5,
-            content: "",
-            videoUrl: "",
-            audioUrl: "",
-            interactionType: "form" as const,
-          },
-        ],
-      },
+        activities: [{
+          type: 'read' as const,
+          title: 'Introduction',
+          duration: 5,
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
+      }
     ] as ModuleSection[],
     // Advanced features for template support
     courseStructure: {
       sequentialUnlock: false,
       certificateAwarded: false,
-      badgeType: "",
+      badgeType: '',
       modules: [] as Array<{
         id: string;
         title: string;
         description: string;
         duration: number;
         activities: Array<{
-          type:
-            | "watch"
-            | "read"
-            | "practice"
-            | "reflect"
-            | "quiz"
-            | "journal"
-            | "breathing"
-            | "recording";
+          type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
           title: string;
           duration: number;
           content: string;
           videoUrl?: string;
           audioUrl?: string;
-          interactionType?: "timer" | "recorder" | "worksheet" | "form";
+          interactionType?: 'timer' | 'recorder' | 'worksheet' | 'form';
         }>;
         completionRequirements: {
           passingScore?: number;
           requiredActivities?: string[];
           timeRequirement?: number;
         };
-      }>,
+      }>
     },
     interactiveElements: {
       hasTimer: false,
       hasAudioRecording: false,
       hasJournaling: false,
       hasBreathingExercises: false,
-      hasWorksheets: false,
+      hasWorksheets: false
     },
     certificationSystem: {
       enabled: false,
-      badgeName: "",
+      badgeName: '',
       requirements: {
         completionPercentage: 100,
-        minimumScore: 70,
-      },
-    },
+        minimumScore: 70
+      }
+    }
   });
-
+  
   const [isCreatingModule, setIsCreatingModule] = useState(false);
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-
-  // Draft saving functionality
+  
+  // Draft saving functionality  
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
   const [showDraftManager, setShowDraftManager] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
-
+  
   // Initial setup phase for title and learning objective
   const [showInitialSetup, setShowInitialSetup] = useState(true);
   const [initialModuleData, setInitialModuleData] = useState({
-    title: "",
-    learningObjective: "",
+    title: '',
+    learningObjective: ''
   });
 
   // Voice input states
-  const [isListening, setIsListening] = useState<{ [key: string]: boolean }>(
-    {},
-  );
+  const [isListening, setIsListening] = useState<{[key: string]: boolean}>({});
   const [recognition, setRecognition] = useState<any>(null);
 
   // Video search states
   const [showVideoSearch, setShowVideoSearch] = useState(false);
-  const [videoSearchQuery, setVideoSearchQuery] = useState("");
+  const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [videoSearchResults, setVideoSearchResults] = useState<any[]>([]);
   const [youtubeSearchResults, setYoutubeSearchResults] = useState<any[]>([]);
   const [isSearchingVideos, setIsSearchingVideos] = useState(false);
   const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
-  const [customVideoUrl, setCustomVideoUrl] = useState("");
-  const [selectedVideoForSection, setSelectedVideoForSection] = useState<
-    number | null
-  >(null);
+  const [customVideoUrl, setCustomVideoUrl] = useState('');
+  const [selectedVideoForSection, setSelectedVideoForSection] = useState<number | null>(null);
+
+
+
+
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognitionInstance = new SpeechRecognition();
         recognitionInstance.continuous = false;
         recognitionInstance.interimResults = false;
-        recognitionInstance.lang = "en-US";
+        recognitionInstance.lang = 'en-US';
         setRecognition(recognitionInstance);
       }
     }
   }, []);
 
   // Voice input handler
-  const startVoiceInput = (
-    fieldName: string,
-    currentValue: string,
-    onUpdate: (value: string) => void,
-  ) => {
+  const startVoiceInput = (fieldName: string, currentValue: string, onUpdate: (value: string) => void) => {
     if (!recognition) {
       toast({
         title: "Voice Not Supported",
-        description:
-          "Your browser doesn't support voice input. Please type your text.",
+        description: "Your browser doesn't support voice input. Please type your text.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsListening((prev) => ({ ...prev, [fieldName]: true }));
+    setIsListening(prev => ({ ...prev, [fieldName]: true }));
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      const newValue = currentValue
-        ? `${currentValue} ${transcript}`
-        : transcript;
+      const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
       onUpdate(newValue);
-
+      
       toast({
         title: "Voice Input Added",
         description: `Added: "${transcript}"`,
@@ -1071,7 +819,7 @@ export default function ComprehensiveModuleCreator() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
+      console.error('Speech recognition error:', event.error);
       toast({
         title: "Voice Input Error",
         description: "Could not capture voice input. Please try again.",
@@ -1080,7 +828,7 @@ export default function ComprehensiveModuleCreator() {
     };
 
     recognition.onend = () => {
-      setIsListening((prev) => ({ ...prev, [fieldName]: false }));
+      setIsListening(prev => ({ ...prev, [fieldName]: false }));
     };
 
     recognition.start();
@@ -1090,7 +838,7 @@ export default function ComprehensiveModuleCreator() {
     if (recognition) {
       recognition.stop();
     }
-    setIsListening((prev) => ({ ...prev, [fieldName]: false }));
+    setIsListening(prev => ({ ...prev, [fieldName]: false }));
   };
   const [aiSuggestions, setAiSuggestions] = useState<{
     questions: string[];
@@ -1100,50 +848,41 @@ export default function ComprehensiveModuleCreator() {
       options: string[];
       correctAnswer: string;
     }[];
-  }>({
-    questions: [],
+  }>({ 
+    questions: [], 
     strategies: [],
-    quizQuestions: [],
+    quizQuestions: []
   });
 
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
-  const [quizDifficulty, setQuizDifficulty] = useState("medium");
-  const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] =
-    useState(false);
+  const [quizDifficulty, setQuizDifficulty] = useState('medium');
+  const [isGeneratingQuizQuestion, setIsGeneratingQuizQuestion] = useState(false);
   const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
   const [generatedFlashcards, setGeneratedFlashcards] = useState<any[]>([]);
   const [showFlashcardPreview, setShowFlashcardPreview] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [useStepByStep, setUseStepByStep] = useState(false);
-  const [generatingContent, setGeneratingContent] = useState<number | null>(
-    null,
-  );
+  const [generatingContent, setGeneratingContent] = useState<number | null>(null);
   const [generatingVideo, setGeneratingVideo] = useState<number | null>(null);
-  const [videoGenerationStatus, setVideoGenerationStatus] = useState<{
-    [key: number]: string;
-  }>({});
+  const [videoGenerationStatus, setVideoGenerationStatus] = useState<{[key: number]: string}>({});
 
   // AI-Assisted workflow functions
   const handleAiAssistedFlow = () => {
-    setCreationMethod("manual");
-    setAiWorkflowStep("template-selection");
+    setCreationMethod('manual');
+    setAiWorkflowStep('template-selection');
   };
 
   const handleTemplateSelection = (template: any) => {
     setAiSelectedTemplate(template);
-
+    
     // Check if this is a user module template
     if (template.isUserModule && modules) {
-      const originalModule = modules.find(
-        (m: any) => m.id === template.originalModuleId,
-      );
-
+      const originalModule = modules.find((m: any) => m.id === template.originalModuleId);
+      
       if (originalModule) {
-        const parsedSections = originalModule.sections
-          ? JSON.parse(originalModule.sections)
-          : [];
-
-        setNewModule((prev) => ({
+        const parsedSections = originalModule.sections ? JSON.parse(originalModule.sections) : [];
+        
+        setNewModule(prev => ({
           ...prev,
           title: `${template.title} (Copy)`,
           description: template.description,
@@ -1152,75 +891,67 @@ export default function ComprehensiveModuleCreator() {
           estimatedTime: originalModule.estimatedTime,
           sections: parsedSections.map((section: any) => ({
             title: section.title,
-            content: section.content || "",
-            videoUrl: section.videoUrl || "",
-            imageUrl: section.imageUrl || "",
-            type: section.type || "text",
+            content: section.content || '',
+            videoUrl: section.videoUrl || '',
+            imageUrl: section.imageUrl || '',
+            type: section.type || 'text',
             duration: section.duration || 5,
-            activities: section.activities || [
-              {
-                type: "read" as const,
-                title: section.title,
-                duration: section.duration || 5,
-                content: section.content || "",
-                videoUrl: section.videoUrl || "",
-                audioUrl: section.audioUrl || "",
-                interactionType: "form" as const,
-              },
-            ],
+            activities: section.activities || [{
+              type: 'read' as const,
+              title: section.title,
+              duration: section.duration || 5,
+              content: section.content || '',
+              videoUrl: section.videoUrl || '',
+              audioUrl: section.audioUrl || '',
+              interactionType: 'form' as const
+            }],
             questions: section.questions || [],
             scenarios: section.scenarios || [],
-            audioUrl: section.audioUrl || "",
-            slides: section.slides || [],
-          })),
+            audioUrl: section.audioUrl || '',
+            slides: section.slides || []
+          }))
         }));
       }
     } else {
       // Handle proven template structure - preserve user's title if already set
-      setNewModule((prev) => ({
+      setNewModule(prev => ({
         ...prev,
         title: prev.title.trim() ? prev.title : template.title,
-        description: prev.description.trim()
-          ? prev.description
-          : template.description,
-        estimatedTime: prev.estimatedTime.trim()
-          ? prev.estimatedTime
-          : template.duration.replace(" min", ""),
+        description: prev.description.trim() ? prev.description : template.description,
+        estimatedTime: prev.estimatedTime.trim() ? prev.estimatedTime : template.duration.replace(' min', ''),
         sections: template.sections.map((section: any) => ({
           title: section.title,
-          content: "",
-          videoUrl: "",
-          imageUrl: "",
+          content: '',
+          videoUrl: '',
+          imageUrl: '',
           type: section.type,
           duration: section.duration,
-          activities: [
-            {
-              type: "read" as const,
-              title: section.title,
-              duration: section.duration,
-              content: "",
-              videoUrl: "",
-              audioUrl: "",
-              interactionType: "form" as const,
-            },
-          ],
+          activities: [{
+            type: 'read' as const,
+            title: section.title,
+            duration: section.duration,
+            content: '',
+            videoUrl: '',
+            audioUrl: '',
+            interactionType: 'form' as const
+          }],
           questions: [],
           scenarios: [],
-          audioUrl: "",
-          slides: [],
-        })),
+          audioUrl: '',
+          slides: []
+        }))
       }));
     }
-
-    setAiWorkflowStep("section-builder");
+    
+    setAiWorkflowStep('section-builder');
   };
 
   const handleCustomTemplateBuilder = () => {
-    setAiWorkflowStep("template-builder");
+    setAiWorkflowStep('template-builder');
   };
 
   const proceedToSectionBuilder = () => {
-    setAiWorkflowStep("section-builder");
+    setAiWorkflowStep('section-builder');
     setCurrentSectionIndex(0);
   };
 
@@ -1229,33 +960,27 @@ export default function ComprehensiveModuleCreator() {
     // This function ensures content is preserved when navigating between sections
     const currentSection = newModule.sections[currentSectionIndex];
     if (!currentSection) return;
-
+    
     // Apply universal quiz conversion to any section that might contain quiz content
-    if (
-      currentSection &&
-      (currentSection.title.toLowerCase().includes("pre-check") ||
-        currentSection.title.toLowerCase().includes("quiz") ||
-        currentSection.title.toLowerCase().includes("question") ||
-        currentSection.type === "quiz" ||
-        (currentSection.content &&
-          typeof currentSection.content === "string" &&
-          (currentSection.content.includes("a)") ||
-            currentSection.content.includes("1.") ||
-            currentSection.content.toLowerCase().includes("question"))))
-    ) {
-      const quizData = convertContentToQuiz(
-        currentSection.content as string,
-        currentSection.title,
-      );
-
+    if (currentSection && (
+      currentSection.title.toLowerCase().includes('pre-check') || 
+      currentSection.title.toLowerCase().includes('quiz') ||
+      currentSection.title.toLowerCase().includes('question') ||
+      currentSection.type === 'quiz' ||
+      (currentSection.content && typeof currentSection.content === 'string' && 
+       (currentSection.content.includes('a)') || currentSection.content.includes('1.') ||
+        currentSection.content.toLowerCase().includes('question')))
+    )) {
+      const quizData = convertContentToQuiz(currentSection.content as string, currentSection.title);
+      
       if (quizData) {
         const updatedSections = [...newModule.sections];
         updatedSections[currentSectionIndex] = {
           ...currentSection,
-          ...quizData,
+          ...quizData
         };
-        setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
+        setNewModule(prev => ({ ...prev, sections: updatedSections }));
+        
         toast({
           title: "Quiz Created",
           description: `Converted content to interactive quiz with ${quizData.questions.length} questions`,
@@ -1266,21 +991,21 @@ export default function ComprehensiveModuleCreator() {
 
   const nextSection = () => {
     saveCurrentSectionContent();
-
+    
     // Move to next section or preview
     if (currentSectionIndex < newModule.sections.length - 1) {
-      setCompletedSections((prev) => [...prev, currentSectionIndex]);
-      setCurrentSectionIndex((prev) => prev + 1);
+      setCompletedSections(prev => [...prev, currentSectionIndex]);
+      setCurrentSectionIndex(prev => prev + 1);
     } else {
-      setCompletedSections((prev) => [...prev, currentSectionIndex]);
-      setAiWorkflowStep("preview");
+      setCompletedSections(prev => [...prev, currentSectionIndex]);
+      setAiWorkflowStep('preview');
     }
   };
 
   const previousSection = () => {
     saveCurrentSectionContent();
     if (currentSectionIndex > 0) {
-      setCurrentSectionIndex((prev) => prev - 1);
+      setCurrentSectionIndex(prev => prev - 1);
     }
   };
 
@@ -1288,108 +1013,73 @@ export default function ComprehensiveModuleCreator() {
   const jumpToSection = (sectionIndex: number) => {
     saveCurrentSectionContent();
     setCurrentSectionIndex(sectionIndex);
-    setAiWorkflowStep("section-builder");
+    setAiWorkflowStep('section-builder');
   };
 
   // AI Content Generation for Section Builder
   const [isGeneratingAIContent, setIsGeneratingAIContent] = useState(false);
   const [showTopicInput, setShowTopicInput] = useState(false);
-  const [aiTopicInput, setAiTopicInput] = useState("");
-  const [aiGeneratedBlocks, setAiGeneratedBlocks] = useState<
-    Array<{
-      type: string;
-      content: string;
-      preview: string;
-    }>
-  >([]);
-
+  const [aiTopicInput, setAiTopicInput] = useState('');
+  const [aiGeneratedBlocks, setAiGeneratedBlocks] = useState<Array<{
+    type: string;
+    content: string;
+    preview: string;
+  }>>([]);
+  
   // Regeneration states
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
-  const [regenerationGuidance, setRegenerationGuidance] = useState("");
+  const [regenerationGuidance, setRegenerationGuidance] = useState('');
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Interactive Quiz Builder State
   const [isQuizBuilder, setIsQuizBuilder] = useState(false);
   const [currentQuizQuestion, setCurrentQuizQuestion] = useState({
-    question: "",
-    answers: ["", "", "", ""],
+    question: '',
+    answers: ['', '', '', ''],
     correctAnswer: 0,
-    explanation: "",
+    explanation: ''
   });
-  const [builtQuizQuestions, setBuiltQuizQuestions] = useState<
-    Array<{
-      question: string;
-      answers: string[];
-      correctAnswer: number;
-    }>
-  >([]);
+  const [builtQuizQuestions, setBuiltQuizQuestions] = useState<Array<{
+    question: string;
+    answers: string[];
+    correctAnswer: number;
+  }>>([]);
 
   // Interactive Activity Builder State
   const [isActivityBuilder, setIsActivityBuilder] = useState(false);
   const [currentActivity, setCurrentActivity] = useState({
-    title: "",
-    activityType: "drag-and-match",
-    instructions: "",
-    promptItems: ["", "", "", ""],
-    answerKey: ["", "", "", ""],
-    preview: "",
+    title: '',
+    activityType: 'drag-and-match',
+    instructions: '',
+    promptItems: ['', '', '', ''],
+    answerKey: ['', '', '', ''],
+    preview: '',
     uiHints: {
-      leftColumnTitle: "Items to Match",
-      rightColumnTitle: "Categories",
-      dragInstruction: "Drag items to their matching categories",
+      leftColumnTitle: 'Items to Match',
+      rightColumnTitle: 'Categories',
+      dragInstruction: 'Drag items to their matching categories'
     },
-    imageSupport: false,
+    imageSupport: false
   });
-  const [builtActivities, setBuiltActivities] = useState<
-    Array<{
-      title: string;
-      activityType: string;
-      instructions: string;
-      promptItems: string[];
-      answerKey: string[];
-      preview: string;
-      uiHints: any;
-      imageSupport: boolean;
-    }>
-  >([]);
+  const [builtActivities, setBuiltActivities] = useState<Array<{
+    title: string;
+    activityType: string;
+    instructions: string;
+    promptItems: string[];
+    answerKey: string[];
+    preview: string;
+    uiHints: any;
+    imageSupport: boolean;
+  }>>([]);
   const [isGeneratingActivity, setIsGeneratingActivity] = useState(false);
-  const [activityDifficulty, setActivityDifficulty] = useState("medium");
-
-  // Case Study Builder State
-  const [isCaseStudyBuilder, setIsCaseStudyBuilder] = useState(false);
-  const [currentCaseStudy, setCurrrentCaseStudy] = useState({
-    title: "",
-    scenario: "",
-    character: "",
-    setting: "",
-    challenge: "",
-    keyPoints: ["", "", ""],
-    reflectionQuestions: ["", ""],
-    learningOutcomes: "",
-  });
-  const [builtCaseStudies, setBuiltCaseStudies] = useState<Array<any>>([]);
-  const [isGeneratingCaseStudy, setIsGeneratingCaseStudy] = useState(false);
-
-  // Reflection Builder State
-  const [isReflectionBuilder, setIsReflectionBuilder] = useState(false);
-  const [currentReflection, setCurrentReflection] = useState({
-    title: "",
-    prompt: "",
-    guidingQuestions: ["", "", ""],
-    responseType: "journal",
-    timeEstimate: 5,
-    category: "self-assessment",
-  });
-  const [builtReflections, setBuiltReflections] = useState<Array<any>>([]);
-  const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
 
   // Interactive Quiz Builder Functions
   const startQuizBuilder = () => {
     setIsQuizBuilder(true);
     setCurrentQuizQuestion({
-      question: "",
-      answers: ["", "", "", ""],
-      correctAnswer: 0,
+      question: '',
+      answers: ['', '', '', ''],
+      correctAnswer: 0
     });
     setBuiltQuizQuestions([]);
   };
@@ -1399,37 +1089,31 @@ export default function ComprehensiveModuleCreator() {
     if (!currentSection) return;
 
     setIsGeneratingQuizQuestion(true);
-
+    
     try {
-      const response = await apiRequest(
-        "POST",
-        "/api/ai/generate-single-quiz-question",
-        {
-          moduleTitle: initialModuleData.title || newModule.title,
-          moduleDescription:
-            initialModuleData.learningObjective || newModule.description,
-          sectionTitle: currentSection.title,
-          category: newModule.category,
-          difficulty: quizDifficulty,
-          existingQuestions: builtQuizQuestions.map((q) => q.question),
-          learningObjective: initialModuleData.learningObjective,
-        },
-      );
+      const response = await apiRequest('POST', '/api/ai/generate-single-quiz-question', {
+        moduleTitle: initialModuleData.title || newModule.title,
+        moduleDescription: initialModuleData.learningObjective || newModule.description,
+        sectionTitle: currentSection.title,
+        category: newModule.category,
+        difficulty: quizDifficulty,
+        existingQuestions: builtQuizQuestions.map(q => q.question),
+        learningObjective: initialModuleData.learningObjective
+      });
 
       if (response.question) {
         setCurrentQuizQuestion({
           question: response.question.question || response.question,
-          answers: response.question.answers || ["", "", "", ""],
+          answers: response.question.answers || ['', '', '', ''],
           correctAnswer: response.question.correctAnswer || 0,
-          explanation: response.question.explanation || "",
+          explanation:  response.question.explanation || ''
         });
       }
     } catch (error) {
-      console.error("Error generating quiz question:", error);
+      console.error('Error generating quiz question:', error);
       toast({
         title: "Generation Failed",
-        description:
-          "Unable to generate quiz question. Please create manually.",
+        description: "Unable to generate quiz question. Please create manually.",
         variant: "destructive",
       });
     } finally {
@@ -1438,10 +1122,8 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const addQuestionToQuiz = () => {
-    if (
-      !currentQuizQuestion.question.trim() ||
-      currentQuizQuestion.answers.filter((a) => a.trim()).length < 2
-    ) {
+    if (!currentQuizQuestion.question.trim() || 
+        currentQuizQuestion.answers.filter(a => a.trim()).length < 2) {
       toast({
         title: "Incomplete Question",
         description: "Please add a question and at least 2 answers.",
@@ -1450,12 +1132,12 @@ export default function ComprehensiveModuleCreator() {
       return;
     }
 
-    setBuiltQuizQuestions((prev) => [...prev, { ...currentQuizQuestion }]);
+    setBuiltQuizQuestions(prev => [...prev, { ...currentQuizQuestion }]);
     setCurrentQuizQuestion({
-      question: "",
-      answers: ["", "", "", ""],
+      question: '',
+      answers: ['', '', '', ''],
       correctAnswer: 0,
-      explanation: "",
+      explanation: ''
     });
 
     toast({
@@ -1477,340 +1159,53 @@ export default function ComprehensiveModuleCreator() {
     const updatedSections = [...newModule.sections];
     updatedSections[currentSectionIndex] = {
       ...updatedSections[currentSectionIndex],
-      type: "quiz",
+      type: 'quiz',
       questions: builtQuizQuestions,
-      content: `Interactive Quiz: ${updatedSections[currentSectionIndex].title}`,
+      content: `Interactive Quiz: ${updatedSections[currentSectionIndex].title}`
     };
-    setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
+    setNewModule(prev => ({ ...prev, sections: updatedSections }));
+    
     setIsQuizBuilder(false);
     setBuiltQuizQuestions([]);
-
+    
     toast({
       title: "Quiz Created Successfully",
       description: `Created interactive quiz with ${builtQuizQuestions.length} questions`,
     });
-
+    
     // Auto-advance to next section
     nextSection();
   };
 
   const removeQuestionFromQuiz = (index: number) => {
-    setBuiltQuizQuestions((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Generate AI Activity
-  const generateSingleActivity = async () => {
-    const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection) return;
-
-    setIsGeneratingActivity(true);
-
-    try {
-      const response = await apiRequest(
-        "POST",
-        "/api/ai/generate-interactive-activity",
-        {
-          moduleTitle: initialModuleData.title || newModule.title,
-          moduleDescription:
-            initialModuleData.learningObjective || newModule.description,
-          sectionTitle: currentSection.title,
-          category: newModule.category,
-          difficulty: activityDifficulty,
-          activityType: currentActivity.activityType,
-          learningObjective: initialModuleData.learningObjective,
-        },
-      );
-
-      if (response.activity) {
-        setCurrentActivity({
-          ...currentActivity,
-          title: response.activity.title || currentActivity.title,
-          instructions:
-            response.activity.instructions || currentActivity.instructions,
-          promptItems:
-            response.activity.promptItems || currentActivity.promptItems,
-          answerKey: response.activity.answerKey || currentActivity.answerKey,
-        });
-      }
-    } catch (error) {
-      console.error("Error generating activity:", error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to generate activity. Please create manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingActivity(false);
-    }
-  };
-
-  const saveActivityAndContinue = () => {
-    if (builtActivities.length === 0) {
-      toast({
-        title: "No Activities",
-        description: "Please add at least one activity.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const updatedSections = [...newModule.sections];
-    updatedSections[currentSectionIndex] = {
-      ...updatedSections[currentSectionIndex],
-      type: "matching",
-      activities: builtActivities.map((activity) => ({
-        type: "practice" as const,
-        title: activity.title,
-        duration: 3,
-        content: activity.instructions,
-        videoUrl: "",
-        audioUrl: "",
-        interactionType: activity.activityType,
-      })),
-      content: `Interactive Activity: ${updatedSections[currentSectionIndex].title}`,
-    };
-    setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
-    setIsActivityBuilder(false);
-    setBuiltActivities([]);
-
-    toast({
-      title: "Activity Created Successfully",
-      description: `Created interactive activity with ${builtActivities.length} components`,
-    });
-
-    nextSection();
-  };
-
-  // Case Study Builder Functions
-  const startCaseStudyBuilder = () => {
-    setIsCaseStudyBuilder(true);
-    setCurrrentCaseStudy({
-      title: "",
-      scenario: "",
-      character: "",
-      setting: "",
-      challenge: "",
-      keyPoints: ["", "", ""],
-      reflectionQuestions: ["", ""],
-      learningOutcomes: "",
-    });
-    setBuiltCaseStudies([]);
-  };
-
-  const generateCaseStudy = async () => {
-    const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection) return;
-
-    setIsGeneratingCaseStudy(true);
-
-    try {
-      const response = await apiRequest("POST", "/api/ai/generate-case-study", {
-        moduleTitle: initialModuleData.title || newModule.title,
-        moduleDescription:
-          initialModuleData.learningObjective || newModule.description,
-        sectionTitle: currentSection.title,
-        category: newModule.category,
-        learningObjective: initialModuleData.learningObjective,
-      });
-
-      if (response.caseStudy) {
-        setCurrrentCaseStudy({
-          ...currentCaseStudy,
-          ...response.caseStudy,
-        });
-      }
-    } catch (error) {
-      console.error("Error generating case study:", error);
-      toast({
-        title: "Generation Failed",
-        description: "Unable to generate case study. Please create manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingCaseStudy(false);
-    }
-  };
-
-  const finishCaseStudyAndSave = () => {
-    if (!currentCaseStudy.title.trim() || !currentCaseStudy.scenario.trim()) {
-      toast({
-        title: "Incomplete Case Study",
-        description: "Please provide at least a title and scenario.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const updatedSections = [...newModule.sections];
-    updatedSections[currentSectionIndex] = {
-      ...updatedSections[currentSectionIndex],
-      type: "story",
-      content: `${currentCaseStudy.scenario}\n\nKey Learning Points:\n${currentCaseStudy.keyPoints
-        .filter((p) => p.trim())
-        .map((p) => `• ${p}`)
-        .join(
-          "\n",
-        )}\n\nReflection Questions:\n${currentCaseStudy.reflectionQuestions
-        .filter((q) => q.trim())
-        .map((q) => `• ${q}`)
-        .join("\n")}`,
-      activities: [
-        {
-          type: "reflect" as const,
-          title: currentCaseStudy.title,
-          duration: 5,
-          content: currentCaseStudy.scenario,
-          videoUrl: "",
-          audioUrl: "",
-          interactionType: "form",
-        },
-      ],
-    };
-    setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
-    setIsCaseStudyBuilder(false);
-
-    toast({
-      title: "Case Study Created Successfully",
-      description: `Created case study: ${currentCaseStudy.title}`,
-    });
-
-    nextSection();
-  };
-
-  // Reflection Builder Functions
-  const startReflectionBuilder = () => {
-    setIsReflectionBuilder(true);
-    setCurrentReflection({
-      title: "",
-      prompt: "",
-      guidingQuestions: ["", "", ""],
-      responseType: "journal",
-      timeEstimate: 5,
-      category: "self-assessment",
-    });
-    setBuiltReflections([]);
-  };
-
-  const generateReflection = async () => {
-    const currentSection = newModule.sections[currentSectionIndex];
-    if (!currentSection) return;
-
-    setIsGeneratingReflection(true);
-
-    try {
-      const response = await apiRequest(
-        "POST",
-        "/api/ai/generate-reflection-prompt",
-        {
-          moduleTitle: initialModuleData.title || newModule.title,
-          moduleDescription:
-            initialModuleData.learningObjective || newModule.description,
-          sectionTitle: currentSection.title,
-          category: newModule.category,
-          learningObjective: initialModuleData.learningObjective,
-        },
-      );
-
-      if (response.reflection) {
-        setCurrentReflection({
-          ...currentReflection,
-          ...response.reflection,
-        });
-      }
-    } catch (error) {
-      console.error("Error generating reflection:", error);
-      toast({
-        title: "Generation Failed",
-        description:
-          "Unable to generate reflection prompt. Please create manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingReflection(false);
-    }
-  };
-
-  const finishReflectionAndSave = () => {
-    if (!currentReflection.title.trim() || !currentReflection.prompt.trim()) {
-      toast({
-        title: "Incomplete Reflection",
-        description: "Please provide at least a title and prompt.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const updatedSections = [...newModule.sections];
-    updatedSections[currentSectionIndex] = {
-      ...updatedSections[currentSectionIndex],
-      type: "text",
-      content: `${currentReflection.prompt}\n\nGuiding Questions:\n${currentReflection.guidingQuestions
-        .filter((q) => q.trim())
-        .map((q) => `• ${q}`)
-        .join("\n")}`,
-      activities: [
-        {
-          type:
-            currentReflection.responseType === "journal"
-              ? "journal"
-              : ("reflect" as const),
-          title: currentReflection.title,
-          duration: currentReflection.timeEstimate,
-          content: currentReflection.prompt,
-          videoUrl: "",
-          audioUrl: "",
-          interactionType: "form",
-        },
-      ],
-    };
-    setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
-    setIsReflectionBuilder(false);
-
-    toast({
-      title: "Reflection Created Successfully",
-      description: `Created reflection: ${currentReflection.title}`,
-    });
-
-    nextSection();
+    setBuiltQuizQuestions(prev => prev.filter((_, i) => i !== index));
   };
 
   // Interactive Activity Builder Functions
   const startActivityBuilder = () => {
     setIsActivityBuilder(true);
     setCurrentActivity({
-      title: "",
-      activityType: "drag-and-match",
-      instructions: "",
-      promptItems: ["", "", "", ""],
-      answerKey: ["", "", "", ""],
-      preview: "",
+      title: '',
+      activityType: 'drag-and-match',
+      instructions: '',
+      promptItems: ['', '', '', ''],
+      answerKey: ['', '', '', ''],
+      preview: '',
       uiHints: {
-        leftColumnTitle: "Items to Match",
-        rightColumnTitle: "Categories",
-        dragInstruction: "Drag items to their matching categories",
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
       },
-      imageSupport: false,
+      imageSupport: false
     });
     setBuiltActivities([]);
   };
 
-  // Activity helper functions
-  const updateActivityField = (field: string, value: any) => {
-    setCurrentActivity((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   const addActivityItem = () => {
-    setCurrentActivity((prev) => ({
+    setCurrentActivity(prev => ({
       ...prev,
-      promptItems: [...prev.promptItems, ""],
-      answerKey: [...prev.answerKey, ""],
+      promptItems: [...prev.promptItems, ''],
+      answerKey: [...prev.answerKey, '']
     }));
   };
 
@@ -1818,19 +1213,14 @@ export default function ComprehensiveModuleCreator() {
     if (!currentActivity.title.trim() || !currentActivity.instructions.trim()) {
       toast({
         title: "Incomplete Activity",
-        description:
-          "Please provide both title and instructions for the activity.",
+        description: "Please provide both title and instructions for the activity.",
         variant: "destructive",
       });
       return;
     }
 
-    const validItems = currentActivity.promptItems.filter((item: string) =>
-      item.trim(),
-    );
-    const validAnswers = currentActivity.answerKey.filter((answer: string) =>
-      answer.trim(),
-    );
+    const validItems = currentActivity.promptItems.filter(item => item.trim());
+    const validAnswers = currentActivity.answerKey.filter(answer => answer.trim());
 
     if (validItems.length < 2 || validAnswers.length < 2) {
       toast({
@@ -1845,30 +1235,30 @@ export default function ComprehensiveModuleCreator() {
       ...currentActivity,
       promptItems: validItems,
       answerKey: validAnswers,
-      preview: `${currentActivity.activityType}: ${currentActivity.title}`,
+      preview: `${currentActivity.activityType}: ${currentActivity.title}`
     };
 
-    setBuiltActivities((prev) => [...prev, newActivity]);
-
+    setBuiltActivities(prev => [...prev, newActivity]);
+    
     // Reset current activity for next one
     setCurrentActivity({
-      title: "",
-      activityType: "drag-and-match",
-      instructions: "",
-      promptItems: ["", "", "", ""],
-      answerKey: ["", "", "", ""],
-      preview: "",
+      title: '',
+      activityType: 'drag-and-match',
+      instructions: '',
+      promptItems: ['', '', '', ''],
+      answerKey: ['', '', '', ''],
+      preview: '',
       uiHints: {
-        leftColumnTitle: "Items to Match",
-        rightColumnTitle: "Categories",
-        dragInstruction: "Drag items to their matching categories",
+        leftColumnTitle: 'Items to Match',
+        rightColumnTitle: 'Categories',
+        dragInstruction: 'Drag items to their matching categories'
       },
-      imageSupport: false,
+      imageSupport: false
     });
 
     toast({
       title: "Activity Added",
-      description: `Activity builder now has ${builtActivities.length + 1} activities`,
+      description: `${newActivity.title} has been added to your activity list.`,
     });
   };
 
@@ -1893,40 +1283,24 @@ export default function ComprehensiveModuleCreator() {
   //     }]
   //   };
   //   setNewModule(prev => ({ ...prev, sections: updatedSections }));
-
+    
   //   setIsActivityBuilder(false);
   //   setBuiltActivities([]);
-
+    
   //   toast({
   //     title: "Activities Created Successfully",
   //     description: `Created interactive section with ${builtActivities.length} activities`,
   //   });
-
+    
   //   // Auto-advance to next section
   //   nextSection();
   // };
 
-  const updateActivityItem = (
-    field: "promptItems" | "answerKey",
-    index: number,
-    value: string,
-  ) => {
-    setCurrentActivity((prev) => ({
-      ...prev,
-      [field]: prev[field].map((item: string, i: number) =>
-        i === index ? value : item,
-      ),
-    }));
-  };
 
   const addActivityToList = () => {
-    if (
-      !currentActivity.title.trim() ||
-      currentActivity.promptItems.filter((item: string) => item.trim()).length <
-        2 ||
-      currentActivity.answerKey.filter((answer: string) => answer.trim())
-        .length < 2
-    ) {
+    if (!currentActivity.title.trim() || 
+        currentActivity.items.filter(i => i.trim()).length < 2 ||
+        currentActivity.answers.filter(a => a.trim()).length < 2) {
       toast({
         title: "Incomplete Activity",
         description: "Please add a title and at least 2 items with answers.",
@@ -1935,20 +1309,14 @@ export default function ComprehensiveModuleCreator() {
       return;
     }
 
-    setBuiltActivities((prev) => [...prev, { ...currentActivity }]);
+    setBuiltActivities(prev => [...prev, { ...currentActivity }]);
     setCurrentActivity({
-      title: "",
+      title: '',
       activityType: currentActivity.activityType,
-      instructions: "",
-      promptItems: ["", ""],
-      answerKey: ["", ""],
-      preview: "",
-      uiHints: {
-        leftColumnTitle: "Items to Match",
-        rightColumnTitle: "Categories",
-        dragInstruction: "Drag items to their matching categories",
-      },
-      imageSupport: false,
+      instructions: '',
+      items: ['', ''],
+      answers: ['', ''],
+      preview: ''
     });
 
     toast({
@@ -1957,43 +1325,98 @@ export default function ComprehensiveModuleCreator() {
     });
   };
 
+  const removeActivityFromList = (index: number) => {
+    setBuiltActivities(prev => prev.filter((_, i) => i !== index));
+  };
+
   const removeActivityItem = (index: number) => {
-    setCurrentActivity((prev) => ({
+    setCurrentActivity(prev => ({
       ...prev,
       promptItems: prev.promptItems.filter((_, i) => i !== index),
-      answerKey: prev.answerKey.filter((_, i) => i !== index),
+      answerKey: prev.answerKey.filter((_, i) => i !== index)
     }));
   };
+
+  const updateActivityItem = (index: number, field: 'promptItems' | 'answerKey', value: string) => {
+    setCurrentActivity(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const generateSingleActivity = async () => {
+    const currentSection = newModule.sections[currentSectionIndex];
+    if (!currentSection) return;
+    
+    setIsGeneratingActivity(true);
+    
+    try {
+      const response = await apiRequest('/api/ai/generate-single-activity', {
+        method: 'POST',
+        data: {
+          moduleTitle: initialModuleData.title || newModule.title,
+          moduleDescription: initialModuleData.learningObjective || newModule.description,
+          sectionTitle: currentSection.title,
+          category: newModule.category,
+          activityType: currentActivity.activityType,
+          existingActivities: builtActivities.map(a => a.title),
+          learningObjective: initialModuleData.learningObjective
+        }
+      });
+
+      if (response.activity) {
+        setCurrentActivity({
+          title: response.activity.title || '',
+          activityType: response.activity.activityType || currentActivity.activityType,
+          instructions: response.activity.instructions || '',
+          promptItems: response.activity.promptItems || ['', '', '', ''],
+          answerKey: response.activity.answerKey || ['', '', '', ''],
+          preview: response.activity.preview || '',
+          uiHints: response.activity.uiHints || currentActivity.uiHints,
+          imageSupport: response.activity.imageSupport || false
+        });
+      }
+    } catch (error) {
+      console.error('Error generating activity:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Unable to generate activity. Please create manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingActivity(false);
+    }
+  };
+
 
   const generateActivityList = async () => {
     const currentSection = newModule.sections[currentSectionIndex];
     if (!currentSection) return;
-
+    
     setIsGeneratingActivity(true);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-activity-list", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-activity-list', {
+        method: 'POST',
         data: {
           moduleTitle: initialModuleData.title || newModule.title,
-          moduleDescription:
-            initialModuleData.learningObjective || newModule.description,
+          moduleDescription: initialModuleData.learningObjective || newModule.description,
           sectionTitle: currentSection.title,
           category: newModule.category,
-          learningObjective: initialModuleData.learningObjective,
-        },
+          learningObjective: initialModuleData.learningObjective
+        }
       });
 
       if (response.activities && Array.isArray(response.activities)) {
         setBuiltActivities(response.activities);
-
+        
         toast({
           title: "Activities Generated",
           description: `Generated ${response.activities.length} interactive activities`,
         });
       }
     } catch (error) {
-      console.error("Error generating activities:", error);
+      console.error('Error generating activities:', error);
       toast({
         title: "Generation Failed",
         description: "Unable to generate activities. Please create manually.",
@@ -2003,6 +1426,8 @@ export default function ComprehensiveModuleCreator() {
       setIsGeneratingActivity(false);
     }
   };
+
+
 
   const finishActivityAndSave = () => {
     if (builtActivities.length === 0) {
@@ -2018,41 +1443,38 @@ export default function ComprehensiveModuleCreator() {
     const activityContent = {
       activities: builtActivities,
       totalActivities: builtActivities.length,
-      interactionType: "guided-activity",
+      interactionType: 'guided-activity'
     };
 
     // Update the current section with the activity content
-    setNewModule((prev) => ({
+    setNewModule(prev => ({
       ...prev,
-      sections: prev.sections.map((section, index) =>
-        index === currentSectionIndex
-          ? {
-              ...section,
+      sections: prev.sections.map((section, index) => 
+        index === currentSectionIndex 
+          ? { 
+              ...section, 
               content: JSON.stringify(activityContent),
-              type: "scenario-match" as const,
+              type: 'scenario-match' as const
             }
-          : section,
-      ),
+          : section
+      )
     }));
 
     // Reset activity builder state
     setIsActivityBuilder(false);
     setBuiltActivities([]);
-
+    
     toast({
       title: "Activities Created Successfully",
       description: `Created interactive activity section with ${builtActivities.length} activities`,
     });
-
+    
     // Auto-advance to next section
     nextSection();
   };
 
   const completeInitialSetup = () => {
-    if (
-      !initialModuleData.title.trim() ||
-      !initialModuleData.learningObjective.trim()
-    ) {
+    if (!initialModuleData.title.trim() || !initialModuleData.learningObjective.trim()) {
       toast({
         title: "Missing Information",
         description: "Please provide both a title and learning objective.",
@@ -2062,23 +1484,22 @@ export default function ComprehensiveModuleCreator() {
     }
 
     // Update the module with the initial data
-    setNewModule((prev) => ({
+    setNewModule(prev => ({
       ...prev,
       title: initialModuleData.title,
       description: initialModuleData.learningObjective,
       // Store this as the primary context for all AI operations
       moduleContext: {
         title: initialModuleData.title,
-        learningObjective: initialModuleData.learningObjective,
-      },
+        learningObjective: initialModuleData.learningObjective
+      }
     }));
 
     setShowInitialSetup(false);
-
+    
     toast({
       title: "Module Setup Complete",
-      description:
-        "Your title and learning objective will guide all AI content generation.",
+      description: "Your title and learning objective will guide all AI content generation.",
     });
   };
 
@@ -2088,59 +1509,49 @@ export default function ComprehensiveModuleCreator() {
 
     // Use the initial module data or fall back to asking for specific topic
     const primaryTopic = initialModuleData.title || newModule.title;
-    const learningObjective =
-      initialModuleData.learningObjective || newModule.description;
-
+    const learningObjective = initialModuleData.learningObjective || newModule.description;
+    
     if (!primaryTopic && !aiTopicInput.trim()) {
       setShowTopicInput(true);
       return;
     }
 
     setIsGeneratingAIContent(true);
-
+    
     try {
-      const response = await apiRequest(
-        "POST",
-        "/api/ai/generate-content-blocks",
-        {
-          topic:
-            aiTopicInput.trim() || `${primaryTopic} - ${learningObjective}`,
-          sectionTitle: currentSection.title,
-          moduleTitle: primaryTopic || "Professional Development Module",
-          sectionType: currentSection.type,
-          learningObjective: learningObjective,
-          isRegeneration: false,
-          regenerationGuidance: "",
-        },
-      );
-      setAiGeneratedBlocks([]);
+      const response = await apiRequest('POST', '/api/ai/generate-content-blocks', {
+        topic: aiTopicInput.trim() || `${primaryTopic} - ${learningObjective}`,
+        sectionTitle: currentSection.title,
+        moduleTitle: primaryTopic || 'Professional Development Module',
+        sectionType: currentSection.type,
+        learningObjective: learningObjective,
+        isRegeneration: false,
+        regenerationGuidance: ''
+      });
+      setAiGeneratedBlocks([])
 
       if (response.blocks && response.blocks.length > 0) {
-        console.log("content block generated", response.blocks);
+        console.log('content block generated',response.blocks)
         // Add new content blocks with humor and evidence-based content
-        const newBlocks = response.blocks.map((block) => ({
+        const newBlocks = response.blocks.map(block => ({
           type: block.type,
           content: block.content,
-          preview: block.preview,
+          preview: block.preview
         }));
 
-        setAiGeneratedBlocks((prev) => [...prev, ...newBlocks]);
-
-        // Auto-populate appropriate builder based on section type
-        autoPopulateBuilderFromAI(newBlocks, currentSection);
-
+        setAiGeneratedBlocks(prev => [...prev, ...newBlocks]);
+        
         toast({
-          title: "Content Generated",
+          title: 'Content Generated',
           description: `Generated ${newBlocks.length} engaging content blocks based on "${primaryTopic}".`,
         });
       }
     } catch (error) {
-      console.error("AI generation error:", error);
+      console.error('AI generation error:', error);
       toast({
-        title: "Generation Failed",
-        description:
-          "Unable to generate content. Please try again or add content manually.",
-        variant: "destructive",
+        title: 'Generation Failed',
+        description: 'Unable to generate content. Please try again or add content manually.',
+        variant: 'destructive'
       });
     } finally {
       setIsGeneratingAIContent(false);
@@ -2154,210 +1565,60 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
-  // Auto-populate builder forms based on AI-generated content and section type
-  const autoPopulateBuilderFromAI = (blocks: any[], section: ModuleSection) => {
-    const sectionTitle = section.title.toLowerCase();
-    const sectionType = section.type;
-
-    // Check if this is an interactive activity section
-    const isInteractiveSection =
-      sectionTitle.includes("interactive") ||
-      sectionTitle.includes("matching") ||
-      sectionTitle.includes("drag-and-drop") ||
-      sectionTitle.includes("categorization") ||
-      sectionType === "matching";
-
-    // Check if this is a case study section
-    const isCaseStudySection =
-      sectionTitle.includes("case study") ||
-      sectionTitle.includes("scenario") ||
-      sectionType === "story" ||
-      sectionType === "scenario";
-
-    // Check if this is a reflection section
-    const isReflectionSection =
-      sectionTitle.includes("reflection") ||
-      sectionTitle.includes("journal") ||
-      sectionTitle.includes("think about") ||
-      sectionTitle.includes("action plan");
-
-    if (isInteractiveSection && blocks.length > 0) {
-      // Auto-populate Interactive Activity Builder
-      const firstBlock = blocks[0];
-      if (firstBlock && firstBlock.content) {
-        try {
-          // Parse content to extract activity elements
-          const content = firstBlock.content;
-          const lines = content.split('\n').filter(line => line.trim());
-          
-          const promptItems: string[] = [];
-          const answerKey: string[] = [];
-          
-          lines.forEach(line => {
-            if (line.includes('Match:') || line.includes('Pair:') || line.includes('Connect:')) {
-              const parts = line.split(/[:→-]/);
-              if (parts.length >= 2) {
-                promptItems.push(parts[0].replace(/Match:|Pair:|Connect:/, '').trim());
-                answerKey.push(parts[1].trim());
-              }
-            }
-          });
-
-          if (promptItems.length > 0) {
-            setCurrentActivity({
-              title: section.title || "Interactive Activity",
-              activityType: "drag-and-match",
-              instructions: "Match the items by dragging them to their correct pairs.",
-              promptItems,
-              answerKey,
-              preview: content,
-              uiHints: {
-                leftColumnTitle: "Items",
-                rightColumnTitle: "Matches",
-                dragInstruction: "Drag items to match"
-              },
-              imageSupport: false
-            });
-            
-            // Auto-open the builder
-            setTimeout(() => setIsActivityBuilder(true), 500);
-          }
-        } catch (error) {
-          console.warn("Could not auto-populate interactive activity:", error);
-        }
-      }
-    }
-
-    if (isCaseStudySection && blocks.length > 0) {
-      // Auto-populate Case Study Builder
-      const firstBlock = blocks[0];
-      if (firstBlock && firstBlock.content) {
-        try {
-          const content = firstBlock.content;
-          
-          setCurrrentCaseStudy({
-            title: section.title || "Case Study",
-            scenario: content,
-            character: "Early Childhood Educator",
-            setting: "Preschool Classroom",
-            challenge: "Communication and Behavior Management",
-            keyPoints: [
-              "Effective communication strategies",
-              "Positive behavior support",
-              "Professional collaboration"
-            ],
-            reflectionQuestions: [
-              "What would you do in this situation?",
-              "How would you communicate with the stakeholders?"
-            ],
-            learningOutcomes: "Apply practical strategies and develop problem-solving skills"
-          });
-          
-          // Auto-open the builder
-          setTimeout(() => setIsCaseStudyBuilder(true), 500);
-        } catch (error) {
-          console.warn("Could not auto-populate case study:", error);
-        }
-      }
-    }
-
-    if (isReflectionSection && blocks.length > 0) {
-      // Auto-populate Reflection Builder
-      const firstBlock = blocks[0];
-      if (firstBlock && firstBlock.content) {
-        try {
-          const content = firstBlock.content;
-          const lines = content.split('\n').filter(line => line.trim());
-          
-          const prompts: string[] = [];
-          lines.forEach(line => {
-            if (line.includes('?') || line.includes('Consider:') || line.includes('Reflect on:')) {
-              prompts.push(line.trim());
-            }
-          });
-
-          if (prompts.length === 0) {
-            prompts.push("How does this content relate to your teaching practice?");
-            prompts.push("What key insights will you apply in your classroom?");
-          }
-
-          setCurrentReflection({
-            title: section.title || "Reflection Activity",
-            prompt: prompts.length > 0 ? prompts[0] : "How does this content relate to your teaching practice?",
-            guidingQuestions: prompts.slice(1, 4).concat(["", "", ""]).slice(0, 3),
-            responseType: "journal",
-            timeEstimate: 10,
-            category: "self-assessment"
-          });
-          
-          // Auto-open the builder
-          setTimeout(() => setIsReflectionBuilder(true), 500);
-        } catch (error) {
-          console.warn("Could not auto-populate reflection:", error);
-        }
-      }
-    }
-  };
-
   // Regeneration function with additional guidance
   const regenerateContentWithGuidance = async () => {
     const currentSection = newModule.sections[currentSectionIndex];
     if (!currentSection) return;
 
     const primaryTopic = initialModuleData.title || newModule.title;
-    const learningObjective =
-      initialModuleData.learningObjective || newModule.description;
-
+    const learningObjective = initialModuleData.learningObjective || newModule.description;
+    
     if (!primaryTopic) {
       toast({
         title: "Missing Topic",
         description: "Please set a module title first to regenerate content.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
 
     setIsRegenerating(true);
-
+    
     try {
-      const response = await apiRequest(
-        "POST",
-        "/api/ai/generate-content-blocks",
-        {
-          topic: `${primaryTopic} - ${learningObjective}`,
-          sectionTitle: currentSection.title,
-          moduleTitle: primaryTopic,
-          sectionType: currentSection.type,
-          learningObjective: learningObjective,
-          isRegeneration: true,
-          regenerationGuidance: regenerationGuidance,
-        },
-      );
+      const response = await apiRequest('POST', '/api/ai/generate-content-blocks', {
+        topic: `${primaryTopic} - ${learningObjective}`,
+        sectionTitle: currentSection.title,
+        moduleTitle: primaryTopic,
+        sectionType: currentSection.type,
+        learningObjective: learningObjective,
+        isRegeneration: true,
+        regenerationGuidance: regenerationGuidance
+      });
 
       if (response.blocks && response.blocks.length > 0) {
         const newBlocks = response.blocks.map((block: any) => ({
           type: block.type,
           content: block.content,
-          preview: block.preview,
+          preview: block.preview
         }));
 
         // Replace existing blocks with regenerated ones
         setAiGeneratedBlocks(newBlocks);
-
+        
         toast({
-          title: "Content Regenerated",
+          title: 'Content Regenerated',
           description: `Generated ${newBlocks.length} refined content blocks with your guidance.`,
         });
-
+        
         setShowRegenerateDialog(false);
-        setRegenerationGuidance("");
+        setRegenerationGuidance('');
       }
     } catch (error) {
-      console.error("Regeneration error:", error);
+      console.error('Regeneration error:', error);
       toast({
-        title: "Regeneration Failed",
-        description: "Unable to regenerate content. Please try again.",
-        variant: "destructive",
+        title: 'Regeneration Failed',
+        description: 'Unable to regenerate content. Please try again.',
+        variant: 'destructive'
       });
     } finally {
       setIsRegenerating(false);
@@ -2365,95 +1626,80 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const addCustomSection = (sectionType: string) => {
-    const sectionTypeConfig = SECTION_TYPES.find(
-      (type) => type.type === sectionType,
-    );
+    const sectionTypeConfig = SECTION_TYPES.find(type => type.type === sectionType);
     if (!sectionTypeConfig) return;
 
     const newSection: ModuleSection = {
       title: sectionTypeConfig.title,
-      content: "",
-      videoUrl: "",
-      imageUrl: "",
+      content: '',
+      videoUrl: '',
+      imageUrl: '',
       type: sectionType as any,
       duration: 5,
-      activities: [
-        {
-          type: "read" as const,
-          title: sectionTypeConfig.title,
-          duration: 5,
-          content: "",
-          videoUrl: "",
-          audioUrl: "",
-          interactionType: "form" as const,
-        },
-      ],
+      activities: [{
+        type: 'read' as const,
+        title: sectionTypeConfig.title,
+        duration: 5,
+        content: '',
+        videoUrl: '',
+        audioUrl: '',
+        interactionType: 'form' as const
+      }]
     };
 
-    setCustomTemplate((prev) => ({
+    setCustomTemplate(prev => ({
       ...prev,
-      sections: [...(prev?.sections || []), newSection],
+      sections: [...(prev?.sections || []), newSection]
     }));
   };
 
   // Function to load template data into the module creator
   const loadTemplateData = (template: any) => {
     if (!template) return;
-
+    
     try {
       // Convert template activities to module sections
-      const templateSections =
-        template.activities?.map((activity: any, index: number) => ({
-          title: activity.title || `Section ${index + 1}`,
-          content: activity.content || activity.description || "",
-          videoUrl: activity.videoUrl || "",
-          imageUrl: "",
-          type: "text" as const,
+      const templateSections = template.activities?.map((activity: any, index: number) => ({
+        title: activity.title || `Section ${index + 1}`,
+        content: activity.content || activity.description || '',
+        videoUrl: activity.videoUrl || '',
+        imageUrl: '',
+        type: 'text' as const,
+        duration: activity.duration || 5,
+        activities: [{
+          type: activity.type || 'read',
+          title: activity.title,
           duration: activity.duration || 5,
-          activities: [
-            {
-              type: activity.type || "read",
-              title: activity.title,
-              duration: activity.duration || 5,
-              content: activity.content || activity.description || "",
-              videoUrl: activity.videoUrl,
-              audioUrl: activity.audioUrl,
-              interactionType: activity.interactionType,
-            },
-          ],
-        })) || [];
+          content: activity.content || activity.description || '',
+          videoUrl: activity.videoUrl,
+          audioUrl: activity.audioUrl,
+          interactionType: activity.interactionType
+        }]
+      })) || [];
 
-      setNewModule((prev) => ({
+      setNewModule(prev => ({
         ...prev,
-        title: template.title || "",
-        description: template.description || "",
-        category: template.category || "classroom-management",
-        difficulty: template.difficulty || "beginner",
-        estimatedTime: String(
-          template.totalDuration || template.duration || 15,
-        ),
-        moduleType:
-          template.moduleType ||
-          (template.activities?.length > 1 ? "course" : "single"),
-        sections:
-          templateSections.length > 0 ? templateSections : prev.sections,
+        title: template.title || '',
+        description: template.description || '',
+        category: template.category || 'classroom-management',
+        difficulty: template.difficulty || 'beginner',
+        estimatedTime: String(template.totalDuration || template.duration || 15),
+        moduleType: template.moduleType || (template.activities?.length > 1 ? 'course' : 'single'),
+        sections: templateSections.length > 0 ? templateSections : prev.sections,
         courseStructure: {
           ...prev.courseStructure,
           sequentialUnlock: template.courseStructure?.sequentialUnlock || false,
-          certificateAwarded:
-            template.courseStructure?.certificateAwarded || false,
-          badgeType: template.courseStructure?.badgeType || "",
-          modules: template.courseStructure?.modules || [],
+          certificateAwarded: template.courseStructure?.certificateAwarded || false,
+          badgeType: template.courseStructure?.badgeType || '',
+          modules: template.courseStructure?.modules || []
         },
         interactiveElements: {
           ...prev.interactiveElements,
           hasTimer: template.interactiveElements?.hasTimer || false,
-          hasAudioRecording:
-            template.interactiveElements?.hasAudioRecording || false,
+          hasAudioRecording: template.interactiveElements?.hasAudioRecording || false,
           hasJournaling: template.interactiveElements?.hasJournaling || false,
-          hasBreathingExercises:
-            template.interactiveElements?.hasBreathingExercises || false,
-          hasWorksheets: template.interactiveElements?.hasWorksheets || false,
+          hasBreathingExercises: template.interactiveElements?.hasBreathingExercises || false,
+          hasWorksheets: template.interactiveElements?.hasWorksheets || false
         },
         certificationSystem: {
           ...prev.certificationSystem,
@@ -2461,9 +1707,9 @@ export default function ComprehensiveModuleCreator() {
           badgeName: template.certificationSystem?.badgeName || template.title,
           requirements: {
             ...prev.certificationSystem.requirements,
-            ...template.certificationSystem?.requirements,
-          },
-        },
+            ...template.certificationSystem?.requirements
+          }
+        }
       }));
 
       toast({
@@ -2471,7 +1717,7 @@ export default function ComprehensiveModuleCreator() {
         description: `Successfully loaded the ${template.title} template with ${templateSections.length} sections.`,
       });
     } catch (error) {
-      console.error("Error loading template:", error);
+      console.error('Error loading template:', error);
       toast({
         title: "Template Load Error",
         description: "Failed to load template data. Using default structure.",
@@ -2483,18 +1729,17 @@ export default function ComprehensiveModuleCreator() {
   // Check for template data in URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const templateData = urlParams.get("template");
-
+    const templateData = urlParams.get('template');
+    
     if (templateData) {
       try {
         const template = JSON.parse(decodeURIComponent(templateData));
         loadTemplateData(template);
       } catch (error) {
-        console.error("Error parsing template data:", error);
+        console.error('Error parsing template data:', error);
         toast({
           title: "Template Load Error",
-          description:
-            "Failed to load the selected template. Please try again.",
+          description: "Failed to load the selected template. Please try again.",
           variant: "destructive",
         });
       }
@@ -2513,29 +1758,28 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-story-content", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-story-content', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
           currentContent: newModule.sections[sectionIndex].content,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.story) {
-        updateSection(sectionIndex, "content", response.story);
+        updateSection(sectionIndex, 'content', response.story);
         toast({
           title: "Story Generated",
-          description:
-            "AI has created an engaging interactive story for this section.",
+          description: "AI has created an engaging interactive story for this section.",
         });
       }
     } catch (error) {
-      console.error("Error generating story:", error);
+      console.error('Error generating story:', error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate story content. Please try again.",
@@ -2558,28 +1802,27 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-examples", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-examples', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.examples) {
-        updateSection(sectionIndex, "content", response.examples);
+        updateSection(sectionIndex, 'content', response.examples);
         toast({
           title: "Examples Generated",
-          description:
-            "AI has created practical real-world examples for this section.",
+          description: "AI has created practical real-world examples for this section.",
         });
       }
     } catch (error) {
-      console.error("Error generating examples:", error);
+      console.error('Error generating examples:', error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate example content. Please try again.",
@@ -2602,28 +1845,27 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-matching-exercise", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-matching-exercise', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.matchingExercise) {
-        updateSection(sectionIndex, "content", response.matchingExercise);
+        updateSection(sectionIndex, 'content', response.matchingExercise);
         toast({
           title: "Matching Exercise Generated",
-          description:
-            "AI has created an interactive matching exercise for this section.",
+          description: "AI has created an interactive matching exercise for this section.",
         });
       }
     } catch (error) {
-      console.error("Error generating matching exercise:", error);
+      console.error('Error generating matching exercise:', error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate matching exercise. Please try again.",
@@ -2646,28 +1888,27 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-scenario", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-scenario', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.scenario) {
-        updateSection(sectionIndex, "content", response.scenario);
+        updateSection(sectionIndex, 'content', response.scenario);
         toast({
           title: "Scenario Generated",
-          description:
-            "AI has created a realistic decision-making scenario for this section.",
+          description: "AI has created a realistic decision-making scenario for this section.",
         });
       }
     } catch (error) {
-      console.error("Error generating scenario:", error);
+      console.error('Error generating scenario:', error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate scenario content. Please try again.",
@@ -2689,50 +1930,46 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-quiz-questions", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-quiz-questions', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.questions) {
         // Convert AI response to proper quiz format using universal function
-        const quizData = convertContentToQuiz(
-          response.questions,
-          newModule.sections[sectionIndex].title,
-        );
-
+        const quizData = convertContentToQuiz(response.questions, newModule.sections[sectionIndex].title);
+        
         if (quizData) {
           // Update section with proper quiz structure
           const updatedSections = [...newModule.sections];
           updatedSections[sectionIndex] = {
             ...updatedSections[sectionIndex],
-            ...quizData,
+            ...quizData
           };
-          setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
+          setNewModule(prev => ({ ...prev, sections: updatedSections }));
+          
           toast({
             title: "Interactive Quiz Generated!",
             description: `Created ${quizData.questions.length} interactive quiz questions`,
           });
         } else {
           // Fallback to raw content if parsing fails
-          updateSection(sectionIndex, "content", response.questions);
+          updateSection(sectionIndex, 'content', response.questions);
           toast({
             title: "Quiz Content Generated",
-            description:
-              "AI has created quiz questions. Use 'Save & Next Section' to convert to interactive format.",
+            description: "AI has created quiz questions. Use 'Save & Next Section' to convert to interactive format.",
           });
         }
       }
     } catch (error) {
-      console.error("Error generating quiz:", error);
+      console.error('Error generating quiz:', error);
       toast({
         title: "Generation Failed",
         description: "Unable to generate quiz content. Please try again.",
@@ -2755,43 +1992,37 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setIsGeneratingFlashcards(true);
-
+    
     try {
-      console.log("Generating flashcards with data:", {
+      console.log('Generating flashcards with data:', {
         moduleTitle: newModule.title,
         moduleDescription: newModule.description,
-        sectionTitle:
-          newModule.sections[currentSectionIndex]?.title || "Key Terms",
+        sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',
         category: newModule.category,
-        sectionType: "flashcards",
+        sectionType: 'flashcards'
       });
 
-      const response = await apiRequest(
-        "POST",
-        "/api/flashcards/generate-flashcards",
-        {
-          moduleTitle: newModule.title,
-          moduleDescription: newModule.description,
-          sectionTitle:
-            newModule.sections[currentSectionIndex]?.title || "Key Terms",
-          category: newModule.category,
-          sectionType: "flashcards",
-        },
-      );
+      const response = await apiRequest('POST', '/api/flashcards/generate-flashcards', {
+        moduleTitle: newModule.title,
+        moduleDescription: newModule.description,
+        sectionTitle: newModule.sections[currentSectionIndex]?.title || 'Key Terms',
+        category: newModule.category,
+        sectionType: 'flashcards'
+      });
 
-      console.log("Flashcards API response:", response);
+      console.log('Flashcards API response:', response);
 
       if (response.flashcards && response.flashcards.length > 0) {
         // Store the flashcards for preview instead of immediately applying
         setGeneratedFlashcards(response.flashcards);
         setShowFlashcardPreview(true);
-
+        
         toast({
           title: "Flashcards Generated",
           description: `Generated ${response.flashcards.length} flashcards. Review and apply them to your section.`,
         });
       } else {
-        console.log("No flashcards in response or empty array");
+        console.log('No flashcards in response or empty array');
         toast({
           title: "No Terms Generated",
           description: "No key terms were generated. Please try again.",
@@ -2799,7 +2030,7 @@ export default function ComprehensiveModuleCreator() {
         });
       }
     } catch (error) {
-      console.error("Error generating flashcards:", error);
+      console.error('Error generating flashcards:', error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate key terms. Please try again.",
@@ -2821,28 +2052,27 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-reflection-prompts", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-reflection-prompts', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.prompts) {
-        updateSection(sectionIndex, "content", response.prompts);
+        updateSection(sectionIndex, 'content', response.prompts);
         toast({
           title: "Reflection Prompts Generated!",
-          description:
-            "AI has created thoughtful reflection questions for your section.",
+          description: "AI has created thoughtful reflection questions for your section.",
         });
       }
     } catch (error) {
-      console.error("Error generating reflection prompts:", error);
+      console.error('Error generating reflection prompts:', error);
       toast({
         title: "Generation Failed",
         description: "Unable to generate reflection content. Please try again.",
@@ -2864,28 +2094,27 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
-      const response = await apiRequest("/api/ai/generate-priority-exercise", {
-        method: "POST",
+      const response = await apiRequest('/api/ai/generate-priority-exercise', {
+        method: 'POST',
         data: {
           moduleTitle: newModule.title,
           moduleDescription: newModule.description,
           sectionTitle: newModule.sections[sectionIndex].title,
-          category: newModule.category,
-        },
+          category: newModule.category
+        }
       });
 
       if (response.priorityExercise) {
-        updateSection(sectionIndex, "content", response.priorityExercise);
+        updateSection(sectionIndex, 'content', response.priorityExercise);
         toast({
           title: "Priority Exercise Generated!",
-          description:
-            "AI has created a priority sorting exercise for your section.",
+          description: "AI has created a priority sorting exercise for your section.",
         });
       }
     } catch (error) {
-      console.error("Error generating priority exercise:", error);
+      console.error('Error generating priority exercise:', error);
       toast({
         title: "Generation Failed",
         description: "Unable to generate priority content. Please try again.",
@@ -2908,86 +2137,65 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingVideo(sectionIndex);
-    setVideoGenerationStatus((prev) => ({
-      ...prev,
-      [sectionIndex]: "starting",
-    }));
+    setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'starting' }));
 
     try {
       const section = newModule.sections[sectionIndex];
-
+      
       toast({
         title: "Generating Video",
-        description:
-          "AI is creating a custom training video for your module...",
+        description: "AI is creating a custom training video for your module...",
       });
 
-      const response = await apiRequest("POST", "/api/video/generate", {
+      const response = await apiRequest('POST', '/api/video/generate', {
         moduleTitle: newModule.title,
         content: `${newModule.description}\n\nSection: ${section.title}\n${section.content}`,
-        targetAudience: "Early childhood educators",
+        targetAudience: 'Early childhood educators',
         duration: 120, // 2 minutes
-        style: "professional",
+        style: 'professional'
       });
 
       if (response.success) {
-        setVideoGenerationStatus((prev) => ({
-          ...prev,
-          [sectionIndex]: "processing",
-        }));
-
+        setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'processing' }));
+        
         // Poll for video completion
         const checkStatus = async () => {
           try {
-            const statusResponse = await apiRequest(
-              "GET",
-              `/api/video/status/${response.videoId}`,
-            );
-
-            if (
-              statusResponse.status === "completed" &&
-              statusResponse.videoUrl
-            ) {
+            const statusResponse = await apiRequest('GET', `/api/video/status/${response.videoId}`);
+            
+            if (statusResponse.status === 'completed' && statusResponse.videoUrl) {
               // Update the section with the generated video URL
               const updatedSections = [...newModule.sections];
               updatedSections[sectionIndex] = {
                 ...updatedSections[sectionIndex],
-                videoUrl: statusResponse.videoUrl,
+                videoUrl: statusResponse.videoUrl
               };
-
-              setNewModule((prev) => ({
+              
+              setNewModule(prev => ({
                 ...prev,
-                sections: updatedSections,
+                sections: updatedSections
               }));
 
-              setVideoGenerationStatus((prev) => ({
-                ...prev,
-                [sectionIndex]: "completed",
-              }));
+              setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'completed' }));
               setGeneratingVideo(null);
 
               toast({
                 title: "Video Generated Successfully",
-                description:
-                  "Your custom training video is ready and has been added to the module section.",
+                description: "Your custom training video is ready and has been added to the module section.",
               });
-            } else if (statusResponse.status === "failed") {
-              throw new Error("Video generation failed");
+            } else if (statusResponse.status === 'failed') {
+              throw new Error('Video generation failed');
             } else {
               // Still processing, check again in 10 seconds
               setTimeout(checkStatus, 10000);
             }
           } catch (error) {
-            console.error("Status check error:", error);
-            setVideoGenerationStatus((prev) => ({
-              ...prev,
-              [sectionIndex]: "failed",
-            }));
+            console.error('Status check error:', error);
+            setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'failed' }));
             setGeneratingVideo(null);
             toast({
               title: "Video Generation Failed",
-              description:
-                "There was an error generating your video. Please try again.",
+              description: "There was an error generating your video. Please try again.",
               variant: "destructive",
             });
           }
@@ -2995,20 +2203,17 @@ export default function ComprehensiveModuleCreator() {
 
         // Start status checking after a short delay
         setTimeout(checkStatus, 5000);
+        
       } else {
-        throw new Error("Failed to start video generation");
+        throw new Error('Failed to start video generation');
       }
     } catch (error) {
-      console.error("Video generation error:", error);
+      console.error('Video generation error:', error);
       setGeneratingVideo(null);
-      setVideoGenerationStatus((prev) => ({
-        ...prev,
-        [sectionIndex]: "failed",
-      }));
+      setVideoGenerationStatus(prev => ({ ...prev, [sectionIndex]: 'failed' }));
       toast({
         title: "Video Generation Failed",
-        description:
-          "There was an error generating your video. Please try again.",
+        description: "There was an error generating your video. Please try again.",
         variant: "destructive",
       });
     }
@@ -3025,7 +2230,7 @@ export default function ComprehensiveModuleCreator() {
     }
 
     setGeneratingContent(sectionIndex);
-
+    
     try {
       const response = await apiRequest("POST", "/api/ai-suggestions", {
         prompt: `Create scenario matching content for ECE module "${newModule.title}". 
@@ -3046,73 +2251,62 @@ Make sure scenarios directly relate to the module topic and description provided
         moduleTopic: newModule.title,
         moduleDescription: newModule.description,
         difficultyLevel: newModule.difficulty,
-        sectionContent:
-          "Generate realistic classroom scenarios and appropriate teacher responses for matching",
+        sectionContent: "Generate realistic classroom scenarios and appropriate teacher responses for matching"
       });
 
       if (response.ok) {
         const data = await response.json();
-
+        
         // Parse the AI response to extract scenarios and responses
         if (data.content) {
-          let scenarios = "";
-          let responses = "";
-
+          let scenarios = '';
+          let responses = '';
+          
           try {
             // Try to parse JSON first
             const parsed = JSON.parse(data.content);
             if (parsed.scenarios && parsed.responses) {
-              scenarios = Array.isArray(parsed.scenarios)
-                ? parsed.scenarios.join("\n")
-                : parsed.scenarios;
-              responses = Array.isArray(parsed.responses)
-                ? parsed.responses.join("\n")
-                : parsed.responses;
+              scenarios = Array.isArray(parsed.scenarios) ? parsed.scenarios.join('\n') : parsed.scenarios;
+              responses = Array.isArray(parsed.responses) ? parsed.responses.join('\n') : parsed.responses;
             }
           } catch {
             // If not JSON, try to extract from text
             const content = data.content;
-            const scenarioMatch = content.match(
-              /scenarios?:?\s*\n(.*?)(?=responses?:?|$)/is,
-            );
+            const scenarioMatch = content.match(/scenarios?:?\s*\n(.*?)(?=responses?:?|$)/is);
             const responseMatch = content.match(/responses?:?\s*\n(.*?)$/is);
-
+            
             if (scenarioMatch && responseMatch) {
               scenarios = scenarioMatch[1].trim();
               responses = responseMatch[1].trim();
             } else {
               // Split content roughly in half if structure unclear
-              const lines = content.split("\n").filter((line) => line.trim());
+              const lines = content.split('\n').filter(line => line.trim());
               const midpoint = Math.ceil(lines.length / 2);
-              scenarios = lines.slice(0, midpoint).join("\n");
-              responses = lines.slice(midpoint).join("\n");
+              scenarios = lines.slice(0, midpoint).join('\n');
+              responses = lines.slice(midpoint).join('\n');
             }
           }
-
-          updateSection(sectionIndex, "content", {
-            scenarios:
-              scenarios ||
-              `Scenarios related to ${newModule.title} will be generated here`,
-            responses:
-              responses ||
-              `Appropriate responses for ${newModule.title} scenarios will be generated here`,
+          
+          updateSection(sectionIndex, 'content', {
+            scenarios: scenarios || `Scenarios related to ${newModule.title} will be generated here`,
+            responses: responses || `Appropriate responses for ${newModule.title} scenarios will be generated here`
           });
-
+          
           toast({
             title: "Scenarios Generated",
             description: `AI-generated scenarios and responses for ${newModule.title} have been created.`,
           });
         } else {
-          throw new Error("No content in AI response");
+          throw new Error('No content in AI response');
         }
       } else {
-        throw new Error("Content generation failed");
+        throw new Error('Content generation failed');
       }
     } catch (error) {
-      console.error("Scenario generation error:", error);
-
+      console.error('Scenario generation error:', error);
+      
       // Provide realistic example content
-      updateSection(sectionIndex, "content", {
+      updateSection(sectionIndex, 'content', {
         scenarios: `A child is having a meltdown during circle time
 Two children are fighting over a toy in dramatic play area
 A shy child won't participate in group activities
@@ -3122,13 +2316,12 @@ New child cries every morning at drop-off`,
 Implement a sharing timer system and teach turn-taking
 Use gentle encouragement and offer activity choices
 Stay calm, offer help: 'Accidents happen, let's clean up together'
-Establish a consistent goodbye routine with comfort items`,
+Establish a consistent goodbye routine with comfort items`
       });
-
+      
       toast({
         title: "Example Content Provided",
-        description:
-          "Realistic scenarios and responses have been added to get you started.",
+        description: "Realistic scenarios and responses have been added to get you started.",
       });
     } finally {
       setGeneratingContent(null);
@@ -3138,186 +2331,144 @@ Establish a consistent goodbye routine with comfort items`,
   // Module templates with AI generation capabilities
   const moduleTemplates = [
     {
-      id: "mini-video",
-      title: "Mini Video Lessons",
-      description: "Short, focused video content with key takeaways",
+      id: 'mini-video',
+      title: 'Mini Video Lessons',
+      description: 'Short, focused video content with key takeaways',
       icon: Video,
-      color: "bg-blue-50 border-blue-200",
-      duration: "5-10 minutes",
-      features: [
-        "Video script generation",
-        "Key points summary",
-        "Discussion questions",
-        "Follow-up activities",
-      ],
+      color: 'bg-blue-50 border-blue-200',
+      duration: '5-10 minutes',
+      features: ['Video script generation', 'Key points summary', 'Discussion questions', 'Follow-up activities']
     },
     {
-      id: "interactive-scenario",
-      title: "Interactive Scenarios",
-      description: "Real-world situations with decision-making branches",
+      id: 'interactive-scenario',
+      title: 'Interactive Scenarios',
+      description: 'Real-world situations with decision-making branches',
       icon: Users,
-      color: "bg-green-50 border-green-200",
-      duration: "10-15 minutes",
-      features: [
-        "Scenario narratives",
-        "Decision points",
-        "Outcome explanations",
-        "Learning objectives",
-      ],
+      color: 'bg-green-50 border-green-200',
+      duration: '10-15 minutes',
+      features: ['Scenario narratives', 'Decision points', 'Outcome explanations', 'Learning objectives']
     },
     {
-      id: "slide-storyboard",
-      title: "Slide/GIF Storyboards",
-      description: "Visual learning with animated content and explanations",
+      id: 'slide-storyboard',
+      title: 'Slide/GIF Storyboards',
+      description: 'Visual learning with animated content and explanations',
       icon: FileText,
-      color: "bg-purple-50 border-purple-200",
-      duration: "8-12 minutes",
-      features: [
-        "Slide content",
-        "Visual descriptions",
-        "Animation suggestions",
-        "Presenter notes",
-      ],
+      color: 'bg-purple-50 border-purple-200',
+      duration: '8-12 minutes',
+      features: ['Slide content', 'Visual descriptions', 'Animation suggestions', 'Presenter notes']
     },
     {
-      id: "quiz-teachback",
-      title: "Quick Quiz + Teachback",
-      description: "Knowledge check followed by teaching reinforcement",
+      id: 'quiz-teachback',
+      title: 'Quick Quiz + Teachback',
+      description: 'Knowledge check followed by teaching reinforcement',
       icon: FileQuestion,
-      color: "bg-orange-50 border-orange-200",
-      duration: "6-10 minutes",
-      features: [
-        "Quiz questions",
-        "Answer explanations",
-        "Teaching strategies",
-        "Practice scenarios",
-      ],
+      color: 'bg-orange-50 border-orange-200',
+      duration: '6-10 minutes',
+      features: ['Quiz questions', 'Answer explanations', 'Teaching strategies', 'Practice scenarios']
     },
     {
-      id: "podcast-audio",
-      title: "Podcast-Style Audio Nuggets",
-      description:
-        "Upload your content and AI creates engaging podcast conversations",
+      id: 'podcast-audio',
+      title: 'Podcast-Style Audio Nuggets',
+      description: 'Upload your content and AI creates engaging podcast conversations',
       icon: Mic,
-      color: "bg-pink-50 border-pink-200",
-      duration: "3-8 minutes",
-      features: [
-        "Upload your materials",
-        "AI podcast generation",
-        "Natural conversations",
-        "Professional audio script",
-      ],
+      color: 'bg-pink-50 border-pink-200',
+      duration: '3-8 minutes',
+      features: ['Upload your materials', 'AI podcast generation', 'Natural conversations', 'Professional audio script']
     },
     {
-      id: "roleplay-reels",
-      title: "Roleplay Reels",
-      description: "Short practice scenarios with role-playing elements",
+      id: 'roleplay-reels',
+      title: 'Roleplay Reels',
+      description: 'Short practice scenarios with role-playing elements',
       icon: MessageSquare,
-      color: "bg-indigo-50 border-indigo-200",
-      duration: "5-8 minutes",
-      features: [
-        "Character roles",
-        "Dialogue scripts",
-        "Learning outcomes",
-        "Debrief questions",
-      ],
-    },
+      color: 'bg-indigo-50 border-indigo-200',
+      duration: '5-8 minutes',
+      features: ['Character roles', 'Dialogue scripts', 'Learning outcomes', 'Debrief questions']
+    }
   ];
 
   // Calculate suggested points based on difficulty and estimated time
-  const calculateSuggestedPoints = (
-    difficulty: string,
-    estimatedTime: string,
-  ) => {
+  const calculateSuggestedPoints = (difficulty: string, estimatedTime: string) => {
     const basePoints = parseInt(estimatedTime) || 15;
-    const difficultyMultiplier =
-      difficulty === "beginner"
-        ? 0.8
-        : difficulty === "intermediate"
-          ? 1.0
-          : 1.2;
+    const difficultyMultiplier = difficulty === 'beginner' ? 0.8 : difficulty === 'intermediate' ? 1.0 : 1.2;
     return Math.round(basePoints * difficultyMultiplier);
   };
-
+  
   // Generate AI content for specific module templates
   const generateTemplateContent = async (templateId: string) => {
     if (!newModule.title || !newModule.description) {
       toast({
         title: "Missing Information",
-        description:
-          "Please provide a module title and description before generating content.",
-        variant: "destructive",
+        description: "Please provide a module title and description before generating content.",
+        variant: "destructive"
       });
       return;
     }
 
     setIsGeneratingContent(true);
-
+    
     // Show encouraging message while AI generates content
     toast({
       title: "🤖 AI is thinking...",
-      description:
-        "Creating the best personalized content for your module. This may take up to a minute for the highest quality results.",
+      description: "Creating the best personalized content for your module. This may take up to a minute for the highest quality results.",
     });
-
+    
     try {
-      let promptText = "";
-
+      let promptText = '';
+      
       switch (templateId) {
-        case "mini-video":
+        case 'mini-video':
           promptText = `Create a mini video lesson script for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: video script, key takeaways, discussion questions, and follow-up activities.`;
           break;
-        case "interactive-scenario":
+        case 'interactive-scenario':
           promptText = `Design an interactive scenario for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: realistic scenario, decision points, multiple outcomes, and learning objectives.`;
           break;
-        case "slide-storyboard":
+        case 'slide-storyboard':
           promptText = `Create a slide storyboard for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: slide content, visual descriptions, animation suggestions, and presenter notes.`;
           break;
-        case "quiz-teachback":
+        case 'quiz-teachback':
           promptText = `Develop a quiz and teachback session for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: quiz questions, detailed explanations, teaching strategies, and practice scenarios.`;
           break;
-        case "podcast-audio":
+        case 'podcast-audio':
           promptText = `Write a podcast-style audio script about "${newModule.title}" for ${newModule.difficulty} level ECE teachers. 
 
 Module Description: ${newModule.description}
 
 Category: ${newModule.category}
 
-Content to discuss: ${newModule.sections.map((section) => `${section.title}: ${section.content}`).join("\n\n")}
+Content to discuss: ${newModule.sections.map(section => `${section.title}: ${section.content}`).join('\n\n')}
 
 Create a natural conversation between two podcast hosts discussing this specific content. Include: conversational script, key insights from the provided content, discussion topics, and reflection prompts.`;
           break;
-        case "roleplay-reels":
+        case 'roleplay-reels':
           promptText = `Create roleplay scenarios for "${newModule.title}" in ${newModule.category} for ${newModule.difficulty} level ECE teachers. Include: character roles, dialogue scripts, learning outcomes, and debrief questions.`;
           break;
       }
 
-      const data = await apiRequest("/api/ai/generate", {
-        method: "POST",
-        data: {
+      const data = await apiRequest('/api/ai/generate', {
+        method: 'POST',
+        data: { 
           prompt: promptText,
-          type: "template-content",
-          templateType: templateId,
-        },
+          type: 'template-content',
+          templateType: templateId
+        }
       });
 
       if (data && data.suggestions) {
         setGeneratedContent({
           templateId,
-          content: data.suggestions,
+          content: data.suggestions
         });
-
+        
         toast({
           title: "AI Content Generated!",
-          description: `Complete ${moduleTemplates.find((t) => t.id === templateId)?.title} content has been created for your module.`,
+          description: `Complete ${moduleTemplates.find(t => t.id === templateId)?.title} content has been created for your module.`,
         });
       }
     } catch (error) {
-      console.error("AI content generation error:", error);
+      console.error('AI content generation error:', error);
       toast({
         title: "Content Generation Failed",
-        description:
-          "There was an issue generating the content. Please try again.",
+        description: "There was an issue generating the content. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -3328,269 +2479,249 @@ Create a natural conversation between two podcast hosts discussing this specific
   // Apply generated content to module
   const applyGeneratedContent = () => {
     if (!generatedContent) return;
-
+    
     const { templateId, content } = generatedContent;
-
+    
     // Handle different template types with proper formatting
-    if (templateId === "quiz-teachback") {
+    if (templateId === 'quiz-teachback') {
       // Create a quiz section
       const newSection: ModuleSection = {
-        title: "Knowledge Check Quiz",
+        title: 'Knowledge Check Quiz',
         content: content,
-        videoUrl: "",
-        imageUrl: "",
-        type: "quiz" as const,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'quiz' as const,
         duration: 10,
-        activities: [
-          {
-            type: "quiz" as const,
-            title: "Knowledge Check Quiz",
-            duration: 10,
-            content: content,
-            videoUrl: "",
-            audioUrl: "",
-            interactionType: "form",
-          },
-        ],
+        activities: [{
+          type: 'quiz' as const,
+          title: 'Knowledge Check Quiz',
+          duration: 10,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
-
-      setNewModule((prev) => ({
+      
+      setNewModule(prev => ({
         ...prev,
-        sections: [...prev.sections, newSection],
+        sections: [...prev.sections, newSection]
       }));
-    } else if (templateId === "interactive-scenario") {
+    } else if (templateId === 'interactive-scenario') {
       // Create a scenario match section
       const newSection: ModuleSection = {
-        title: "Interactive Scenario",
+        title: 'Interactive Scenario',
         content: content,
-        videoUrl: "",
-        imageUrl: "",
-        type: "scenario-match" as const,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'scenario-match' as const,
         duration: 15,
-        activities: [
-          {
-            type: "practice" as const,
-            title: "Interactive Scenario",
-            duration: 15,
-            content: content,
-            videoUrl: "",
-            audioUrl: "",
-            interactionType: "form",
-          },
-        ],
+        activities: [{
+          type: 'practice' as const,
+          title: 'Interactive Scenario',
+          duration: 15,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
-
-      setNewModule((prev) => ({
+      
+      setNewModule(prev => ({
         ...prev,
-        sections: [...prev.sections, newSection],
+        sections: [...prev.sections, newSection]
       }));
-    } else if (templateId === "podcast-audio") {
+    } else if (templateId === 'podcast-audio') {
       // Create a podcast section
       const newSection: ModuleSection = {
-        title: "Podcast Discussion",
+        title: 'Podcast Discussion',
         content: content,
-        videoUrl: "",
-        imageUrl: "",
-        type: "podcast" as const,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'podcast' as const,
         duration: 20,
-        activities: [
-          {
-            type: "read" as const,
-            title: "Podcast Discussion",
-            duration: 20,
-            content: content,
-            videoUrl: "",
-            audioUrl: "",
-            interactionType: "form",
-          },
-        ],
+        activities: [{
+          type: 'read' as const,
+          title: 'Podcast Discussion',
+          duration: 20,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
-
-      setNewModule((prev) => ({
+      
+      setNewModule(prev => ({
         ...prev,
-        sections: [...prev.sections, newSection],
+        sections: [...prev.sections, newSection]
       }));
-    } else if (templateId === "slide-storyboard") {
+    } else if (templateId === 'slide-storyboard') {
       // Create a slide section
       const newSection: ModuleSection = {
-        title: "Slide Presentation",
+        title: 'Slide Presentation',
         content: content,
-        videoUrl: "",
-        imageUrl: "",
-        type: "slide" as const,
+        videoUrl: '',
+        imageUrl: '',
+        type: 'slide' as const,
         duration: 15,
-        activities: [
-          {
-            type: "read" as const,
-            title: "Slide Presentation",
-            duration: 15,
-            content: content,
-            videoUrl: "",
-            audioUrl: "",
-            interactionType: "form",
-          },
-        ],
+        activities: [{
+          type: 'read' as const,
+          title: 'Slide Presentation',
+          duration: 15,
+          content: content,
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form'
+        }]
       };
-
-      setNewModule((prev) => ({
+      
+      setNewModule(prev => ({
         ...prev,
-        sections: [...prev.sections, newSection],
+        sections: [...prev.sections, newSection]
       }));
     } else {
       // For other templates, parse as regular text sections
-      const contentLines = content.split("\n").filter(Boolean);
+      const contentLines = content.split('\n').filter(Boolean);
       const newSections: ModuleSection[] = [];
-
-      let currentSection = {
-        title: "",
-        content: "",
-        videoUrl: "",
-        imageUrl: "",
-        type: "text" as const,
+      
+      let currentSection = { 
+        title: '', 
+        content: '', 
+        videoUrl: '', 
+        imageUrl: '', 
+        type: 'text' as const,
         duration: 5,
-        activities: [
-          {
-            type: "read" as const,
-            title: "Content",
-            duration: 5,
-            content: "",
-            videoUrl: "",
-            audioUrl: "",
-            interactionType: "form" as const,
-          },
-        ],
+        activities: [{
+          type: 'read' as const,
+          title: 'Content',
+          duration: 5,
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
       };
-
+      
       contentLines.forEach((line: string, index: number) => {
-        if (line.includes(":") && line.length < 100) {
+        if (line.includes(':') && line.length < 100) {
           // This looks like a section title
           if (currentSection.title || currentSection.content) {
-            newSections.push({ ...currentSection });
+            newSections.push({...currentSection});
           }
-          currentSection = {
-            title: line.replace(":", "").trim(),
-            content: "",
-            videoUrl: "",
-            imageUrl: "",
-            type: "text" as const,
+          currentSection = { 
+            title: line.replace(':', '').trim(), 
+            content: '', 
+            videoUrl: '', 
+            imageUrl: '',
+            type: 'text' as const,
             duration: 5,
-            activities: [
-              {
-                type: "read" as const,
-                title: "Content",
-                duration: 5,
-                content: "",
-                videoUrl: "",
-                audioUrl: "",
-                interactionType: "form" as const,
-              },
-            ],
+            activities: [{
+              type: 'read' as const,
+              title: 'Content',
+              duration: 5,
+              content: '',
+              videoUrl: '',
+              audioUrl: '',
+              interactionType: 'form' as const
+            }]
           };
         } else {
           // This is content
-          currentSection.content += line + "\n";
+          currentSection.content += line + '\n';
         }
       });
-
+      
       // Add the last section
       if (currentSection.title || currentSection.content) {
         newSections.push(currentSection);
       }
-
+      
       // Update the module with generated sections
-      setNewModule((prev) => ({
+      setNewModule(prev => ({
         ...prev,
-        sections: newSections.length > 0 ? newSections : prev.sections,
+        sections: newSections.length > 0 ? newSections : prev.sections
       }));
     }
-
+    
     setGeneratedContent(null);
     setAiSelectedTemplate(null);
-
+    
     toast({
       title: "Content Applied!",
-      description:
-        "The AI-generated content has been added to your module sections.",
+      description: "The AI-generated content has been added to your module sections.",
     });
   };
 
   // Generate AI suggestions for module content
-  const generateAiSuggestions = async (
-    type: "questions" | "strategies" | "quiz",
-  ) => {
+  const generateAiSuggestions = async (type: 'questions' | 'strategies' | 'quiz') => {
     setIsGeneratingIdeas(true);
     try {
       if (!newModule.title || !newModule.category) {
         toast({
           title: "Missing Information",
-          description:
-            "Please provide a module title and category before generating suggestions.",
-          variant: "destructive",
+          description: "Please provide a module title and category before generating suggestions.",
+          variant: "destructive"
         });
         setIsGeneratingIdeas(false);
         return;
       }
-
-      const isThatOneKidModule = newModule.title
-        .toLowerCase()
-        .includes("that one kid");
-      let promptText = "";
-
+      
+      const isThatOneKidModule = newModule.title.toLowerCase().includes('that one kid');
+      let promptText = '';
+      
       if (isThatOneKidModule) {
         promptText = `That one kid - ${newModule.difficulty} level`;
-      } else if (type === "questions") {
+      } else if (type === 'questions') {
         promptText = `Generate 3 creative assessment questions for a module about "${newModule.title}" in the category of "${newModule.category}". The questions should be suitable for ${newModule.difficulty} level ECE teachers.`;
-      } else if (type === "strategies") {
+      } else if (type === 'strategies') {
         promptText = `Suggest 3 creative teaching strategies for a module about "${newModule.title}" in the category of "${newModule.category}". The strategies should be suitable for ${newModule.difficulty} level ECE teachers.`;
-      } else if (type === "quiz") {
+      } else if (type === 'quiz') {
         promptText = `Generate quiz questions specifically for a module titled "${newModule.title}" in the category of "${newModule.category}" for ${newModule.difficulty} level ECE teachers. The content should directly relate to ${newModule.title}.`;
       }
-
+      
       try {
-        const data = await apiRequest("/api/ai/generate", {
-          method: "POST",
-          data: {
+        const data = await apiRequest('/api/ai/generate', {
+          method: 'POST',
+          data: { 
             prompt: promptText,
-            type,
-          },
+            type
+          }
         });
-
-        if (type === "quiz") {
+        
+        if (type === 'quiz') {
           if (data && data.quizQuestions && Array.isArray(data.quizQuestions)) {
-            setAiSuggestions((prev) => ({
+            setAiSuggestions(prev => ({
               ...prev,
-              quizQuestions: data.quizQuestions,
+              quizQuestions: data.quizQuestions
             }));
-
+            
             toast({
               title: `Quiz Questions Generated`,
               description: `${data.quizQuestions.length} multiple-choice quiz questions have been created for your module.`,
             });
           } else {
-            throw new Error("Server returned invalid quiz question format");
+            throw new Error('Server returned invalid quiz question format');
           }
         } else {
           if (data && data.suggestions) {
             const suggestionsText = data.suggestions;
-            let suggestionsArray = suggestionsText.split("\n").filter(Boolean);
-
-            if (suggestionsArray.length <= 2 && suggestionsText.includes("!")) {
-              suggestionsArray = suggestionsText
-                .split(/(?<=!)\s+/)
-                .filter(Boolean);
+            let suggestionsArray = suggestionsText.split('\n').filter(Boolean);
+            
+            if (suggestionsArray.length <= 2 && suggestionsText.includes('!')) {
+              suggestionsArray = suggestionsText.split(/(?<=!)\s+/).filter(Boolean);
             }
-
-            setAiSuggestions((prev) => ({
+            
+            setAiSuggestions(prev => ({
               ...prev,
-              [type]: suggestionsArray,
+              [type]: suggestionsArray
             }));
-
+            
             toast({
               title: `AI Suggestions Generated`,
               description: `Creative ${type} have been generated for your module.`,
             });
           } else {
-            throw new Error("Server returned invalid suggestions format");
+            throw new Error('Server returned invalid suggestions format');
           }
         }
       } catch (apiError) {
@@ -3601,7 +2732,7 @@ Create a natural conversation between two podcast hosts discussing this specific
       toast({
         title: "Suggestion Error",
         description: `Failed to generate ${type}. Please try again later.`,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsGeneratingIdeas(false);
@@ -3611,75 +2742,71 @@ Create a natural conversation between two podcast hosts discussing this specific
   // Create module mutation
   const createModuleMutation = useMutation({
     mutationFn: async (moduleData: any) => {
-      return await apiRequest("/api/modules", {
-        method: "POST",
-        data: moduleData,
+      return await apiRequest('/api/modules', {
+        method: 'POST',
+        data: moduleData
       });
     },
     onSuccess: async (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       //queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
-
+      
       let successMessage = "Your custom module has been created successfully.";
       let competitionInfo = null;
 
-      // console.log('Module creation response:', data)
+     // console.log('Module creation response:', data)
       // If shareWithCommunity is enabled, call the community sharing API
-      console.log("Module creation response before:", data, newModule);
+      console.log('Module creation response before:', data,newModule)
 
       if (data?.module?.is_shared_to_community && data?.module?.id) {
-        console.log("Module creation response after:", data, newModule);
+        console.log('Module creation response after:', data,newModule)
 
         try {
-          const shareResponse = await apiRequest(
-            "/api/community-modules/share",
-            {
-              method: "POST",
-              data: { moduleId: data.module.id },
-            },
-          );
-
+          const shareResponse = await apiRequest('/api/community-modules/share', {
+            method: 'POST',
+            data: { moduleId: data.module.id }
+          });
+          
           competitionInfo = shareResponse.competitionInfo;
           successMessage += ` ${shareResponse.message}`;
-
+          
           if (competitionInfo) {
             successMessage += ` ${competitionInfo.message}`;
           }
         } catch (error) {
-          console.error("Error sharing module with community:", error);
-          successMessage +=
-            " However, there was an issue sharing it with the community.";
+          console.error('Error sharing module with community:', error);
+          successMessage += " However, there was an issue sharing it with the community.";
         }
       }
-
+      
       // Reset form
       setNewModule({
-        title: "",
-        description: "",
-        category: "classroom-management",
-        difficulty: "beginner",
-        estimatedTime: "15",
-        customPoints: "",
+        title: '',
+        description: '',
+        category: 'classroom-management',
+        difficulty: 'beginner',
+        estimatedTime: '15',
+        customPoints: '',
         shareWithCommunity: false,
         sections: [
           {
-            title: "Introduction",
-            content: "",
-            videoUrl: "",
-            imageUrl: "",
-          },
-        ],
+            title: 'Introduction',
+            content: '',
+            videoUrl: '',
+            imageUrl: ''
+          }
+        ]
       });
-
+      
       // Clear AI suggestions
       setAiSuggestions({
-        questions: [],
+        questions: [], 
         strategies: [],
-        quizQuestions: [],
+        quizQuestions: []
       });
-
+      
       setIsCreatingModule(false);
-
+      
       // Show appropriate toast message
       if (data?.module?.is_shared_to_community && competitionInfo) {
         toast({
@@ -3696,30 +2823,27 @@ Create a natural conversation between two podcast hosts discussing this specific
       }
     },
     onError: (error) => {
-      console.error("Error creating module:", error);
+      console.error('Error creating module:', error);
       toast({
         title: "Error",
         description: "Failed to create the module. Please try again.",
         variant: "destructive",
       });
       setIsCreatingModule(false);
-    },
+    }
   });
 
   const handleStepByStepComplete = (moduleData: any) => {
-    setCreationMethod("selection");
+    setCreationMethod('selection');
     createModuleMutation.mutate(moduleData);
   };
 
   const handlePowerPointComplete = (moduleData: any) => {
-    setCreationMethod("selection");
+    setCreationMethod('selection');
     createModuleMutation.mutate(moduleData);
   };
 
-  const generateMnemonicDevice = async (
-    sectionIndex: number,
-    deviceType: string,
-  ) => {
+  const generateMnemonicDevice = async (sectionIndex: number, deviceType: string) => {
     const section = newModule.sections[sectionIndex];
     if (!section.content) {
       toast({
@@ -3732,46 +2856,47 @@ Create a natural conversation between two podcast hosts discussing this specific
 
     try {
       setIsGeneratingContent(true);
-
+      
       const prompt = `Create a ${deviceType} to help memorize this information: "${section.content}". 
       
       Requirements:
       - Make it fun, catchy, and memorable
-      - ${deviceType === "song" ? 'Use a simple melody pattern like "Twinkle Twinkle Little Star"' : ""}
-      - ${deviceType === "rap" ? "Use a simple rap rhythm with rhyming verses" : ""}
-      - ${deviceType === "poem" ? "Create a simple rhyming poem that flows well" : ""}
-      - ${deviceType === "acronym" ? "Create a memorable acronym with explanation" : ""}
+      - ${deviceType === 'song' ? 'Use a simple melody pattern like "Twinkle Twinkle Little Star"' : ''}
+      - ${deviceType === 'rap' ? 'Use a simple rap rhythm with rhyming verses' : ''}
+      - ${deviceType === 'poem' ? 'Create a simple rhyming poem that flows well' : ''}
+      - ${deviceType === 'acronym' ? 'Create a memorable acronym with explanation' : ''}
       - Keep it appropriate for educational settings
       - Include the key information from the content
       
       Format: Just return the ${deviceType} text, nothing else.`;
 
-      const response = await fetch("/api/ai/generate-content", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ prompt }),
+      const response = await fetch('/api/ai/generate-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ prompt })
       });
 
-      if (!response.ok) throw new Error("Failed to generate mnemonic device");
-
+      if (!response.ok) throw new Error('Failed to generate mnemonic device');
+      
       const data = await response.json();
-
+      
       // Update the section content with the generated mnemonic device
       const updatedSections = [...newModule.sections];
       updatedSections[sectionIndex] = {
         ...section,
-        content: `${section.content}\n\n🎯 Memory Device (${deviceType.toUpperCase()}):\n${data.content}`,
+        content: `${section.content}\n\n🎯 Memory Device (${deviceType.toUpperCase()}):\n${data.content}`
       };
-
-      setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-
+      
+      setNewModule(prev => ({ ...prev, sections: updatedSections }));
+      
       toast({
         title: "Memory Device Created!",
         description: `Generated a fun ${deviceType} to help memorize the content.`,
       });
+      
     } catch (error) {
-      console.error("Error generating mnemonic device:", error);
+      console.error('Error generating mnemonic device:', error);
       toast({
         title: "Generation Failed",
         description: "Could not generate the memory device. Please try again.",
@@ -3781,7 +2906,7 @@ Create a natural conversation between two podcast hosts discussing this specific
       setIsGeneratingContent(false);
     }
   };
-
+  
   // Handle module creation
   const handleCreateModule = async () => {
     if (!newModule.title.trim()) {
@@ -3795,7 +2920,7 @@ Create a natural conversation between two podcast hosts discussing this specific
 
     if (!newModule.description.trim()) {
       toast({
-        title: "Validation Error",
+        title: "Validation Error", 
         description: "Module description is required",
         variant: "destructive",
       });
@@ -3807,68 +2932,54 @@ Create a natural conversation between two podcast hosts discussing this specific
     try {
       // Process video sections that need quiz generation
       const processedSections = [];
-
+      
       for (const section of newModule.sections) {
         // Check if section has meaningful content based on its type
-        const hasContent =
-          section.title.trim() ||
-          (typeof section.content === "string" && section.content.trim()) ||
-          (typeof section.content === "object" &&
-            section.content &&
-            (section.content.scenarios || section.content.responses)) ||
+        const hasContent = section.title.trim() || 
+          (typeof section.content === 'string' && section.content.trim()) ||
+          (typeof section.content === 'object' && section.content && 
+           (section.content.scenarios || section.content.responses)) ||
           section.videoUrl.trim();
-
+          
         if (hasContent) {
           // Ensure content is properly serialized for scenario-match sections
           let processedContent = section.content;
-          if (
-            section.type === "scenario-match" &&
-            typeof section.content === "object"
-          ) {
+          if (section.type === 'scenario-match' && typeof section.content === 'object') {
             processedContent = JSON.stringify(section.content);
           }
-
+          
           processedSections.push({
             ...section,
-            content: processedContent,
+            content: processedContent
           });
-
+          
           // Generate quiz questions if requested for video sections
-          if (
-            section.type === "video" &&
-            section.generateVideoQuestions &&
-            section.videoUrl
-          ) {
+          if (section.type === 'video' && section.generateVideoQuestions && section.videoUrl) {
             try {
               toast({
                 title: "Generating Video Quiz",
-                description:
-                  "AI is analyzing the video content to create quiz questions...",
+                description: "AI is analyzing the video content to create quiz questions...",
               });
-
-              const response = await apiRequest(
-                "POST",
-                "/api/ai/generate-video-quiz",
-                {
-                  videoUrl: section.videoUrl,
-                  description: section.content || section.title,
-                },
-              );
-
+              
+              const response = await apiRequest('POST', '/api/ai/generate-video-quiz', {
+                videoUrl: section.videoUrl,
+                description: section.content || section.title
+              });
+              
               // Add the generated quiz as a new section
               processedSections.push({
                 title: `${section.title} - Quiz Questions`,
                 content: response.questions,
-                videoUrl: "",
-                imageUrl: "",
-                type: "quiz",
+                videoUrl: '',
+                imageUrl: '',
+                type: 'quiz'
               });
+              
             } catch (error) {
-              console.error("Video quiz generation failed:", error);
+              console.error('Video quiz generation failed:', error);
               toast({
                 title: "Video Quiz Generation Failed",
-                description:
-                  "Could not generate quiz questions from the video. The module will be created without them.",
+                description: "Could not generate quiz questions from the video. The module will be created without them.",
                 variant: "destructive",
               });
             }
@@ -3877,42 +2988,37 @@ Create a natural conversation between two podcast hosts discussing this specific
       }
 
       // Calculate points
-      const suggestedPoints = calculateSuggestedPoints(
-        newModule.difficulty,
-        newModule.estimatedTime,
-      );
-      const finalPoints = newModule.customPoints
-        ? parseInt(newModule.customPoints)
-        : suggestedPoints;
+      const suggestedPoints = calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime);
+      const finalPoints = newModule.customPoints ? parseInt(newModule.customPoints) : suggestedPoints;
 
       const moduleData = {
         ...newModule,
         pointValue: finalPoints,
-        sections: processedSections,
+        sections: processedSections
       };
 
       await createModuleMutation.mutateAsync(moduleData);
-
+      
       // Force refresh the module list
-      await queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
-
+      await queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      
       // Reset the form
       setNewModule({
-        title: "",
-        description: "",
-        category: "",
-        difficulty: "",
-        estimatedTime: "",
-        customPoints: "",
+        title: '',
+        description: '',
+        category: '',
+        difficulty: '',
+        estimatedTime: '',
+        customPoints: '',
         shareWithCommunity: false,
-        sections: [],
+        sections: []
       });
+      
     } catch (error) {
-      console.error("Module creation error:", error);
+      console.error('Module creation error:', error);
       toast({
         title: "Creation Failed",
-        description:
-          "There was an issue creating your module. Please try again.",
+        description: "There was an issue creating your module. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -3948,30 +3054,23 @@ Create a natural conversation between two podcast hosts discussing this specific
     setIsPublishing(true);
     try {
       // Process sections to ensure they have all required fields
-      const processedSections = newModule.sections.map((section) => ({
+      const processedSections = newModule.sections.map(section => ({
         ...section,
         duration: section.duration || 5,
-        activities: section.activities || [
-          {
-            type: "read" as const,
-            title: section.title || "Activity",
-            duration: section.duration || 5,
-            content: section.content || "",
-            videoUrl: section.videoUrl || "",
-            audioUrl: "",
-            interactionType: "form" as const,
-          },
-        ],
+        activities: section.activities || [{
+          type: 'read' as const,
+          title: section.title || 'Activity',
+          duration: section.duration || 5,
+          content: section.content || '',
+          videoUrl: section.videoUrl || '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
       }));
 
       // Calculate points
-      const suggestedPoints = calculateSuggestedPoints(
-        newModule.difficulty,
-        newModule.estimatedTime,
-      );
-      const finalPoints = newModule.customPoints
-        ? parseInt(newModule.customPoints)
-        : suggestedPoints;
+      const suggestedPoints = calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime);
+      const finalPoints = newModule.customPoints ? parseInt(newModule.customPoints) : suggestedPoints;
 
       const moduleData = {
         title: newModule.title,
@@ -3982,63 +3081,50 @@ Create a natural conversation between two podcast hosts discussing this specific
         pointValue: finalPoints,
         isVisible: publishOptions.saveToModules,
         shareWithCommunity: publishOptions.shareWithCommunity,
-        sections: processedSections,
+        sections: processedSections
       };
 
       // Save module to database
-      const response = await fetch("/api/modules", {
-        method: "POST",
+      const response = await fetch('/api/modules', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(moduleData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to publish module");
+        throw new Error('Failed to publish module');
       }
 
       const createdModule = await response.json();
 
       // Handle teacher notifications if selected
-      if (
-        publishOptions.sendToTeachers &&
-        publishOptions.selectedTeachers.length > 0
-      ) {
-        await Promise.all(
-          publishOptions.selectedTeachers.map((teacherId) =>
-            fetch("/api/teacher-messages", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                recipientId: teacherId,
-                subject: `New Module Available: ${newModule.title}`,
-                content:
-                  publishOptions.notificationMessage ||
-                  `A new training module "${newModule.title}" has been shared with you.`,
-                moduleId: createdModule.id,
-              }),
-            }),
-          ),
-        );
+      if (publishOptions.sendToTeachers && publishOptions.selectedTeachers.length > 0) {
+        await Promise.all(publishOptions.selectedTeachers.map(teacherId => 
+          fetch('/api/teacher-messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: teacherId,
+              subject: `New Module Available: ${newModule.title}`,
+              content: publishOptions.notificationMessage || `A new training module "${newModule.title}" has been shared with you.`,
+              moduleId: createdModule.id
+            })
+          })
+        ));
       }
 
       // Handle group notifications if selected
-      if (
-        publishOptions.sendToGroups &&
-        publishOptions.selectedGroups.length > 0
-      ) {
+      if (publishOptions.sendToGroups && publishOptions.selectedGroups.length > 0) {
         // Implementation for group notifications would go here
-        console.log("Group notifications not yet implemented");
+        console.log('Group notifications not yet implemented');
       }
 
       let successMessage = "Module published successfully!";
-      if (publishOptions.saveToModules)
-        successMessage += " Available in Module Library.";
-      if (publishOptions.shareWithCommunity)
-        successMessage += " Shared with Community.";
-      if (publishOptions.sendToTeachers)
-        successMessage += ` Sent to ${publishOptions.selectedTeachers.length} teachers.`;
+      if (publishOptions.saveToModules) successMessage += " Available in Module Library.";
+      if (publishOptions.shareWithCommunity) successMessage += " Shared with Community.";
+      if (publishOptions.sendToTeachers) successMessage += ` Sent to ${publishOptions.selectedTeachers.length} teachers.`;
 
       toast({
         title: "Publishing Complete",
@@ -4046,9 +3132,9 @@ Create a natural conversation between two podcast hosts discussing this specific
       });
 
       // Force refresh the module list
-      await queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/modules"] });
-
+      await queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/modules'] });
+      
       // Reset states and navigate
       setShowPublishDialog(false);
       setPublishOptions({
@@ -4058,15 +3144,15 @@ Create a natural conversation between two podcast hosts discussing this specific
         sendToGroups: false,
         selectedTeachers: [],
         selectedGroups: [],
-        notificationMessage: "",
+        notificationMessage: ''
       });
-      navigate("/dashboard");
+      navigate('/dashboard');
+      
     } catch (error) {
-      console.error("Module publishing error:", error);
+      console.error('Module publishing error:', error);
       toast({
         title: "Publishing Failed",
-        description:
-          "There was an issue publishing your module. Please try again.",
+        description: "There was an issue publishing your module. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -4076,61 +3162,56 @@ Create a natural conversation between two podcast hosts discussing this specific
 
   // Add section to module
   const addSection = () => {
-    setNewModule((prev) => ({
+    setNewModule(prev => ({
       ...prev,
-      sections: [
-        ...prev.sections,
-        {
-          title: "",
-          content: "",
-          videoUrl: "",
-          imageUrl: "",
-          type: "text" as const,
+      sections: [...prev.sections, {
+        title: '',
+        content: '',
+        videoUrl: '',
+        imageUrl: '',
+        type: 'text' as const,
+        duration: 5,
+        activities: [{
+          type: 'read' as const,
+          title: 'Activity',
           duration: 5,
-          activities: [
-            {
-              type: "read" as const,
-              title: "Activity",
-              duration: 5,
-              content: "",
-              videoUrl: "",
-              audioUrl: "",
-              interactionType: "form" as const,
-            },
-          ],
-        },
-      ],
+          content: '',
+          videoUrl: '',
+          audioUrl: '',
+          interactionType: 'form' as const
+        }]
+      }]
     }));
   };
 
   // Remove section from module
   const removeSection = (index: number) => {
-    setNewModule((prev) => ({
+    setNewModule(prev => ({
       ...prev,
-      sections: prev.sections.filter((_, i) => i !== index),
+      sections: prev.sections.filter((_, i) => i !== index)
     }));
   };
 
   // Update section
   const updateSection = (index: number, field: string, value: string) => {
-    setNewModule((prev) => ({
+    setNewModule(prev => ({
       ...prev,
-      sections: prev.sections.map((section, i) =>
-        i === index ? { ...section, [field]: value } : section,
-      ),
+      sections: prev.sections.map((section, i) => 
+        i === index ? { ...section, [field]: value } : section
+      )
     }));
   };
+
+
 
   // Draft management functions
   const saveDraft = async (name?: string) => {
     if (!user?.id) return;
-
+    
     setIsSavingDraft(true);
     try {
-      const draftName =
-        name ||
-        `${newModule.title || "Untitled Module"} - ${new Date().toLocaleDateString()}`;
-
+      const draftName = name || `${newModule.title || 'Untitled Module'} - ${new Date().toLocaleDateString()}`;
+      
       const draftData = {
         name: draftName,
         moduleData: {
@@ -4139,24 +3220,24 @@ Create a natural conversation between two podcast hosts discussing this specific
           currentSectionIndex,
           completedSections,
           aiWorkflowStep,
-          creationMethod,
+          creationMethod
         },
         creationMethod: creationMethod,
-        aiWorkflowStep: aiWorkflowStep,
+        aiWorkflowStep: aiWorkflowStep
       };
 
-      await apiRequest("/api/module-drafts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        data: draftData,
+      await apiRequest('/api/module-drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: draftData
       });
-
+      
       toast({
         title: "Draft Saved",
         description: `Your module draft "${draftName}" has been saved successfully.`,
       });
     } catch (error) {
-      console.error("Error saving draft:", error);
+      console.error('Error saving draft:', error);
       toast({
         title: "Save Failed",
         description: "Unable to save draft. Please try again.",
@@ -4171,29 +3252,24 @@ Create a natural conversation between two podcast hosts discussing this specific
     setIsLoadingDraft(true);
     try {
       const draft = await apiRequest(`/api/module-drafts/${draftId}`);
-
+      
       // Restore module state
       setNewModule(draft.moduleData);
-      setInitialModuleData(
-        draft.moduleData.initialModuleData || {
-          title: "",
-          learningObjective: "",
-        },
-      );
+      setInitialModuleData(draft.moduleData.initialModuleData || { title: '', learningObjective: '' });
       setCurrentSectionIndex(draft.moduleData.currentSectionIndex || 0);
       setCompletedSections(draft.moduleData.completedSections || []);
-      setAiWorkflowStep(draft.moduleData.aiWorkflowStep || "section-builder");
-      setCreationMethod(draft.moduleData.creationMethod || "manual");
-
+      setAiWorkflowStep(draft.moduleData.aiWorkflowStep || 'section-builder');
+      setCreationMethod(draft.moduleData.creationMethod || 'manual');
+      
       setShowDraftManager(false);
       setShowInitialSetup(false);
-
+      
       toast({
         title: "Draft Loaded",
         description: `Module "${draft.name}" has been loaded successfully.`,
       });
     } catch (error) {
-      console.error("Error loading draft:", error);
+      console.error('Error loading draft:', error);
       toast({
         title: "Load Failed",
         description: "Unable to load draft. Please try again.",
@@ -4206,17 +3282,17 @@ Create a natural conversation between two podcast hosts discussing this specific
 
   const deleteDraft = async (draftId: number) => {
     try {
-      await apiRequest(`/api/module-drafts/${draftId}`, { method: "DELETE" });
-
+      await apiRequest(`/api/module-drafts/${draftId}`, { method: 'DELETE' });
+      
       toast({
         title: "Draft Deleted",
         description: "Draft has been deleted successfully.",
       });
-
+      
       // Refresh drafts list
-      queryClient.invalidateQueries({ queryKey: ["/api/module-drafts"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/module-drafts'] });
     } catch (error) {
-      console.error("Error deleting draft:", error);
+      console.error('Error deleting draft:', error);
       toast({
         title: "Delete Failed",
         description: "Unable to delete draft. Please try again.",
@@ -4227,17 +3303,13 @@ Create a natural conversation between two podcast hosts discussing this specific
 
   // Fetch user drafts
   const { data: drafts } = useQuery({
-    queryKey: ["/api/module-drafts"],
-    enabled: showDraftManager && !!user?.id,
+    queryKey: ['/api/module-drafts'],
+    enabled: showDraftManager && !!user?.id
   });
 
   // Fetch all modules including hidden ones
-  const {
-    data: modules,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["/api/modules"],
+  const { data: modules, isLoading, error } = useQuery({
+    queryKey: ['/api/modules']
   });
 
   // Combine proven templates with user module templates safely
@@ -4247,55 +3319,39 @@ Create a natural conversation between two podcast hosts discussing this specific
 
   // Update module visibility mutation
   const updateVisibilityMutation = useMutation({
-    mutationFn: async ({
-      moduleId,
-      visible,
-    }: {
-      moduleId: number;
-      visible: boolean;
-    }) => {
-      return await apiRequest("PATCH", `/api/modules/${moduleId}/visibility`, {
-        visible,
-      });
+    mutationFn: async ({ moduleId, visible }: { moduleId: number, visible: boolean }) => {
+      return await apiRequest('PATCH', `/api/modules/${moduleId}/visibility`, { visible });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/modules"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       toast({
-        title: "Module Updated",
-        description: "Module visibility has been successfully updated.",
+        title: 'Module Updated',
+        description: 'Module visibility has been successfully updated.',
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update module visibility.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update module visibility.',
+        variant: 'destructive',
       });
-    },
+    }
   });
 
-  const handleVisibilityChange = (
-    moduleId: number,
-    currentVisibility: boolean,
-  ) => {
-    updateVisibilityMutation.mutate({
-      moduleId,
-      visible: !currentVisibility,
+  const handleVisibilityChange = (moduleId: number, currentVisibility: boolean) => {
+    updateVisibilityMutation.mutate({ 
+      moduleId, 
+      visible: !currentVisibility 
     });
   };
 
   // Filter modules based on search
-  const filteredModules =
-    modules && Array.isArray(modules)
-      ? modules.filter((module: Module) => {
-          const searchLower = searchTerm.toLowerCase();
-          return (
-            module.title.toLowerCase().includes(searchLower) ||
-            module.description.toLowerCase().includes(searchLower) ||
-            module.category.toLowerCase().includes(searchLower)
-          );
-        })
-      : [];
+  const filteredModules = (modules && Array.isArray(modules)) ? modules.filter((module: Module) => {
+    const searchLower = searchTerm.toLowerCase();
+    return module.title.toLowerCase().includes(searchLower) ||
+           module.description.toLowerCase().includes(searchLower) ||
+           module.category.toLowerCase().includes(searchLower);
+  }) : [];
 
   if (!user) {
     return (
@@ -4303,12 +3359,12 @@ Create a natural conversation between two podcast hosts discussing this specific
         <Card>
           <CardHeader>
             <CardTitle>Access Required</CardTitle>
-            <CardDescription>
-              Please log in to access the module creator.
-            </CardDescription>
+            <CardDescription>Please log in to access the module creator.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/login")}>Go to Login</Button>
+            <Button onClick={() => navigate('/login')}>
+              Go to Login
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -4318,29 +3374,21 @@ Create a natural conversation between two podcast hosts discussing this specific
   const renderCreationMethodSelection = () => (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Choose Your Module Creation Method
-        </h2>
-        <p className="text-gray-600">
-          Select the approach that works best for your content and style
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Module Creation Method</h2>
+        <p className="text-gray-600">Select the approach that works best for your content and style</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* AI Assisted */}
         <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300">
-          <CardContent
-            className="p-6 text-center"
-            onClick={handleAiAssistedFlow}
-          >
+          <CardContent className="p-6 text-center" onClick={handleAiAssistedFlow}>
             <div className="mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Wand2 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">AI Assisted</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Start with proven templates, then build step-by-step with AI
-                assistance. Perfect for structured, engaging content creation.
+                Start with proven templates, then build step-by-step with AI assistance. Perfect for structured, engaging content creation.
               </p>
             </div>
             <div className="space-y-2 text-left">
@@ -4365,18 +3413,14 @@ Create a natural conversation between two podcast hosts discussing this specific
 
         {/* PowerPoint Import */}
         <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-blue-300">
-          <CardContent
-            className="p-6 text-center"
-            onClick={() => setCreationMethod("powerPoint")}
-          >
+          <CardContent className="p-6 text-center" onClick={() => setCreationMethod('powerPoint')}>
             <div className="mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Upload className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">PowerPoint Import</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Transform your existing PowerPoint presentations into
-                interactive learning modules with AI enhancement.
+                Transform your existing PowerPoint presentations into interactive learning modules with AI enhancement.
               </p>
             </div>
             <div className="space-y-2 text-left">
@@ -4401,18 +3445,14 @@ Create a natural conversation between two podcast hosts discussing this specific
 
         {/* Manual Creation */}
         <Card className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-green-300">
-          <CardContent
-            className="p-6 text-center"
-            onClick={() => setCreationMethod("manual")}
-          >
+          <CardContent className="p-6 text-center" onClick={() => setCreationMethod('manual')}>
             <div className="mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Edit className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Manual Creation</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Build your module from scratch with full control over every
-                section. Includes AI templates and content suggestions.
+                Build your module from scratch with full control over every section. Includes AI templates and content suggestions.
               </p>
             </div>
             <div className="space-y-2 text-left">
@@ -4438,26 +3478,26 @@ Create a natural conversation between two podcast hosts discussing this specific
     </div>
   );
 
-  if (creationMethod === "stepByStep") {
+  if (creationMethod === 'stepByStep') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="container mx-auto px-4 py-8">
           <StepByStepModuleBuilder
             onModuleComplete={handleStepByStepComplete}
-            onBack={() => setCreationMethod("selection")}
+            onBack={() => setCreationMethod('selection')}
           />
         </div>
       </div>
     );
   }
-  console.log(aiSelectedTemplate, "selected template");
-  if (creationMethod === "powerPoint") {
+
+  if (creationMethod === 'powerPoint') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="container mx-auto px-4 py-8">
           <PowerPointImporter
             onImportComplete={handlePowerPointComplete}
-            onBack={() => setCreationMethod("selection")}
+            onBack={() => setCreationMethod('selection')}
           />
         </div>
       </div>
@@ -4476,30 +3516,19 @@ Create a natural conversation between two podcast hosts discussing this specific
                 Module Setup - Title & Learning Objective
               </CardTitle>
               <CardDescription>
-                Before we begin, let's establish the core foundation of your
-                module. This information will guide all AI content generation.
+                Before we begin, let's establish the core foundation of your module. This information will guide all AI content generation.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label
-                    htmlFor="moduleTitle"
-                    className="text-base font-medium"
-                  >
-                    Module Title
-                  </Label>
+                  <Label htmlFor="moduleTitle" className="text-base font-medium">Module Title</Label>
                   <div className="relative mt-2">
                     <Input
                       id="moduleTitle"
                       placeholder="e.g., Managing Playground Transitions, Effective Communication Skills"
                       value={initialModuleData.title}
-                      onChange={(e) =>
-                        setInitialModuleData((prev) => ({
-                          ...prev,
-                          title: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => setInitialModuleData(prev => ({ ...prev, title: e.target.value }))}
                       className="pr-12"
                     />
                     <Button
@@ -4509,16 +3538,10 @@ Create a natural conversation between two podcast hosts discussing this specific
                       className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
                       onClick={() => {
                         if (isListening.title) {
-                          stopVoiceInput("title");
+                          stopVoiceInput('title');
                         } else {
-                          startVoiceInput(
-                            "title",
-                            initialModuleData.title,
-                            (value) =>
-                              setInitialModuleData((prev) => ({
-                                ...prev,
-                                title: value,
-                              })),
+                          startVoiceInput('title', initialModuleData.title, (value) => 
+                            setInitialModuleData(prev => ({ ...prev, title: value }))
                           );
                         }
                       }}
@@ -4531,29 +3554,17 @@ Create a natural conversation between two podcast hosts discussing this specific
                       )}
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Choose a clear, descriptive title for your learning module
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">Choose a clear, descriptive title for your learning module</p>
                 </div>
 
                 <div>
-                  <Label
-                    htmlFor="learningObjective"
-                    className="text-base font-medium"
-                  >
-                    Primary Learning Objective
-                  </Label>
+                  <Label htmlFor="learningObjective" className="text-base font-medium">Primary Learning Objective</Label>
                   <div className="relative mt-2">
                     <Textarea
                       id="learningObjective"
                       placeholder="e.g., Teachers will learn effective strategies to smoothly transition children from high-energy playground activities to focused classroom learning, reducing disruptions and improving student readiness."
                       value={initialModuleData.learningObjective}
-                      onChange={(e) =>
-                        setInitialModuleData((prev) => ({
-                          ...prev,
-                          learningObjective: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => setInitialModuleData(prev => ({ ...prev, learningObjective: e.target.value }))}
                       rows={4}
                       className="pr-12"
                     />
@@ -4564,16 +3575,10 @@ Create a natural conversation between two podcast hosts discussing this specific
                       className="absolute right-2 top-2 h-8 w-8 p-0"
                       onClick={() => {
                         if (isListening.learningObjective) {
-                          stopVoiceInput("learningObjective");
+                          stopVoiceInput('learningObjective');
                         } else {
-                          startVoiceInput(
-                            "learningObjective",
-                            initialModuleData.learningObjective,
-                            (value) =>
-                              setInitialModuleData((prev) => ({
-                                ...prev,
-                                learningObjective: value,
-                              })),
+                          startVoiceInput('learningObjective', initialModuleData.learningObjective, (value) => 
+                            setInitialModuleData(prev => ({ ...prev, learningObjective: value }))
                           );
                         }
                       }}
@@ -4586,37 +3591,30 @@ Create a natural conversation between two podcast hosts discussing this specific
                       )}
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Describe what learners will achieve after completing this
-                    module
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">Describe what learners will achieve after completing this module</p>
                 </div>
 
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Brain className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">
-                      AI Context
-                    </span>
+                    <span className="text-sm font-medium text-blue-800">AI Context</span>
                   </div>
                   <p className="text-sm text-blue-700">
-                    This title and objective will be used by AI to generate
-                    relevant content, questions, and activities throughout your
-                    module creation process.
+                    This title and objective will be used by AI to generate relevant content, questions, and activities throughout your module creation process.
                   </p>
                 </div>
               </div>
 
               <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={() => navigate("/admin")}>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/admin')}
+                >
                   Cancel
                 </Button>
                 <Button
                   onClick={completeInitialSetup}
-                  disabled={
-                    !initialModuleData.title.trim() ||
-                    !initialModuleData.learningObjective.trim()
-                  }
+                  disabled={!initialModuleData.title.trim() || !initialModuleData.learningObjective.trim()}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   Continue to Module Builder
@@ -4631,25 +3629,18 @@ Create a natural conversation between two podcast hosts discussing this specific
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Comprehensive Module Creator</h1>
-          <p className="text-gray-600 mt-2">
-            Create engaging learning modules with AI assistance and professional
-            templates
-          </p>
+          <p className="text-gray-600 mt-2">Create engaging learning modules with AI assistance and professional templates</p>
           {!showInitialSetup && initialModuleData.title && (
             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="text-sm">
-                <div className="font-medium text-green-800">
-                  Working on: {initialModuleData.title}
-                </div>
-                <div className="text-green-700 mt-1">
-                  {initialModuleData.learningObjective}
-                </div>
+                <div className="font-medium text-green-800">Working on: {initialModuleData.title}</div>
+                <div className="text-green-700 mt-1">{initialModuleData.learningObjective}</div>
               </div>
             </div>
           )}
         </div>
         <div className="flex gap-3">
-          {creationMethod === "manual" && (
+          {creationMethod === 'manual' && (
             <>
               <Button
                 onClick={() => saveDraft()}
@@ -4673,7 +3664,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                 Load Draft
               </Button>
               <Button
-                onClick={() => setCreationMethod("selection")}
+                onClick={() => setCreationMethod('selection')}
                 variant="outline"
                 className="flex items-center gap-2"
               >
@@ -4682,9 +3673,9 @@ Create a natural conversation between two podcast hosts discussing this specific
               </Button>
             </>
           )}
-          <Button
-            variant="outline"
-            onClick={() => navigate("/admin")}
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/admin')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -4693,83 +3684,66 @@ Create a natural conversation between two podcast hosts discussing this specific
         </div>
       </div>
 
-      {creationMethod === "selection" ? renderCreationMethodSelection() : null}
+      {creationMethod === 'selection' ? renderCreationMethodSelection() : null}
 
       {/* AI-Assisted Workflow */}
-      {creationMethod === "manual" &&
-        aiWorkflowStep === "template-selection" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-                Choose Your Template
-              </CardTitle>
-              <CardDescription>
-                Start with a proven template or build your own from scratch
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {ALL_TEMPLATES.map((template) => (
-                  <Card
-                    key={template.id}
-                    className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300"
-                  >
-                    <CardContent
-                      className="p-6"
-                      onClick={() => handleTemplateSelection(template)}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                          {template.icon ? (
-                            React.createElement(template.icon, {
-                              className: "h-6 w-6 text-white",
-                            })
-                          ) : (
-                            <BookOpen className="h-6 w-6 text-white" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg mb-2">
-                            {template.title}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-3">
-                            {template.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {template.duration}
-                            </div>
-                            <div className="flex items-center">
-                              <Users className="h-4 w-4 mr-1" />
-                              {template.sections.length} sections
-                            </div>
+      {creationMethod === 'manual' && aiWorkflowStep === 'template-selection' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Choose Your Template
+            </CardTitle>
+            <CardDescription>
+              Start with a proven template or build your own from scratch
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {ALL_TEMPLATES.map((template) => (
+                <Card key={template.id} className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-purple-300">
+                  <CardContent className="p-6" onClick={() => handleTemplateSelection(template)}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        {template.icon ? React.createElement(template.icon, { className: "h-6 w-6 text-white" }) : <BookOpen className="h-6 w-6 text-white" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-2">{template.title}</h3>
+                        <p className="text-gray-600 text-sm mb-3">{template.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <Clock className="h-4 w-4 mr-1" />
+                            {template.duration}
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-1" />
+                            {template.sections.length} sections
                           </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="text-center">
-                <div className="text-gray-500 mb-4">or</div>
-                <Button
-                  variant="outline"
-                  className="border-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50"
-                  onClick={handleCustomTemplateBuilder}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Build Custom Template
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="text-center">
+              <div className="text-gray-500 mb-4">or</div>
+              <Button 
+                variant="outline" 
+                className="border-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50"
+                onClick={handleCustomTemplateBuilder}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Build Custom Template
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Custom Template Builder */}
-      {creationMethod === "manual" && aiWorkflowStep === "template-builder" && (
+      {creationMethod === 'manual' && aiWorkflowStep === 'template-builder' && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -4790,12 +3764,8 @@ Create a natural conversation between two podcast hosts discussing this specific
                   onClick={() => addCustomSection(sectionType.type)}
                 >
                   <div>
-                    {React.createElement(sectionType.icon, {
-                      className: "h-6 w-6 mx-auto mb-2 text-purple-600",
-                    })}
-                    <div className="text-xs font-medium">
-                      {sectionType.title}
-                    </div>
+                    {React.createElement(sectionType.icon, { className: "h-6 w-6 mx-auto mb-2 text-purple-600" })}
+                    <div className="text-xs font-medium">{sectionType.title}</div>
                   </div>
                 </Button>
               ))}
@@ -4805,15 +3775,12 @@ Create a natural conversation between two podcast hosts discussing this specific
               <div className="space-y-3">
                 <h4 className="font-medium">Your Template Sections:</h4>
                 {customTemplate.sections.map((section: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                  >
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div className="text-sm font-medium">{index + 1}.</div>
                     <div className="text-sm">{section.title}</div>
                   </div>
                 ))}
-                <Button
+                <Button 
                   onClick={proceedToSectionBuilder}
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                 >
@@ -4826,50 +3793,42 @@ Create a natural conversation between two podcast hosts discussing this specific
       )}
 
       {/* Step-by-Step Section Builder */}
-      {creationMethod === "manual" && aiWorkflowStep === "section-builder" && (
+      {creationMethod === 'manual' && aiWorkflowStep === 'section-builder' && (
         <div className="grid grid-cols-12 gap-6">
           {/* Section Outline Sidebar */}
           <div className="col-span-3">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Module Outline</CardTitle>
-                <CardDescription>
-                  {aiSelectedTemplate?.title || "Custom Template"}
-                </CardDescription>
+                <CardDescription>{aiSelectedTemplate?.name || 'Custom Template'}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {newModule.sections.map((section, index) => (
-                    <div
+                    <div 
                       key={index}
                       className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        index === currentSectionIndex
-                          ? "border-purple-500 bg-purple-50"
+                        index === currentSectionIndex 
+                          ? 'border-purple-500 bg-purple-50' 
                           : completedSections.includes(index)
-                            ? "border-green-300 bg-green-50"
-                            : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                       }`}
                       onClick={() => jumpToSection(index)}
                     >
                       <div className="flex items-center gap-2">
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            index === currentSectionIndex
-                              ? "bg-purple-500 text-white"
-                              : completedSections.includes(index)
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-300 text-gray-600"
-                          }`}
-                        >
-                          {completedSections.includes(index) ? "✓" : index + 1}
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === currentSectionIndex 
+                            ? 'bg-purple-500 text-white'
+                            : completedSections.includes(index)
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-300 text-gray-600'
+                        }`}>
+                          {completedSections.includes(index) ? '✓' : index + 1}
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-sm">
-                            {section.title}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {section.type}
-                          </div>
+                          <div className="font-medium text-sm">{section.title}</div>
+                          <div className="text-xs text-gray-500">{section.type}</div>
                         </div>
                       </div>
                     </div>
@@ -4888,24 +3847,16 @@ Create a natural conversation between two podcast hosts discussing this specific
                   <Target className="h-6 w-6 text-blue-600" />
                   <div className="flex-1">
                     <CardTitle className="text-lg text-blue-900">
-                      {newModule.title || "Professional Development Module"}
+                      {newModule.title || 'Professional Development Module'}
                     </CardTitle>
                     <CardDescription className="text-blue-700 mt-1">
-                      <strong>Topic:</strong>{" "}
-                      {newModule.description ||
-                        "Building effective teaching strategies"}
+                      <strong>Topic:</strong> {newModule.description || 'Building effective teaching strategies'}
                     </CardDescription>
                     <div className="flex items-center gap-4 mt-2 text-sm">
-                      <Badge
-                        variant="outline"
-                        className="border-blue-300 text-blue-700"
-                      >
+                      <Badge variant="outline" className="border-blue-300 text-blue-700">
                         {newModule.category}
                       </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-purple-300 text-purple-700"
-                      >
+                      <Badge variant="outline" className="border-purple-300 text-purple-700">
                         {newModule.difficulty} level
                       </Badge>
                       <span className="text-blue-600">
@@ -4920,13 +3871,9 @@ Create a natural conversation between two podcast hosts discussing this specific
 
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Build Section {currentSectionIndex + 1}:{" "}
-                  {newModule.sections[currentSectionIndex]?.title}
-                </CardTitle>
+                <CardTitle>Build Section {currentSectionIndex + 1}: {newModule.sections[currentSectionIndex]?.title}</CardTitle>
                 <CardDescription>
-                  AI will use the module topic above to generate relevant
-                  content for this section
+                  AI will use the module topic above to generate relevant content for this section
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -4939,38 +3886,27 @@ Create a natural conversation between two podcast hosts discussing this specific
                         Interactive Quiz Builder
                       </CardTitle>
                       <CardDescription className="text-green-700">
-                        Build your quiz one question at a time. Add as many
-                        questions as you need.
+                        Build your quiz one question at a time. Add as many questions as you need.
                       </CardDescription>
-
+                      
                       {/* Topic Context for AI */}
                       <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <Target className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-800">
-                            Quiz Topic Context
-                          </span>
+                          <span className="text-sm font-medium text-blue-800">Quiz Topic Context</span>
                         </div>
                         <div className="text-sm space-y-1">
                           <div className="text-blue-700">
-                            <strong>Module:</strong>{" "}
-                            {initialModuleData.title ||
-                              newModule.title ||
-                              "Professional Development Module"}
+                            <strong>Module:</strong> {initialModuleData.title || newModule.title || 'Professional Development Module'}
                           </div>
                           <div className="text-blue-700">
-                            <strong>Learning Objective:</strong>{" "}
-                            {initialModuleData.learningObjective ||
-                              newModule.description ||
-                              "Building effective teaching strategies"}
+                            <strong>Learning Objective:</strong> {initialModuleData.learningObjective || newModule.description || 'Building effective teaching strategies'}
                           </div>
                           <div className="text-blue-700">
-                            <strong>Section:</strong>{" "}
-                            {newModule.sections[currentSectionIndex]?.title}
+                            <strong>Section:</strong> {newModule.sections[currentSectionIndex]?.title}
                           </div>
                           <div className="text-blue-600 text-xs mt-2">
-                            AI will generate questions specifically about this
-                            topic and section
+                            AI will generate questions specifically about this topic and section
                           </div>
                         </div>
                       </div>
@@ -4982,9 +3918,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                           <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-semibold">
                             {builtQuizQuestions.length}
                           </div>
-                          <span className="text-sm font-medium">
-                            Questions Built
-                          </span>
+                          <span className="text-sm font-medium">Questions Built</span>
                         </div>
                         {builtQuizQuestions.length > 0 && (
                           <Button
@@ -5000,9 +3934,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                       {/* Current Question Builder */}
                       <div className="space-y-4 p-4 bg-white rounded-lg border border-green-200">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-semibold">
-                            Question {builtQuizQuestions.length + 1}
-                          </h4>
+                          <h4 className="font-semibold">Question {builtQuizQuestions.length + 1}</h4>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
@@ -5028,43 +3960,25 @@ Create a natural conversation between two podcast hosts discussing this specific
 
                         {/* Difficulty Selector for AI Generation */}
                         <div>
-                          <Label className="text-sm font-medium">
-                            Question Difficulty
-                          </Label>
-                          <Select
-                            value={quizDifficulty}
-                            onValueChange={setQuizDifficulty}
-                          >
+                          <Label className="text-sm font-medium">Question Difficulty</Label>
+                          <Select value={quizDifficulty} onValueChange={setQuizDifficulty}>
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select difficulty level" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="easy">
-                                Easy - Basic understanding
-                              </SelectItem>
-                              <SelectItem value="medium">
-                                Medium - Practical application
-                              </SelectItem>
-                              <SelectItem value="hard">
-                                Hard - Critical thinking
-                              </SelectItem>
+                              <SelectItem value="easy">Easy - Basic understanding</SelectItem>
+                              <SelectItem value="medium">Medium - Practical application</SelectItem>
+                              <SelectItem value="hard">Hard - Critical thinking</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         {/* Question Input */}
                         <div>
-                          <Label className="text-sm font-medium">
-                            Question
-                          </Label>
+                          <Label className="text-sm font-medium">Question</Label>
                           <Textarea
                             value={currentQuizQuestion.question}
-                            onChange={(e) =>
-                              setCurrentQuizQuestion((prev) => ({
-                                ...prev,
-                                question: e.target.value,
-                              }))
-                            }
+                            onChange={(e) => setCurrentQuizQuestion(prev => ({ ...prev, question: e.target.value }))}
                             placeholder="Enter your quiz question..."
                             className="mt-1"
                             rows={2}
@@ -5079,32 +3993,18 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 <input
                                   type="radio"
                                   name="correctAnswer"
-                                  checked={
-                                    currentQuizQuestion.correctAnswer === index
-                                  }
-                                  onChange={() =>
-                                    setCurrentQuizQuestion((prev) => ({
-                                      ...prev,
-                                      correctAnswer: index,
-                                    }))
-                                  }
+                                  checked={currentQuizQuestion.correctAnswer === index}
+                                  onChange={() => setCurrentQuizQuestion(prev => ({ ...prev, correctAnswer: index }))}
                                   className="text-green-600"
                                 />
-                                Answer {String.fromCharCode(65 + index)}{" "}
-                                {currentQuizQuestion.correctAnswer === index &&
-                                  "(Correct)"}
+                                Answer {String.fromCharCode(65 + index)} {currentQuizQuestion.correctAnswer === index && "(Correct)"}
                               </Label>
                               <Input
                                 value={answer}
                                 onChange={(e) => {
-                                  const newAnswers = [
-                                    ...currentQuizQuestion.answers,
-                                  ];
+                                  const newAnswers = [...currentQuizQuestion.answers];
                                   newAnswers[index] = e.target.value;
-                                  setCurrentQuizQuestion((prev) => ({
-                                    ...prev,
-                                    answers: newAnswers,
-                                  }));
+                                  setCurrentQuizQuestion(prev => ({ ...prev, answers: newAnswers }));
                                 }}
                                 placeholder={`Answer option ${String.fromCharCode(65 + index)}`}
                                 className="mt-1"
@@ -5115,17 +4015,10 @@ Create a natural conversation between two podcast hosts discussing this specific
 
                         {/* Explanation */}
                         <div>
-                          <Label className="text-sm font-medium">
-                            Explanation (Optional)
-                          </Label>
+                          <Label className="text-sm font-medium">Explanation (Optional)</Label>
                           <Input
                             value={currentQuizQuestion.explanation}
-                            onChange={(e) =>
-                              setCurrentQuizQuestion((prev) => ({
-                                ...prev,
-                                explanation: e.target.value,
-                              }))
-                            }
+                            onChange={(e) => setCurrentQuizQuestion(prev => ({ ...prev, explanation: e.target.value }))}
                             placeholder="Explain why this answer is correct..."
                             className="mt-1"
                           />
@@ -5135,11 +4028,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                         <Button
                           onClick={addQuestionToQuiz}
                           className="w-full bg-green-600 hover:bg-green-700"
-                          disabled={
-                            !currentQuizQuestion.question.trim() ||
-                            currentQuizQuestion.answers.filter((a) => a.trim())
-                              .length < 2
-                          }
+                          disabled={!currentQuizQuestion.question.trim() || currentQuizQuestion.answers.filter(a => a.trim()).length < 2}
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Add Question to Quiz
@@ -5149,25 +4038,14 @@ Create a natural conversation between two podcast hosts discussing this specific
                       {/* Built Questions List */}
                       {builtQuizQuestions.length > 0 && (
                         <div className="space-y-3">
-                          <h4 className="font-semibold">
-                            Quiz Questions ({builtQuizQuestions.length})
-                          </h4>
+                          <h4 className="font-semibold">Quiz Questions ({builtQuizQuestions.length})</h4>
                           {builtQuizQuestions.map((question, index) => (
-                            <div
-                              key={index}
-                              className="p-3 bg-white rounded-lg border border-green-200"
-                            >
+                            <div key={index} className="p-3 bg-white rounded-lg border border-green-200">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <div className="font-medium text-sm">
-                                    Q{index + 1}: {question.question}
-                                  </div>
+                                  <div className="font-medium text-sm">Q{index + 1}: {question.question}</div>
                                   <div className="text-xs text-gray-600 mt-1">
-                                    Correct:{" "}
-                                    {String.fromCharCode(
-                                      65 + question.correctAnswer,
-                                    )}
-                                    ) {question.answers[question.correctAnswer]}
+                                    Correct: {String.fromCharCode(65 + question.correctAnswer)}) {question.answers[question.correctAnswer]}
                                   </div>
                                 </div>
                                 <Button
@@ -5191,17 +4069,17 @@ Create a natural conversation between two podcast hosts discussing this specific
                           onClick={() => {
                             setIsQuizBuilder(false);
                             setCurrentQuizQuestion({
-                              question: "",
-                              answers: ["", "", "", ""],
+                              question: '',
+                              answers: ['', '', '', ''],
                               correctAnswer: 0,
-                              explanation: "",
+                              explanation: ''
                             });
                             setBuiltQuizQuestions([]);
                           }}
                         >
                           Cancel Quiz Builder
                         </Button>
-
+                        
                         {builtQuizQuestions.length > 0 && (
                           <Button
                             onClick={finishQuizAndSave}
@@ -5225,39 +4103,27 @@ Create a natural conversation between two podcast hosts discussing this specific
                         Interactive Activity Builder
                       </CardTitle>
                       <CardDescription className="text-blue-700">
-                        Create engaging interactive activities for adult
-                        learners. Build drag-and-match, scenarios, or
-                        categorization games.
+                        Create engaging interactive activities for adult learners. Build drag-and-match, scenarios, or categorization games.
                       </CardDescription>
-
+                      
                       {/* Topic Context for AI */}
                       <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <Target className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-800">
-                            Activity Topic Context
-                          </span>
+                          <span className="text-sm font-medium text-green-800">Activity Topic Context</span>
                         </div>
                         <div className="text-sm space-y-1">
                           <div className="text-green-700">
-                            <strong>Module:</strong>{" "}
-                            {initialModuleData.title ||
-                              newModule.title ||
-                              "Professional Development Module"}
+                            <strong>Module:</strong> {initialModuleData.title || newModule.title || 'Professional Development Module'}
                           </div>
                           <div className="text-green-700">
-                            <strong>Learning Objective:</strong>{" "}
-                            {initialModuleData.learningObjective ||
-                              newModule.description ||
-                              "Building effective teaching strategies"}
+                            <strong>Learning Objective:</strong> {initialModuleData.learningObjective || newModule.description || 'Building effective teaching strategies'}
                           </div>
                           <div className="text-green-700">
-                            <strong>Section:</strong>{" "}
-                            {newModule.sections[currentSectionIndex]?.title}
+                            <strong>Section:</strong> {newModule.sections[currentSectionIndex]?.title}
                           </div>
                           <div className="text-green-600 text-xs mt-2">
-                            AI will generate interactive activities specifically
-                            about this topic and section
+                            AI will generate interactive activities specifically about this topic and section
                           </div>
                         </div>
                       </div>
@@ -5269,9 +4135,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold">
                             {builtActivities.length}
                           </div>
-                          <span className="text-sm font-medium">
-                            Activities Built
-                          </span>
+                          <span className="text-sm font-medium">Activities Built</span>
                         </div>
                         {builtActivities.length > 0 && (
                           <Button
@@ -5287,9 +4151,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                       {/* Current Activity Builder */}
                       <div className="space-y-4 p-4 bg-white rounded-lg border border-blue-200">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-semibold">
-                            Activity {builtActivities.length + 1}
-                          </h4>
+                          <h4 className="font-semibold">Activity {builtActivities.length + 1}</h4>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
@@ -5316,31 +4178,18 @@ Create a natural conversation between two podcast hosts discussing this specific
                         {/* Activity Type Selection */}
                         <div className="space-y-2">
                           <Label>Activity Type</Label>
-                          <Select
-                            value={currentActivity.activityType}
-                            onValueChange={(value) =>
-                              setCurrentActivity((prev) => ({
-                                ...prev,
-                                activityType: value,
-                              }))
-                            }
+                          <Select 
+                            value={currentActivity.activityType} 
+                            onValueChange={(value) => setCurrentActivity(prev => ({ ...prev, activityType: value }))}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select activity type" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="drag-and-match">
-                                Drag and Match
-                              </SelectItem>
-                              <SelectItem value="scenario-challenge">
-                                Scenario Challenge
-                              </SelectItem>
-                              <SelectItem value="categorization">
-                                Categorization Game
-                              </SelectItem>
-                              <SelectItem value="sequence-ordering">
-                                Sequence Ordering
-                              </SelectItem>
+                              <SelectItem value="drag-and-match">Drag and Match</SelectItem>
+                              <SelectItem value="scenario-challenge">Scenario Challenge</SelectItem>
+                              <SelectItem value="categorization">Categorization Game</SelectItem>
+                              <SelectItem value="sequence-ordering">Sequence Ordering</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -5350,12 +4199,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                           <Label>Activity Title</Label>
                           <Input
                             value={currentActivity.title}
-                            onChange={(e) =>
-                              setCurrentActivity((prev) => ({
-                                ...prev,
-                                title: e.target.value,
-                              }))
-                            }
+                            onChange={(e) => setCurrentActivity(prev => ({ ...prev, title: e.target.value }))}
                             placeholder="Enter activity title..."
                           />
                         </div>
@@ -5365,12 +4209,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                           <Label>Instructions</Label>
                           <Textarea
                             value={currentActivity.instructions}
-                            onChange={(e) =>
-                              setCurrentActivity((prev) => ({
-                                ...prev,
-                                instructions: e.target.value,
-                              }))
-                            }
+                            onChange={(e) => setCurrentActivity(prev => ({ ...prev, instructions: e.target.value }))}
                             placeholder="Provide clear instructions for learners..."
                             rows={3}
                           />
@@ -5390,66 +4229,44 @@ Create a natural conversation between two podcast hosts discussing this specific
                               Add Item
                             </Button>
                           </div>
-
+                          
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label className="text-xs font-medium">
-                                Items to Match
-                              </Label>
-                              {currentActivity.promptItems.map(
-                                (item, index) => (
-                                  <div key={index} className="flex gap-2">
-                                    <Input
-                                      value={item}
-                                      onChange={(e) =>
-                                        updateActivityItem(
-                                          index,
-                                          "promptItems",
-                                          e.target.value,
-                                        )
-                                      }
-                                      placeholder={`Item ${index + 1}...`}
-                                      className="text-sm"
-                                    />
-                                    {currentActivity.promptItems.length > 2 && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() =>
-                                          removeActivityItem(index)
-                                        }
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                ),
-                              )}
+                              <Label className="text-xs font-medium">Items to Match</Label>
+                              {currentActivity.promptItems.map((item, index) => (
+                                <div key={index} className="flex gap-2">
+                                  <Input
+                                    value={item}
+                                    onChange={(e) => updateActivityItem(index, 'promptItems', e.target.value)}
+                                    placeholder={`Item ${index + 1}...`}
+                                    className="text-sm"
+                                  />
+                                  {currentActivity.promptItems.length > 2 && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => removeActivityItem(index)}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-
+                            
                             <div className="space-y-2">
-                              <Label className="text-xs font-medium">
-                                Correct Matches
-                              </Label>
-                              {currentActivity.answerKey.map(
-                                (answer, index) => (
-                                  <div key={index} className="flex gap-2">
-                                    <Input
-                                      value={answer}
-                                      onChange={(e) =>
-                                        updateActivityItem(
-                                          index,
-                                          "answerKey",
-                                          e.target.value,
-                                        )
-                                      }
-                                      placeholder={`Answer ${index + 1}...`}
-                                      className="text-sm"
-                                    />
-                                  </div>
-                                ),
-                              )}
+                              <Label className="text-xs font-medium">Correct Matches</Label>
+                              {currentActivity.answerKey.map((answer, index) => (
+                                <div key={index} className="flex gap-2">
+                                  <Input
+                                    value={answer}
+                                    onChange={(e) => updateActivityItem(index, 'answerKey', e.target.value)}
+                                    placeholder={`Answer ${index + 1}...`}
+                                    className="text-sm"
+                                  />
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -5458,10 +4275,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                         <div className="flex justify-end pt-4 border-t border-blue-200">
                           <Button
                             onClick={addCurrentActivityToList}
-                            disabled={
-                              !currentActivity.title.trim() ||
-                              !currentActivity.instructions.trim()
-                            }
+                            disabled={!currentActivity.title.trim() || !currentActivity.instructions.trim()}
                             className="bg-blue-600 hover:bg-blue-700"
                           >
                             <Plus className="h-4 w-4 mr-2" />
@@ -5473,22 +4287,14 @@ Create a natural conversation between two podcast hosts discussing this specific
                       {/* Built Activities List */}
                       {builtActivities.length > 0 && (
                         <div className="space-y-3">
-                          <h4 className="font-semibold">
-                            Built Activities ({builtActivities.length})
-                          </h4>
+                          <h4 className="font-semibold">Built Activities ({builtActivities.length})</h4>
                           {builtActivities.map((activity, index) => (
-                            <div
-                              key={index}
-                              className="p-3 bg-white rounded-lg border border-blue-200"
-                            >
+                            <div key={index} className="p-3 bg-white rounded-lg border border-blue-200">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <div className="font-medium text-sm">
-                                    {activity.title}
-                                  </div>
+                                  <div className="font-medium text-sm">{activity.title}</div>
                                   <div className="text-xs text-gray-600 mt-1">
-                                    Type: {activity.activityType} • Items:{" "}
-                                    {activity.promptItems.length}
+                                    Type: {activity.activityType} • Items: {activity.promptItems.length}
                                   </div>
                                   <div className="text-xs text-gray-500 mt-1">
                                     {activity.instructions.substring(0, 80)}...
@@ -5515,25 +4321,24 @@ Create a natural conversation between two podcast hosts discussing this specific
                           onClick={() => {
                             setIsActivityBuilder(false);
                             setCurrentActivity({
-                              activityType: "drag-and-match",
-                              title: "",
-                              instructions: "",
-                              promptItems: ["", "", "", ""],
-                              answerKey: ["", "", "", ""],
+                              activityType: 'drag-and-match',
+                              title: '',
+                              instructions: '',
+                              promptItems: ['', '', '', ''],
+                              answerKey: ['', '', '', ''],
                               uiHints: {
-                                leftColumnTitle: "Items to Match",
-                                rightColumnTitle: "Categories",
-                                dragInstruction:
-                                  "Drag items to their matching categories",
+                                leftColumnTitle: 'Items to Match',
+                                rightColumnTitle: 'Categories',
+                                dragInstruction: 'Drag items to their matching categories'
                               },
-                              imageSupport: false,
+                              imageSupport: false
                             });
                             setBuiltActivities([]);
                           }}
                         >
                           Cancel Activity Builder
                         </Button>
-
+                        
                         {builtActivities.length > 0 && (
                           <Button
                             onClick={finishActivityAndSave}
@@ -5551,954 +4356,505 @@ Create a natural conversation between two podcast hosts discussing this specific
                 {/* Drag and Drop Content Area */}
                 {!isQuizBuilder && !isActivityBuilder && (
                   <div className="grid grid-cols-2 gap-6">
-                    {/* Dynamic AI Tools Based on Section Type */}
-                    <div className="space-y-4">
-                      {(() => {
-                        const currentSection =
-                          newModule.sections[currentSectionIndex];
-                        const sectionType = currentSection?.type || "text";
-                        const sectionTitle =
-                          currentSection?.title?.toLowerCase() || "";
-
-                        // Specific section type detection for targeted tools
-                        const isVideoSection =
-                          sectionType === "video" ||
-                          sectionTitle.includes("video") ||
-                          sectionTitle.includes("foundational");
-                        const isFlashcardSection =
-                          sectionTitle.includes("flash cards") ||
-                          sectionTitle.includes("flashcards") ||
-                          sectionTitle.includes("definitions") ||
-                          sectionTitle.includes("key terms");
-                        const isQuizSection =
-                          sectionType === "quiz" ||
-                          sectionTitle.includes("quiz") ||
-                          sectionTitle.includes("assessment");
-                        const isActivitySection =
-                          sectionTitle.includes("guided activity") ||
-                          sectionTitle.includes("step-by-step") ||
-                          sectionTitle.includes("interactive") ||
-                          sectionTitle.includes("matching") ||
-                          sectionTitle.includes("drag-and-drop") ||
-                          sectionTitle.includes("categorization") ||
-                          sectionType === "matching" ||
-                          (sectionTitle.includes("activity") &&
-                            !sectionTitle.includes("flash"));
-                        const isCaseStudySection =
-                          sectionTitle.includes("case study") ||
-                          sectionTitle.includes("scenario") ||
-                          sectionType === "story" ||
-                          sectionType === "scenario";
-                        const isReflectionSection =
-                          sectionTitle.includes("reflection") ||
-                          sectionTitle.includes("journal") ||
-                          sectionTitle.includes("think about") ||
-                          sectionTitle.includes("action plan");
-                        const isScenarioSection =
-                          sectionType === "scenario" ||
-                          sectionType === "story" ||
-                          sectionTitle.includes("scenario") ||
-                          sectionTitle.includes("case study");
-                        const isTextSection =
-                          sectionType === "text" ||
-                          (!isVideoSection &&
-                            !isQuizSection &&
-                            !isFlashcardSection &&
-                            !isActivitySection &&
-                            !isScenarioSection);
-
-                        if (isVideoSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <Video className="h-5 w-5 text-blue-600" />
-                                  Video Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setShowVideoSearch(true)}
-                                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                                  >
-                                    <Search className="h-4 w-4 mr-2" />
-                                    Find Videos
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={isGeneratingAIContent}
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    <Sparkles className="h-4 w-4 mr-2" />
-                                    Discussion Questions
-                                  </Button>
-                                </div>
+                  {/* Dynamic AI Tools Based on Section Type */}
+                  <div className="space-y-4">
+                    {(() => {
+                      const currentSection = newModule.sections[currentSectionIndex];
+                      const sectionType = currentSection?.type || 'text';
+                      const sectionTitle = currentSection?.title?.toLowerCase() || '';
+                      
+                      // Specific section type detection for targeted tools
+                      const isVideoSection = sectionType === 'video' || sectionTitle.includes('video') || sectionTitle.includes('foundational');
+                      const isFlashcardSection = sectionTitle.includes('flash cards') || sectionTitle.includes('flashcards') ||
+                                               sectionTitle.includes('definitions') || sectionTitle.includes('key terms');
+                      const isQuizSection = sectionType === 'quiz' || sectionTitle.includes('quiz') || sectionTitle.includes('assessment');
+                      const isActivitySection = sectionTitle.includes('guided activity') || sectionTitle.includes('step-by-step') ||
+                                              (sectionTitle.includes('activity') && !sectionTitle.includes('flash'));
+                      const isScenarioSection = sectionType === 'scenario' || sectionType === 'story' || 
+                                              sectionTitle.includes('scenario') || sectionTitle.includes('case study');
+                      const isTextSection = sectionType === 'text' || (!isVideoSection && !isQuizSection && !isFlashcardSection && 
+                                          !isActivitySection && !isScenarioSection);
+                      
+                      if (isVideoSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Video className="h-5 w-5 text-blue-600" />
+                                Video Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={() => setShowVideoSearch(true)}
+                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Search className="h-4 w-4 mr-2" />
+                                  Find Videos
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  Discussion Questions
+                                </Button>
                               </div>
-
-                              <div className="space-y-3">
-                                {!showVideoSearch ? (
-                                  <div className="text-center py-6 text-gray-500">
-                                    <Video className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                    <p className="text-sm font-medium">
-                                      Video Section Tools
-                                    </p>
-                                    <p className="text-xs mt-1">
-                                      Search educational videos or generate
-                                      discussion questions
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <div className="space-y-4">
-                                      <div>
-                                        <Label className="text-sm font-medium text-blue-900">
-                                          Find educational videos
-                                        </Label>
-                                        <p className="text-xs text-blue-700 mt-1">
-                                          Search our curated library, YouTube,
-                                          or add custom links
-                                        </p>
-                                      </div>
-
-                                      <Input
-                                        value={videoSearchQuery}
-                                        onChange={(e) =>
-                                          setVideoSearchQuery(e.target.value)
-                                        }
-                                        placeholder="Search for educational videos..."
-                                        className="border-blue-300 focus:border-blue-500"
-                                        onKeyPress={(e) =>
-                                          e.key === "Enter" &&
-                                          handleVideoSearch()
-                                        }
-                                      />
-
-                                      <div className="grid grid-cols-3 gap-2">
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="border-blue-300 text-blue-700"
-                                          onClick={() =>
-                                            searchVideoLibrary(videoSearchQuery)
-                                          }
-                                          disabled={
-                                            isSearchingVideos ||
-                                            !videoSearchQuery.trim()
-                                          }
-                                        >
-                                          <BookOpen className="h-3 w-3 mr-1" />
-                                          {isSearchingVideos
-                                            ? "Searching..."
-                                            : "Library"}
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="border-red-300 text-red-700"
-                                          onClick={() =>
-                                            searchYouTube(videoSearchQuery)
-                                          }
-                                          disabled={
-                                            isSearchingYoutube ||
-                                            !videoSearchQuery.trim()
-                                          }
-                                        >
-                                          <Search className="h-3 w-3 mr-1" />
-                                          {isSearchingYoutube
-                                            ? "Searching..."
-                                            : "YouTube"}
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="border-green-300 text-green-700"
-                                          onClick={() => {
-                                            const url =
-                                              prompt("Enter video URL:");
-                                            if (url && url.trim()) {
-                                              // Extract title from URL or use placeholder
-                                              let videoTitle = "Custom Video";
-                                              if (
-                                                url.includes("youtube.com") ||
-                                                url.includes("youtu.be")
-                                              ) {
-                                                videoTitle = "YouTube Video";
-                                              } else if (
-                                                url.includes("vimeo.com")
-                                              ) {
-                                                videoTitle = "Vimeo Video";
-                                              }
-
-                                              // Add video to the correct section
-                                              const targetIndex =
-                                                selectedVideoForSection !== null
-                                                  ? selectedVideoForSection
-                                                  : currentSectionIndex;
-                                              updateSection(
-                                                targetIndex,
-                                                "videoUrl",
-                                                url,
-                                              );
-                                              updateSection(
-                                                targetIndex,
-                                                "title",
-                                                `${newModule.sections[targetIndex]?.title || "Section"} - ${videoTitle}`,
-                                              );
-
-                                              toast({
-                                                title: "Custom Video Added",
-                                                description:
-                                                  "Your custom video has been added to the section",
-                                              });
-
-                                              setShowVideoSearch(false);
-                                              setVideoSearchQuery("");
-                                              setVideoSearchResults([]);
-                                              setYoutubeSearchResults([]);
-                                              setSelectedVideoForSection(null);
-                                            }
-                                          }}
-                                        >
-                                          <Link2 className="h-3 w-3 mr-1" />
-                                          Custom URL
-                                        </Button>
-                                      </div>
-
-                                      {(videoSearchResults.length > 0 ||
-                                        youtubeSearchResults.length > 0) && (
-                                        <div className="max-h-64 overflow-y-auto space-y-3">
-                                          <h4 className="text-sm font-medium text-blue-800">
-                                            Choose a video to add:
-                                          </h4>
-
-                                          {/* Library Videos */}
-                                          {videoSearchResults.map(
-                                            (video, index) => (
-                                              <div
-                                                key={`library-${index}`}
-                                                className="p-3 bg-white rounded-lg border border-blue-200 shadow-sm"
-                                              >
-                                                <div className="flex items-center justify-between">
-                                                  <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-blue-900 truncate">
-                                                      {video.title}
-                                                    </p>
-                                                    <p className="text-xs text-blue-700 mt-1">
-                                                      {video.description ||
-                                                        video.category}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                      Library Video •{" "}
-                                                      {video.duration ||
-                                                        "Duration unknown"}
-                                                    </p>
-                                                  </div>
-                                                  <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    className="ml-3 bg-blue-600 hover:bg-blue-700 text-white"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      const targetIndex =
-                                                        selectedVideoForSection !==
-                                                        null
-                                                          ? selectedVideoForSection
-                                                          : currentSectionIndex;
-                                                      updateSection(
-                                                        targetIndex,
-                                                        "videoUrl",
-                                                        video.url,
-                                                      );
-                                                      updateSection(
-                                                        targetIndex,
-                                                        "title",
-                                                        `${newModule.sections[targetIndex]?.title || "Section"} - ${video.title}`,
-                                                      );
-
-                                                      toast({
-                                                        title: "Video Added",
-                                                        description: `Added "${video.title}" to the section`,
-                                                      });
-
-                                                      setShowVideoSearch(false);
-                                                      setVideoSearchQuery("");
-                                                      setVideoSearchResults([]);
-                                                      setYoutubeSearchResults(
-                                                        [],
-                                                      );
-                                                      setSelectedVideoForSection(
-                                                        null,
-                                                      );
-                                                    }}
-                                                  >
-                                                    <Plus className="h-3 w-3 mr-1" />
-                                                    Add Video
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            ),
-                                          )}
-
-                                          {/* YouTube Videos */}
-                                          {youtubeSearchResults.map(
-                                            (video, index) => (
-                                              <div
-                                                key={`youtube-${index}`}
-                                                className="p-3 bg-white rounded-lg border border-red-200 shadow-sm"
-                                              >
-                                                <div className="flex items-center justify-between">
-                                                  <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-red-900 truncate">
-                                                      {video.title}
-                                                    </p>
-                                                    <p className="text-xs text-red-700 mt-1">
-                                                      By{" "}
-                                                      {video.channelTitle ||
-                                                        video.channel}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                      YouTube •
-                                                      <a
-                                                        href={video.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-600 hover:text-blue-800 underline ml-1"
-                                                        onClick={(e) =>
-                                                          e.stopPropagation()
-                                                        }
-                                                      >
-                                                        View on YouTube
-                                                      </a>
-                                                    </p>
-                                                  </div>
-                                                  <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    className="ml-3 bg-red-600 hover:bg-red-700 text-white"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      const targetIndex =
-                                                        selectedVideoForSection !==
-                                                        null
-                                                          ? selectedVideoForSection
-                                                          : currentSectionIndex;
-                                                      updateSection(
-                                                        targetIndex,
-                                                        "videoUrl",
-                                                        video.url,
-                                                      );
-                                                      updateSection(
-                                                        targetIndex,
-                                                        "title",
-                                                        `${newModule.sections[targetIndex]?.title || "Section"} - ${video.title}`,
-                                                      );
-
-                                                      toast({
-                                                        title:
-                                                          "YouTube Video Added",
-                                                        description: `Added "${video.title}" to the section`,
-                                                      });
-
-                                                      setShowVideoSearch(false);
-                                                      setVideoSearchQuery("");
-                                                      setVideoSearchResults([]);
-                                                      setYoutubeSearchResults(
-                                                        [],
-                                                      );
-                                                      setSelectedVideoForSection(
-                                                        null,
-                                                      );
-                                                    }}
-                                                  >
-                                                    <Plus className="h-3 w-3 mr-1" />
-                                                    Add Video
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            ),
-                                          )}
-                                        </div>
-                                      )}
-
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                          setShowVideoSearch(false)
-                                        }
-                                        className="w-full"
+                            </div>
+                            
+                            <div className="space-y-3">
+                              {!showVideoSearch ? (
+                                <div className="text-center py-6 text-gray-500">
+                                  <Video className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                  <p className="text-sm font-medium">Video Section Tools</p>
+                                  <p className="text-xs mt-1">Search educational videos or generate discussion questions</p>
+                                </div>
+                              ) : (
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                  <div className="space-y-4">
+                                    <div>
+                                      <Label className="text-sm font-medium text-blue-900">
+                                        Find educational videos
+                                      </Label>
+                                      <p className="text-xs text-blue-700 mt-1">
+                                        Search our curated library, YouTube, or add custom links
+                                      </p>
+                                    </div>
+                                    
+                                    <Input
+                                      value={videoSearchQuery}
+                                      onChange={(e) => setVideoSearchQuery(e.target.value)}
+                                      placeholder="Search for educational videos..."
+                                      className="border-blue-300 focus:border-blue-500"
+                                      onKeyPress={(e) => e.key === 'Enter' && handleVideoSearch()}
+                                    />
+                                    
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="border-blue-300 text-blue-700"
+                                        onClick={() => searchVideoLibrary(videoSearchQuery)}
+                                        disabled={isSearchingVideos || !videoSearchQuery.trim()}
                                       >
-                                        Cancel
+                                        <BookOpen className="h-3 w-3 mr-1" />
+                                        {isSearchingVideos ? 'Searching...' : 'Library'}
+                                      </Button>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="border-red-300 text-red-700"
+                                        onClick={() => searchYouTube(videoSearchQuery)}
+                                        disabled={isSearchingYoutube || !videoSearchQuery.trim()}
+                                      >
+                                        <Search className="h-3 w-3 mr-1" />
+                                        {isSearchingYoutube ? 'Searching...' : 'YouTube'}
+                                      </Button>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="border-green-300 text-green-700"
+                                        onClick={() => {
+                                          const url = prompt('Enter video URL:');
+                                          if (url && url.trim()) {
+                                            // Extract title from URL or use placeholder
+                                            let videoTitle = 'Custom Video';
+                                            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                                              videoTitle = 'YouTube Video';
+                                            } else if (url.includes('vimeo.com')) {
+                                              videoTitle = 'Vimeo Video';
+                                            }
+                                            
+                                            // Add video to the correct section
+                                            const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                            updateSection(targetIndex, 'videoUrl', url);
+                                            updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${videoTitle}`);
+                                            
+                                            toast({
+                                              title: "Custom Video Added",
+                                              description: "Your custom video has been added to the section",
+                                            });
+                                            
+                                            setShowVideoSearch(false);
+                                            setVideoSearchQuery('');
+                                            setVideoSearchResults([]);
+                                            setYoutubeSearchResults([]);
+                                            setSelectedVideoForSection(null);
+                                          }
+                                        }}
+                                      >
+                                        <Link2 className="h-3 w-3 mr-1" />
+                                        Custom URL
                                       </Button>
                                     </div>
-                                  </div>
-                                )}
-                              </div>
-                            </>
-                          );
-                        }
-
-                        if (isFlashcardSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <BookOpen className="h-5 w-5 text-purple-600" />
-                                  Flashcard Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateFlashcards}
-                                    disabled={
-                                      isGeneratingFlashcards || isRegenerating
-                                    }
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingFlashcards ||
-                                    isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <BookOpen className="h-4 w-4 mr-2" />
-                                        Generate Flashcards
-                                      </>
+                                    
+                                    {(videoSearchResults.length > 0 || youtubeSearchResults.length > 0) && (
+                                      <div className="max-h-64 overflow-y-auto space-y-3">
+                                        <h4 className="text-sm font-medium text-blue-800">Choose a video to add:</h4>
+                                        
+                                        {/* Library Videos */}
+                                        {videoSearchResults.map((video, index) => (
+                                          <div key={`library-${index}`} className="p-3 bg-white rounded-lg border border-blue-200 shadow-sm">
+                                            <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-blue-900 truncate">{video.title}</p>
+                                                <p className="text-xs text-blue-700 mt-1">{video.description || video.category}</p>
+                                                <p className="text-xs text-gray-500 mt-1">Library Video • {video.duration || 'Duration unknown'}</p>
+                                              </div>
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                className="ml-3 bg-blue-600 hover:bg-blue-700 text-white"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                                  updateSection(targetIndex, 'videoUrl', video.url);
+                                                  updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
+                                                  
+                                                  toast({
+                                                    title: "Video Added",
+                                                    description: `Added "${video.title}" to the section`,
+                                                  });
+                                                  
+                                                  setShowVideoSearch(false);
+                                                  setVideoSearchQuery('');
+                                                  setVideoSearchResults([]);
+                                                  setYoutubeSearchResults([]);
+                                                  setSelectedVideoForSection(null);
+                                                }}
+                                              >
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add Video
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                        
+                                        {/* YouTube Videos */}
+                                        {youtubeSearchResults.map((video, index) => (
+                                          <div key={`youtube-${index}`} className="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
+                                            <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-red-900 truncate">{video.title}</p>
+                                                <p className="text-xs text-red-700 mt-1">By {video.channelTitle || video.channel}</p>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                  YouTube • 
+                                                  <a 
+                                                    href={video.url} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-800 underline ml-1"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                  >
+                                                    View on YouTube
+                                                  </a>
+                                                </p>
+                                              </div>
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                className="ml-3 bg-red-600 hover:bg-red-700 text-white"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  const targetIndex = selectedVideoForSection !== null ? selectedVideoForSection : currentSectionIndex;
+                                                  updateSection(targetIndex, 'videoUrl', video.url);
+                                                  updateSection(targetIndex, 'title', `${newModule.sections[targetIndex]?.title || 'Section'} - ${video.title}`);
+                                                  
+                                                  toast({
+                                                    title: "YouTube Video Added",
+                                                    description: `Added "${video.title}" to the section`,
+                                                  });
+                                                  
+                                                  setShowVideoSearch(false);
+                                                  setVideoSearchQuery('');
+                                                  setVideoSearchResults([]);
+                                                  setYoutubeSearchResults([]);
+                                                  setSelectedVideoForSection(null);
+                                                }}
+                                              >
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add Video
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
                                     )}
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-purple-800 mb-2">
-                                    Content Generated! (
-                                    {aiGeneratedBlocks.length} blocks)
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      setShowRegenerateDialog(true)
-                                    }
-                                    className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate with Guidance
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
-                                </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">
-                                  Flashcard Section
-                                </p>
-                                <p className="text-xs mt-1">
-                                  Generate interactive flashcards for key terms
-                                  and definitions
-                                </p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        // Unified Activity Builder - Show appropriate tools based on section type
-                        if (isActivitySection) {
-                          const isInteractiveType = 
-                            sectionTitle.includes("interactive") ||
-                            sectionTitle.includes("matching") ||
-                            sectionTitle.includes("drag-and-drop") ||
-                            sectionTitle.includes("categorization") ||
-                            sectionType === "matching";
-
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  {isInteractiveType ? (
-                                    <Gamepad className="h-5 w-5 text-blue-600" />
-                                  ) : (
-                                    <FileEdit className="h-5 w-5 text-blue-600" />
-                                  )}
-                                  {isInteractiveType ? "Interactive Activity Tools" : "Guided Activity Tools"}
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={isGeneratingAIContent || isRegenerating}
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingAIContent || isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        {isInteractiveType ? "Generate Interactive Content" : "Generate Activity Steps"}
-                                      </>
-                                    )}
-                                  </Button>
-                                  {isInteractiveType && (
-                                    <Button
+                                    
+                                    <Button 
+                                      variant="outline" 
                                       size="sm"
-                                      variant="outline"
-                                      onClick={() => setIsActivityBuilder(true)}
-                                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                      onClick={() => setShowVideoSearch(false)}
+                                      className="w-full"
                                     >
-                                      <Gamepad className="h-4 w-4 mr-2" />
-                                      Interactive Builder
+                                      Cancel
                                     </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isFlashcardSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <BookOpen className="h-5 w-5 text-purple-600" />
+                                Flashcard Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateFlashcards}
+                                  disabled={isGeneratingFlashcards || isRegenerating}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  {isGeneratingFlashcards || isRegenerating ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <BookOpen className="h-4 w-4 mr-2" />
+                                      Generate Flashcards
+                                    </>
                                   )}
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {aiGeneratedBlocks.length > 0 && (
+                              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+                                <div className="text-sm font-medium text-purple-800 mb-2">
+                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
                                 </div>
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowRegenerateDialog(true)}
+                                  className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Regenerate with Guidance
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setAiGeneratedBlocks([]);
+                                    setAiTopicInput('');
+                                  }}
+                                  className="text-gray-500 hover:text-gray-700 w-full"
+                                >
+                                  Clear Generated Content
+                                </Button>
                               </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className={`mt-4 p-3 rounded-lg space-y-2 ${
-                                  isInteractiveType 
-                                    ? "bg-blue-50 border border-blue-200" 
-                                    : "bg-purple-50 border border-purple-200"
-                                }`}>
-                                  <div className={`text-sm font-medium mb-2 ${
-                                    isInteractiveType ? "text-blue-800" : "text-purple-800"
-                                  }`}>
-                                    {isInteractiveType 
-                                      ? `Interactive Content Generated! (${aiGeneratedBlocks.length} activities)`
-                                      : `Content Generated! (${aiGeneratedBlocks.length} steps)`
-                                    }
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setShowRegenerateDialog(true)}
-                                    className={`w-full font-medium ${
-                                      isInteractiveType
-                                        ? "text-blue-700 border-blue-300 hover:bg-blue-50"
-                                        : "text-purple-700 border-purple-300 hover:bg-purple-50"
-                                    }`}
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    {isInteractiveType ? "Regenerate Activities" : "Regenerate with Guidance"}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
+                            )}
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Flashcard Section</p>
+                              <p className="text-xs mt-1">Generate interactive flashcards for key terms and definitions</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isActivitySection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <FileEdit className="h-5 w-5 text-blue-600" />
+                                Activity Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent || isRegenerating}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  {isGeneratingAIContent || isRegenerating ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-4 w-4 mr-2" />
+                                      Generate Activity Steps
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {aiGeneratedBlocks.length > 0 && (
+                              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+                                <div className="text-sm font-medium text-purple-800 mb-2">
+                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
                                 </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                {isInteractiveType ? (
-                                  <Gamepad className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                ) : (
-                                  <FileEdit className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                )}
-                                <p className="text-sm font-medium">
-                                  {isInteractiveType ? "Interactive Activity Section" : "Guided Activity Section"}
-                                </p>
-                                <p className="text-xs mt-1">
-                                  {isInteractiveType 
-                                    ? "Create drag-and-drop, matching, and categorization activities"
-                                    : "Generate step-by-step classroom activities"
-                                  }
-                                </p>
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowRegenerateDialog(true)}
+                                  className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Regenerate with Guidance
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setAiGeneratedBlocks([]);
+                                    setAiTopicInput('');
+                                  }}
+                                  className="text-gray-500 hover:text-gray-700 w-full"
+                                >
+                                  Clear Generated Content
+                                </Button>
                               </div>
-                            </>
-                          );
-                        }
-
-                        if (isCaseStudySection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <Users className="h-5 w-5 text-orange-600" />
-                                  Case Study Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={isGeneratingAIContent || isRegenerating}
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingAIContent || isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate Case Study
-                                      </>
-                                    )}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setIsCaseStudyBuilder(true)}
-                                    className="border-orange-300 text-orange-700 hover:bg-orange-50"
-                                  >
-                                    <Users className="h-4 w-4 mr-2" />
-                                    Open Builder
-                                  </Button>
+                            )}
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <FileEdit className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Guided Activity Section</p>
+                              <p className="text-xs mt-1">Generate step-by-step classroom activities and exercises</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isQuizSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <HelpCircle className="h-5 w-5 text-green-600" />
+                                Quiz Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={startQuizBuilder}
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Build Quiz
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  AI Questions
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <HelpCircle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Quiz Assessment Tools</p>
+                              <p className="text-xs mt-1">Build interactive quizzes or generate AI questions</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isScenarioSection) {
+                        return (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <Users className="h-5 w-5 text-orange-600" />
+                                Scenario Tools
+                              </h3>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={generateAIContentForSection}
+                                  disabled={isGeneratingAIContent || isRegenerating}
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                >
+                                  {isGeneratingAIContent || isRegenerating ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-4 w-4 mr-2" />
+                                      Generate Scenarios
+                                    </>
+                                  )}
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="outline" 
+                                  onClick={startQuizBuilder}
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <MessageSquare className="h-4 w-4 mr-2" />
+                                  Discussion Points
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {aiGeneratedBlocks.length > 0 && (
+                              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+                                <div className="text-sm font-medium text-purple-800 mb-2">
+                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
                                 </div>
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowRegenerateDialog(true)}
+                                  className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Regenerate with Guidance
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setAiGeneratedBlocks([]);
+                                    setAiTopicInput('');
+                                  }}
+                                  className="text-gray-500 hover:text-gray-700 w-full"
+                                >
+                                  Clear Generated Content
+                                </Button>
                               </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-orange-800 mb-2">
-                                    Case Study Generated! ({aiGeneratedBlocks.length} scenarios)
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setShowRegenerateDialog(true)}
-                                    className="text-orange-700 border-orange-300 hover:bg-orange-50 w-full font-medium"
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate Scenarios
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
-                                </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">Case Study Section</p>
-                                <p className="text-xs mt-1">Create realistic scenarios with stakeholders and discussion questions</p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        if (isReflectionSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <Brain className="h-5 w-5 text-purple-600" />
-                                  Reflection Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={isGeneratingAIContent || isRegenerating}
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingAIContent || isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate Reflection Prompts
-                                      </>
-                                    )}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setIsReflectionBuilder(true)}
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    <Brain className="h-4 w-4 mr-2" />
-                                    Open Builder
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-purple-800 mb-2">
-                                    Reflection Prompts Generated! ({aiGeneratedBlocks.length} prompts)
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setShowRegenerateDialog(true)}
-                                    className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate Prompts
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
-                                </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">Reflection Section</p>
-                                <p className="text-xs mt-1">Create personal, guided, and peer reflection activities</p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        if (isQuizSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <HelpCircle className="h-5 w-5 text-green-600" />
-                                  Quiz Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={startQuizBuilder}
-                                    className="border-green-300 text-green-700 hover:bg-green-50"
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Build Quiz
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={isGeneratingAIContent}
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    <Sparkles className="h-4 w-4 mr-2" />
-                                    AI Questions
-                                  </Button>
-                                </div>
-                              </div>
-
-                              <div className="text-center py-6 text-gray-500">
-                                <HelpCircle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">
-                                  Quiz Assessment Tools
-                                </p>
-                                <p className="text-xs mt-1">
-                                  Build interactive quizzes or generate AI
-                                  questions
-                                </p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        if (isScenarioSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <Users className="h-5 w-5 text-orange-600" />
-                                  Scenario Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={
-                                      isGeneratingAIContent || isRegenerating
-                                    }
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingAIContent || isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate Scenarios
-                                      </>
-                                    )}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={startQuizBuilder}
-                                    className="border-green-300 text-green-700 hover:bg-green-50"
-                                  >
-                                    <MessageSquare className="h-4 w-4 mr-2" />
-                                    Discussion Points
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-purple-800 mb-2">
-                                    Content Generated! (
-                                    {aiGeneratedBlocks.length} blocks)
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      setShowRegenerateDialog(true)
-                                    }
-                                    className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate with Guidance
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
-                                </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">
-                                  Scenario Building Tools
-                                </p>
-                                <p className="text-xs mt-1">
-                                  Create realistic scenarios and case studies
-                                </p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        if (isTextSection) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                  <FileText className="h-5 w-5 text-gray-600" />
-                                  Content Tools
-                                </h3>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={generateAIContentForSection}
-                                    disabled={
-                                      isGeneratingAIContent || isRegenerating
-                                    }
-                                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  >
-                                    {isGeneratingAIContent || isRegenerating ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate Content
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {aiGeneratedBlocks.length > 0 && (
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
-                                  <div className="text-sm font-medium text-purple-800 mb-2">
-                                    Content Generated! (
-                                    {aiGeneratedBlocks.length} blocks)
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      setShowRegenerateDialog(true)
-                                    }
-                                    className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate with Guidance
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setAiGeneratedBlocks([]);
-                                      setAiTopicInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-700 w-full"
-                                  >
-                                    Clear Generated Content
-                                  </Button>
-                                </div>
-                              )}
-
-                              <div className="text-center py-6 text-gray-500">
-                                <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm font-medium">
-                                  Text Content Section
-                                </p>
-                                <p className="text-xs mt-1">
-                                  Generate educational content and learning
-                                  materials
-                                </p>
-                              </div>
-                            </>
-                          );
-                        }
-
-                        // Default text content tools
+                            )}
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Scenario Building Tools</p>
+                              <p className="text-xs mt-1">Create realistic scenarios and case studies</p>
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      if (isTextSection) {
                         return (
                           <>
                             <div className="flex items-center justify-between">
@@ -6507,14 +4863,14 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 Content Tools
                               </h3>
                               <div className="flex gap-2">
-                                <Button
+                                <Button 
                                   size="sm"
-                                  variant="outline"
+                                  variant="outline" 
                                   onClick={generateAIContentForSection}
-                                  disabled={isGeneratingAIContent}
+                                  disabled={isGeneratingAIContent || isRegenerating}
                                   className="border-purple-300 text-purple-700 hover:bg-purple-50"
                                 >
-                                  {isGeneratingAIContent ? (
+                                  {isGeneratingAIContent || isRegenerating ? (
                                     <>
                                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                       Generating...
@@ -6526,52 +4882,15 @@ Create a natural conversation between two podcast hosts discussing this specific
                                     </>
                                   )}
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={startQuizBuilder}
-                                  className="border-green-300 text-green-700 hover:bg-green-50"
-                                >
-                                  <HelpCircle className="h-4 w-4 mr-2" />
-                                  Add Quiz
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsActivityBuilder(true)}
-                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                                >
-                                  <Gamepad className="h-4 w-4 mr-2" />
-                                  Add Activity
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsCaseStudyBuilder(true)}
-                                  className="border-orange-300 text-orange-700 hover:bg-orange-50"
-                                >
-                                  <BookOpen className="h-4 w-4 mr-2" />
-                                  Add Case Study
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsReflectionBuilder(true)}
-                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                >
-                                  <Brain className="h-4 w-4 mr-2" />
-                                  Add Reflection
-                                </Button>
                               </div>
                             </div>
-
+                            
                             {aiGeneratedBlocks.length > 0 && (
                               <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
                                 <div className="text-sm font-medium text-purple-800 mb-2">
-                                  Content Generated! ({aiGeneratedBlocks.length}{" "}
-                                  blocks)
+                                  Content Generated! ({aiGeneratedBlocks.length} blocks)
                                 </div>
-                                <Button
+                                <Button 
                                   size="sm"
                                   variant="outline"
                                   onClick={() => setShowRegenerateDialog(true)}
@@ -6580,12 +4899,12 @@ Create a natural conversation between two podcast hosts discussing this specific
                                   <RefreshCw className="h-4 w-4 mr-2" />
                                   Regenerate with Guidance
                                 </Button>
-                                <Button
+                                <Button 
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => {
                                     setAiGeneratedBlocks([]);
-                                    setAiTopicInput("");
+                                    setAiTopicInput('');
                                   }}
                                   className="text-gray-500 hover:text-gray-700 w-full"
                                 >
@@ -6593,492 +4912,458 @@ Create a natural conversation between two podcast hosts discussing this specific
                                 </Button>
                               </div>
                             )}
+                            
+                            <div className="text-center py-6 text-gray-500">
+                              <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                              <p className="text-sm font-medium">Text Content Section</p>
+                              <p className="text-xs mt-1">Generate educational content and learning materials</p>
+                            </div>
                           </>
                         );
-                      })()}
-
-                      {/* Topic Input Dialog */}
-                      {showTopicInput && (
-                        <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                          <div className="space-y-4">
-                            <div>
-                              <Label className="text-sm font-medium text-blue-900">
-                                What specific topic should this section cover?
-                              </Label>
-                              <p className="text-xs text-blue-700 mt-1">
-                                The AI needs a specific topic to create relevant
-                                content blocks for this section.
-                              </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded border border-blue-200">
-                              <h4 className="text-xs font-medium text-blue-800 mb-2">
-                                Example topics for "
-                                {newModule.sections[currentSectionIndex]?.title}
-                                ":
-                              </h4>
-                              <ul className="text-xs text-blue-700 space-y-1">
-                                <li>
-                                  • "Managing classroom transitions after
-                                  recess"
-                                </li>
-                                <li>
-                                  • "Supporting children with separation
-                                  anxiety"
-                                </li>
-                                <li>
-                                  • "Creating inclusive learning environments"
-                                </li>
-                                <li>
-                                  • "Positive behavior reinforcement strategies"
-                                </li>
-                              </ul>
-                            </div>
-
-                            <Input
-                              value={aiTopicInput}
-                              onChange={(e) => setAiTopicInput(e.target.value)}
-                              placeholder="e.g., Managing classroom transitions after recess"
-                              className="border-blue-300 focus:border-blue-500"
-                              onKeyPress={(e) =>
-                                e.key === "Enter" &&
-                                aiTopicInput.trim() &&
-                                handleTopicSubmit()
-                              }
-                            />
-
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                variant="outline"
+                      }
+                      
+                      // Default text content tools
+                      return (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold flex items-center gap-2">
+                              <FileText className="h-5 w-5 text-gray-600" />
+                              Content Tools
+                            </h3>
+                            <div className="flex gap-2">
+                              <Button 
                                 size="sm"
-                                onClick={() => {
-                                  setShowTopicInput(false);
-                                  setAiTopicInput("");
-                                }}
+                                variant="outline" 
+                                onClick={generateAIContentForSection}
+                                disabled={isGeneratingAIContent}
+                                className="border-purple-300 text-purple-700 hover:bg-purple-50"
                               >
-                                Cancel
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={handleTopicSubmit}
-                                disabled={!aiTopicInput.trim()}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                Generate Content Ideas
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Regeneration Dialog */}
-                      {showRegenerateDialog && (
-                        <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
-                          <div className="space-y-4">
-                            <div>
-                              <Label className="text-sm font-medium text-purple-900">
-                                Provide additional guidance for regeneration
-                              </Label>
-                              <p className="text-xs text-purple-700 mt-1">
-                                Tell the AI how to improve the content. Be
-                                specific about what you want to see.
-                              </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded border border-purple-200">
-                              <h4 className="text-xs font-medium text-purple-800 mb-2">
-                                Example guidance:
-                              </h4>
-                              <ul className="text-xs text-purple-700 space-y-1">
-                                <li>
-                                  • "Include ECERS block material checklist"
-                                </li>
-                                <li>
-                                  • "Add more practical classroom examples"
-                                </li>
-                                <li>
-                                  • "Focus on age-appropriate activities for 3-5
-                                  year olds"
-                                </li>
-                                <li>
-                                  • "Include specific developmental milestones"
-                                </li>
-                              </ul>
-                            </div>
-
-                            <div>
-                              <Label className="text-sm font-medium text-purple-900 mb-2 block">
-                                Your specific guidance:
-                              </Label>
-                              <Textarea
-                                value={regenerationGuidance}
-                                onChange={(e) =>
-                                  setRegenerationGuidance(e.target.value)
-                                }
-                                placeholder="Type your specific instructions here, e.g., 'Include ECERS block material checklist and specific examples for outdoor play areas'"
-                                className="border-purple-300 focus:border-purple-500 min-h-32 text-base"
-                                rows={4}
-                              />
-                            </div>
-
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setShowRegenerateDialog(false);
-                                  setRegenerationGuidance("");
-                                }}
-                                disabled={isRegenerating}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={regenerateContentWithGuidance}
-                                disabled={
-                                  isRegenerating || !regenerationGuidance.trim()
-                                }
-                                className="bg-purple-600 hover:bg-purple-700"
-                              >
-                                {isRegenerating ? (
+                                {isGeneratingAIContent ? (
                                   <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Regenerating...
+                                    Generating...
                                   </>
                                 ) : (
                                   <>
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Regenerate Content
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                    Generate Content
                                   </>
                                 )}
                               </Button>
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={startQuizBuilder}
+                                className="border-green-300 text-green-700 hover:bg-green-50"
+                              >
+                                <HelpCircle className="h-4 w-4 mr-2" />
+                                Add Quiz
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                onClick={startActivityBuilder}
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
+                                <Gamepad className="h-4 w-4 mr-2" />
+                                Add Activity
+                              </Button>
                             </div>
                           </div>
-                        </div>
-                      )}
-
-                      {/* Current Topic Display */}
-                      {aiGeneratedBlocks.length > 0 && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-sm font-medium text-green-800">
-                              Content generated for:
-                            </span>
-                            <span className="text-sm text-green-700">
-                              "
-                              {aiTopicInput ||
-                                (initialModuleData.title &&
-                                  `${initialModuleData.title} - ${initialModuleData.learningObjective}`) ||
-                                newModule.title}
-                              "
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* AI Generated Content Blocks */}
-                      <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {aiGeneratedBlocks.map((block, index) => {
-                          // Check if this is a Guided Activity block
-                          const isGuidedActivity =
-                            block.type === "Guided Activity" ||
-                            block.type
-                              ?.toLowerCase()
-                              .includes("guided activity") ||
-                            block.type
-                              ?.toLowerCase()
-                              .includes("interactive activity");
-                          console.log("block", block, index);
-                          if (isGuidedActivity) {
-                            return (
-                              <div
-                                key={index}
-                                draggable
-                                onDragStart={(e) => {
-                                  console.log("isgudided dropped", e);
-                                  e.dataTransfer.setData(
-                                    "text/plain",
-                                    block,
-                                  );
-                                  e.dataTransfer.setData(
-                                    "block-type",
-                                    block.type,
-                                  );
-                                }}
-                              >
-                                <ActivityBlockComponent
-                                  block={block}
-                                  isDragging={false}
-                                />
+                          
+                          {aiGeneratedBlocks.length > 0 && (
+                            <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg space-y-2">
+                              <div className="text-sm font-medium text-purple-800 mb-2">
+                                Content Generated! ({aiGeneratedBlocks.length} blocks)
                               </div>
-                            );
-                          }
-
-                          // Default rendering for other block types
-                          return (
-                            <div
-                              key={index}
-                              className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors group"
-                              draggable
-                              onDragStart={(e) => {
-                                // Ensure content is properly formatted as a string
-                                console.log(e, "dragged content");
-                                let contentString = block.content;
-                                if (
-                                  typeof block.content === "object" &&
-                                  block.content !== null
-                                ) {
-                                  // Convert object to formatted string
-                                  if (block.content.content) {
-                                    contentString = block.content.content;
-                                  } else if (block.content.text) {
-                                    contentString = block.content.text;
-                                  } else {
-                                    contentString = Object.entries(
-                                      block.content,
-                                    )
-                                      .map(
-                                        ([key, value]) =>
-                                          `**${key}:** ${value}`,
-                                      )
-                                      .join("\n\n");
-                                  }
-                                }
-                                e.dataTransfer.setData(
-                                  "text/plain",
-                                  contentString,
-                                );
-                                e.dataTransfer.setData(
-                                  "block-type",
-                                  block.type,
-                                );
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowRegenerateDialog(true)}
+                                className="text-purple-700 border-purple-300 hover:bg-purple-50 w-full font-medium"
+                              >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Regenerate with Guidance
+                              </Button>
+                              <Button 
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setAiGeneratedBlocks([]);
+                                  setAiTopicInput('');
+                                }}
+                                className="text-gray-500 hover:text-gray-700 w-full"
+                              >
+                                Clear Generated Content
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                    
+                    {/* Topic Input Dialog */}
+                    {showTopicInput && (
+                      <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-blue-900">
+                              What specific topic should this section cover?
+                            </Label>
+                            <p className="text-xs text-blue-700 mt-1">
+                              The AI needs a specific topic to create relevant content blocks for this section.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white p-3 rounded border border-blue-200">
+                            <h4 className="text-xs font-medium text-blue-800 mb-2">Example topics for "{newModule.sections[currentSectionIndex]?.title}":</h4>
+                            <ul className="text-xs text-blue-700 space-y-1">
+                              <li>• "Managing classroom transitions after recess"</li>
+                              <li>• "Supporting children with separation anxiety"</li>
+                              <li>• "Creating inclusive learning environments"</li>
+                              <li>• "Positive behavior reinforcement strategies"</li>
+                            </ul>
+                          </div>
+                          
+                          <Input
+                            value={aiTopicInput}
+                            onChange={(e) => setAiTopicInput(e.target.value)}
+                            placeholder="e.g., Managing classroom transitions after recess"
+                            className="border-blue-300 focus:border-blue-500"
+                            onKeyPress={(e) => e.key === 'Enter' && aiTopicInput.trim() && handleTopicSubmit()}
+                          />
+                          
+                          <div className="flex gap-2 justify-end">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setShowTopicInput(false);
+                                setAiTopicInput('');
                               }}
                             >
-                              <div className="flex items-start gap-2">
-                                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                                  <GripVertical className="h-4 w-4 text-purple-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-medium text-sm text-purple-700 mb-1">
-                                    {block.type}
-                                  </div>
-                                  <div className="text-sm text-gray-700 line-clamp-3">
-                                    {block.preview}
-                                  </div>
-                                  <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Drag to section content area →
-                                  </div>
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={handleTopicSubmit}
+                              disabled={!aiTopicInput.trim()}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              Generate Content Ideas
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Regeneration Dialog */}
+                    {showRegenerateDialog && (
+                      <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium text-purple-900">
+                              Provide additional guidance for regeneration
+                            </Label>
+                            <p className="text-xs text-purple-700 mt-1">
+                              Tell the AI how to improve the content. Be specific about what you want to see.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white p-3 rounded border border-purple-200">
+                            <h4 className="text-xs font-medium text-purple-800 mb-2">Example guidance:</h4>
+                            <ul className="text-xs text-purple-700 space-y-1">
+                              <li>• "Include ECERS block material checklist"</li>
+                              <li>• "Add more practical classroom examples"</li>
+                              <li>• "Focus on age-appropriate activities for 3-5 year olds"</li>
+                              <li>• "Include specific developmental milestones"</li>
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <Label className="text-sm font-medium text-purple-900 mb-2 block">
+                              Your specific guidance:
+                            </Label>
+                            <Textarea
+                              value={regenerationGuidance}
+                              onChange={(e) => setRegenerationGuidance(e.target.value)}
+                              placeholder="Type your specific instructions here, e.g., 'Include ECERS block material checklist and specific examples for outdoor play areas'"
+                              className="border-purple-300 focus:border-purple-500 min-h-32 text-base"
+                              rows={4}
+                            />
+                          </div>
+                          
+                          <div className="flex gap-2 justify-end">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setShowRegenerateDialog(false);
+                                setRegenerationGuidance('');
+                              }}
+                              disabled={isRegenerating}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={regenerateContentWithGuidance}
+                              disabled={isRegenerating || !regenerationGuidance.trim()}
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              {isRegenerating ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Regenerating...
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Regenerate Content
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Current Topic Display */}
+                    {aiGeneratedBlocks.length > 0 && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-green-800">Content generated for:</span>
+                          <span className="text-sm text-green-700">
+                            "{aiTopicInput || (initialModuleData.title && `${initialModuleData.title} - ${initialModuleData.learningObjective}`) || newModule.title}"
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI Generated Content Blocks */}
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {aiGeneratedBlocks.map((block, index) => {
+                        // Check if this is a Guided Activity block
+                        const isGuidedActivity = block.type === 'Guided Activity' || 
+                                                block.type?.toLowerCase().includes('guided activity') ||
+                                                block.type?.toLowerCase().includes('interactive activity');
+                        console.log('block' ,block,index)
+                        if (isGuidedActivity) {
+                          return (
+                            <div 
+                              key={index}
+                              draggable
+                              onDragStart={(e) => {
+                                console.log('isgudided dropped',e)
+                                e.dataTransfer.setData('text/plain', block.content);
+                                e.dataTransfer.setData('block-type', block.type);
+                              }}
+                            >
+                              <ActivityBlockComponent 
+                                block={block}
+                                isDragging={false}
+                              />
+                            </div>
+                          );
+                        }
+                        
+                        // Default rendering for other block types
+                        return (
+                          <div 
+                            key={index}
+                            className="p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:bg-gray-100 transition-colors group"
+                            draggable
+                            onDragStart={(e) => {
+                              // Ensure content is properly formatted as a string
+                              console.log(e,'dragged content')
+                              let contentString = block.content;
+                              if (typeof block.content === 'object' && block.content !== null) {
+                                // Convert object to formatted string
+                                if (block.content.content) {
+                                  contentString = block.content.content;
+                                } else if (block.content.text) {
+                                  contentString = block.content.text;
+                                } else {
+                                  contentString = Object.entries(block.content)
+                                    .map(([key, value]) => `**${key}:** ${value}`)
+                                    .join('\n\n');
+                                }
+                              }
+                              e.dataTransfer.setData('text/plain', contentString);
+                              e.dataTransfer.setData('block-type', block.type);
+                            }}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                                <GripVertical className="h-4 w-4 text-purple-600" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-purple-700 mb-1">{block.type}</div>
+                                <div className="text-sm text-gray-700 line-clamp-3">{block.preview}</div>
+                                <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  Drag to section content area →
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                        {aiGeneratedBlocks.length === 0 && (
-                          <div className="text-center py-8 text-gray-500">
-                            <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                            <p className="text-sm">
-                              Click "Generate Ideas" to get AI content
-                              suggestions
-                            </p>
-                            <p className="text-xs mt-1">
-                              You'll need to specify a topic first
-                            </p>
                           </div>
-                        )}
+                        );
+                      })}
+                      {aiGeneratedBlocks.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p className="text-sm">Click "Generate Ideas" to get AI content suggestions</p>
+                          <p className="text-xs mt-1">You'll need to specify a topic first</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section Content Builder */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">Section Content</h3>
+                      <div className="text-xs text-gray-500">
+                        {newModule.sections[currentSectionIndex]?.content ? 
+                          `${newModule.sections[currentSectionIndex]?.content.length} characters` : 
+                          'Empty'
+                        }
                       </div>
                     </div>
-
-                    {/* Section Content Builder */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">Section Content</h3>
-                        <div className="text-xs text-gray-500">
-                          {newModule.sections[currentSectionIndex]?.content
-                            ? `${newModule.sections[currentSectionIndex]?.content.length} characters`
-                            : "Empty"}
-                        </div>
-                      </div>
-                      <div
-                        className="min-h-96 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-gray-400 transition-colors relative"
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.currentTarget.classList.add(
-                            "border-purple-400",
-                            "bg-purple-50",
-                          );
-                        }}
-                        onDragLeave={(e) => {
-                          e.currentTarget.classList.remove(
-                            "border-purple-400",
-                            "bg-purple-50",
-                          );
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          e.currentTarget.classList.remove(
-                            "border-purple-400",
-                            "bg-purple-50",
-                          );
-                          const rawContent =
-                            e.dataTransfer.getData("text/plain");
-                          const blockType =
-                            e.dataTransfer.getData("block-type");
-
-                          // Handle different content types properly
-                          let content = rawContent;
-                          try {
-                            // If content is a JSON object, parse and format it
-                            const parsedContent = JSON.parse(rawContent);
-                            if (
-                              typeof parsedContent === "object" &&
-                              parsedContent !== null
-                            ) {
-                              // Format object content as readable text
-                              if (parsedContent.content) {
-                                content = parsedContent.content;
-                              } else if (parsedContent.text) {
-                                content = parsedContent.text;
-                              } else {
-                                // Convert object to formatted string
-                                content = Object.entries(parsedContent)
-                                  .map(([key, value]) => `**${key}:** ${value}`)
-                                  .join("\n\n");
-                              }
+                    <div 
+                      className="min-h-96 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-gray-400 transition-colors relative"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-purple-400', 'bg-purple-50');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('border-purple-400', 'bg-purple-50');
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-purple-400', 'bg-purple-50');
+                        const rawContent = e.dataTransfer.getData('text/plain');
+                        const blockType = e.dataTransfer.getData('block-type');
+                        
+                        // Handle different content types properly
+                        let content = rawContent;
+                        try {
+                          // If content is a JSON object, parse and format it
+                          const parsedContent = JSON.parse(rawContent);
+                          if (typeof parsedContent === 'object' && parsedContent !== null) {
+                            // Format object content as readable text
+                            if (parsedContent.content) {
+                              content = parsedContent.content;
+                            } else if (parsedContent.text) {
+                              content = parsedContent.text;
+                            } else {
+                              // Convert object to formatted string
+                              content = Object.entries(parsedContent)
+                                .map(([key, value]) => `**${key}:** ${value}`)
+                                .join('\n\n');
                             }
-                          } catch (err) {
-                            // If not JSON, use the raw content as is
-                            content = rawContent;
                           }
+                        } catch (err) {
+                          // If not JSON, use the raw content as is
+                          content = rawContent;
+                        }
+                        
+                        const currentContent = newModule.sections[currentSectionIndex]?.content || '';
+                        const updatedSections = [...newModule.sections];
+                        updatedSections[currentSectionIndex] = {
+                          ...updatedSections[currentSectionIndex],
+                          content: currentContent + (currentContent ? '\n\n' : '') + content
+                        };
+                        setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                        
+                        // Show success feedback
+                        toast({
+                          title: 'Content Added',
+                          description: `${blockType} added to section content`,
+                        });
+                      }}
+                    >
+                      {/* Video Preview Section */}
+                      {newModule.sections[currentSectionIndex]?.videoUrl && (
+                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-blue-900 flex items-center">
+                              <Video className="h-4 w-4 mr-2" />
+                              Video Added to Section
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const updatedSections = [...newModule.sections];
+                                updatedSections[currentSectionIndex] = {
+                                  ...updatedSections[currentSectionIndex],
+                                  videoUrl: ''
+                                };
+                                setNewModule(prev => ({ ...prev, sections: updatedSections }));
+                                toast({
+                                  title: "Video Removed",
+                                  description: "Video has been removed from this section",
+                                });
+                              }}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Remove
+                            </Button>
+                          </div>
+                          <div className="text-sm text-blue-800 mb-2">
+                            <strong>Video URL:</strong> {newModule.sections[currentSectionIndex].videoUrl}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a 
+                              href={newModule.sections[currentSectionIndex].videoUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline text-sm"
+                            >
+                              Preview Video
+                            </a>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-sm text-gray-600">
+                              This video will be embedded when the module is published
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
-                          const currentContent =
-                            newModule.sections[currentSectionIndex]?.content ||
-                            "";
+                      {!newModule.sections[currentSectionIndex]?.content && !newModule.sections[currentSectionIndex]?.videoUrl && (
+                        <div className="absolute inset-4 flex items-center justify-center pointer-events-none">
+                          <div className="text-center text-gray-400">
+                            <div className="w-12 h-12 mx-auto mb-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                              <ArrowRight className="h-6 w-6" />
+                            </div>
+                            <p className="text-sm font-medium">Drop content blocks here</p>
+                            <p className="text-xs mt-1">Or type directly in the text area below</p>
+                          </div>
+                        </div>
+                      )}
+                      <Textarea
+                        value={newModule.sections[currentSectionIndex]?.content || ''}
+                        onChange={(e) => {
                           const updatedSections = [...newModule.sections];
                           updatedSections[currentSectionIndex] = {
                             ...updatedSections[currentSectionIndex],
-                            content:
-                              currentContent +
-                              (currentContent ? "\n\n" : "") +
-                              content,
+                            content: e.target.value
                           };
-                          setNewModule((prev) => ({
-                            ...prev,
-                            sections: updatedSections,
-                          }));
-
-                          // Show success feedback
-                          toast({
-                            title: "Content Added",
-                            description: `${blockType} added to section content`,
-                          });
+                          setNewModule(prev => ({ ...prev, sections: updatedSections }));
                         }}
-                      >
-                        {/* Video Preview Section */}
-                        {newModule.sections[currentSectionIndex]?.videoUrl && (
-                          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-medium text-blue-900 flex items-center">
-                                <Video className="h-4 w-4 mr-2" />
-                                Video Added to Section
-                              </h4>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  const updatedSections = [
-                                    ...newModule.sections,
-                                  ];
-                                  updatedSections[currentSectionIndex] = {
-                                    ...updatedSections[currentSectionIndex],
-                                    videoUrl: "",
-                                  };
-                                  setNewModule((prev) => ({
-                                    ...prev,
-                                    sections: updatedSections,
-                                  }));
-                                  toast({
-                                    title: "Video Removed",
-                                    description:
-                                      "Video has been removed from this section",
-                                  });
-                                }}
-                                className="text-red-600 hover:bg-red-50"
-                              >
-                                <X className="h-3 w-3 mr-1" />
-                                Remove
-                              </Button>
-                            </div>
-                            <div className="text-sm text-blue-800 mb-2">
-                              <strong>Video URL:</strong>{" "}
-                              {newModule.sections[currentSectionIndex].videoUrl}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <a
-                                href={
-                                  newModule.sections[currentSectionIndex]
-                                    .videoUrl
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 underline text-sm"
-                              >
-                                Preview Video
-                              </a>
-                              <span className="text-gray-500">•</span>
-                              <span className="text-sm text-gray-600">
-                                This video will be embedded when the module is
-                                published
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {!newModule.sections[currentSectionIndex]?.content &&
-                          !newModule.sections[currentSectionIndex]
-                            ?.videoUrl && (
-                            <div className="absolute inset-4 flex items-center justify-center pointer-events-none">
-                              <div className="text-center text-gray-400">
-                                <div className="w-12 h-12 mx-auto mb-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                                  <ArrowRight className="h-6 w-6" />
-                                </div>
-                                <p className="text-sm font-medium">
-                                  Drop content blocks here
-                                </p>
-                                <p className="text-xs mt-1">
-                                  Or type directly in the text area below
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        <Textarea
-                          value={
-                            newModule.sections[currentSectionIndex]?.content ||
-                            ""
-                          }
-                          onChange={(e) => {
-                            const updatedSections = [...newModule.sections];
-                            updatedSections[currentSectionIndex] = {
-                              ...updatedSections[currentSectionIndex],
-                              content: e.target.value,
-                            };
-                            setNewModule((prev) => ({
-                              ...prev,
-                              sections: updatedSections,
-                            }));
-                          }}
-                          placeholder="Type your content here or drag AI-generated content blocks from the left..."
-                          className="min-h-80 resize-none border-0 bg-transparent placeholder:text-gray-400"
-                        />
-                      </div>
+                        placeholder="Type your content here or drag AI-generated content blocks from the left..."
+                        className="min-h-80 resize-none border-0 bg-transparent placeholder:text-gray-400"
+                      />
                     </div>
+                  </div>
                   </div>
                 )}
 
                 {/* Section Actions */}
                 <div className="flex justify-between items-center pt-4 border-t">
-                  <Button
+                  <Button 
                     variant="outline"
                     onClick={previousSection}
                     disabled={currentSectionIndex === 0}
@@ -7086,29 +5371,24 @@ Create a natural conversation between two podcast hosts discussing this specific
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Previous Section
                   </Button>
-
+                  
                   <div className="flex gap-2">
-                    <Button
+                    <Button 
                       variant="outline"
                       onClick={() => {
                         if (!completedSections.includes(currentSectionIndex)) {
-                          setCompletedSections((prev) => [
-                            ...prev,
-                            currentSectionIndex,
-                          ]);
+                          setCompletedSections(prev => [...prev, currentSectionIndex]);
                         }
                       }}
                     >
                       <Save className="h-4 w-4 mr-2" />
                       Save Section
                     </Button>
-                    <Button
+                    <Button 
                       onClick={nextSection}
                       className="bg-purple-600 hover:bg-purple-700"
                     >
-                      {currentSectionIndex === newModule.sections.length - 1
-                        ? "Preview Module"
-                        : "Save & Next Section"}
+                      {currentSectionIndex === newModule.sections.length - 1 ? 'Preview Module' : 'Save & Next Section'}
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>
@@ -7120,7 +5400,7 @@ Create a natural conversation between two podcast hosts discussing this specific
       )}
 
       {/* Preview Mode */}
-      {creationMethod === "manual" && aiWorkflowStep === "preview" && (
+      {creationMethod === 'manual' && aiWorkflowStep === 'preview' && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -7145,60 +5425,44 @@ Create a natural conversation between two podcast hosts discussing this specific
               <h4 className="font-medium">Module Sections:</h4>
               {newModule.sections.map((section, index) => (
                 <div key={index} className="p-4 border rounded-lg bg-white">
-                  <div className="font-medium text-lg mb-2">
-                    {index + 1}. {section.title}
-                  </div>
-                  <div className="text-sm text-blue-600 mb-3 capitalize">
-                    {section.type} Section
-                  </div>
-
+                  <div className="font-medium text-lg mb-2">{index + 1}. {section.title}</div>
+                  <div className="text-sm text-blue-600 mb-3 capitalize">{section.type} Section</div>
+                  
                   {/* Display actual content */}
                   {section.content && (
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm font-medium text-gray-700 mb-2">
-                        Content:
-                      </div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">Content:</div>
                       <div className="text-sm text-gray-600 whitespace-pre-wrap max-h-32 overflow-y-auto">
                         {section.content.substring(0, 300)}
-                        {section.content.length > 300 && "..."}
+                        {section.content.length > 300 && '...'}
                       </div>
                     </div>
                   )}
-
+                  
                   {/* Display video if present */}
                   {section.videoUrl && (
                     <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                      <div className="text-sm font-medium text-blue-700 mb-1">
-                        Video:
-                      </div>
-                      <div className="text-xs text-blue-600 truncate">
-                        {section.videoUrl}
-                      </div>
+                      <div className="text-sm font-medium text-blue-700 mb-1">Video:</div>
+                      <div className="text-xs text-blue-600 truncate">{section.videoUrl}</div>
                     </div>
                   )}
-
+                  
                   {/* Display quiz questions if present */}
                   {section.questions && section.questions.length > 0 && (
                     <div className="mt-3 p-3 bg-green-50 rounded-lg">
-                      <div className="text-sm font-medium text-green-700 mb-2">
-                        Quiz Questions: {section.questions.length}
-                      </div>
+                      <div className="text-sm font-medium text-green-700 mb-2">Quiz Questions: {section.questions.length}</div>
                       <div className="text-xs text-green-600">
                         {section.questions.map((q: any, qIndex: number) => (
-                          <div key={qIndex} className="mb-1">
-                            Q{qIndex + 1}: {q.question?.substring(0, 80)}...
-                          </div>
+                          <div key={qIndex} className="mb-1">Q{qIndex + 1}: {q.question?.substring(0, 80)}...</div>
                         ))}
                       </div>
                     </div>
                   )}
-
+                  
                   {/* Display activities if present */}
                   {section.activities && section.activities.length > 0 && (
                     <div className="mt-3 p-3 bg-purple-50 rounded-lg">
-                      <div className="text-sm font-medium text-purple-700 mb-1">
-                        Activities: {section.activities.length}
-                      </div>
+                      <div className="text-sm font-medium text-purple-700 mb-1">Activities: {section.activities.length}</div>
                       <div className="text-xs text-purple-600">
                         Interactive learning activities included
                       </div>
@@ -7209,14 +5473,14 @@ Create a natural conversation between two podcast hosts discussing this specific
             </div>
 
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setAiWorkflowStep("section-builder")}
+              <Button 
+                variant="outline" 
+                onClick={() => setAiWorkflowStep('section-builder')}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Edit
               </Button>
-              <Button
+              <Button 
                 className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                 onClick={handleOpenPublishDialog}
                 disabled={isPublishing}
@@ -7239,1296 +5503,1047 @@ Create a natural conversation between two podcast hosts discussing this specific
       )}
 
       {/* Regular Module Creation Form */}
-      {creationMethod === "manual" && aiWorkflowStep === "method-selection" && (
+      {creationMethod === 'manual' && aiWorkflowStep === 'method-selection' && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-600" />
-              Create New Module
-            </CardTitle>
-            <CardDescription>
-              Build custom learning modules with AI-powered content suggestions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="title">Module Title *</Label>
-                <Input
-                  id="title"
-                  value={newModule.title}
-                  onChange={(e) =>
-                    setNewModule((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                  placeholder="Enter module title"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={newModule.category}
-                  onValueChange={(value) =>
-                    setNewModule((prev) => ({ ...prev, category: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="classroom-management">
-                      Classroom Management
-                    </SelectItem>
-                    <SelectItem value="child-development">
-                      Child Development
-                    </SelectItem>
-                    <SelectItem value="curriculum-planning">
-                      Curriculum Planning
-                    </SelectItem>
-                    <SelectItem value="family-engagement">
-                      Family Engagement
-                    </SelectItem>
-                    <SelectItem value="health-safety">
-                      Health & Safety
-                    </SelectItem>
-                    <SelectItem value="professional-development">
-                      Professional Development
-                    </SelectItem>
-                    <SelectItem value="special-needs">Special Needs</SelectItem>
-                    <SelectItem value="mindfulness">Mindfulness</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-blue-600" />
+            Create New Module
+          </CardTitle>
+          <CardDescription>
+            Build custom learning modules with AI-powered content suggestions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={newModule.description}
-                onChange={(e) =>
-                  setNewModule((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                placeholder="Describe what this module covers..."
-                rows={3}
+              <Label htmlFor="title">Module Title *</Label>
+              <Input
+                id="title"
+                value={newModule.title}
+                onChange={(e) => setNewModule(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter module title"
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="difficulty">Difficulty Level</Label>
-                <Select
-                  value={newModule.difficulty}
-                  onValueChange={(value) =>
-                    setNewModule((prev) => ({ ...prev, difficulty: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="estimatedTime">Estimated Time (minutes)</Label>
-                <Input
-                  id="estimatedTime"
-                  type="number"
-                  value={newModule.estimatedTime}
-                  onChange={(e) =>
-                    setNewModule((prev) => ({
-                      ...prev,
-                      estimatedTime: e.target.value,
-                    }))
-                  }
-                  placeholder="15"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="customPoints">
-                  Custom Points
-                  <span className="text-sm text-gray-500 ml-1">
-                    (Suggested:{" "}
-                    {calculateSuggestedPoints(
-                      newModule.difficulty,
-                      newModule.estimatedTime,
-                    )}
-                    )
-                  </span>
-                </Label>
-                <Input
-                  id="customPoints"
-                  type="number"
-                  value={newModule.customPoints}
-                  onChange={(e) =>
-                    setNewModule((prev) => ({
-                      ...prev,
-                      customPoints: e.target.value,
-                    }))
-                  }
-                  placeholder={calculateSuggestedPoints(
-                    newModule.difficulty,
-                    newModule.estimatedTime,
-                  ).toString()}
-                />
-              </div>
+            
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select value={newModule.category} onValueChange={(value) => setNewModule(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="classroom-management">Classroom Management</SelectItem>
+                  <SelectItem value="child-development">Child Development</SelectItem>
+                  <SelectItem value="curriculum-planning">Curriculum Planning</SelectItem>
+                  <SelectItem value="family-engagement">Family Engagement</SelectItem>
+                  <SelectItem value="health-safety">Health & Safety</SelectItem>
+                  <SelectItem value="professional-development">Professional Development</SelectItem>
+                  <SelectItem value="special-needs">Special Needs</SelectItem>
+                  <SelectItem value="mindfulness">Mindfulness</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
 
-            {/* Community Sharing */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Trophy className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <h3 className="font-medium text-purple-900">
-                      Share with Community
-                    </h3>
-                    <p className="text-sm text-purple-700">
-                      Enter your module into the monthly competition for bonus
-                      points!
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  checked={newModule.shareWithCommunity}
-                  onCheckedChange={(checked) =>
-                    setNewModule((prev) => ({
-                      ...prev,
-                      shareWithCommunity: checked,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            {/* AI Module Creator Wizard */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
-              <h3 className="text-lg font-semibold mb-3 flex items-center">
-                <Sparkles className="h-6 w-6 text-purple-600 mr-2" />
-                AI Module Creator Wizard
-              </h3>
-              <div className="text-sm text-gray-700 mb-4">
-                Choose a template and let AI generate complete, structured
-                content for your module!
-              </div>
-
-              {/* Template Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                {moduleTemplates.map((template) => (
-                  <Card
-                    key={template.id}
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      aiSelectedTemplate === template.id
-                        ? "ring-2 ring-purple-500 bg-purple-50"
-                        : template.color
-                    }`}
-                    onClick={() => setAiSelectedTemplate(template.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <template.icon className="h-5 w-5 text-purple-600" />
-                        <h4 className="font-medium text-sm">
-                          {template.title}
-                        </h4>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-2">
-                        {template.description}
-                      </p>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {template.duration}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Selected Template Info */}
-              {aiSelectedTemplate && (
-                <div className="bg-white p-4 rounded-lg border border-purple-200 mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium flex items-center">
-                      {React.createElement(
-                        moduleTemplates.find((t) => t.id === aiSelectedTemplate)
-                          ?.icon || BookOpen,
-                        { className: "h-4 w-4 mr-2" },
-                      )}
-                      {
-                        moduleTemplates.find((t) => t.id === aiSelectedTemplate)
-                          ?.title
-                      }
-                    </h4>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAiSelectedTemplate(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="text-sm text-gray-600 mb-3">
-                    AI will generate:{" "}
-                    {moduleTemplates
-                      .find((t) => t.id === aiSelectedTemplate)
-                      ?.features.join(", ")}
-                  </div>
-                  <Button
-                    onClick={() => generateTemplateContent(aiSelectedTemplate)}
-                    disabled={
-                      isGeneratingContent ||
-                      !newModule.title ||
-                      !newModule.description
-                    }
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                  >
-                    {isGeneratingContent ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating Complete Module Content...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Generate{" "}
-                        {
-                          moduleTemplates.find(
-                            (t) => t.id === aiSelectedTemplate,
-                          )?.title
-                        }{" "}
-                        Content
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-
-              {/* Generated Content Preview */}
-              {generatedContent && (
-                <div className="bg-white p-4 rounded-lg border border-green-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-green-800 flex items-center">
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      AI Content Generated!
-                    </h4>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={applyGeneratedContent}
-                        className="text-green-700 border-green-300 hover:bg-green-50"
-                      >
-                        Apply to Module
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setGeneratedContent(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded text-sm max-h-40 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap text-gray-700">
-                      {generatedContent.content.substring(0, 500)}
-                      {generatedContent.content.length > 500 && "..."}
-                    </pre>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Additional AI Tools */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="text-md font-medium mb-2 flex items-center">
-                <Brain className="h-5 w-5 text-blue-500 mr-2" />
-                Additional AI Tools
-              </h3>
-              <div className="text-sm text-gray-600 mb-3">
-                Need more ideas? Generate specific suggestions for your module.
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generateAiSuggestions("questions")}
-                  disabled={
-                    isGeneratingIdeas ||
-                    !newModule.title ||
-                    !newModule.description
-                  }
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
-                  {isGeneratingIdeas ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Lightbulb className="h-4 w-4 mr-2" />
-                      Generate Question Ideas
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generateAiSuggestions("strategies")}
-                  disabled={
-                    isGeneratingIdeas ||
-                    !newModule.title ||
-                    !newModule.description
-                  }
-                  className="border-green-300 text-green-700 hover:bg-green-100"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Teaching Strategies
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generateAiSuggestions("quiz")}
-                  disabled={
-                    isGeneratingIdeas ||
-                    !newModule.title ||
-                    !newModule.description
-                  }
-                  className="border-purple-300 text-purple-700 hover:bg-purple-100"
-                >
-                  <FileQuestion className="h-4 w-4 mr-2" />
-                  Generate Quiz
-                </Button>
-              </div>
-            </div>
-
-            {/* AI Suggestions Display */}
-            {(aiSuggestions.questions.length > 0 ||
-              aiSuggestions.strategies.length > 0 ||
-              aiSuggestions.quizQuestions.length > 0) && (
-              <div className="space-y-4">
-                <Separator />
-                <h3 className="font-medium flex items-center">
-                  <Sparkles className="h-5 w-5 text-yellow-500 mr-2" />
-                  AI Generated Suggestions
-                </h3>
-
-                {aiSuggestions.questions.length > 0 && (
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">
-                      Assessment Questions
-                    </h4>
-                    <ul className="space-y-2">
-                      {aiSuggestions.questions.map((question, index) => (
-                        <li
-                          key={index}
-                          className="text-sm text-blue-800 flex items-start"
-                        >
-                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0" />
-                          {question}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {aiSuggestions.strategies.length > 0 && (
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-2">
-                      Teaching Strategies
-                    </h4>
-                    <ul className="space-y-2">
-                      {aiSuggestions.strategies.map((strategy, index) => (
-                        <li
-                          key={index}
-                          className="text-sm text-green-800 flex items-start"
-                        >
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0" />
-                          {strategy}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {aiSuggestions.quizQuestions.length > 0 && (
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-purple-900 mb-2">
-                      Quiz Questions
-                    </h4>
-                    <div className="space-y-3">
-                      {aiSuggestions.quizQuestions.map((quiz, index) => (
-                        <div key={index} className="text-sm">
-                          <p className="font-medium text-purple-900 mb-1">
-                            {index + 1}. {quiz.question}
-                          </p>
-                          <ul className="ml-4 space-y-1">
-                            {quiz.options.map((option, optIndex) => (
-                              <li
-                                key={optIndex}
-                                className={`text-purple-800 ${option === quiz.correctAnswer ? "font-medium bg-purple-100 px-2 py-1 rounded" : ""}`}
-                              >
-                                {String.fromCharCode(65 + optIndex)}. {option}
-                                {option === quiz.correctAnswer && (
-                                  <span className="text-green-600 ml-2">✓</span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Enhanced Voice Narration Panel with Multilingual Support */}
-            <VoiceNarrationPanel
-              defaultText={`${newModule.title}\n\n${newModule.description}\n\nModule Sections:\n${newModule.sections.map((section, index) => `${index + 1}. ${section.title}: ${section.content}`).join("\n\n")}`}
-              onNarrationGenerated={(audioUrl, voiceType) => {
-                toast({
-                  title: "Module Narration Generated",
-                  description:
-                    "Professional multilingual narration created with advanced AI voice technology",
-                });
-              }}
-              className="mb-6"
+          <div>
+            <Label htmlFor="description">Description *</Label>
+            <Textarea
+              id="description"
+              value={newModule.description}
+              onChange={(e) => setNewModule(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe what this module covers..."
+              rows={3}
             />
+          </div>
 
-            {/* Module Sections */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">Module Sections</h3>
-                <Button variant="outline" size="sm" onClick={addSection}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Section
-                </Button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="difficulty">Difficulty Level</Label>
+              <Select value={newModule.difficulty} onValueChange={(value) => setNewModule(prev => ({ ...prev, difficulty: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="estimatedTime">Estimated Time (minutes)</Label>
+              <Input
+                id="estimatedTime"
+                type="number"
+                value={newModule.estimatedTime}
+                onChange={(e) => setNewModule(prev => ({ ...prev, estimatedTime: e.target.value }))}
+                placeholder="15"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="customPoints">
+                Custom Points 
+                <span className="text-sm text-gray-500 ml-1">
+                  (Suggested: {calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime)})
+                </span>
+              </Label>
+              <Input
+                id="customPoints"
+                type="number"
+                value={newModule.customPoints}
+                onChange={(e) => setNewModule(prev => ({ ...prev, customPoints: e.target.value }))}
+                placeholder={calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime).toString()}
+              />
+            </div>
+          </div>
+
+          {/* Community Sharing */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Trophy className="h-5 w-5 text-purple-600" />
+                <div>
+                  <h3 className="font-medium text-purple-900">Share with Community</h3>
+                  <p className="text-sm text-purple-700">Enter your module into the monthly competition for bonus points!</p>
+                </div>
               </div>
+              <Switch
+                checked={newModule.shareWithCommunity}
+                onCheckedChange={(checked) => setNewModule(prev => ({ ...prev, shareWithCommunity: checked }))}
+              />
+            </div>
+          </div>
 
-              {newModule.sections.map((section, index) => (
-                <Card key={index} className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium">Section {index + 1}</h4>
-                    {newModule.sections.length > 1 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeSection(index)}
-                        className="text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Section Title</Label>
-                        <Input
-                          value={section.title}
-                          onChange={(e) =>
-                            updateSection(index, "title", e.target.value)
-                          }
-                          placeholder="Enter section title"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Section Type</Label>
-                        <Select
-                          value={section.type}
-                          onValueChange={(value) =>
-                            updateSection(index, "type", value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose section type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="text">
-                              📝 Text Content
-                            </SelectItem>
-                            <SelectItem value="story">
-                              📚 Interactive Story
-                            </SelectItem>
-                            <SelectItem value="example">
-                              💡 Real-World Examples
-                            </SelectItem>
-                            <SelectItem value="matching">
-                              🔗 Matching Exercise
-                            </SelectItem>
-                            <SelectItem value="scenario">
-                              🎯 Scenario Decision
-                            </SelectItem>
-                            <SelectItem value="triage">
-                              🚦 Priority Sorting
-                            </SelectItem>
-                            <SelectItem value="quiz">
-                              ❓ Quiz Assessment
-                            </SelectItem>
-                            <SelectItem value="video">
-                              🎥 Video Learning
-                            </SelectItem>
-                            <SelectItem value="mnemonic">
-                              🎵 Memory Device Builder
-                            </SelectItem>
-                            <SelectItem value="simulation">
-                              🎭 Role-Play Simulation
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+          {/* AI Module Creator Wizard */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border border-purple-200">
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <Sparkles className="h-6 w-6 text-purple-600 mr-2" />
+              AI Module Creator Wizard
+            </h3>
+            <div className="text-sm text-gray-700 mb-4">
+              Choose a template and let AI generate complete, structured content for your module!
+            </div>
+            
+            {/* Template Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+              {moduleTemplates.map((template) => (
+                <Card 
+                  key={template.id} 
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    aiSelectedTemplate === template.id ? 'ring-2 ring-purple-500 bg-purple-50' : template.color
+                  }`}
+                  onClick={() => setAiSelectedTemplate(template.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <template.icon className="h-5 w-5 text-purple-600" />
+                      <h4 className="font-medium text-sm">{template.title}</h4>
                     </div>
-
-                    {/* Text Content Template */}
-                    {section.type === "text" && (
-                      <>
-                        <div>
-                          <Label>Content</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Enter section content..."
-                            rows={4}
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Video URL (optional)</Label>
-                            <Input
-                              value={section.videoUrl}
-                              onChange={(e) =>
-                                updateSection(index, "videoUrl", e.target.value)
-                              }
-                              placeholder="https://youtube.com/watch?v=..."
-                            />
-                          </div>
-                          <div>
-                            <Label>Image URL (optional)</Label>
-                            <Input
-                              value={section.imageUrl}
-                              onChange={(e) =>
-                                updateSection(index, "imageUrl", e.target.value)
-                              }
-                              placeholder="https://example.com/image.jpg"
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Interactive Story Template */}
-                    {section.type === "story" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Story Setup</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Set up your interactive story with characters, setting, and situation..."
-                            rows={4}
-                          />
-                        </div>
-                        <div className="p-4 bg-purple-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Brain className="h-4 w-4 text-purple-600 mr-2" />
-                              <span className="text-sm font-medium text-purple-800">
-                                AI Story Builder
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => generateStoryContent(index)}
-                              disabled={generatingContent === index}
-                              className="bg-purple-600 hover:bg-purple-700"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  Generate Story
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-purple-700">
-                            AI will create an engaging interactive story with
-                            characters, setting, and decision points for{" "}
-                            {newModule.title || "your topic"}.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Real-World Examples Template */}
-                    {section.type === "example" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Example Scenarios</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Provide real-world examples that illustrate the concept..."
-                            rows={4}
-                          />
-                        </div>
-                        <div className="p-4 bg-yellow-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Brain className="h-4 w-4 text-yellow-600 mr-2" />
-                              <span className="text-sm font-medium text-yellow-800">
-                                AI Example Builder
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => generateExampleContent(index)}
-                              disabled={generatingContent === index}
-                              className="bg-yellow-600 hover:bg-yellow-700"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Lightbulb className="h-3 w-3 mr-1" />
-                                  Generate Examples
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-yellow-700">
-                            AI will create practical real-world examples that
-                            illustrate {newModule.title || "your concept"} in
-                            action.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Matching Exercise Template */}
-                    {section.type === "matching" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Matching Instructions</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Explain what learners should match (terms to definitions, problems to solutions, etc.)..."
-                            rows={3}
-                          />
-                        </div>
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Brain className="h-4 w-4 text-blue-600 mr-2" />
-                              <span className="text-sm font-medium text-blue-800">
-                                AI Matching Builder
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => generateMatchingContent(index)}
-                              disabled={generatingContent === index}
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Link2 className="h-3 w-3 mr-1" />
-                                  Generate Matching
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-blue-700">
-                            AI will create matching pairs connecting concepts,
-                            terms, and definitions for{" "}
-                            {newModule.title || "your topic"}.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Scenario Decision Template */}
-                    {section.type === "scenario" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Scenario Description</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Describe a realistic scenario where learners must make decisions..."
-                            rows={4}
-                          />
-                        </div>
-                        <div className="p-4 bg-green-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Brain className="h-4 w-4 text-green-600 mr-2" />
-                              <span className="text-sm font-medium text-green-800">
-                                AI Scenario Builder
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => generateScenarioContent(index)}
-                              disabled={generatingContent === index}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  Generate Scenario
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-green-700">
-                            AI will create realistic decision-making scenarios
-                            with multiple options and feedback for{" "}
-                            {newModule.title || "your topic"}.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Priority Sorting Template */}
-                    {section.type === "triage" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Triage Instructions</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Describe how to prioritize items (urgent/important, high/medium/low, etc.)..."
-                            rows={3}
-                          />
-                        </div>
-                        <div className="p-4 bg-red-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Brain className="h-4 w-4 text-red-600 mr-2" />
-                              <span className="text-sm font-medium text-red-800">
-                                AI Priority Builder
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => generatePriorityContent(index)}
-                              disabled={generatingContent === index}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Target className="h-3 w-3 mr-1" />
-                                  Generate Priority Exercise
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-red-700">
-                            AI will create prioritization scenarios to help
-                            learners practice sorting items by urgency and
-                            importance for {newModule.title || "your topic"}.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quiz Template */}
-                    {section.type === "quiz" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Quiz Instructions</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Instructions for this quiz section..."
-                            rows={2}
-                          />
-                        </div>
-                        <div className="p-4 bg-purple-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Brain className="h-4 w-4 text-purple-600 mr-2" />
-                              <span className="text-sm font-medium text-purple-800">
-                                AI Quiz Builder
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => generateQuizContent(index)}
-                              disabled={generatingContent === index}
-                              className="bg-purple-600 hover:bg-purple-700"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <HelpCircle className="h-3 w-3 mr-1" />
-                                  Generate Quiz
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-purple-700">
-                            AI will create quiz questions to assess
-                            understanding for {newModule.title || "your topic"}.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Mnemonic Device Builder Template */}
-                    {section.type === "mnemonic" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Memory Content</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Enter the information learners need to memorize (steps, lists, key points)..."
-                            rows={4}
-                          />
-                        </div>
-                        <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
-                          <div className="flex items-center mb-3">
-                            <Music className="h-5 w-5 text-pink-600 mr-2" />
-                            <span className="text-sm font-medium text-pink-800">
-                              Fun Memory Device Builder
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                            <button
-                              onClick={() =>
-                                generateMnemonicDevice(index, "song")
-                              }
-                              disabled={generatingContent === index}
-                              className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                  Thinking...
-                                </>
-                              ) : (
-                                "🎵 Funny Song"
-                              )}
-                            </button>
-                            <button
-                              onClick={() =>
-                                generateMnemonicDevice(index, "rap")
-                              }
-                              disabled={generatingContent === index}
-                              className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                  Thinking...
-                                </>
-                              ) : (
-                                "🎤 Catchy Rap"
-                              )}
-                            </button>
-                            <button
-                              onClick={() =>
-                                generateMnemonicDevice(index, "poem")
-                              }
-                              disabled={generatingContent === index}
-                              className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                  Thinking...
-                                </>
-                              ) : (
-                                "📝 Funny Poem"
-                              )}
-                            </button>
-                            <button
-                              onClick={() =>
-                                generateMnemonicDevice(index, "acronym")
-                              }
-                              disabled={generatingContent === index}
-                              className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {generatingContent === index ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
-                                  Thinking...
-                                </>
-                              ) : (
-                                "🔤 Acronym"
-                              )}
-                            </button>
-                          </div>
-                          <p className="text-sm text-pink-700">
-                            AI will create fun, memorable devices like poems,
-                            raps, songs, or acronyms to help learners remember
-                            important information. Perfect for procedures,
-                            safety steps, or key concepts!
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Role-Play Simulation Template */}
-                    {section.type === "simulation" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Simulation Setup</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Describe the role-play scenario, characters, and objectives..."
-                            rows={4}
-                          />
-                        </div>
-                        <div className="p-4 bg-indigo-50 rounded-lg">
-                          <div className="flex items-center mb-2">
-                            <Users className="h-4 w-4 text-indigo-600 mr-2" />
-                            <span className="text-sm font-medium text-indigo-800">
-                              Interactive Simulation
-                            </span>
-                          </div>
-                          <p className="text-sm text-indigo-700">
-                            Create immersive role-playing experiences where
-                            learners practice skills in realistic situations.
-                            Include character roles and interaction guidelines.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Scenario Match Template */}
-                    {section.type === "scenario-match" && (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-blue-600 font-semibold">
-                              Scenarios (Left Column)
-                            </Label>
-                            <Textarea
-                              value={section.content?.scenarios || ""}
-                              onChange={(e) => {
-                                const currentContent = section.content || {};
-                                updateSection(index, "content", {
-                                  ...currentContent,
-                                  scenarios: e.target.value,
-                                });
-                              }}
-                              placeholder="Enter scenarios, one per line:&#10;&#10;A child is having a meltdown during circle time&#10;Two children are fighting over a toy&#10;A shy child won't participate in group activities"
-                              rows={6}
-                              className="font-mono text-sm"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-green-600 font-semibold">
-                              Response Options (Right Column)
-                            </Label>
-                            <Textarea
-                              value={section.content?.responses || ""}
-                              onChange={(e) => {
-                                const currentContent = section.content || {};
-                                updateSection(index, "content", {
-                                  ...currentContent,
-                                  responses: e.target.value,
-                                });
-                              }}
-                              placeholder="Enter response options, one per line:&#10;&#10;Offer a calm-down corner with sensory tools&#10;Implement a sharing timer system&#10;Use gentle encouragement and offer choices"
-                              rows={6}
-                              className="font-mono text-sm"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mb-4">
-                          <Button
-                            onClick={() => generateScenarioMatchContent(index)}
-                            disabled={generatingContent === index}
-                            className="bg-purple-600 hover:bg-purple-700 text-white"
-                          >
-                            {generatingContent === index ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                AI Thinking...
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="h-4 w-4 mr-2" />
-                                Generate Scenarios & Responses
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <div className="p-4 bg-green-50 rounded-lg">
-                          <p className="text-sm text-green-700">
-                            🎯 AI will create an interactive matching game where
-                            teachers drag scenarios to their best response
-                            options. Each line becomes a separate item to match.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Podcast Template */}
-                    {section.type === "podcast" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Podcast Description</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="What topics should this podcast episode cover..."
-                            rows={3}
-                          />
-                        </div>
-                        <div className="p-4 bg-purple-50 rounded-lg">
-                          <p className="text-sm text-purple-700">
-                            🎧 AI will generate a conversational podcast script
-                            and audio file for this section.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Video Template */}
-                    {section.type === "video" && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Video Description</Label>
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(index, "content", e.target.value)
-                            }
-                            placeholder="Describe what this video should demonstrate..."
-                            rows={2}
-                          />
-                        </div>
-                        <div>
-                          <Label>Video Selection</Label>
-                          <div className="space-y-3">
-                            {/* Current Video Display */}
-                            {section.videoUrl ? (
-                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <div className="text-sm font-medium text-green-800">
-                                      Video Selected
-                                    </div>
-                                    <div className="text-xs text-green-600 truncate max-w-md">
-                                      {section.videoUrl}
-                                    </div>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedVideoForSection(index);
-                                      setShowVideoSearch(true);
-                                      setVideoSearchQuery(
-                                        newModule.title || "",
-                                      );
-                                    }}
-                                    className="border-green-300 text-green-700 hover:bg-green-100"
-                                  >
-                                    Change Video
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedVideoForSection(index);
-                                  setShowVideoSearch(true);
-                                  setVideoSearchQuery(newModule.title || "");
-                                }}
-                                className="w-full border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 py-6"
-                              >
-                                <Search className="h-5 w-5 mr-2" />
-                                Find Video for This Section
-                              </Button>
-                            )}
-
-                            {/* AI Video Generation */}
-                            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-                              <div className="flex-1">
-                                <div className="text-sm font-medium text-purple-800">
-                                  AI Video Generation
-                                </div>
-                                <div className="text-xs text-purple-600">
-                                  Create a custom training video with Veo AI
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => generateAiVideo(index)}
-                                disabled={
-                                  generatingVideo === index ||
-                                  !newModule.title ||
-                                  !newModule.description
-                                }
-                                className="ml-3 border-purple-300 text-purple-700 hover:bg-purple-100"
-                              >
-                                {generatingVideo === index ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    {videoGenerationStatus[index] ===
-                                      "starting" && "Starting..."}
-                                    {videoGenerationStatus[index] ===
-                                      "processing" && "Creating..."}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Video className="h-4 w-4 mr-2" />
-                                    Generate Video
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-
-                            {videoGenerationStatus[index] && (
-                              <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
-                                Status:{" "}
-                                {videoGenerationStatus[index] === "starting" &&
-                                  "Initializing video generation..."}
-                                {videoGenerationStatus[index] ===
-                                  "processing" &&
-                                  "AI is creating your video (this may take 2-3 minutes)..."}
-                                {videoGenerationStatus[index] === "completed" &&
-                                  "Video generated and added successfully!"}
-                                {videoGenerationStatus[index] === "failed" &&
-                                  "Generation failed. Please try again."}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
-                          <input
-                            type="checkbox"
-                            id={`generateQuestions-${index}`}
-                            checked={section.generateVideoQuestions || false}
-                            onChange={(e) =>
-                              updateSection(
-                                index,
-                                "generateVideoQuestions",
-                                e.target.checked,
-                              )
-                            }
-                            className="rounded"
-                          />
-                          <Label
-                            htmlFor={`generateQuestions-${index}`}
-                            className="text-sm text-blue-700 cursor-pointer"
-                          >
-                            🤖 Generate quiz questions automatically from this
-                            video content
-                          </Label>
-                        </div>
-                        <div className="p-4 bg-red-50 rounded-lg">
-                          <p className="text-sm text-red-700">
-                            🎥 Add your video URL above. When you check the box,
-                            AI will analyze the video and create relevant quiz
-                            questions.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    <p className="text-xs text-gray-600 mb-2">{template.description}</p>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {template.duration}
+                    </div>
+                  </CardContent>
                 </Card>
               ))}
             </div>
 
-            {/* Create Button */}
-            <div className="flex justify-end">
+            {/* Selected Template Info */}
+            {aiSelectedTemplate && (
+              <div className="bg-white p-4 rounded-lg border border-purple-200 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium flex items-center">
+                    {React.createElement(moduleTemplates.find(t => t.id === aiSelectedTemplate)?.icon || BookOpen, { className: "h-4 w-4 mr-2" })}
+                    {moduleTemplates.find(t => t.id === aiSelectedTemplate)?.title}
+                  </h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAiSelectedTemplate(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-sm text-gray-600 mb-3">
+                  AI will generate: {moduleTemplates.find(t => t.id === aiSelectedTemplate)?.features.join(', ')}
+                </div>
+                <Button
+                  onClick={() => generateTemplateContent(aiSelectedTemplate)}
+                  disabled={isGeneratingContent || !newModule.title || !newModule.description}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  {isGeneratingContent ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating Complete Module Content...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate {moduleTemplates.find(t => t.id === aiSelectedTemplate)?.title} Content
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Generated Content Preview */}
+            {generatedContent && (
+              <div className="bg-white p-4 rounded-lg border border-green-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-green-800 flex items-center">
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    AI Content Generated!
+                  </h4>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={applyGeneratedContent}
+                      className="text-green-700 border-green-300 hover:bg-green-50"
+                    >
+                      Apply to Module
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setGeneratedContent(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded text-sm max-h-40 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-gray-700">
+                    {generatedContent.content.substring(0, 500)}
+                    {generatedContent.content.length > 500 && '...'}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Additional AI Tools */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="text-md font-medium mb-2 flex items-center">
+              <Brain className="h-5 w-5 text-blue-500 mr-2" />
+              Additional AI Tools
+            </h3>
+            <div className="text-sm text-gray-600 mb-3">
+              Need more ideas? Generate specific suggestions for your module.
+            </div>
+            <div className="flex flex-wrap gap-2">
               <Button
-                onClick={handleCreateModule}
-                disabled={
-                  isCreatingModule || !newModule.title || !newModule.description
-                }
-                className="px-8"
+                variant="outline"
+                size="sm"
+                onClick={() => generateAiSuggestions('questions')}
+                disabled={isGeneratingIdeas || !newModule.title || !newModule.description}
+                className="border-blue-300 text-blue-700 hover:bg-blue-100"
               >
-                {isCreatingModule ? (
+                {isGeneratingIdeas ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating Module...
+                    Generating...
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Create Module
+                    <Lightbulb className="h-4 w-4 mr-2" />
+                    Generate Question Ideas
                   </>
                 )}
               </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => generateAiSuggestions('strategies')}
+                disabled={isGeneratingIdeas || !newModule.title || !newModule.description}
+                className="border-green-300 text-green-700 hover:bg-green-100"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Teaching Strategies
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => generateAiSuggestions('quiz')}
+                disabled={isGeneratingIdeas || !newModule.title || !newModule.description}
+                className="border-purple-300 text-purple-700 hover:bg-purple-100"
+              >
+                <FileQuestion className="h-4 w-4 mr-2" />
+                Generate Quiz
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* AI Suggestions Display */}
+          {(aiSuggestions.questions.length > 0 || aiSuggestions.strategies.length > 0 || aiSuggestions.quizQuestions.length > 0) && (
+            <div className="space-y-4">
+              <Separator />
+              <h3 className="font-medium flex items-center">
+                <Sparkles className="h-5 w-5 text-yellow-500 mr-2" />
+                AI Generated Suggestions
+              </h3>
+              
+              {aiSuggestions.questions.length > 0 && (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Assessment Questions</h4>
+                  <ul className="space-y-2">
+                    {aiSuggestions.questions.map((question, index) => (
+                      <li key={index} className="text-sm text-blue-800 flex items-start">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0" />
+                        {question}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {aiSuggestions.strategies.length > 0 && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">Teaching Strategies</h4>
+                  <ul className="space-y-2">
+                    {aiSuggestions.strategies.map((strategy, index) => (
+                      <li key={index} className="text-sm text-green-800 flex items-start">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0" />
+                        {strategy}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {aiSuggestions.quizQuestions.length > 0 && (
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-purple-900 mb-2">Quiz Questions</h4>
+                  <div className="space-y-3">
+                    {aiSuggestions.quizQuestions.map((quiz, index) => (
+                      <div key={index} className="text-sm">
+                        <p className="font-medium text-purple-900 mb-1">{index + 1}. {quiz.question}</p>
+                        <ul className="ml-4 space-y-1">
+                          {quiz.options.map((option, optIndex) => (
+                            <li key={optIndex} className={`text-purple-800 ${option === quiz.correctAnswer ? 'font-medium bg-purple-100 px-2 py-1 rounded' : ''}`}>
+                              {String.fromCharCode(65 + optIndex)}. {option}
+                              {option === quiz.correctAnswer && <span className="text-green-600 ml-2">✓</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Enhanced Voice Narration Panel with Multilingual Support */}
+          <VoiceNarrationPanel
+            defaultText={`${newModule.title}\n\n${newModule.description}\n\nModule Sections:\n${newModule.sections.map((section, index) => `${index + 1}. ${section.title}: ${section.content}`).join('\n\n')}`}
+            onNarrationGenerated={(audioUrl, voiceType) => {
+              toast({
+                title: "Module Narration Generated",
+                description: "Professional multilingual narration created with advanced AI voice technology",
+              });
+            }}
+            className="mb-6"
+          />
+
+          {/* Module Sections */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">Module Sections</h3>
+              <Button variant="outline" size="sm" onClick={addSection}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Section
+              </Button>
+            </div>
+            
+            {newModule.sections.map((section, index) => (
+              <Card key={index} className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-medium">Section {index + 1}</h4>
+                  {newModule.sections.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeSection(index)}
+                      className="text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Section Title</Label>
+                      <Input
+                        value={section.title}
+                        onChange={(e) => updateSection(index, 'title', e.target.value)}
+                        placeholder="Enter section title"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Section Type</Label>
+                      <Select
+                        value={section.type}
+                        onValueChange={(value) => updateSection(index, 'type', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose section type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">📝 Text Content</SelectItem>
+                          <SelectItem value="story">📚 Interactive Story</SelectItem>
+                          <SelectItem value="example">💡 Real-World Examples</SelectItem>
+                          <SelectItem value="matching">🔗 Matching Exercise</SelectItem>
+                          <SelectItem value="scenario">🎯 Scenario Decision</SelectItem>
+                          <SelectItem value="triage">🚦 Priority Sorting</SelectItem>
+                          <SelectItem value="quiz">❓ Quiz Assessment</SelectItem>
+                          <SelectItem value="video">🎥 Video Learning</SelectItem>
+                          <SelectItem value="mnemonic">🎵 Memory Device Builder</SelectItem>
+                          <SelectItem value="simulation">🎭 Role-Play Simulation</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Text Content Template */}
+                  {section.type === 'text' && (
+                    <>
+                      <div>
+                        <Label>Content</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Enter section content..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Video URL (optional)</Label>
+                          <Input
+                            value={section.videoUrl}
+                            onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
+                            placeholder="https://youtube.com/watch?v=..."
+                          />
+                        </div>
+                        <div>
+                          <Label>Image URL (optional)</Label>
+                          <Input
+                            value={section.imageUrl}
+                            onChange={(e) => updateSection(index, 'imageUrl', e.target.value)}
+                            placeholder="https://example.com/image.jpg"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Interactive Story Template */}
+                  {section.type === 'story' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Story Setup</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Set up your interactive story with characters, setting, and situation..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-purple-600 mr-2" />
+                            <span className="text-sm font-medium text-purple-800">AI Story Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateStoryContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Generate Story
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-purple-700">
+                          AI will create an engaging interactive story with characters, setting, and decision points for {newModule.title || 'your topic'}.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Real-World Examples Template */}
+                  {section.type === 'example' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Example Scenarios</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Provide real-world examples that illustrate the concept..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-yellow-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-yellow-600 mr-2" />
+                            <span className="text-sm font-medium text-yellow-800">AI Example Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateExampleContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-yellow-600 hover:bg-yellow-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Lightbulb className="h-3 w-3 mr-1" />
+                                Generate Examples
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-yellow-700">
+                          AI will create practical real-world examples that illustrate {newModule.title || 'your concept'} in action.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Matching Exercise Template */}
+                  {section.type === 'matching' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Matching Instructions</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Explain what learners should match (terms to definitions, problems to solutions, etc.)..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-blue-600 mr-2" />
+                            <span className="text-sm font-medium text-blue-800">AI Matching Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateMatchingContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Link2 className="h-3 w-3 mr-1" />
+                                Generate Matching
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          AI will create matching pairs connecting concepts, terms, and definitions for {newModule.title || 'your topic'}.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scenario Decision Template */}
+                  {section.type === 'scenario' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Scenario Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe a realistic scenario where learners must make decisions..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-green-600 mr-2" />
+                            <span className="text-sm font-medium text-green-800">AI Scenario Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateScenarioContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Generate Scenario
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-green-700">
+                          AI will create realistic decision-making scenarios with multiple options and feedback for {newModule.title || 'your topic'}.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Priority Sorting Template */}
+                  {section.type === 'triage' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Triage Instructions</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe how to prioritize items (urgent/important, high/medium/low, etc.)..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-red-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-red-600 mr-2" />
+                            <span className="text-sm font-medium text-red-800">AI Priority Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generatePriorityContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Target className="h-3 w-3 mr-1" />
+                                Generate Priority Exercise
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-red-700">
+                          AI will create prioritization scenarios to help learners practice sorting items by urgency and importance for {newModule.title || 'your topic'}.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quiz Template */}
+                  {section.type === 'quiz' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Quiz Instructions</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Instructions for this quiz section..."
+                          rows={2}
+                        />
+                      </div>
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Brain className="h-4 w-4 text-purple-600 mr-2" />
+                            <span className="text-sm font-medium text-purple-800">AI Quiz Builder</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => generateQuizContent(index)}
+                            disabled={generatingContent === index}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <HelpCircle className="h-3 w-3 mr-1" />
+                                Generate Quiz
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-sm text-purple-700">
+                          AI will create quiz questions to assess understanding for {newModule.title || 'your topic'}.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mnemonic Device Builder Template */}
+                  {section.type === 'mnemonic' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Memory Content</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Enter the information learners need to memorize (steps, lists, key points)..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+                        <div className="flex items-center mb-3">
+                          <Music className="h-5 w-5 text-pink-600 mr-2" />
+                          <span className="text-sm font-medium text-pink-800">Fun Memory Device Builder</span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'song')}
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '🎵 Funny Song'
+                            )}
+                          </button>
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'rap')}
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '🎤 Catchy Rap'
+                            )}
+                          </button>
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'poem')}
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '📝 Funny Poem'
+                            )}
+                          </button>
+                          <button 
+                            onClick={() => generateMnemonicDevice(index, 'acronym')}
+                            disabled={generatingContent === index}
+                            className="p-2 text-xs bg-white rounded border border-pink-200 hover:bg-pink-50 text-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {generatingContent === index ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin inline" />
+                                Thinking...
+                              </>
+                            ) : (
+                              '🔤 Acronym'
+                            )}
+                          </button>
+                        </div>
+                        <p className="text-sm text-pink-700">
+                          AI will create fun, memorable devices like poems, raps, songs, or acronyms to help learners remember important information. Perfect for procedures, safety steps, or key concepts!
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Role-Play Simulation Template */}
+                  {section.type === 'simulation' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Simulation Setup</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe the role-play scenario, characters, and objectives..."
+                          rows={4}
+                        />
+                      </div>
+                      <div className="p-4 bg-indigo-50 rounded-lg">
+                        <div className="flex items-center mb-2">
+                          <Users className="h-4 w-4 text-indigo-600 mr-2" />
+                          <span className="text-sm font-medium text-indigo-800">Interactive Simulation</span>
+                        </div>
+                        <p className="text-sm text-indigo-700">
+                          Create immersive role-playing experiences where learners practice skills in realistic situations. Include character roles and interaction guidelines.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scenario Match Template */}
+                  {section.type === 'scenario-match' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-600 font-semibold">Scenarios (Left Column)</Label>
+                          <Textarea
+                            value={section.content?.scenarios || ''}
+                            onChange={(e) => {
+                              const currentContent = section.content || {};
+                              updateSection(index, 'content', {
+                                ...currentContent,
+                                scenarios: e.target.value
+                              });
+                            }}
+                            placeholder="Enter scenarios, one per line:&#10;&#10;A child is having a meltdown during circle time&#10;Two children are fighting over a toy&#10;A shy child won't participate in group activities"
+                            rows={6}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-green-600 font-semibold">Response Options (Right Column)</Label>
+                          <Textarea
+                            value={section.content?.responses || ''}
+                            onChange={(e) => {
+                              const currentContent = section.content || {};
+                              updateSection(index, 'content', {
+                                ...currentContent,
+                                responses: e.target.value
+                              });
+                            }}
+                            placeholder="Enter response options, one per line:&#10;&#10;Offer a calm-down corner with sensory tools&#10;Implement a sharing timer system&#10;Use gentle encouragement and offer choices"
+                            rows={6}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mb-4">
+                        <Button
+                          onClick={() => generateScenarioMatchContent(index)}
+                          disabled={generatingContent === index}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          {generatingContent === index ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              AI Thinking...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Generate Scenarios & Responses
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <div className="p-4 bg-green-50 rounded-lg">
+                        <p className="text-sm text-green-700">
+                          🎯 AI will create an interactive matching game where teachers drag scenarios to their best response options. Each line becomes a separate item to match.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Podcast Template */}
+                  {section.type === 'podcast' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Podcast Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="What topics should this podcast episode cover..."
+                          rows={3}
+                        />
+                      </div>
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <p className="text-sm text-purple-700">
+                          🎧 AI will generate a conversational podcast script and audio file for this section.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+
+
+                  {/* Video Template */}
+                  {section.type === 'video' && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Video Description</Label>
+                        <Textarea
+                          value={section.content}
+                          onChange={(e) => updateSection(index, 'content', e.target.value)}
+                          placeholder="Describe what this video should demonstrate..."
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <Label>Video Selection</Label>
+                        <div className="space-y-3">
+                          {/* Current Video Display */}
+                          {section.videoUrl ? (
+                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-medium text-green-800">Video Selected</div>
+                                  <div className="text-xs text-green-600 truncate max-w-md">{section.videoUrl}</div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedVideoForSection(index);
+                                    setShowVideoSearch(true);
+                                    setVideoSearchQuery(newModule.title || '');
+                                  }}
+                                  className="border-green-300 text-green-700 hover:bg-green-100"
+                                >
+                                  Change Video
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedVideoForSection(index);
+                                setShowVideoSearch(true);
+                                setVideoSearchQuery(newModule.title || '');
+                              }}
+                              className="w-full border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 py-6"
+                            >
+                              <Search className="h-5 w-5 mr-2" />
+                              Find Video for This Section
+                            </Button>
+                          )}
+                          
+                          {/* AI Video Generation */}
+                          <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-purple-800">AI Video Generation</div>
+                              <div className="text-xs text-purple-600">Create a custom training video with Veo AI</div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => generateAiVideo(index)}
+                              disabled={generatingVideo === index || !newModule.title || !newModule.description}
+                              className="ml-3 border-purple-300 text-purple-700 hover:bg-purple-100"
+                            >
+                              {generatingVideo === index ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  {videoGenerationStatus[index] === 'starting' && 'Starting...'}
+                                  {videoGenerationStatus[index] === 'processing' && 'Creating...'}
+                                </>
+                              ) : (
+                                <>
+                                  <Video className="h-4 w-4 mr-2" />
+                                  Generate Video
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          
+                          {videoGenerationStatus[index] && (
+                            <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                              Status: {videoGenerationStatus[index] === 'starting' && 'Initializing video generation...'}
+                              {videoGenerationStatus[index] === 'processing' && 'AI is creating your video (this may take 2-3 minutes)...'}
+                              {videoGenerationStatus[index] === 'completed' && 'Video generated and added successfully!'}
+                              {videoGenerationStatus[index] === 'failed' && 'Generation failed. Please try again.'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id={`generateQuestions-${index}`}
+                          checked={section.generateVideoQuestions || false}
+                          onChange={(e) => updateSection(index, 'generateVideoQuestions', e.target.checked)}
+                          className="rounded"
+                        />
+                        <Label htmlFor={`generateQuestions-${index}`} className="text-sm text-blue-700 cursor-pointer">
+                          🤖 Generate quiz questions automatically from this video content
+                        </Label>
+                      </div>
+                      <div className="p-4 bg-red-50 rounded-lg">
+                        <p className="text-sm text-red-700">
+                          🎥 Add your video URL above. When you check the box, AI will analyze the video and create relevant quiz questions.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Create Button */}
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleCreateModule}
+              disabled={isCreatingModule || !newModule.title || !newModule.description}
+              className="px-8"
+            >
+              {isCreatingModule ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating Module...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Create Module
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       )}
 
       {/* Module Management */}
@@ -8537,9 +6552,7 @@ Create a natural conversation between two podcast hosts discussing this specific
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Module Management</CardTitle>
-              <CardDescription>
-                Manage visibility and edit existing modules
-              </CardDescription>
+              <CardDescription>Manage visibility and edit existing modules</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
               <Search className="h-4 w-4 text-gray-400" />
@@ -8560,28 +6573,17 @@ Create a natural conversation between two podcast hosts discussing this specific
                   <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Loading Modules</h3>
-                <p className="text-gray-600">
-                  Please wait while we fetch all modules...
-                </p>
+                <p className="text-gray-600">Please wait while we fetch all modules...</p>
               </div>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">
-                  Error Loading Modules
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  There was a problem fetching the modules. Please try again
-                  later.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    queryClient.invalidateQueries({
-                      queryKey: ["/api/modules"],
-                    })
-                  }
+                <h3 className="text-lg font-semibold mb-2">Error Loading Modules</h3>
+                <p className="text-gray-600 mb-4">There was a problem fetching the modules. Please try again later.</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/modules'] })}
                 >
                   Try Again
                 </Button>
@@ -8591,17 +6593,12 @@ Create a natural conversation between two podcast hosts discussing this specific
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
-                  {filteredModules.length} module
-                  {filteredModules.length !== 1 ? "s" : ""} found
+                  {filteredModules.length} module{filteredModules.length !== 1 ? 's' : ''} found
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    queryClient.invalidateQueries({
-                      queryKey: ["/api/modules"],
-                    })
-                  }
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/modules'] })}
                   className="text-blue-600 hover:bg-blue-50"
                 >
                   Refresh List
@@ -8609,39 +6606,26 @@ Create a natural conversation between two podcast hosts discussing this specific
               </div>
               {filteredModules.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">
-                    No modules found. Create your first module to get started!
-                  </p>
+                  <p className="text-gray-500">No modules found. Create your first module to get started!</p>
                 </div>
               ) : (
                 filteredModules.map((module: Module) => (
-                  <div
-                    key={module.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
+                  <div key={module.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4">
                         <div>
                           <h3 className="font-semibold">{module.title}</h3>
-                          <p className="text-sm text-gray-600">
-                            {module.description}
-                          </p>
+                          <p className="text-sm text-gray-600">{module.description}</p>
                           <div className="flex items-center space-x-4 mt-2">
                             <Badge variant="outline">{module.category}</Badge>
-                            <Badge
-                              variant={
-                                module.difficulty === "beginner"
-                                  ? "default"
-                                  : module.difficulty === "intermediate"
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                            >
+                            <Badge variant={
+                              module.difficulty === 'beginner' ? 'default' : 
+                              module.difficulty === 'intermediate' ? 'secondary' : 
+                              'destructive'
+                            }>
                               {module.difficulty}
                             </Badge>
-                            <span className="text-sm text-gray-500">
-                              {module.pointValue} points
-                            </span>
+                            <span className="text-sm text-gray-500">{module.pointValue} points</span>
                           </div>
                         </div>
                       </div>
@@ -8650,9 +6634,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          navigate(`/learning-module/${module.id}`)
-                        }
+                        onClick={() => navigate(`/learning-module/${module.id}`)}
                         className="text-blue-600 hover:bg-blue-50"
                       >
                         <Eye className="h-4 w-4 mr-2" />
@@ -8661,20 +6643,18 @@ Create a natural conversation between two podcast hosts discussing this specific
                       <div className="flex items-center space-x-2">
                         {module.is_visible ? (
                           <Badge variant="default" className="bg-green-500">
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            <CheckCircle2 className="h-3 w-3 mr-1" /> 
                             Visible
                           </Badge>
                         ) : (
                           <Badge variant="outline">
-                            <XCircle className="h-3 w-3 mr-1" />
+                            <XCircle className="h-3 w-3 mr-1" /> 
                             Hidden
                           </Badge>
                         )}
                         <Switch
                           checked={module.is_visible}
-                          onCheckedChange={() =>
-                            handleVisibilityChange(module.id, module.is_visible)
-                          }
+                          onCheckedChange={() => handleVisibilityChange(module.id, module.is_visible)}
                           disabled={updateVisibilityMutation.isPending}
                         />
                       </div>
@@ -8698,40 +6678,26 @@ Create a natural conversation between two podcast hosts discussing this specific
             </Badge>
           </CardTitle>
           <CardDescription>
-            Let's start with the fundamentals. First, we'll generate a simple
-            voice message to test the basic functionality.
+            Let's start with the fundamentals. First, we'll generate a simple voice message to test the basic functionality.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Step 1: Basic Voice Test */}
           <div className="p-6 border-2 border-blue-200 rounded-lg bg-blue-50">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
-                1
-              </span>
+              <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
               Test Basic Voice Generation
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Click the button below to generate a welcome message using our AI
-              voice technology.
+              Click the button below to generate a welcome message using our AI voice technology.
             </p>
             <div className="space-y-4">
               <div className="p-4 bg-white rounded border">
-                <p className="text-sm mb-3">
-                  <strong>Text to generate:</strong>
-                </p>
-                <p className="italic">
-                  "Welcome to our advanced multilingual learning platform. This
-                  is a demonstration of AI-powered voice generation."
-                </p>
+                <p className="text-sm mb-3"><strong>Text to generate:</strong></p>
+                <p className="italic">"Welcome to our advanced multilingual learning platform. This is a demonstration of AI-powered voice generation."</p>
               </div>
-              <Button
-                onClick={() =>
-                  generateQuickVoice(
-                    "Welcome to our advanced multilingual learning platform. This is a demonstration of AI-powered voice generation.",
-                    "en",
-                  )
-                }
+              <Button 
+                onClick={() => generateQuickVoice("Welcome to our advanced multilingual learning platform. This is a demonstration of AI-powered voice generation.", "en")}
                 className="w-full"
                 size="lg"
               >
@@ -8756,8 +6722,7 @@ Create a natural conversation between two podcast hosts discussing this specific
           <div className="border rounded-lg p-4 bg-gray-50">
             <h4 className="font-medium mb-2">Coming up in Step 2:</h4>
             <p className="text-sm text-muted-foreground">
-              We'll explore multilingual capabilities by generating the same
-              message in Spanish, French, and Japanese.
+              We'll explore multilingual capabilities by generating the same message in Spanish, French, and Japanese.
             </p>
           </div>
         </CardContent>
@@ -8770,11 +6735,10 @@ Create a natural conversation between two podcast hosts discussing this specific
             <DialogHeader>
               <DialogTitle>Find Video for Your Module</DialogTitle>
               <DialogDescription>
-                Search our video library, find videos on YouTube, or add your
-                own video link
+                Search our video library, find videos on YouTube, or add your own video link
               </DialogDescription>
             </DialogHeader>
-
+            
             <div className="space-y-6">
               {/* Search Input */}
               <div className="flex space-x-2">
@@ -8783,17 +6747,13 @@ Create a natural conversation between two podcast hosts discussing this specific
                   onChange={(e) => setVideoSearchQuery(e.target.value)}
                   placeholder="Search for videos about your topic..."
                   className="flex-1"
-                  onKeyPress={(e) => e.key === "Enter" && handleVideoSearch()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleVideoSearch()}
                 />
-                <Button
+                <Button 
                   onClick={handleVideoSearch}
-                  disabled={
-                    isSearchingVideos ||
-                    isSearchingYoutube ||
-                    !videoSearchQuery.trim()
-                  }
+                  disabled={isSearchingVideos || isSearchingYoutube || !videoSearchQuery.trim()}
                 >
-                  {isSearchingVideos || isSearchingYoutube ? (
+                  {(isSearchingVideos || isSearchingYoutube) ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Search className="h-4 w-4" />
@@ -8812,7 +6772,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                     placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
                     className="flex-1"
                   />
-                  <Button
+                  <Button 
                     onClick={addCustomVideoUrl}
                     disabled={!customVideoUrl.trim()}
                     variant="outline"
@@ -8826,44 +6786,26 @@ Create a natural conversation between two podcast hosts discussing this specific
               {/* Video Library Results */}
               {videoSearchResults.length > 0 && (
                 <div>
-                  <h3 className="font-medium mb-3 text-blue-800">
-                    Video Library Results ({videoSearchResults.length})
-                  </h3>
+                  <h3 className="font-medium mb-3 text-blue-800">Video Library Results ({videoSearchResults.length})</h3>
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {videoSearchResults.map((video, index) => (
-                      <div
-                        key={index}
-                        className="border rounded-lg p-4 bg-white shadow-sm"
-                      >
+                      <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-start space-x-3 flex-1 min-w-0">
                             {video.thumbnail && (
-                              <img
-                                src={video.thumbnail}
-                                alt={video.title}
-                                className="w-20 h-14 rounded object-cover flex-shrink-0"
-                              />
+                              <img src={video.thumbnail} alt={video.title} className="w-20 h-14 rounded object-cover flex-shrink-0" />
                             )}
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm text-blue-900 mb-1">
-                                {video.title}
-                              </h4>
-                              <p className="text-xs text-blue-700 mb-1">
-                                {video.category}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Library Video •{" "}
-                                {video.duration || "Duration unknown"}
-                              </p>
+                              <h4 className="font-medium text-sm text-blue-900 mb-1">{video.title}</h4>
+                              <p className="text-xs text-blue-700 mb-1">{video.category}</p>
+                              <p className="text-xs text-gray-500">Library Video • {video.duration || 'Duration unknown'}</p>
                             </div>
                           </div>
                           <Button
                             type="button"
                             size="sm"
                             className="ml-3 bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0"
-                            onClick={() =>
-                              selectVideoForSection(video.url, video.title)
-                            }
+                            onClick={() => selectVideoForSection(video.url, video.title)}
                           >
                             <Plus className="h-3 w-3 mr-1" />
                             Add Video
@@ -8878,36 +6820,23 @@ Create a natural conversation between two podcast hosts discussing this specific
               {/* YouTube Results */}
               {youtubeSearchResults.length > 0 && (
                 <div>
-                  <h3 className="font-medium mb-3 text-red-600">
-                    YouTube Results ({youtubeSearchResults.length})
-                  </h3>
+                  <h3 className="font-medium mb-3 text-red-600">YouTube Results ({youtubeSearchResults.length})</h3>
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {youtubeSearchResults.map((video, index) => (
-                      <div
-                        key={index}
-                        className="border rounded-lg p-4 bg-white shadow-sm"
-                      >
+                      <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-start space-x-3 flex-1 min-w-0">
                             {video.thumbnail && (
-                              <img
-                                src={video.thumbnail}
-                                alt={video.title}
-                                className="w-20 h-14 rounded object-cover flex-shrink-0"
-                              />
+                              <img src={video.thumbnail} alt={video.title} className="w-20 h-14 rounded object-cover flex-shrink-0" />
                             )}
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm text-red-900 mb-1">
-                                {video.title}
-                              </h4>
-                              <p className="text-xs text-red-700 mb-1">
-                                By {video.channelTitle || video.channel}
-                              </p>
+                              <h4 className="font-medium text-sm text-red-900 mb-1">{video.title}</h4>
+                              <p className="text-xs text-red-700 mb-1">By {video.channelTitle || video.channel}</p>
                               <p className="text-xs text-gray-500">
-                                YouTube •
-                                <a
-                                  href={video.url}
-                                  target="_blank"
+                                YouTube • 
+                                <a 
+                                  href={video.url} 
+                                  target="_blank" 
                                   rel="noopener noreferrer"
                                   className="text-blue-600 hover:text-blue-800 underline ml-1"
                                   onClick={(e) => e.stopPropagation()}
@@ -8921,9 +6850,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                             type="button"
                             size="sm"
                             className="ml-3 bg-red-600 hover:bg-red-700 text-white flex-shrink-0"
-                            onClick={() =>
-                              selectVideoForSection(video.url, video.title)
-                            }
+                            onClick={() => selectVideoForSection(video.url, video.title)}
                           >
                             <Plus className="h-3 w-3 mr-1" />
                             Add Video
@@ -8936,39 +6863,23 @@ Create a natural conversation between two podcast hosts discussing this specific
               )}
 
               {/* No Results Message */}
-              {videoSearchQuery &&
-                videoSearchResults.length === 0 &&
-                youtubeSearchResults.length === 0 &&
-                !isSearchingVideos &&
-                !isSearchingYoutube && (
-                  <div className="text-center py-8 text-gray-500">
-                    <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No videos found for "{videoSearchQuery}"</p>
-                    <p className="text-sm">
-                      Try different search terms or add a custom URL above
-                    </p>
-                  </div>
-                )}
+              {videoSearchQuery && videoSearchResults.length === 0 && youtubeSearchResults.length === 0 && 
+               !isSearchingVideos && !isSearchingYoutube && (
+                <div className="text-center py-8 text-gray-500">
+                  <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>No videos found for "{videoSearchQuery}"</p>
+                  <p className="text-sm">Try different search terms or add a custom URL above</p>
+                </div>
+              )}
 
               {/* Search Tips */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-medium text-blue-800 mb-2">Search Tips</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>
-                    • Use specific terms like "classroom management" or "early
-                    literacy"
-                  </li>
-                  <li>
-                    • Include age groups: "preschool", "toddler", "kindergarten"
-                  </li>
-                  <li>
-                    • Try topic keywords: "social emotional learning", "STEM
-                    activities"
-                  </li>
-                  <li>
-                    • Use educator terms: "ECE", "developmentally appropriate",
-                    "scaffolding"
-                  </li>
+                  <li>• Use specific terms like "classroom management" or "early literacy"</li>
+                  <li>• Include age groups: "preschool", "toddler", "kindergarten"</li>
+                  <li>• Try topic keywords: "social emotional learning", "STEM activities"</li>
+                  <li>• Use educator terms: "ECE", "developmentally appropriate", "scaffolding"</li>
                 </ul>
               </div>
             </div>
@@ -8978,27 +6889,21 @@ Create a natural conversation between two podcast hosts discussing this specific
 
       {/* Flashcard Preview Dialog */}
       {showFlashcardPreview && (
-        <Dialog
-          open={showFlashcardPreview}
-          onOpenChange={setShowFlashcardPreview}
-        >
+        <Dialog open={showFlashcardPreview} onOpenChange={setShowFlashcardPreview}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Review Generated Flashcards</DialogTitle>
               <DialogDescription>
-                Review the {generatedFlashcards.length} flashcards before adding
-                them to your section
+                Review the {generatedFlashcards.length} flashcards before adding them to your section
               </DialogDescription>
             </DialogHeader>
-
+            
             <div className="space-y-4">
               {generatedFlashcards.map((card, index) => (
                 <div key={index} className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-semibold text-purple-700 mb-2">
-                        {card.term}
-                      </h4>
+                      <h4 className="font-semibold text-purple-700 mb-2">{card.term}</h4>
                       <p className="text-gray-700">{card.definition}</p>
                     </div>
                     <div className="text-xs text-gray-500 ml-4">
@@ -9008,7 +6913,7 @@ Create a natural conversation between two podcast hosts discussing this specific
                 </div>
               ))}
             </div>
-
+            
             <div className="flex justify-between pt-4">
               <Button
                 variant="outline"
@@ -9034,43 +6939,40 @@ Create a natural conversation between two podcast hosts discussing this specific
                 <Button
                   onClick={() => {
                     // Apply flashcards to section
-                    const currentSection =
-                      newModule.sections[currentSectionIndex];
+                    const currentSection = newModule.sections[currentSectionIndex];
                     if (currentSection) {
-                      const flashcardQuestions = generatedFlashcards.map(
-                        (card: any) => ({
-                          question: `What is the definition of: ${card.term}?`,
-                          answers: [
-                            card.definition,
-                            "This is an incorrect definition",
-                            "This is another incorrect definition",
-                            "This is also incorrect",
-                          ],
-                          correctAnswer: 0,
-                          explanation: `${card.term}: ${card.definition}`,
-                        }),
-                      );
-
-                      setNewModule((prev) => ({
-                        ...prev,
-                        sections: prev.sections.map((section, index) =>
-                          index === currentSectionIndex
-                            ? {
-                                ...section,
-                                type: "quiz" as const,
-                                questions: flashcardQuestions,
-                                content: `This section contains ${generatedFlashcards.length} interactive flashcards to help you learn key terms and definitions.`,
-                              }
-                            : section,
-                        ),
+                      const flashcardQuestions = generatedFlashcards.map((card: any) => ({
+                        question: `What is the definition of: ${card.term}?`,
+                        answers: [
+                          card.definition,
+                          "This is an incorrect definition",
+                          "This is another incorrect definition", 
+                          "This is also incorrect"
+                        ],
+                        correctAnswer: 0,
+                        explanation: `${card.term}: ${card.definition}`
                       }));
-
+                      
+                      setNewModule(prev => ({
+                        ...prev,
+                        sections: prev.sections.map((section, index) => 
+                          index === currentSectionIndex 
+                            ? { 
+                                ...section, 
+                                type: 'quiz' as const,
+                                questions: flashcardQuestions,
+                                content: `This section contains ${generatedFlashcards.length} interactive flashcards to help you learn key terms and definitions.`
+                              }
+                            : section
+                        )
+                      }));
+                      
                       toast({
                         title: "Flashcards Applied",
                         description: `Added ${generatedFlashcards.length} interactive flashcards to this section`,
                       });
                     }
-
+                    
                     setShowFlashcardPreview(false);
                     setGeneratedFlashcards([]);
                   }}
@@ -9083,120 +6985,6 @@ Create a natural conversation between two podcast hosts discussing this specific
           </DialogContent>
         </Dialog>
       )}
-
-      {/* Interactive Activity Builder */}
-      <InteractiveActivityBuilder
-        isOpen={isActivityBuilder}
-        onClose={() => setIsActivityBuilder(false)}
-        onSave={(activities) => {
-          const activityContent = {
-            activities: activities,
-            totalActivities: activities.length,
-            sectionType: "interactive-activities",
-          };
-
-          const updatedSections = [...newModule.sections];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            type: "matching",
-            content: JSON.stringify(activityContent),
-            activities: [
-              {
-                type: "practice" as const,
-                title: `Interactive Activities: ${updatedSections[currentSectionIndex].title}`,
-                duration: 5,
-                content: JSON.stringify(activityContent),
-                interactionType: "activity" as const,
-              },
-            ],
-          };
-
-          setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-          toast({
-            title: "Activities Created Successfully",
-            description: `Created interactive section with ${activities.length} activities`,
-          });
-        }}
-        moduleTitle={initialModuleData.title || newModule.title}
-        sectionTitle={newModule.sections[currentSectionIndex]?.title}
-        learningObjective={initialModuleData.learningObjective}
-      />
-
-      {/* Case Study Builder */}
-      <CaseStudyBuilder
-        isOpen={isCaseStudyBuilder}
-        onClose={() => setIsCaseStudyBuilder(false)}
-        onSave={(caseStudies) => {
-          const caseStudyContent = {
-            caseStudies: caseStudies,
-            totalCaseStudies: caseStudies.length,
-            sectionType: "case-studies",
-          };
-
-          const updatedSections = [...newModule.sections];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            type: "story",
-            content: JSON.stringify(caseStudyContent),
-            activities: [
-              {
-                type: "reflect" as const,
-                title: `Case Studies: ${updatedSections[currentSectionIndex].title}`,
-                duration: 15,
-                content: JSON.stringify(caseStudyContent),
-                interactionType: "form" as const,
-              },
-            ],
-          };
-
-          setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-          toast({
-            title: "Case Studies Created Successfully",
-            description: `Created case study section with ${caseStudies.length} scenarios`,
-          });
-        }}
-        moduleTitle={initialModuleData.title || newModule.title}
-        sectionTitle={newModule.sections[currentSectionIndex]?.title}
-        learningObjective={initialModuleData.learningObjective}
-      />
-
-      {/* Reflection Builder */}
-      <ReflectionBuilder
-        isOpen={isReflectionBuilder}
-        onClose={() => setIsReflectionBuilder(false)}
-        onSave={(reflections) => {
-          const reflectionContent = {
-            reflections: reflections,
-            totalReflections: reflections.length,
-            sectionType: "reflections",
-          };
-
-          const updatedSections = [...newModule.sections];
-          updatedSections[currentSectionIndex] = {
-            ...updatedSections[currentSectionIndex],
-            type: "text",
-            content: JSON.stringify(reflectionContent),
-            activities: [
-              {
-                type: "reflect" as const,
-                title: `Reflections: ${updatedSections[currentSectionIndex].title}`,
-                duration: 10,
-                content: JSON.stringify(reflectionContent),
-                interactionType: "journal" as const,
-              },
-            ],
-          };
-
-          setNewModule((prev) => ({ ...prev, sections: updatedSections }));
-          toast({
-            title: "Reflections Created Successfully",
-            description: `Created reflection section with ${reflections.length} activities`,
-          });
-        }}
-        moduleTitle={initialModuleData.title || newModule.title}
-        sectionTitle={newModule.sections[currentSectionIndex]?.title}
-        learningObjective={initialModuleData.learningObjective}
-      />
 
       {/* Module Publishing Dialog */}
       <ModulePublishingDialog
@@ -9213,16 +7001,8 @@ Create a natural conversation between two podcast hosts discussing this specific
           moduleType: "deep-dive",
           sections: newModule.sections,
           courseStructure: { modules: [], totalDuration: 0, prerequisites: [] },
-          interactiveElements: {
-            hasQuizzes: false,
-            hasSimulations: false,
-            hasDiscussions: false,
-          },
-          certificationSystem: {
-            enabled: false,
-            passingScore: 80,
-            certificateTemplate: null,
-          },
+          interactiveElements: { hasQuizzes: false, hasSimulations: false, hasDiscussions: false },
+          certificationSystem: { enabled: false, passingScore: 80, certificateTemplate: null }
         }}
         onPublishSuccess={() => {
           toast({
@@ -9230,7 +7010,7 @@ Create a natural conversation between two podcast hosts discussing this specific
             description: "Your module has been saved and distributed.",
           });
           // Navigate back to dashboard after successful publish
-          navigate("/");
+          navigate('/');
         }}
       />
 
@@ -9246,7 +7026,7 @@ Create a natural conversation between two podcast hosts discussing this specific
               Continue working on a previously saved module draft
             </DialogDescription>
           </DialogHeader>
-
+          
           <div className="space-y-4">
             {isLoadingDraft ? (
               <div className="flex items-center justify-center py-8">
@@ -9256,30 +7036,15 @@ Create a natural conversation between two podcast hosts discussing this specific
             ) : drafts && drafts.length > 0 ? (
               <div className="space-y-3">
                 {drafts.map((draft: any) => (
-                  <div
-                    key={draft.id}
-                    className="border rounded-lg p-4 bg-white shadow-sm"
-                  >
+                  <div key={draft.id} className="border rounded-lg p-4 bg-white shadow-sm">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">
-                          {draft.name}
-                        </h4>
+                        <h4 className="font-medium text-gray-900">{draft.name}</h4>
                         <div className="text-sm text-gray-600 mt-1">
-                          <div>
-                            Method:{" "}
-                            {draft.creation_method === "manual"
-                              ? "Manual Creation"
-                              : "AI-Assisted"}
-                          </div>
-                          <div>
-                            Last updated:{" "}
-                            {new Date(draft.updated_at).toLocaleDateString()}
-                          </div>
+                          <div>Method: {draft.creation_method === 'manual' ? 'Manual Creation' : 'AI-Assisted'}</div>
+                          <div>Last updated: {new Date(draft.updated_at).toLocaleDateString()}</div>
                           {draft.module_data?.sections && (
-                            <div>
-                              Sections: {draft.module_data.sections.length}
-                            </div>
+                            <div>Sections: {draft.module_data.sections.length}</div>
                           )}
                         </div>
                       </div>
@@ -9309,9 +7074,7 @@ Create a natural conversation between two podcast hosts discussing this specific
               <div className="text-center py-8 text-gray-500">
                 <FolderOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <p className="text-lg font-medium">No saved drafts found</p>
-                <p className="text-sm">
-                  Create and save a module to see your drafts here
-                </p>
+                <p className="text-sm">Create and save a module to see your drafts here</p>
               </div>
             )}
           </div>
