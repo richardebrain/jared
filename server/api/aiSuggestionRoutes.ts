@@ -1,9 +1,12 @@
 import { Router } from 'express';
+import OpenAI from 'openai';
 import { 
   generateTeachingStrategies, 
   generateAssessmentQuestions, 
   generateQuizQuestions 
 } from './dynamicAiSuggestions';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const router = Router();
 
@@ -1828,6 +1831,80 @@ Create realistic practice scenarios that allow educators to apply concepts in si
     res.status(500).json({ 
       success: false, 
       error: 'Failed to generate simulation' 
+    });
+  }
+});
+
+// Generate examples endpoint for section handlers
+router.post('/generate-examples', async (req, res) => {
+  try {
+    const { topic, description, sectionTitle, type } = req.body;
+    
+    if (!topic) {
+      return res.status(400).json({ message: 'Topic is required' });
+    }
+
+    const prompt = `Generate realistic, practical examples for an early childhood education module.
+
+Topic: ${topic}
+Description: ${description || ''}
+Section: ${sectionTitle || 'Examples'}
+Type: ${type || 'example'}
+
+Create 3-5 real-world examples that early childhood educators can relate to and apply in their practice. Each example should include:
+- A realistic scenario they might encounter
+- Practical application of the concept
+- Key takeaway or lesson learned
+- Relevance score (1-10)
+
+Also provide:
+- 3-4 learning objectives for this examples section
+- 4-5 practical tips educators can implement immediately
+
+Respond in JSON format with this structure:
+{
+  "content": "Brief overview of the examples section",
+  "examples": [
+    {
+      "scenario": "Detailed scenario description",
+      "practicalApplication": "How to apply this in practice",
+      "keyTakeaway": "Main lesson from this example",
+      "relevanceScore": 8
+    }
+  ],
+  "learningObjectives": ["objective1", "objective2", "objective3"],
+  "practicalTips": ["tip1", "tip2", "tip3", "tip4"]
+}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in early childhood education with extensive practical experience. Create realistic, actionable examples that educators can immediately relate to and implement in their classrooms."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    const exampleData = JSON.parse(content);
+
+    res.json({
+      success: true,
+      ...exampleData
+    });
+
+  } catch (error) {
+    console.error('Error generating examples:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate examples' 
     });
   }
 });

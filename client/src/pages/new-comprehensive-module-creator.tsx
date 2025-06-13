@@ -137,10 +137,17 @@ export default function NewComprehensiveModuleCreator() {
   // Save module mutation
   const saveModuleMutation = useMutation({
     mutationFn: async (moduleData: Module) => {
-      return apiRequest('/api/modules', {
+      const response = await fetch('/api/modules', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(moduleData)
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save module');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
