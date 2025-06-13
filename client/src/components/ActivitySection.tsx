@@ -36,6 +36,7 @@ interface ActivitySectionProps {
     title: string;
     content: string | { blocks?: ActivityBlock[] };
     type: string;
+    builderData?: any;
   };
   onComplete: () => void;
   isCompleted: boolean;
@@ -52,83 +53,145 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
   // Parse activity content from section
   useEffect(() => {
     const parseActivityContent = () => {
-      let blocks: ActivityBlock[] = [];
+      let parsedActivities: ParsedActivity[] = [];
       
-      try {
-        if (typeof section.content === 'string') {
-          // Try to parse JSON content
-          const parsed = JSON.parse(section.content);
-          blocks = parsed.blocks || [];
-        } else if (section.content && section.content.blocks) {
-          blocks = section.content.blocks;
-        }
-      } catch (error) {
-        console.error('Error parsing activity content:', error);
-      }
-
-      const parsedActivities: ParsedActivity[] = blocks.map(block => {
-        try {
-          // Extract structured data from content
-          const content = block.content;
-          
-          // Parse activity details using regex patterns
-          const activityTypeMatch = content.match(/activityType[:\s]*([^\n,]+)/i);
-          const titleMatch = content.match(/title[:\s]*([^\n,]+)/i);
-          const instructionsMatch = content.match(/instructions[:\s]*([^]+?)(?=promptItems|answerKey|$)/i);
-          const promptItemsMatch = content.match(/promptItems[:\s]*\[(.*?)\]/s);
-          const answerKeyMatch = content.match(/answerKey[:\s]*\{(.*?)\}/s);
-          const uiHintsMatch = content.match(/uiHints[:\s]*([^\n,]+)/i);
-          
-          let promptItems: string[] = [];
-          let answerKey: { [key: string]: string | number } = {};
-          
-          if (promptItemsMatch) {
-            try {
-              promptItems = JSON.parse(`[${promptItemsMatch[1]}]`);
-            } catch {
-              // Fallback: split by commas and clean
-              promptItems = promptItemsMatch[1].split(',').map(item => 
-                item.replace(/['"]/g, '').trim()
-              ).filter(item => item.length > 0);
-            }
-          }
-          
-          if (answerKeyMatch) {
-            try {
-              answerKey = JSON.parse(`{${answerKeyMatch[1]}}`);
-            } catch {
-              console.warn('Could not parse answer key for activity');
-            }
-          }
-
-          return {
-            activityType: activityTypeMatch?.[1]?.trim() || 'Interactive Activity',
-            title: titleMatch?.[1]?.trim() || block.preview || 'Activity',
-            preview: block.preview,
-            instructions: instructionsMatch?.[1]?.trim() || 'Complete this interactive activity.',
-            promptItems,
-            answerKey,
-            uiHints: uiHintsMatch?.[1]?.trim(),
-            imageSupport: ''
-          };
-        } catch (error) {
-          console.error('Error parsing individual activity:', error);
-          return {
-            activityType: 'Interactive Activity',
-            title: block.preview || 'Activity',
-            preview: block.preview,
-            instructions: 'Complete this interactive activity.',
-            promptItems: [],
+      // Check if this is a builder-created section with structured data
+      if (section.builderData) {
+        // Handle different builder types
+        if (section.builderData.activities) {
+          // Activity builder data
+          parsedActivities = section.builderData.activities.map((activity: any) => ({
+            activityType: activity.activityType || 'Interactive Activity',
+            title: activity.title || 'Activity',
+            preview: activity.preview || activity.title || 'Activity',
+            instructions: activity.instructions || 'Complete this interactive activity.',
+            promptItems: activity.promptItems || [],
+            answerKey: activity.answerKey || {},
+            uiHints: activity.uiHints,
+            imageSupport: activity.imageSupport
+          }));
+        } else if (section.builderData.scenarios) {
+          // Scenario builder data
+          parsedActivities = section.builderData.scenarios.map((scenario: any) => ({
+            activityType: 'Scenario',
+            title: scenario.title || 'Scenario Activity',
+            preview: scenario.title || 'Scenario Activity',
+            instructions: scenario.context || 'Choose the best response for this scenario.',
+            promptItems: scenario.options?.map((opt: any) => opt.text) || [],
             answerKey: {},
-          };
+            uiHints: 'Select the most appropriate response',
+            imageSupport: ''
+          }));
+        } else if (section.builderData.steps) {
+          // Simulation builder data
+          parsedActivities = [{
+            activityType: 'Simulation',
+            title: 'Role-Play Simulation',
+            preview: 'Interactive Simulation',
+            instructions: 'Follow the simulation steps and practice the scenario.',
+            promptItems: section.builderData.steps.map((step: any) => step.title) || [],
+            answerKey: {},
+            uiHints: 'Complete each step in order',
+            imageSupport: ''
+          }];
+        } else if (section.builderData.pairs) {
+          // Matching/Scenario-match builder data
+          parsedActivities = [{
+            activityType: 'Matching',
+            title: 'Matching Activity',
+            preview: 'Match items correctly',
+            instructions: 'Match each item with its correct pair.',
+            promptItems: section.builderData.pairs.flatMap((pair: any) => [
+              pair.scenario || pair.term || pair.left,
+              pair.response || pair.definition || pair.right
+            ]) || [],
+            answerKey: {},
+            uiHints: 'Drag items to match them correctly',
+            imageSupport: ''
+          }];
         }
-      });
+      }
+      
+      // Fallback to parsing content blocks if no builderData
+      if (parsedActivities.length === 0) {
+        let blocks: ActivityBlock[] = [];
+        
+        try {
+          if (typeof section.content === 'string') {
+            // Try to parse JSON content
+            const parsed = JSON.parse(section.content);
+            blocks = parsed.blocks || [];
+          } else if (section.content && section.content.blocks) {
+            blocks = section.content.blocks;
+          }
+        } catch (error) {
+          console.error('Error parsing activity content:', error);
+        }
+
+        parsedActivities = blocks.map(block => {
+          try {
+            // Extract structured data from content
+            const content = block.content;
+            
+            // Parse activity details using regex patterns
+            const activityTypeMatch = content.match(/activityType[:\s]*([^\n,]+)/i);
+            const titleMatch = content.match(/title[:\s]*([^\n,]+)/i);
+            const instructionsMatch = content.match(/instructions[:\s]*([^]+?)(?=promptItems|answerKey|$)/i);
+            const promptItemsMatch = content.match(/promptItems[:\s]*\[(.*?)\]/s);
+            const answerKeyMatch = content.match(/answerKey[:\s]*\{(.*?)\}/s);
+            const uiHintsMatch = content.match(/uiHints[:\s]*([^\n,]+)/i);
+            
+            let promptItems: string[] = [];
+            let answerKey: { [key: string]: string | number } = {};
+            
+            if (promptItemsMatch) {
+              try {
+                promptItems = JSON.parse(`[${promptItemsMatch[1]}]`);
+              } catch {
+                // Fallback: split by commas and clean
+                promptItems = promptItemsMatch[1].split(',').map(item => 
+                  item.replace(/['"]/g, '').trim()
+                ).filter(item => item.length > 0);
+              }
+            }
+            
+            if (answerKeyMatch) {
+              try {
+                answerKey = JSON.parse(`{${answerKeyMatch[1]}}`);
+              } catch {
+                console.warn('Could not parse answer key for activity');
+              }
+            }
+
+            return {
+              activityType: activityTypeMatch?.[1]?.trim() || 'Interactive Activity',
+              title: titleMatch?.[1]?.trim() || block.preview || 'Activity',
+              preview: block.preview,
+              instructions: instructionsMatch?.[1]?.trim() || 'Complete this interactive activity.',
+              promptItems,
+              answerKey,
+              uiHints: uiHintsMatch?.[1]?.trim(),
+              imageSupport: ''
+            };
+          } catch (error) {
+            console.error('Error parsing individual activity:', error);
+            return {
+              activityType: 'Interactive Activity',
+              title: block.preview || 'Activity',
+              preview: block.preview,
+              instructions: 'Complete this interactive activity.',
+              promptItems: [],
+              answerKey: {},
+            };
+          }
+        });
+      }
 
       setActivities(parsedActivities);
     };
 
     parseActivityContent();
-  }, [section.content]);
+  }, [section.content, section.builderData]);
 
   const handleDragAndMatchActivity = (activity: ParsedActivity, activityIndex: number) => {
     const [dragItems, setDragItems] = useState<string[]>(activity.promptItems.slice(0, Math.floor(activity.promptItems.length / 2)));
@@ -474,13 +537,250 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
     );
   };
 
+  const renderScenarioActivity = (activity: ParsedActivity, index: number) => {
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [showFeedback, setShowFeedback] = useState(false);
+
+    const handleOptionSelect = (option: string) => {
+      setSelectedOption(option);
+      setShowFeedback(true);
+      
+      // Mark as completed after selection
+      setTimeout(() => {
+        setActivityResults(prev => ({ ...prev, [index]: true }));
+        toast({
+          title: "Scenario Response Recorded",
+          description: "Your choice has been noted for this scenario.",
+        });
+      }, 1500);
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="space-y-3">
+            {activity.promptItems.map((option, optIndex) => (
+              <button
+                key={optIndex}
+                onClick={() => handleOptionSelect(option)}
+                disabled={showFeedback}
+                className={`w-full text-left p-4 rounded-lg border transition-colors ${
+                  selectedOption === option
+                    ? 'bg-blue-100 border-blue-300 text-blue-900'
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                } ${showFeedback ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
+              >
+                <div className="flex items-center">
+                  <div className="w-6 h-6 rounded-full border border-gray-300 mr-3 flex items-center justify-center">
+                    {selectedOption === option && (
+                      <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                    )}
+                  </div>
+                  {option}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {showFeedback && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <CheckCircle2 className="h-5 w-5 text-green-600 mr-2" />
+                <span className="text-green-800 font-medium">
+                  Thank you for your response! Each choice provides valuable learning insights.
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSimulationActivity = (activity: ParsedActivity, index: number) => {
+    const [currentStep, setCurrentStep] = useState(0);
+    const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+    const steps = activity.promptItems;
+
+    const handleStepComplete = (stepIndex: number) => {
+      if (!completedSteps.includes(stepIndex)) {
+        setCompletedSteps(prev => [...prev, stepIndex]);
+        
+        if (stepIndex === steps.length - 1) {
+          setActivityResults(prev => ({ ...prev, [index]: true }));
+          toast({
+            title: "Simulation Complete!",
+            description: "You've successfully completed all simulation steps.",
+          });
+        }
+      }
+      
+      if (stepIndex < steps.length - 1) {
+        setCurrentStep(stepIndex + 1);
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="space-y-4">
+            {steps.map((step, stepIndex) => (
+              <div
+                key={stepIndex}
+                className={`border rounded-lg p-4 transition-all ${
+                  stepIndex === currentStep
+                    ? 'bg-white border-green-300 shadow-sm'
+                    : stepIndex < currentStep
+                    ? 'bg-gray-50 border-gray-200'
+                    : 'bg-gray-50 border-gray-200 opacity-60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                      completedSteps.includes(stepIndex)
+                        ? 'bg-green-100 text-green-600'
+                        : stepIndex === currentStep
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {completedSteps.includes(stepIndex) ? (
+                        <CheckCircle2 className="h-5 w-5" />
+                      ) : (
+                        <span className="font-bold">{stepIndex + 1}</span>
+                      )}
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-gray-900">Step {stepIndex + 1}</h5>
+                      <p className="text-sm text-gray-600">{step}</p>
+                    </div>
+                  </div>
+                  
+                  {stepIndex === currentStep && !completedSteps.includes(stepIndex) && (
+                    <Button
+                      onClick={() => handleStepComplete(stepIndex)}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Complete Step
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMatchingActivity = (activity: ParsedActivity, index: number) => {
+    const totalItems = activity.promptItems.length;
+    const leftItems = activity.promptItems.slice(0, Math.floor(totalItems / 2));
+    const rightItems = activity.promptItems.slice(Math.floor(totalItems / 2));
+    const [matches, setMatches] = useState<{ [key: string]: string }>({});
+    const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+
+    const handleLeftSelect = (item: string) => {
+      setSelectedLeft(item);
+    };
+
+    const handleRightSelect = (item: string) => {
+      if (selectedLeft) {
+        setMatches(prev => ({ ...prev, [selectedLeft]: item }));
+        setSelectedLeft(null);
+        
+        // Check if all matches are made
+        if (Object.keys(matches).length + 1 >= leftItems.length) {
+          setTimeout(() => {
+            setActivityResults(prev => ({ ...prev, [index]: true }));
+            toast({
+              title: "Matching Complete!",
+              description: "You've matched all the items successfully.",
+            });
+          }, 500);
+        }
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div>
+              <h5 className="font-medium text-gray-800 mb-3">Select an item:</h5>
+              <div className="space-y-2">
+                {leftItems.map((item, itemIndex) => (
+                  <button
+                    key={itemIndex}
+                    onClick={() => handleLeftSelect(item)}
+                    disabled={matches[item]}
+                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                      matches[item]
+                        ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
+                        : selectedLeft === item
+                        ? 'bg-teal-100 border-teal-300 text-teal-900'
+                        : 'bg-white border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {item}
+                    {matches[item] && (
+                      <span className="text-xs text-gray-500 ml-2">✓ Matched</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div>
+              <h5 className="font-medium text-gray-800 mb-3">Then select its match:</h5>
+              <div className="space-y-2">
+                {rightItems.map((item, itemIndex) => (
+                  <button
+                    key={itemIndex}
+                    onClick={() => handleRightSelect(item)}
+                    disabled={!selectedLeft || Object.values(matches).includes(item)}
+                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                      Object.values(matches).includes(item)
+                        ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
+                        : selectedLeft
+                        ? 'bg-white border-gray-200 hover:bg-cyan-50'
+                        : 'bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400'
+                    }`}
+                  >
+                    {item}
+                    {Object.values(matches).includes(item) && (
+                      <span className="text-xs text-gray-500 ml-2">✓ Matched</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {selectedLeft && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800 text-sm">
+                Selected: <strong>{selectedLeft}</strong> - Now choose its match from the right column.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderActivity = (activity: ParsedActivity, index: number) => {
     const activityType = activity.activityType.toLowerCase();
     
-    if (activityType.includes('drag') || activityType.includes('match')) {
-      return handleDragAndMatchActivity(activity, index);
-    } else if (activityType.includes('scenario') || activityType.includes('challenge')) {
-      return handleScenarioChallengeActivity(activity, index);
+    if (activityType.includes('scenario') || activityType.includes('challenge')) {
+      return renderScenarioActivity(activity, index);
+    } else if (activityType.includes('simulation') || activityType.includes('role-play')) {
+      return renderSimulationActivity(activity, index);
+    } else if (activityType.includes('drag') || activityType.includes('match')) {
+      return renderMatchingActivity(activity, index);
     } else if (activityType.includes('categor') || activityType.includes('sort')) {
       return handleCategorizationActivity(activity, index);
     }
