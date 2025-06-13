@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { TeacherAssessmentSummary } from '@/components/ui/teacher-assessment-summary';
 import { 
   Users, 
   Search, 
@@ -38,15 +39,25 @@ interface Teacher {
   schoolId: number;
   bearBucks: number;
   completedModulesCount?: number;
+  assessmentResults?: {
+    completed: boolean;
+    completedAt?: string;
+    accuracyRate?: number;
+    totalTimeMinutes?: number;
+    topGrowthAreas?: string[];
+    overallScore?: number;
+    totalQuestions?: number;
+    totalCorrect?: number;
+  };
 }
 
 export default function AdminTeachersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
 
-  // Fetch teachers data
-  const { data: teachers = [], isLoading } = useQuery({
-    queryKey: ['/api/users'],
+  // Fetch teachers data with assessment results
+  const { data: teachers = [], isLoading } = useQuery<Teacher[]>({
+    queryKey: ['/api/users?includeAssessments=true'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -317,6 +328,9 @@ export default function AdminTeachersPage() {
                   </div>
                   <span className="font-medium">{formatLastActive(teacher.lastActive)}</span>
                 </div>
+                
+                {/* Assessment Results Summary */}
+                <TeacherAssessmentSummary assessmentResults={teacher.assessmentResults} />
                 
                 <div className="flex gap-2 pt-2">
                   <Link href={`/admin/messaging?teacherId=${teacher.id}`}>

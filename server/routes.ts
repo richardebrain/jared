@@ -9,7 +9,7 @@ import session from "express-session";
 import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
 import connectPgSimple from "connect-pg-simple";
 import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import {
   users,
   eduTokSnippets,
@@ -1741,8 +1741,24 @@ Continue for all 5 questions...
     try {
       console.log("Fetching all users for leaderboard...");
 
-      // Try direct database query to bypass any Drizzle mapping issues
-      const rawUsers = await db
+      // Get the current user to check role-based access
+      const currentUserId = req.session.userId;
+      let currentUser = null;
+      let schoolFilter = null;
+
+      if (currentUserId) {
+        currentUser = await storage.getUser(currentUserId as number);
+        
+        // Role-based filtering for assessment results:
+        // - Directors can only see their school's teachers
+        // - Owners can see all teachers
+        if (currentUser && !currentUser.isOwner && currentUser.schoolId) {
+          schoolFilter = currentUser.schoolId;
+        }
+      }
+
+      // Build query with optional school filtering
+      let userQuery = db
         .select({
           id: users.id,
           username: users.username,
@@ -1763,6 +1779,13 @@ Continue for all 5 questions...
         })
         .from(users);
 
+      // Apply school filter if needed (for Directors)
+      if (schoolFilter) {
+        userQuery = userQuery.where(eq(users.schoolId, schoolFilter));
+      }
+
+      const rawUsers = await userQuery;
+
       console.log("Raw users query returned:", rawUsers.length, "users");
 
       if (!rawUsers || rawUsers.length === 0) {
@@ -1770,8 +1793,95 @@ Continue for all 5 questions...
         return res.status(200).json([]);
       }
 
-      console.log("Returning users count for leaderboard:", rawUsers.length);
-      res.status(200).json(rawUsers);
+      // Enhanced: Fetch assessment results for each user if requested
+      const includeAssessments = req.query.includeAssessments === 'true';
+      let usersWithAssessments = rawUsers;
+
+      if (includeAssessments && currentUser) {
+        console.log("Fetching assessment results for", rawUsers.length, "users");
+        
+        // Get assessment results for all users in batch
+        const userIds = rawUsers.map(user => user.id);
+        
+        const assessmentData = await db
+          .select({
+            userId: assessments.userId,
+            assessmentId: assessments.id,
+            completedAt: assessments.completedAt,
+            accuracyRate: assessmentResults.accuracyRate,
+            totalTimeSeconds: assessmentResults.totalTimeSeconds,
+            growthAreas: assessmentResults.growthAreas,
+            overallScore: assessmentResults.overallScore,
+            totalQuestions: assessmentResults.totalQuestions,
+            totalCorrect: assessmentResults.totalCorrect,
+          })
+          .from(assessments)
+          .innerJoin(assessmentResults, eq(assessments.id, assessmentResults.assessmentId))
+          .where(
+            and(
+              inArray(assessments.userId, userIds),
+              eq(assessments.type, 'initial'),
+              eq(assessments.completed, true)
+            )
+          )
+          .orderBy(desc(assessments.completedAt));
+
+        // Group assessment data by userId (taking most recent)
+        const assessmentMap = new Map();
+        assessmentData.forEach(assessment => {
+          if (!assessmentMap.has(assessment.userId)) {
+            assessmentMap.set(assessment.userId, {
+              completedAt: assessment.completedAt,
+              accuracyRate: assessment.accuracyRate,
+              totalTimeSeconds: assessment.totalTimeSeconds,
+              growthAreas: assessment.growthAreas,
+              overallScore: assessment.overallScore,
+              totalQuestions: assessment.totalQuestions,
+              totalCorrect: assessment.totalCorrect,
+            });
+          }
+        });
+
+        // Enhance users with assessment data
+        usersWithAssessments = rawUsers.map(user => {
+          const assessmentInfo = assessmentMap.get(user.id);
+          
+          if (assessmentInfo) {
+            // Get top 3 growth areas
+            const topGrowthAreas = Array.isArray(assessmentInfo.growthAreas) 
+              ? assessmentInfo.growthAreas.slice(0, 3)
+              : [];
+
+            return {
+              ...user,
+              assessmentResults: {
+                completed: true,
+                completedAt: assessmentInfo.completedAt,
+                accuracyRate: assessmentInfo.accuracyRate,
+                totalTimeMinutes: assessmentInfo.totalTimeSeconds 
+                  ? Math.round(assessmentInfo.totalTimeSeconds / 60) 
+                  : null,
+                topGrowthAreas,
+                overallScore: assessmentInfo.overallScore,
+                totalQuestions: assessmentInfo.totalQuestions,
+                totalCorrect: assessmentInfo.totalCorrect,
+              }
+            };
+          } else {
+            return {
+              ...user,
+              assessmentResults: {
+                completed: false
+              }
+            };
+          }
+        });
+
+        console.log("Enhanced", usersWithAssessments.length, "users with assessment data");
+      }
+
+      console.log("Returning users count for leaderboard:", usersWithAssessments.length);
+      res.status(200).json(usersWithAssessments);
     } catch (error) {
       console.error("Error fetching all users:", error);
       console.error("Error details:", error.message);
