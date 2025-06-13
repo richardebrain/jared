@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,7 +100,7 @@ interface ModuleConfig {
 }
 
 export default function NewModuleAI() {
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState<Step>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<typeof PROVEN_TEMPLATES[0] | null>(null);
   const [moduleConfig, setModuleConfig] = useState<ModuleConfig>({
@@ -198,7 +198,7 @@ export default function NewModuleAI() {
       });
 
       if (response.ok) {
-        navigate('/modules');
+        setLocation('/modules');
       }
     } catch (error) {
       console.error('Error saving module:', error);
