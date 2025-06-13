@@ -303,8 +303,8 @@ export function ActivitySection({ section, onComplete, isCompleted }: ActivitySe
               {dropItems.map(item => (
                 <div
                   key={item}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleDrop(item)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, item)}
                   className="p-3 bg-green-50 border-2 border-dashed border-green-200 rounded-lg min-h-[60px] flex items-center hover:border-green-300 transition-colors"
                 >
                   {item}
