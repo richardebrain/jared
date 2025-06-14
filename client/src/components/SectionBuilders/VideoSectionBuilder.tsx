@@ -125,6 +125,19 @@ export default function VideoSectionBuilder({
     setIsSearching(false);
   };
 
+  const saveChanges =async ()=>{
+    if (!videoData.videoUrl.trim() || !videoData.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    onContentChange(JSON.stringify(videoData))
+    onEditToggle();
+  }
+
   const selectVideo = (video: any) => {
     updateVideoData({
       videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
@@ -198,7 +211,7 @@ export default function VideoSectionBuilder({
             <Search className="w-4 h-4" />
             <span>Find Video</span>
           </Button>
-          <Button onClick={onEditToggle} variant="outline" size="sm">
+          <Button onClick={saveChanges} variant="outline" size="sm">
             {isEditing ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
           </Button>
         </div>
