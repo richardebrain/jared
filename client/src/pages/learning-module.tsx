@@ -37,6 +37,7 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
   }>({});
   const [showResults, setShowResults] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
+  const { toast } = useToast();
 
   // Parse quiz questions from section content
   console.log(section, "section from quiz");
@@ -75,11 +76,18 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
     setQuizScore(score);
     setShowResults(true);
 
-    // Mark as complete if score is above 70%
-    if (score >= 70) {
+    // Mark as complete only if score is 75% or above
+    if (score >= 75) {
       setTimeout(() => {
         onComplete();
       }, 2000);
+    } else {
+      // Show failure message and require retake
+      toast({
+        title: "Quiz Score Too Low",
+        description: `You scored ${score}%. You need 75% or higher to complete this module. Please review the material and retake the quiz.`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -108,9 +116,20 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
   return (
     <div className="mb-6">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h4 className="font-semibold text-blue-800 mb-6 text-lg">
+        <h4 className="font-semibold text-blue-800 mb-4 text-lg">
           Knowledge Check
         </h4>
+        
+        {/* Pre-quiz reminder about passing requirement */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center">
+            <i className="ri-information-line text-amber-600 mr-2"></i>
+            <div className="text-amber-800">
+              <p className="font-medium">Passing Requirement</p>
+              <p className="text-sm">You must score 75% or higher to complete this module and continue.</p>
+            </div>
+          </div>
+        </div>
 
         {questions?.length > 0 ? (
           <div className="space-y-6">
@@ -198,16 +217,16 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
               <div className="text-center pt-4">
                 <div
                   className={`inline-flex items-center px-4 py-2 rounded-lg ${
-                    quizScore >= 70
+                    quizScore >= 75
                       ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
                   }`}
                 >
                   <i
                     className={`mr-2 ${
-                      quizScore >= 70
+                      quizScore >= 75
                         ? "ri-check-circle-fill"
-                        : "ri-information-fill"
+                        : "ri-close-circle-fill"
                     }`}
                   ></i>
                   <span className="font-medium">
@@ -222,11 +241,22 @@ function QuizSection({ section, onComplete, isCompleted }: QuizSectionProps) {
                   </span>
                 </div>
 
-                {quizScore < 70 && (
-                  <div className="mt-4">
-                    <Button onClick={resetQuiz} variant="outline">
+                {quizScore < 75 ? (
+                  <div className="mt-4 space-y-3">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-red-800 font-medium">Quiz Not Passed</p>
+                      <p className="text-red-700 text-sm">You need 75% or higher to complete this module. Please review the material and try again.</p>
+                    </div>
+                    <Button onClick={resetQuiz} variant="outline" className="w-full">
                       Retake Quiz
                     </Button>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p className="text-green-800 font-medium">Congratulations!</p>
+                      <p className="text-green-700 text-sm">You passed the quiz and can now complete this module.</p>
+                    </div>
                   </div>
                 )}
               </div>
