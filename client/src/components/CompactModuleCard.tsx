@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Play, CheckCircle, Clock } from "lucide-react";
+import { BookOpen, Play, CheckCircle, Clock, Coins } from "lucide-react";
 import type { LearningModule, UserProgress } from "@shared/schema";
 
 interface CompactModuleCardProps {
@@ -48,9 +48,15 @@ export function CompactModuleCard({ module, progress, onClick }: CompactModuleCa
         )}
       </div>
       
-      <div className="flex items-center text-xs text-muted-foreground mb-2">
-        <Clock className="w-3 h-3 mr-1" />
-        <span>{module.duration} min</span>
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+        <div className="flex items-center">
+          <Clock className="w-3 h-3 mr-1" />
+          <span>{module.duration} min</span>
+        </div>
+        <div className="flex items-center bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+          <Coins className="w-3 h-3 mr-1" />
+          <span className="font-medium">{module.pointValue || 10} pts</span>
+        </div>
       </div>
       
       <div className="space-y-2 mb-3">

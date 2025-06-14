@@ -8,6 +8,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Header from "@/components/Header";
+import confetti from 'canvas-confetti';
 
 import {
   Card,

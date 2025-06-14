@@ -6113,18 +6113,26 @@ Create a natural conversation between two podcast hosts discussing this specific
             
             <div>
               <Label htmlFor="customPoints">
-                Custom Points 
+                Point Value (5-30 points)
                 <span className="text-sm text-gray-500 ml-1">
                   (Suggested: {calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime)})
                 </span>
               </Label>
-              <Input
-                id="customPoints"
-                type="number"
-                value={newModule.customPoints}
-                onChange={(e) => setNewModule(prev => ({ ...prev, customPoints: e.target.value }))}
-                placeholder={calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime).toString()}
-              />
+              <Select 
+                value={newModule.customPoints || calculateSuggestedPoints(newModule.difficulty, newModule.estimatedTime).toString()} 
+                onValueChange={(value) => setNewModule(prev => ({ ...prev, customPoints: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select point value" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 26 }, (_, i) => i + 5).map(points => (
+                    <SelectItem key={points} value={points.toString()}>
+                      {points} points {points <= 10 ? '(Quick)' : points <= 20 ? '(Standard)' : '(Comprehensive)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

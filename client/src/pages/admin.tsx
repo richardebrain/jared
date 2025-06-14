@@ -704,20 +704,28 @@ export default function AdminPage({ skipPasswordCheck = false }) {
                     
                     <div className="space-y-2">
                       <Label htmlFor="module-custom-points">
-                        Custom Points Value 
-                        <span className="text-sm text-gray-500 ml-2">(Optional)</span>
+                        Point Value (5-30 points)
+                        <span className="text-sm text-gray-500 ml-2">
+                          (Suggested: {calculatePoints(newModule.estimatedTime, newModule.difficulty)})
+                        </span>
                       </Label>
-                      <Input 
-                        id="module-custom-points" 
-                        type="number" 
-                        min="1"
-                        max="100"
-                        placeholder="Auto-calculated"
-                        value={newModule.customPoints}
-                        onChange={(e) => setNewModule({...newModule, customPoints: e.target.value})}
-                      />
+                      <Select 
+                        value={newModule.customPoints || calculatePoints(newModule.estimatedTime, newModule.difficulty).toString()} 
+                        onValueChange={(value) => setNewModule({...newModule, customPoints: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select point value" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 26 }, (_, i) => i + 5).map(points => (
+                            <SelectItem key={points} value={points.toString()}>
+                              {points} points {points <= 10 ? '(Quick)' : points <= 20 ? '(Standard)' : '(Comprehensive)'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <p className="text-xs text-gray-500 mt-1">
-                        Current value: {calculatePoints(newModule.estimatedTime, newModule.difficulty)} points
+                        Choose point value based on module length and complexity
                       </p>
                     </div>
                   </div>
