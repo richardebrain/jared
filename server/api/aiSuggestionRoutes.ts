@@ -1383,7 +1383,7 @@ router.post('/generate-section', async (req, res) => {
 
         Only return the JSON. Do not include any text before or after.`;
         break;
-      case video:
+      case 'video':
         break;
         
       default:

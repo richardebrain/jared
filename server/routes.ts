@@ -12,6 +12,7 @@ import { updateChildDevelopmentModule } from "./updateChildDevelopmentModule";
 import { eq, sql, and, desc, inArray } from "drizzle-orm";
 import {
   users,
+  schools,
   eduTokSnippets,
   eduTokUserInteractions,
   videoQuizCompletions,
