@@ -184,14 +184,17 @@ console.log(videoData,'video data')
     setIsGeneratingDiscussion(true);
     try {
       const response = await apiRequest('/api/ai/generate-section', 'POST', {
-        sectionType: 'video',
         topic: videoData.title || 'Educational Video',
-        context: `Generate discussion points for a video titled "${videoData.title}" for early childhood education teachers. Focus on practical classroom applications and reflection questions.`
+        sectionType: 'video',
+        sectionTitle: 'Video Discussion Points',
+        targetAudience: 'early childhood educators',
+        difficulty: 'medium',
+        templateContext: 'Video Section'
       });
 
-      if (response.success && response.content) {
-        // Parse the text response into discussion points
-        const generatedText = response.content;
+      if (response && response.blocks && response.blocks.length > 0) {
+        // Extract content from the first block
+        const generatedText = response.blocks[0].content;
         const points = generatedText
           .split('\n')
           .filter(line => line.trim())
