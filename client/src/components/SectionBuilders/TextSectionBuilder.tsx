@@ -18,16 +18,17 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   const [textContent, setTextContent] = useState('');
 
   useEffect(() => {
-    // Handle different content formats from AI generation
+    // Initialize content only once when component mounts or when content changes
+    let newContent = '';
     if (content?.blocks?.[0]?.content) {
-      setTextContent(content.blocks[0].content);
+      newContent = content.blocks[0].content;
     } else if (content?.content) {
-      // Direct content from AI response
-      setTextContent(content.content);
-    } else if (typeof content === 'string') {
-      // Plain string content
-      setTextContent(content);
+      newContent = content.content;
+    } else if (typeof content === 'string' && content !== '') {
+      newContent = content;
     }
+    
+    setTextContent(newContent);
   }, [content]);
 
   const saveChanges = () => {

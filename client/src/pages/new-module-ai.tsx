@@ -135,7 +135,9 @@ export default function NewModuleAI() {
         ...prev,
         title: `${template.title} - ${prev.topic || 'New Topic'}`
       }));
-      setSectionContents(new Array(template.sections.length).fill(null));
+      // Initialize each section with its own unique content object
+      setSectionContents(template.sections.map(() => ({})));
+      setEditingSections({});
       setCurrentStep('topic');
     }
   };
@@ -257,6 +259,7 @@ export default function NewModuleAI() {
       case 'quiz':
         return (
           <QuizSectionBuilder
+            key={`quiz-${index}`}
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
@@ -268,6 +271,7 @@ export default function NewModuleAI() {
       case 'matching':
         return (
           <MatchingSectionBuilder
+            key={`matching-${index}`}
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
@@ -279,6 +283,7 @@ export default function NewModuleAI() {
       case 'scenario-match':
         return (
           <ScenarioMatchSectionBuilder
+            key={`scenario-match-${index}`}
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
@@ -290,6 +295,7 @@ export default function NewModuleAI() {
       case 'video':
         return (
           <VideoSectionBuilder
+            key={`video-${index}`}
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
@@ -304,6 +310,7 @@ export default function NewModuleAI() {
       default:
         return (
           <TextSectionBuilder
+            key={`text-${index}`}
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
