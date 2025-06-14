@@ -379,12 +379,13 @@ export default function NewModuleAI() {
   };
 
   const saveModule = async () => {
+    console.log(moduleConfig,'module configuration',selectedTemplate)
     if (!selectedTemplate) return;
 
     const moduleData = {
       title: moduleConfig.title,
       description: moduleConfig.description || selectedTemplate.description,
-      content: JSON.stringify(
+      sections: JSON.stringify(
         sectionContents.map((content, index) => ({
           title: selectedTemplate.sections[index].title,
           type: selectedTemplate.sections[index].type,

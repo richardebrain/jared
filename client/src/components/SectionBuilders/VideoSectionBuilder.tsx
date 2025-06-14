@@ -8,9 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Save, Search, Video, Loader2, Play, ExternalLink, X, Plus, BookOpen, Youtube, Wand2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { dataTagErrorSymbol } from '@tanstack/react-query';
 
 interface VideoSectionBuilderProps {
-  content: string;
+  content: any;
   onContentChange: (content: any) => void;
   isEditing: boolean;
   onEditToggle: () => void;
@@ -46,14 +47,28 @@ export default function VideoSectionBuilder({
   // Parse content when it changes
   useEffect(() => {
     try {
-      if (content && content !== '{}' && content !== '') {
-        const parsed = JSON.parse(content);
-        setVideoData({
-          videoUrl: parsed.videoUrl || '',
-          title: parsed.title || '',
-          duration: parsed.duration || 0
-        });
+      console.log('content for video -->',content)
+      let aiContent = '';
+      if (content?.blocks?.[0]?.content) {
+        console.log(content?.blocks?.[0]?.content,'content')
+        aiContent = content.blocks[0].content;
+      } else if (content?.content) {
+        aiContent = content.content;
+      } else if (typeof content === 'string') {
+        aiContent = content;
+      }  
+
+      if(aiContent){
+        if(Array.isArray(aiContent)){
+          setVideoData({
+            videoUrl: aiContent[0].content,
+            title: aiContent[0].title,
+            duration: 0
+          })
+        }
       }
+      
+     
     } catch (error) {
       console.error('Error parsing video content:', error);
       setVideoData({
@@ -68,7 +83,15 @@ export default function VideoSectionBuilder({
   const updateVideoData = (newData: Partial<VideoData>) => {
     const updated = { ...videoData, ...newData };
     setVideoData(updated);
-    onContentChange(JSON.stringify(updated));
+    const data ={
+      blocks:[{
+        type:'video',
+        title:updated.title,
+        content:updated.videoUrl,
+        preview:updated.title,
+      }]
+    }
+    onContentChange(data);
   };
 
   const searchVideoLibrary = async (query: string) => {

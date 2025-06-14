@@ -95,7 +95,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
                   .replace(/\*(.*?)\*/g, '<em>$1</em>')
                   .replace(/^#{3}\s(.+)/g, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
                   .replace(/^#{2}\s(.+)/g, '<h2 class="text-xl font-semibold mt-4 mb-2">$1</h2>')
-                  .replace(/^#{1}\s(.+)/g, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
+                  .replace(/^#{1}\s(.+)/g, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>').replace(/^#{4}\s(.+)/g, '<h1 class="text-3xl font-bold mt-4 mb-2">$1</h1>')
                   .replace(/^-\s(.+)/g, '<li class="ml-4">$1</li>');
                 
                 return (
