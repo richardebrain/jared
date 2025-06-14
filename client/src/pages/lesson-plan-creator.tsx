@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import VoiceInputTextarea from "@/components/VoiceInputTextarea";
 import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
+import LessonPlanVisualizer from "@/components/LessonPlanVisualizer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -764,6 +765,17 @@ ${new Date().toLocaleDateString()}
               });
             }}
             className="mb-6"
+          />
+
+          {/* Visual Lesson Plan Generator */}
+          <LessonPlanVisualizer
+            lessonPlanText={`Title: ${lessonPlan.title}\n\nDescription: ${lessonPlan.description}\n\nAge Group: ${lessonPlan.ageGroup}\nDuration: ${lessonPlan.duration} minutes\n\nLearning Objectives:\n${lessonPlan.objectives.map(obj => `• ${obj}`).join('\n')}\n\nMaterials:\n${lessonPlan.materials.map(mat => `• ${mat}`).join('\n')}\n\nActivities:\n${lessonPlan.activities.map(act => `${act.name} (${act.duration} min): ${act.description}`).join('\n\n')}\n\nAssessment: ${lessonPlan.assessment}\n\nNotes: ${lessonPlan.notes}`}
+            onImageGenerated={(imageUrl) => {
+              toast({
+                title: "Visual Generated!",
+                description: "Your lesson plan visual has been created successfully.",
+              });
+            }}
           />
 
           {/* Action Buttons */}

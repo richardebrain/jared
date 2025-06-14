@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoaderCircle, Download, Share } from "lucide-react";
+import LessonPlanVisualizer from "@/components/LessonPlanVisualizer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -334,6 +335,17 @@ export default function LessonPlanMaker() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Visual Lesson Plan Generator */}
+          <LessonPlanVisualizer
+            lessonPlanText={lessonPlan}
+            onImageGenerated={(imageUrl) => {
+              toast({
+                title: "Visual Generated!",
+                description: "Your lesson plan visual has been created successfully.",
+              });
+            }}
+          />
         </div>
       )}
     </div>

@@ -134,6 +134,7 @@ export default function VideoSectionBuilder({
       });
       return;
     }
+    const data ={}
     onContentChange(JSON.stringify(videoData))
     onEditToggle();
   }
