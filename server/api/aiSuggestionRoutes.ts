@@ -1384,33 +1384,10 @@ router.post('/generate-section', async (req, res) => {
         Only return the JSON. Do not include any text before or after.`;
         break;
         
-      case 'video':
-        sectionPrompt = `Create video learning content for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
-        
-        Generate a comprehensive video learning structure that includes:
-        - Learning objectives and key takeaways
-        - Video description and educational context
-        - Pre-watching preparation activities
-        - Post-viewing reflection questions
-        - Related discussion prompts
-        
-        Return as JSON object with this format:
-        {
-          "title": "${sectionTitle}",
-          "description": "Educational description of what this video covers...",
-          "videoUrl": "",
-          "duration": 5,
-          "generateQuestions": true
-        }
-        
-        Focus on creating meaningful learning experiences around video content.
-        Only return the JSON object - no additional text.`;
-        break;
-        
       default:
         sectionPrompt = `Create content for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
         
-        Generate relevant, engaging content that supports learning about ${topic}.`;
+        Generate relevant, engaging content that supports learning about ${topic}. and make sure the reponse in text format`;
     }
 
     const response = await openai.chat.completions.create({

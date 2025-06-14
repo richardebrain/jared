@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, CheckCircle2, Wand2, Loader2, Zap, BookOpen, Brain, Wrench, Users, Edit, Type, FileText, Save, Plus, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Wand2, Loader2, Zap, BookOpen, Brain, Wrench, Users, Edit, Type, FileText, Save, Plus, RefreshCw, Clock, Search } from 'lucide-react';
 import QuizSectionBuilder from '@/components/SectionBuilders/QuizSectionBuilder';
 import MatchingSectionBuilder from '@/components/SectionBuilders/MatchingSectionBuilder';
 import ScenarioMatchSectionBuilder from '@/components/SectionBuilders/ScenarioMatchSectionBuilder';
@@ -124,6 +124,7 @@ export default function NewModuleAI() {
   const [generatingSection, setGeneratingSection] = useState<number | null>(null);
   const [editingSections, setEditingSections] = useState<{[key: number]: boolean}>({});
   const [manualContent, setManualContent] = useState<{[key: number]: string}>({});
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   console.log(sectionContents,'section contents')
 
   const handleTemplateSelect = (templateId: string) => {
@@ -526,105 +527,228 @@ export default function NewModuleAI() {
         </div>
       )}
 
-      {/* Step 3: Section Building */}
+      {/* Step 3: Section Building - New Sidebar Layout */}
       {currentStep === 'sections' && selectedTemplate && (
-        <div className="space-y-6">
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-3 mb-2">
-              <selectedTemplate.icon className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-blue-900">{selectedTemplate.title} - {moduleConfig.topic}</span>
-              <Badge variant="secondary">{selectedTemplate.duration}</Badge>
-            </div>
-            <p className="text-sm text-blue-800">Now let's build each section using AI. Click "Generate with AI" for any section to create content.</p>
+        <div className="flex gap-6 h-[calc(100vh-200px)]">
+          {/* Left Sidebar - Module Outline */}
+          <div className="w-80 flex-shrink-0">
+            <Card className="h-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Module Outline</CardTitle>
+                <CardDescription className="text-sm">Custom Template</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-1">
+                  {selectedTemplate.sections.map((section, index) => (
+                    <div
+                      key={index}
+                      className={`p-3 mx-4 mb-2 rounded-lg border cursor-pointer transition-all ${
+                        currentSectionIndex === index
+                          ? 'bg-purple-100 border-purple-300'
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                      }`}
+                      onClick={() => setCurrentSectionIndex(index)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium ${
+                          currentSectionIndex === index
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-300 text-gray-600'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-gray-900 truncate">
+                            {section.title}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {section.type}
+                          </div>
+                        </div>
+                        {sectionContents[index] && (
+                          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="space-y-4">
-            {selectedTemplate.sections.map((section, index) => (
-              <Card key={index} className="overflow-hidden">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
-                          {getSectionIcon(section.type)}
-                        </span>
+          {/* Right Content Area - Section Builder */}
+          <div className="flex-1 min-w-0">
+            <Card className="h-full">
+              <CardHeader className="pb-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl">
+                      Build Section {currentSectionIndex + 1}: {selectedTemplate.sections[currentSectionIndex]?.title}
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      AI will use the module topic above to generate relevant content for this section
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {selectedTemplate.sections[currentSectionIndex]?.duration} min
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6 overflow-y-auto">
+                {selectedTemplate.sections[currentSectionIndex]?.type === 'video' && (
+                  <div className="space-y-6">
+                    {/* Video Tools Section */}
+                    <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                        </div>
                         <div>
-                          <div>{section.title}</div>
-                          <CardDescription className="mt-1 text-xs">
-                            {section.type} section • {section.duration} minutes
-                          </CardDescription>
+                          <div className="font-medium text-blue-900">Video Tools</div>
+                          <div className="text-sm text-blue-700">Find Videos</div>
                         </div>
-                      </CardTitle>
+                      </div>
+                      <div className="flex items-center gap-3 ml-auto">
+                        <Button size="sm" variant="outline" className="border-blue-300 text-blue-700">
+                          <Search className="h-4 w-4 mr-2" />
+                          Find Videos
+                        </Button>
+                        <Button size="sm" variant="outline" className="border-purple-300 text-purple-700">
+                          <Wand2 className="h-4 w-4 mr-2" />
+                          Discussion Questions
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {sectionContents[index] ? (
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span className="text-sm text-green-600">Ready</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleSectionEdit(index)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
+
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="space-y-4">
+                        <div className="p-3 bg-white rounded-lg shadow-sm inline-block">
+                          <FileText className="h-8 w-8 text-gray-400 mx-auto" />
                         </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => toggleSectionEdit(index)}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Type className="h-4 w-4 mr-1" />
-                            Type Content
-                          </Button>
-                          <Button
-                            onClick={() => generateSectionContent(index)}
-                            disabled={generatingSection === index}
-                            size="sm"
-                          >
-                            {generatingSection === index ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <Wand2 className="h-4 w-4 mr-2" />
-                                Generate with AI
-                              </>
-                            )}
-                          </Button>
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Video Section Tools</h4>
+                          <p className="text-sm text-gray-600 mb-4">Search educational videos or generate discussion questions</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-500">Click "Generate Ideas" to get AI content suggestions</p>
+                            <p className="text-xs text-gray-500">You'll need to specify a topic first</p>
+                          </div>
                         </div>
-                      )}
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-6">
+                      <div className="text-sm text-gray-600 mb-4">Section Content</div>
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                        <p className="text-gray-500 text-sm">Empty</p>
+                        <div className="mt-4 text-xs text-gray-400">
+                          <p>Type your content here or drag AI-generated content blocks from the left...</p>
+                          <div className="mt-2">
+                            <ArrowRight className="h-4 w-4 mx-auto text-gray-300" />
+                          </div>
+                          <p className="mt-2">Drop content blocks here</p>
+                          <p>Or type directly in the text area below</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    <div className="flex justify-between pt-6 border-t">
+                      <Button variant="outline" onClick={() => {
+                        if (currentSectionIndex > 0) {
+                          setCurrentSectionIndex(currentSectionIndex - 1);
+                        }
+                      }} disabled={currentSectionIndex === 0}>
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Previous Section
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Section
+                        </Button>
+                        <Button onClick={() => {
+                          if (currentSectionIndex < selectedTemplate.sections.length - 1) {
+                            setCurrentSectionIndex(currentSectionIndex + 1);
+                          }
+                        }} disabled={currentSectionIndex === selectedTemplate.sections.length - 1}>
+                          Save & Next Section
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </CardHeader>
-                
-                {/* Section Content with Specialized Builders */}
-                {(sectionContents[index] || editingSections[index]) && (
-                  <CardContent className="border-t bg-gray-50">
-                    {renderSectionBuilder(section, index)}
-                  </CardContent>
                 )}
-              </Card>
-            ))}
-          </div>
 
-          <div className="flex justify-between pt-6">
-            <Button variant="outline" onClick={() => setCurrentStep('topic')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Topic
-            </Button>
-            <Button 
-              onClick={() => setCurrentStep('preview')}
-              disabled={sectionContents.some(content => !content)}
-            >
-              Preview Module
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+                {/* Render other section types with their builders */}
+                {selectedTemplate.sections[currentSectionIndex]?.type !== 'video' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Button
+                        onClick={() => toggleSectionEdit(currentSectionIndex)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Type className="h-4 w-4 mr-1" />
+                        Type Content
+                      </Button>
+                      <Button
+                        onClick={() => generateSectionContent(currentSectionIndex)}
+                        disabled={generatingSection === currentSectionIndex}
+                        size="sm"
+                      >
+                        {generatingSection === currentSectionIndex ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="h-4 w-4 mr-2" />
+                            Generate with AI
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {(sectionContents[currentSectionIndex] || editingSections[currentSectionIndex]) && (
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        {renderSectionBuilder(selectedTemplate.sections[currentSectionIndex], currentSectionIndex)}
+                      </div>
+                    )}
+
+                    {/* Navigation Buttons */}
+                    <div className="flex justify-between pt-6 border-t">
+                      <Button variant="outline" onClick={() => {
+                        if (currentSectionIndex > 0) {
+                          setCurrentSectionIndex(currentSectionIndex - 1);
+                        }
+                      }} disabled={currentSectionIndex === 0}>
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Previous Section
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Section
+                        </Button>
+                        <Button onClick={() => {
+                          if (currentSectionIndex < selectedTemplate.sections.length - 1) {
+                            setCurrentSectionIndex(currentSectionIndex + 1);
+                          } else {
+                            setCurrentStep('preview');
+                          }
+                        }}>
+                          {currentSectionIndex === selectedTemplate.sections.length - 1 ? 'Preview Module' : 'Save & Next Section'}
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
