@@ -144,6 +144,7 @@ export default function ComprehensiveModuleCreator() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
 
   // Extract URL parameters for AI-generated module data
   useEffect(() => {
