@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,10 +51,21 @@ export default function ScenarioMatchSectionBuilder({
     }
   }, [content]);
 
-  // Update content when scenarios change
+  // Update content when scenarios change (with debouncing to prevent infinite loops)
+  const updateContent = useCallback((newScenarios: ScenarioItem[]) => {
+    const newContent = JSON.stringify(newScenarios);
+    if (newContent !== content) {
+      onContentChange(newContent);
+    }
+  }, [content, onContentChange]);
+
   useEffect(() => {
-    onContentChange(JSON.stringify(scenarios));
-  }, [scenarios, onContentChange]);
+    const timeoutId = setTimeout(() => {
+      updateContent(scenarios);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, [scenarios, updateContent]);
 
   const addNewScenario = () => {
     const newScenario: ScenarioItem = {
@@ -86,18 +97,12 @@ export default function ScenarioMatchSectionBuilder({
   const generateAIScenarios = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('POST', '/api/ai/generate-scenario-match', {
-        count: 3,
-        topic: 'early childhood education'
+      // Use the AI regeneration function passed from parent
+      onRegenerateAI();
+      toast({
+        title: "Generating Scenarios",
+        description: "AI is creating interactive scenario matching exercises.",
       });
-
-      if (response.scenarios) {
-        setScenarios(response.scenarios);
-        toast({
-          title: "Scenarios Generated",
-          description: "AI has created interactive scenario matching exercises.",
-        });
-      }
     } catch (error) {
       console.error('Error generating scenarios:', error);
       // Provide example scenarios
