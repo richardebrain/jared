@@ -14,18 +14,16 @@ interface LessonPlanVisualizerProps {
   onImageGenerated?: (imageUrl: string) => void;
 }
 
-// Helper function to extract key information from lesson plan text
-const extractLessonSummary = (text: string) => {
+// Helper function to extract schedule and timing information from lesson plan text
+const extractScheduleInfo = (text: string) => {
   const defaultSummary = {
     theme: "educational activities",
     ageGroup: "preschool",
-    activities: [],
-    objectives: [],
     title: ""
   };
 
   if (!text || text.trim().length === 0) {
-    return defaultSummary;
+    return { ...defaultSummary, scheduleContent: "" };
   }
 
   // Extract title/theme - look for common patterns
@@ -47,26 +45,42 @@ const extractLessonSummary = (text: string) => {
   let ageGroup = ageMatches ? ageMatches[1].trim() : "preschool";
   ageGroup = ageGroup.toLowerCase().replace(/[^\w\s-]/g, '');
 
-  // Extract activities - look for bulleted lists or numbered items
-  const activityMatches = text.match(/(?:activit(?:y|ies)|exercise|task):\s*([^.\n]+)/gi) ||
-                         text.match(/(?:^|\n)\s*[-•*]\s*([^.\n]{5,100})/gm) ||
-                         text.match(/(?:^|\n)\s*\d+\.\s*([^.\n]{5,100})/gm);
+  // Extract schedule content - focus on times and activities, exclude materials and detailed objectives
+  let scheduleLines = [];
+  const lines = text.split('\n');
   
-  const activities = activityMatches ? 
-    activityMatches.slice(0, 5).map(match => 
-      match.replace(/^(?:activit(?:y|ies)|exercise|task):\s*|^[-•*\d.\s]+/i, '').trim()
-    ) : [];
-
-  // Extract learning objectives
-  const objectiveMatches = text.match(/(?:objective|goal|learn|understand):\s*([^.\n]+)/gi) ||
-                          text.match(/(?:students will|children will)\s+([^.\n]+)/gi);
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    // Skip materials, supplies, objectives sections
+    if (trimmedLine.toLowerCase().includes('material') || 
+        trimmedLine.toLowerCase().includes('supply') ||
+        trimmedLine.toLowerCase().includes('objective') ||
+        trimmedLine.toLowerCase().includes('assessment') ||
+        trimmedLine.toLowerCase().includes('standard')) {
+      continue;
+    }
+    
+    // Include lines with times, activities, or schedule information
+    if (trimmedLine.match(/\d+:\d+/) || // Times like 9:00 or 10:30
+        trimmedLine.match(/^\d+\./) || // Numbered items
+        trimmedLine.match(/^[-•*]/) || // Bulleted items
+        trimmedLine.toLowerCase().includes('activity') ||
+        trimmedLine.toLowerCase().includes('circle time') ||
+        trimmedLine.toLowerCase().includes('snack') ||
+        trimmedLine.toLowerCase().includes('lunch') ||
+        trimmedLine.toLowerCase().includes('nap') ||
+        trimmedLine.toLowerCase().includes('play') ||
+        trimmedLine.toLowerCase().includes('story') ||
+        trimmedLine.toLowerCase().includes('song') ||
+        (trimmedLine.length > 10 && trimmedLine.length < 80)) {
+      scheduleLines.push(trimmedLine);
+    }
+  }
   
-  const objectives = objectiveMatches ? 
-    objectiveMatches.slice(0, 3).map(match => 
-      match.replace(/^(?:objective|goal|learn|understand):\s*|(?:students will|children will)\s+/i, '').trim()
-    ) : [];
+  const scheduleContent = scheduleLines.slice(0, 10).join(' ').substring(0, 300); // Keep focused and under character limit
 
-  return { theme, ageGroup, activities, objectives, title };
+  return { theme, ageGroup, title, scheduleContent };
 };
 
 const generateImageFromPrompt = async (prompt: string): Promise<string | null> => {
@@ -126,24 +140,23 @@ export default function LessonPlanVisualizer({
     setGenerating(true);
 
     try {
-      // Extract key elements from lesson plan to create a concise prompt
-      const lessonSummary = extractLessonSummary(lessonText);
+      // Extract schedule and timing information for bulletin board displays
+      const scheduleInfo = extractScheduleInfo(lessonText);
       let promptBase = "";
 
       switch (purpose) {
         case "formatted":
-          // Extract the actual lesson plan content to format it beautifully
-          const lessonContent = lessonText.slice(0, 400); // Keep under character limit but include real content
-          promptBase = `Create a beautifully formatted lesson plan poster for ${audience}. Use this exact content: "${lessonContent}". Format it with attractive typography, colorful headers, and bulletin board style layout. Make it parent-friendly and visually appealing for classroom display.`;
+          // Focus on schedule and activities only, exclude materials
+          promptBase = `Create a beautifully formatted daily schedule poster for ${audience}. Title: "${scheduleInfo.title}". Include this schedule content: "${scheduleInfo.scheduleContent}". Format with attractive typography, colorful time headers, and bulletin board style layout. Focus on times and activities only - no materials or supplies lists. Make it parent-friendly for classroom display.`;
           break;
         case "wall-display":
-          promptBase = `Create a ${style} classroom wall poster for ${audience}. Title: "${lessonSummary.title}" for ${lessonSummary.ageGroup}. Include visual activity icons, colorful borders, and space for daily activities. Classroom-ready design.`;
+          promptBase = `Create a ${style} classroom wall poster for ${audience}. Title: "${scheduleInfo.title}" for ${scheduleInfo.ageGroup}. Include visual activity icons, colorful borders, and space for daily activities. Classroom-ready design.`;
           break;
         case "sections":
-          promptBase = `Create ${style} educational illustrations for ${audience}. Show ${lessonSummary.theme} learning activities for ${lessonSummary.ageGroup}. Focus on visual elements without text to avoid spelling errors.`;
+          promptBase = `Create ${style} educational illustrations for ${audience}. Show ${scheduleInfo.theme} learning activities for ${scheduleInfo.ageGroup}. Focus on visual elements without text to avoid spelling errors.`;
           break;
         default: // outline
-          promptBase = `Create a ${style} infographic overview for ${audience}. Theme: ${lessonSummary.theme} for ${lessonSummary.ageGroup}. Use icons and visual elements, minimal text. Colorful, engaging educational design.`;
+          promptBase = `Create a ${style} infographic overview for ${audience}. Theme: ${scheduleInfo.theme} for ${scheduleInfo.ageGroup}. Use icons and visual elements, minimal text. Colorful, engaging educational design.`;
           break;
       }
       
