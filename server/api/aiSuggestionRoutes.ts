@@ -1383,7 +1383,6 @@ router.post('/generate-section', async (req, res) => {
 
         Only return the JSON. Do not include any text before or after.`;
         break;
-        
       case 'video':
         sectionPrompt = `Create complementary text content for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
         
