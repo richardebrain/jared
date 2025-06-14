@@ -25,6 +25,7 @@ import { GamefiedQuiz } from "@/components/GamefiedQuiz";
 import { AIBearyModal } from "@/components/AIBearyModal";
 import { ActivitySection } from "@/components/ActivitySection";
 import ScenarioMatchSection from "@/components/sections/ScenarioMatchSection";
+import VideoSection from "@/components/sections/VideoSection";
 
 // QuizSection component for handling quiz interactions
 interface QuizSectionProps {
