@@ -167,15 +167,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 
-                <div className="absolute bottom-8 -left-4 bg-white p-3 rounded-xl shadow-lg border border-green-200 animate-bounce">
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl">🐻</div>
-                    <div>
-                      <p className="text-sm font-bold text-green-700">+15 Bear Bucks</p>
-                      <p className="text-xs text-green-600">Module Complete</p>
-                    </div>
-                  </div>
-                </div>
+
                 
                 <div className="absolute top-16 -left-6 bg-white p-2 rounded-lg shadow-lg border border-blue-200">
                   <div className="flex items-center gap-1">
