@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface VideoSectionBuilderProps {
   content: string;
-  onContentChange: (content: string) => void;
+  onContentChange: (content: any) => void;
   isEditing: boolean;
   onEditToggle: () => void;
 }
@@ -134,8 +134,14 @@ export default function VideoSectionBuilder({
       });
       return;
     }
-    const data ={}
-    onContentChange(JSON.stringify(videoData))
+    const data = {blocks:[{
+
+      type:'video',
+      title:videoData.title,
+      content:videoData.videoUrl,
+      preview:videoData.title,
+    }]}
+    onContentChange(data)
     onEditToggle();
   }
 
