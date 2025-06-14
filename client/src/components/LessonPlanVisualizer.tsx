@@ -45,26 +45,28 @@ const extractScheduleInfo = (text: string) => {
   let ageGroup = ageMatches ? ageMatches[1].trim() : "preschool";
   ageGroup = ageGroup.toLowerCase().replace(/[^\w\s-]/g, '');
 
-  // Extract schedule content - focus on times and activities, exclude materials and detailed objectives
+  // Extract schedule content - focus on times, activities, and objectives, exclude materials and supplies
   let scheduleLines = [];
   const lines = text.split('\n');
   
   for (const line of lines) {
     const trimmedLine = line.trim();
     
-    // Skip materials, supplies, objectives sections
+    // Skip only materials and supplies sections, keep objectives
     if (trimmedLine.toLowerCase().includes('material') || 
         trimmedLine.toLowerCase().includes('supply') ||
-        trimmedLine.toLowerCase().includes('objective') ||
         trimmedLine.toLowerCase().includes('assessment') ||
         trimmedLine.toLowerCase().includes('standard')) {
       continue;
     }
     
-    // Include lines with times, activities, or schedule information
+    // Include lines with times, activities, objectives, or schedule information
     if (trimmedLine.match(/\d+:\d+/) || // Times like 9:00 or 10:30
         trimmedLine.match(/^\d+\./) || // Numbered items
         trimmedLine.match(/^[-•*]/) || // Bulleted items
+        trimmedLine.toLowerCase().includes('objective') ||
+        trimmedLine.toLowerCase().includes('goal') ||
+        trimmedLine.toLowerCase().includes('learn') ||
         trimmedLine.toLowerCase().includes('activity') ||
         trimmedLine.toLowerCase().includes('circle time') ||
         trimmedLine.toLowerCase().includes('snack') ||
@@ -73,12 +75,13 @@ const extractScheduleInfo = (text: string) => {
         trimmedLine.toLowerCase().includes('play') ||
         trimmedLine.toLowerCase().includes('story') ||
         trimmedLine.toLowerCase().includes('song') ||
-        (trimmedLine.length > 10 && trimmedLine.length < 80)) {
+        (trimmedLine.length > 10 && trimmedLine.length < 100)) {
       scheduleLines.push(trimmedLine);
     }
   }
   
-  const scheduleContent = scheduleLines.slice(0, 10).join(' ').substring(0, 300); // Keep focused and under character limit
+  // Take more content to ensure we get the actual lesson plan text
+  const scheduleContent = scheduleLines.slice(0, 15).join(' ').substring(0, 350); // Leave room for prompt wrapper
 
   return { theme, ageGroup, title, scheduleContent };
 };
@@ -147,7 +150,19 @@ export default function LessonPlanVisualizer({
       switch (purpose) {
         case "formatted":
           // Focus on schedule and activities only, exclude materials
-          promptBase = `Create a beautifully formatted daily schedule poster for ${audience}. Title: "${scheduleInfo.title}". Include this schedule content: "${scheduleInfo.scheduleContent}". Format with attractive typography, colorful time headers, and bulletin board style layout. Focus on times and activities only - no materials or supplies lists. Make it parent-friendly for classroom display.`;
+          // If no specific schedule content was extracted, use the first portion of the lesson text
+          const contentToUse = scheduleInfo.scheduleContent.length > 20 ? scheduleInfo.scheduleContent : lessonText.substring(0, 250);
+          
+          // Debug logging
+          console.log('Schedule extraction debug:', {
+            originalLength: lessonText.length,
+            extractedLength: scheduleInfo.scheduleContent.length,
+            extractedContent: scheduleInfo.scheduleContent.substring(0, 100),
+            fallbackUsed: scheduleInfo.scheduleContent.length <= 20,
+            contentToUse: contentToUse.substring(0, 100)
+          });
+          
+          promptBase = `Create a beautifully formatted daily schedule poster for ${audience}. Title: "${scheduleInfo.title}". Use this exact lesson plan content: "${contentToUse}". Format with attractive typography, colorful time headers, and bulletin board style layout. Include objectives and activities but exclude materials lists. Make it parent-friendly for classroom display.`;
           break;
         case "wall-display":
           promptBase = `Create a ${style} classroom wall poster for ${audience}. Title: "${scheduleInfo.title}" for ${scheduleInfo.ageGroup}. Include visual activity icons, colorful borders, and space for daily activities. Classroom-ready design.`;
