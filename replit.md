@@ -129,6 +129,13 @@ MentorMe is a professional development platform designed specifically for early 
 - Performance monitoring through request timing
 - Database query optimization with Drizzle ORM insights
 
+## Recent Changes
+
+- June 14, 2025: **Level System Redesign** - Updated level calculation to match teacher progression roles instead of arbitrary point thresholds. Levels now correspond to: Assistant (1), Associate (2), Lead (3), Senior (4), Master (5). Created shared level utilities for consistent calculation across frontend and backend.
+- June 13, 2025: Enhanced point system with 5-30 point range across all module creation tools
+- June 13, 2025: Fixed streak reward system and updated landing page design
+- June 13, 2025: Initial setup
+
 ## Changelog
 
 - June 13, 2025. Initial setup

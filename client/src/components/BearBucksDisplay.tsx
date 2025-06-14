@@ -112,30 +112,9 @@ export default function PointsDisplay({
 }
 
 // Helper functions for level calculations
-function calculateLevelProgress(points: number, currentLevel: number): number {
-  const currentLevelPoints = getPointsForLevel(currentLevel);
-  const nextLevelPoints = getPointsForNextLevel(currentLevel);
-  const pointsInCurrentLevel = points - currentLevelPoints;
-  const pointsRequiredForNextLevel = nextLevelPoints - currentLevelPoints;
-  
-  return Math.min(100, Math.floor((pointsInCurrentLevel / pointsRequiredForNextLevel) * 100));
-}
-
-function getPointsForLevel(level: number): number {
-  // Simplified formula: each level requires (level ^ 2) * 100 points
-  if (level <= 1) return 0;
-  return Math.floor(Math.pow(level - 1, 2) * 100);
-}
-
-function getPointsForNextLevel(currentLevel: number): number {
-  return getPointsForLevel(currentLevel + 1);
-}
-
-function getTeacherLevelTitle(level: number): string {
-  if (level <= 1) return "Assistant Teacher";
-  if (level <= 3) return "Teacher";
-  if (level <= 5) return "Lead Teacher";
-  if (level <= 7) return "Master Teacher";
-  if (level <= 9) return "Teacher Mentor";
-  return "Master Lead Teacher";
-}
+import { 
+  calculateLevelProgress, 
+  getPointsForNextLevel, 
+  getPointsForLevel, 
+  getTeacherLevelTitle 
+} from "@shared/levelUtils";

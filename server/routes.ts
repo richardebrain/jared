@@ -700,16 +700,25 @@ Continue for all 5 questions...
         // Add points to user account
         await storage.addUserPoints(userId, rewardAmount);
 
-        // Check if user leveled up (simplified logic - would be more complex in production)
+        // Check if user leveled up using role-based system
         const newTotalPoints = (user.points || 0) + rewardAmount;
-        if (newTotalPoints >= 1000 && (user.level || 1) < 2) {
-          newLevel = 2;
+        const oldLevel = user.level || 1;
+        let newCalculatedLevel = 1; // Assistant (0 points)
+        
+        if (newTotalPoints >= 1000) {
+          newCalculatedLevel = 5; // Master (1000+ points)
+        } else if (newTotalPoints >= 500) {
+          newCalculatedLevel = 4; // Senior (500+ points)
+        } else if (newTotalPoints >= 250) {
+          newCalculatedLevel = 3; // Lead (250+ points)
+        } else if (newTotalPoints >= 100) {
+          newCalculatedLevel = 2; // Associate (100+ points)
+        }
+        
+        if (newCalculatedLevel > oldLevel) {
+          newLevel = newCalculatedLevel;
           levelUp = true;
-          await storage.updateUser(userId, { level: 2 });
-        } else if (newTotalPoints >= 2500 && (user.level || 1) < 3) {
-          newLevel = 3;
-          levelUp = true;
-          await storage.updateUser(userId, { level: 3 });
+          await storage.updateUser(userId, { level: newCalculatedLevel });
         }
       } else if (rewardType === "bearBucks") {
         // Add Bear Bucks to user account
