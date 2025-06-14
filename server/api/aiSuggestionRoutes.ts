@@ -1383,7 +1383,18 @@ router.post('/generate-section', async (req, res) => {
 
         Only return the JSON. Do not include any text before or after.`;
         break;
-      case video:
+        
+      case 'video':
+        sectionPrompt = `Create complementary text content for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
+        
+        This content will accompany a video section. Generate supporting text that:
+        - Introduces the video topic and key learning objectives
+        - Provides context and background information about ${topic}
+        - Highlights what viewers should pay attention to
+        - Includes discussion points and reflection questions
+        - Summarizes key takeaways from the video content
+        
+        Format as clear, structured content with headings and bullet points. Make it engaging and educational to enhance the video learning experience.`;
         break;
         
       default:
