@@ -955,7 +955,6 @@ export default function PacHealGame() {
                 </div>
               </div>
             )}
-              </div>
             </MobileGameContainer>
           </div>
         )}
