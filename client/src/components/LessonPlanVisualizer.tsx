@@ -14,6 +14,39 @@ interface LessonPlanVisualizerProps {
   onImageGenerated?: (imageUrl: string) => void;
 }
 
+// Helper function to extract key information from lesson plan text
+const extractLessonSummary = (text: string) => {
+  const defaultSummary = {
+    theme: "educational activities",
+    ageGroup: "preschool"
+  };
+
+  if (!text || text.trim().length === 0) {
+    return defaultSummary;
+  }
+
+  // Extract theme/topic - look for common patterns
+  const themeMatches = text.match(/(?:theme|topic|subject|about|focus):\s*([^.\n]+)/i) ||
+                      text.match(/(?:learning about|exploring|studying)\s+([^.\n,]+)/i) ||
+                      text.match(/^([^.\n]+)(?:\s+lesson|\s+activities|\s+plan)/i);
+  
+  let theme = themeMatches ? themeMatches[1].trim().toLowerCase() : "educational activities";
+  
+  // Clean up theme and limit length
+  theme = theme.replace(/[^\w\s]/g, '').substring(0, 50);
+  if (!theme) theme = "educational activities";
+
+  // Extract age group
+  const ageMatches = text.match(/(?:age|ages|years?):\s*([^.\n]+)/i) ||
+                    text.match(/(\d+[-–]\d+\s*(?:years?|months?))/i) ||
+                    text.match(/(infant|toddler|preschool|pre-k|kindergarten)/i);
+  
+  let ageGroup = ageMatches ? ageMatches[1].trim() : "preschool";
+  ageGroup = ageGroup.toLowerCase().replace(/[^\w\s-]/g, '');
+
+  return { theme, ageGroup };
+};
+
 const generateImageFromPrompt = async (prompt: string): Promise<string | null> => {
   try {
     const response = await fetch("/api/ai/generate-image", {
@@ -71,7 +104,9 @@ export default function LessonPlanVisualizer({
     setGenerating(true);
 
     try {
-      const promptBase = `Create a ${style} ${purpose === "outline" ? "infographic-style visual of the entire lesson plan" : "set of images to support lesson plan sections"} for ${audience}. The visual should be educational, engaging, and appropriate for early childhood education. Content: ${lessonText}`;
+      // Extract key elements from lesson plan to create a concise prompt
+      const lessonSummary = extractLessonSummary(lessonText);
+      const promptBase = `Create a ${style} ${purpose === "outline" ? "infographic-style visual" : "educational illustration"} for ${audience}. Show ${lessonSummary.theme} activities for ${lessonSummary.ageGroup} children. Include colorful, engaging elements appropriate for early childhood education.`;
       
       const imageUrl = await generateImageFromPrompt(promptBase);
       
