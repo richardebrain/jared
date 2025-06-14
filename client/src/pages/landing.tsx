@@ -56,13 +56,87 @@ export default function LandingPage() {
             <div className="mx-auto lg:ml-auto flex justify-center items-center">
               <div className="relative">
                 <div className="w-[350px] h-[350px] sm:w-[400px] sm:h-[400px] bg-gradient-to-r from-primary/20 to-purple-600/20 rounded-full flex items-center justify-center">
-                  <img
-                    src="https://i.imgur.com/ExTyH0O.png"
-                    alt="MentorMe Dashboard"
-                    className="w-[90%] h-auto rounded-xl shadow-lg transform -rotate-3 hover:rotate-0 transition-transform"
-                  />
+                  {/* Interactive Dashboard Preview */}
+                  <div className="w-[90%] h-[320px] bg-white rounded-xl shadow-lg transform -rotate-3 hover:rotate-0 transition-transform p-4 overflow-hidden">
+                    {/* Dashboard Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Shield className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900">MentorMe Dashboard</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Progress Stats */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="bg-blue-50 p-2 rounded text-center">
+                        <div className="text-xs font-medium text-blue-700">Modules</div>
+                        <div className="text-lg font-bold text-blue-900">12</div>
+                      </div>
+                      <div className="bg-green-50 p-2 rounded text-center">
+                        <div className="text-xs font-medium text-green-700">Points</div>
+                        <div className="text-lg font-bold text-green-900">850</div>
+                      </div>
+                      <div className="bg-purple-50 p-2 rounded text-center">
+                        <div className="text-xs font-medium text-purple-700">Streak</div>
+                        <div className="text-lg font-bold text-purple-900">7d</div>
+                      </div>
+                    </div>
+                    
+                    {/* Module Cards */}
+                    <div className="space-y-2">
+                      <div className="bg-gradient-to-r from-blue-100 to-blue-50 p-3 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <GraduationCap className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-xs font-medium text-blue-900">Positive Behavior Support</div>
+                            <div className="w-full bg-blue-200 rounded-full h-1.5 mt-1">
+                              <div className="bg-blue-600 h-1.5 rounded-full w-3/4"></div>
+                            </div>
+                          </div>
+                          <CheckCircle className="h-4 w-4 text-blue-600" />
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-r from-green-100 to-green-50 p-3 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <Users className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-xs font-medium text-green-900">Classroom Management</div>
+                            <div className="w-full bg-green-200 rounded-full h-1.5 mt-1">
+                              <div className="bg-green-600 h-1.5 rounded-full w-1/2"></div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-green-700">50%</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-r from-purple-100 to-purple-50 p-3 rounded-lg border border-purple-200">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                            <Zap className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-xs font-medium text-purple-900">AI Module Creator</div>
+                            <div className="text-xs text-purple-600">Create custom training</div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-purple-600" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="absolute top-10 right-5 bg-white p-3 rounded-lg shadow-lg">
+                <div className="absolute top-10 right-5 bg-white p-3 rounded-lg shadow-lg animate-pulse">
                   <div className="flex items-center gap-2">
                     <Award className="h-8 w-8 text-amber-500" />
                     <div>
@@ -71,7 +145,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-                <div className="absolute bottom-10 -left-5 bg-white p-3 rounded-lg shadow-lg">
+                <div className="absolute bottom-10 -left-5 bg-white p-3 rounded-lg shadow-lg animate-bounce">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-green-500" />
                     <p className="text-sm font-medium">+15 Bear Bucks</p>

@@ -27,6 +27,7 @@ interface QuizSectionBuilderProps {
 export default function QuizSectionBuilder({ content, onContentChange, isEditing, onEditToggle, onRegenerateAI }: QuizSectionBuilderProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   useEffect(() => {
+    console.log('content changed again')
     // Handle different content formats from AI generation
     let aiContent: any = '';
     if (content?.blocks?.[0]?.content) {
@@ -45,8 +46,8 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
             id: `question-${index + 1}`,
             question: q.question || '',
             options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
-            correctAnswer: q.options ? q.options.findIndex((opt: string) => 
-              opt === q.correct_answer || opt.includes(q.correct_answer?.replace(/^[A-D]\)\s*/, ''))
+            correctAnswer: q?.options ? q?.options?.findIndex((opt: string) => 
+              opt === q?.correctAnswer || opt.includes(q.correctAnswer?.replace(/^[A-D]\)\s*/, ''))
             ) : 0,
             explanation: q.explanation || ''
           }));
@@ -231,7 +232,7 @@ export default function QuizSectionBuilder({ content, onContentChange, isEditing
     onContentChange(updatedContent);
     onEditToggle();
   };
-
+console.log(questions,'questions')
   if (!isEditing) {
     return (
       <div className="space-y-4">

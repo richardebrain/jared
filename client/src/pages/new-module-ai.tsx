@@ -229,6 +229,7 @@ export default function NewModuleAI() {
       setSectionContents(prev => {
         const updated = [...prev];
         updated[index] = updatedContent;
+        console.log(updated,'update contnent change')
         return updated;
       });
     };
