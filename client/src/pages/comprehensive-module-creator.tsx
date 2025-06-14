@@ -7655,6 +7655,12 @@ Create a natural conversation between two podcast hosts discussing this specific
           initialData={builderData}
         />
       )}
+
+      {/* Assessment Required Dialog */}
+      <AssessmentRequiredDialog 
+        isOpen={showAssessmentDialog}
+        onClose={() => setShowAssessmentDialog(false)}
+      />
     </div>
   );
 }
