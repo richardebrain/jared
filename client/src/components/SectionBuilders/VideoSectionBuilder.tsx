@@ -148,7 +148,7 @@ export default function VideoSectionBuilder({
     setIsSearching(false);
   };
 
-  const saveChanges = async () => {
+  const saveChanges =async ()=>{
     if (!videoData.videoUrl.trim() || !videoData.title.trim()) {
       toast({
         title: "Validation Error",

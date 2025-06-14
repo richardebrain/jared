@@ -385,35 +385,26 @@ export default function NewModuleAI() {
     const moduleData = {
       title: moduleConfig.title,
       description: moduleConfig.description || selectedTemplate.description,
-      category: "professional-development",
+      sections: JSON.stringify(
+        sectionContents.map((content, index) => ({
+          title: selectedTemplate.sections[index].title,
+          type: selectedTemplate.sections[index].type,
+          duration: selectedTemplate.sections[index].duration,
+          content: content?.blocks?.[0]?.content || "Generated content",
+          activities: content?.activities || [],
+        })),
+      ),
       difficulty: moduleConfig.difficulty,
-      estimatedTime: parseInt(selectedTemplate.duration.replace(" min", "")).toString(),
-      customPoints: moduleConfig.pointValue.toString(),
-      sections: sectionContents.map((content, index) => ({
-        title: selectedTemplate.sections[index].title,
-        type: selectedTemplate.sections[index].type,
-        duration: selectedTemplate.sections[index].duration,
-        content: content?.blocks?.[0]?.content || "Generated content",
-        videoUrl: "",
-        imageUrl: "",
-        activities: content?.activities || [],
-      })),
-      moduleType: "single",
-      courseStructure: {},
-      interactiveElements: {},
-      certificationSystem: {}
+      category: "professional-development",
+      duration: parseInt(selectedTemplate.duration.replace(" min", "")),
+      pointValue: moduleConfig.pointValue,
     };
 
     try {
-      const response = await fetch("/api/modules/publish", {
+      const response = await fetch("/api/modules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          module: moduleData,
-          type: "library",
-          includeInLibrary: true,
-          allowComments: true
-        }),
+        body: JSON.stringify(moduleData),
       });
 
       if (response.ok) {
