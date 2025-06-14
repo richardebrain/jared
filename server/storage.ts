@@ -109,6 +109,7 @@ export interface IStorage {
   
   // Assessment operations
   getAssessmentsByUserId(userId: number): Promise<Assessment[]>;
+  getUserCompletedAssessments(userId: number): Promise<Assessment[]>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   
   // Store and items operations

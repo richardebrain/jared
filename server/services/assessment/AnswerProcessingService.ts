@@ -611,6 +611,9 @@ export class AnswerProcessingService {
       // Mark assessment as completed
       await this.markAssessmentCompleted(assessmentId);
 
+      // Award 30 points for completing first assessment and introduce points system
+      await this.awardFirstAssessmentPoints(assessment.userId);
+
       console.log(`Assessment ${assessmentId} completed successfully. Learning path: ${learningPathResult.success ? 'Generated' : 'Failed'}`);
       
       return {
@@ -620,7 +623,8 @@ export class AnswerProcessingService {
           ...compiledResults,
           enhancedLearningPath: learningPathResult // Include new learning path data
         },
-        message: `Assessment completed successfully with ${learningPathResult.success ? 'enhanced' : 'standard'} learning path`
+        message: `Assessment completed successfully with ${learningPathResult.success ? 'enhanced' : 'standard'} learning path`,
+        firstAssessmentReward: true // Flag to show points introduction
       };
       
     } catch (error) {
@@ -672,6 +676,37 @@ export class AnswerProcessingService {
         completedAt: new Date()
       })
       .where(eq(assessments.id, assessmentId));
+  }
+
+  /**
+   * Award 30 points for completing first assessment and mark user as having completed assessment
+   */
+  private async awardFirstAssessmentPoints(userId: number): Promise<void> {
+    try {
+      // Check if user already has completed assessments to avoid double rewards
+      const existingAssessments = await db.select()
+        .from(assessments)
+        .where(and(
+          eq(assessments.userId, userId),
+          eq(assessments.completed, true)
+        ));
+
+      // Only award points for the first completed assessment
+      if (existingAssessments.length <= 1) {
+        // Award 30 points
+        await db.update(users)
+          .set({
+            points: sql`${users.points} + 30`,
+            lifetimePoints: sql`${users.lifetimePoints} + 30`
+          })
+          .where(eq(users.id, userId));
+
+        console.log(`Awarded 30 points to user ${userId} for completing first assessment`);
+      }
+    } catch (error) {
+      console.error(`Error awarding first assessment points to user ${userId}:`, error);
+      // Don't throw error - assessment completion should still succeed
+    }
   }
 }
 
