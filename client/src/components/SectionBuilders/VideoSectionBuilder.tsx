@@ -43,7 +43,6 @@ export default function VideoSectionBuilder({
   const [isSearchingLibrary, setIsSearchingLibrary] = useState(false);
   const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
-  const [newDiscussionPoint, setNewDiscussionPoint] = useState('');
   const { toast } = useToast();
 
   // Parse content when it changes
@@ -168,20 +167,7 @@ export default function VideoSectionBuilder({
     });
   };
 
-  const addDiscussionPoint = () => {
-    if (!newDiscussionPoint.trim()) return;
-    
-    updateVideoData({
-      discussionPoints: [...videoData.discussionPoints, newDiscussionPoint.trim()]
-    });
-    setNewDiscussionPoint('');
-  };
 
-  const removeDiscussionPoint = (index: number) => {
-    updateVideoData({
-      discussionPoints: videoData.discussionPoints.filter((_, i) => i !== index)
-    });
-  };
 
   const [isGeneratingDiscussion, setIsGeneratingDiscussion] = useState(false);
 
@@ -197,19 +183,28 @@ export default function VideoSectionBuilder({
 
     setIsGeneratingDiscussion(true);
     try {
-      const response = await apiRequest('/api/ai/generate-discussion-points', 'POST', {
-        videoTitle: videoData.title,
-        videoUrl: videoData.videoUrl,
-        topic: 'early childhood education' // You can make this dynamic based on module context
+      const response = await apiRequest('/api/ai/generate-section', 'POST', {
+        sectionType: 'video',
+        topic: videoData.title || 'Educational Video',
+        context: `Generate discussion points for a video titled "${videoData.title}" for early childhood education teachers. Focus on practical classroom applications and reflection questions.`
       });
 
-      if (response.success && response.discussionPoints) {
+      if (response.success && response.content) {
+        // Parse the text response into discussion points
+        const generatedText = response.content;
+        const points = generatedText
+          .split('\n')
+          .filter(line => line.trim())
+          .map(line => line.replace(/^[-*•]\s*/, '').trim())
+          .filter(point => point.length > 0);
+
         updateVideoData({
-          discussionPoints: [...videoData.discussionPoints, ...response.discussionPoints]
+          discussionPoints: [...videoData.discussionPoints, ...points]
         });
+        
         toast({
           title: "Discussion Points Generated",
-          description: `Added ${response.discussionPoints.length} discussion points.`,
+          description: `Added ${points.length} discussion points.`,
         });
       } else {
         throw new Error('Failed to generate discussion points');
@@ -296,68 +291,39 @@ export default function VideoSectionBuilder({
           <div className="flex items-center justify-between">
             <Label className="text-lg font-medium">Discussion Points</Label>
             {isEditing && (
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={generateDiscussionPoints}
-                  variant="outline"
-                  size="sm"
-                  disabled={isGeneratingDiscussion || (!videoData.title && !videoData.videoUrl)}
-                  className="flex items-center space-x-1"
-                >
-                  {isGeneratingDiscussion ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4" />
-                  )}
-                  <span>{isGeneratingDiscussion ? 'Generating...' : 'Generate AI Points'}</span>
-                </Button>
-                <Button
-                  onClick={addDiscussionPoint}
-                  variant="outline"
-                  size="sm"
-                  disabled={!newDiscussionPoint.trim()}
-                  className="flex items-center space-x-1"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Manual</span>
-                </Button>
-              </div>
+              <Button
+                onClick={generateDiscussionPoints}
+                variant="outline"
+                size="sm"
+                disabled={isGeneratingDiscussion || (!videoData.title && !videoData.videoUrl)}
+                className="flex items-center space-x-1"
+              >
+                {isGeneratingDiscussion ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Wand2 className="w-4 h-4" />
+                )}
+                <span>{isGeneratingDiscussion ? 'Generating...' : 'Generate AI Points'}</span>
+              </Button>
             )}
           </div>
 
-          {isEditing && (
-            <div className="flex space-x-2">
-              <Input
-                value={newDiscussionPoint}
-                onChange={(e) => setNewDiscussionPoint(e.target.value)}
-                placeholder="Enter a discussion point..."
-                onKeyPress={(e) => e.key === 'Enter' && addDiscussionPoint()}
-              />
-            </div>
-          )}
-
-          {videoData.discussionPoints.length > 0 && (
-            <div className="space-y-2">
-              {videoData.discussionPoints.map((point, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100"
-                >
-                  <p className="text-gray-800">{point}</p>
-                  {isEditing && (
-                    <Button
-                      onClick={() => removeDiscussionPoint(index)}
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="space-y-3">
+            <Textarea
+              value={videoData.discussionPoints.join('\n')}
+              onChange={(e) => {
+                const points = e.target.value.split('\n').filter(point => point.trim());
+                updateVideoData({ discussionPoints: points });
+              }}
+              placeholder="Enter discussion points, one per line..."
+              rows={6}
+              className="w-full"
+              disabled={!isEditing}
+            />
+            {!isEditing && videoData.discussionPoints.length === 0 && (
+              <p className="text-gray-500 text-sm">No discussion points added yet.</p>
+            )}
+          </div>
         </div>
 
         {/* Manual Input Fields */}
