@@ -38,7 +38,10 @@ export default function VideoSectionBuilder({
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [showVideoSearch, setShowVideoSearch] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [youtubeResults, setYoutubeResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSearchingLibrary, setIsSearchingLibrary] = useState(false);
+  const [isSearchingYoutube, setIsSearchingYoutube] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   const [newDiscussionPoint, setNewDiscussionPoint] = useState('');
   const { toast } = useToast();
@@ -73,35 +76,58 @@ export default function VideoSectionBuilder({
     onContentChange(JSON.stringify(updated));
   };
 
+  const searchVideoLibrary = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setIsSearchingLibrary(true);
+    try {
+      const response = await fetch(`/api/video-search/search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent('early childhood education')}`);
+      if (response.ok) {
+        const results = await response.json();
+        setSearchResults(results);
+      }
+    } catch (error) {
+      console.error('Video library search error:', error);
+      toast({
+        title: "Search Failed",
+        description: "Unable to search video library. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsSearchingLibrary(false);
+  };
+
+  const searchYouTube = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setIsSearchingYoutube(true);
+    try {
+      const response = await fetch(`/api/video-search/youtube-search?q=${encodeURIComponent(query)}&topic=${encodeURIComponent('early childhood education')}`);
+      if (response.ok) {
+        const results = await response.json();
+        setYoutubeResults(results);
+      }
+    } catch (error) {
+      console.error('YouTube search error:', error);
+      toast({
+        title: "YouTube Search Failed",
+        description: "Unable to search YouTube. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsSearchingYoutube(false);
+  };
+
   const searchVideos = async () => {
     if (!videoSearchQuery.trim()) return;
     
     setIsSearching(true);
-    try {
-      const response = await apiRequest('/api/video-search/youtube-search', 'GET', {
-        query: videoSearchQuery,
-        maxResults: 8
-      });
-      
-      if (response.success) {
-        setSearchResults(response.videos || []);
-      } else {
-        toast({
-          title: "Search Error",
-          description: "Unable to search videos. Please try again.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Video search error:', error);
-      toast({
-        title: "Search Error", 
-        description: "Unable to search videos. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSearching(false);
-    }
+    // Search both library and YouTube simultaneously
+    await Promise.all([
+      searchVideoLibrary(videoSearchQuery),
+      searchYouTube(videoSearchQuery)
+    ]);
+    setIsSearching(false);
   };
 
   const selectVideo = (video: any) => {
@@ -382,26 +408,46 @@ export default function VideoSectionBuilder({
 
             <div className="space-y-6">
               {/* Search Section */}
-              <div className="flex space-x-2">
+              <div className="space-y-3">
                 <Input
                   value={videoSearchQuery}
                   onChange={(e) => setVideoSearchQuery(e.target.value)}
                   placeholder="help children grow"
-                  className="flex-1"
+                  className="border-blue-300 focus:border-blue-500"
                   onKeyPress={(e) => e.key === 'Enter' && searchVideos()}
                 />
-                <Button
-                  onClick={searchVideos}
-                  disabled={isSearching}
-                  className="bg-green-700 hover:bg-green-800 text-white px-6"
-                >
-                  {isSearching ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4" />
-                  )}
-                  <span className="ml-2">Search</span>
-                </Button>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-blue-300 text-blue-700"
+                    onClick={() => searchVideoLibrary(videoSearchQuery)}
+                    disabled={isSearchingLibrary || !videoSearchQuery.trim()}
+                  >
+                    <BookOpen className="h-3 w-3 mr-1" />
+                    {isSearchingLibrary ? 'Searching...' : 'Library'}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-red-300 text-red-700"
+                    onClick={() => searchYouTube(videoSearchQuery)}
+                    disabled={isSearchingYoutube || !videoSearchQuery.trim()}
+                  >
+                    <Youtube className="h-3 w-3 mr-1" />
+                    {isSearchingYoutube ? 'Searching...' : 'YouTube'}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-green-700 hover:bg-green-800 text-white"
+                    onClick={searchVideos}
+                    disabled={isSearching || !videoSearchQuery.trim()}
+                  >
+                    <Search className="h-3 w-3 mr-1" />
+                    {isSearching ? 'Searching...' : 'Search All'}
+                  </Button>
+                </div>
               </div>
 
               {/* Custom URL Section */}
@@ -426,35 +472,87 @@ export default function VideoSectionBuilder({
               </div>
 
               {/* Search Results */}
-              {searchResults.length > 0 && (
+              {(searchResults.length > 0 || youtubeResults.length > 0) && (
                 <div className="space-y-4">
-                  <h4 className="font-medium text-red-600">YouTube Results ({searchResults.length})</h4>
-                  {searchResults.map((video: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50"
-                    >
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-32 h-24 object-cover rounded"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-medium text-gray-900 mb-1">{video.title}</h5>
-                        <p className="text-sm text-gray-600 mb-1">By {video.channel}</p>
-                        <p className="text-sm text-gray-600">
-                          YouTube • <span className="text-blue-600 hover:underline cursor-pointer">View on YouTube</span>
-                        </p>
+                  <h4 className="font-medium text-gray-800">Choose a video to add:</h4>
+                  <div className="max-h-64 overflow-y-auto space-y-3">
+                    
+                    {/* Library Videos */}
+                    {searchResults.map((video, index) => (
+                      <div key={`library-${index}`} className="p-3 bg-white rounded-lg border border-blue-200 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-blue-900 truncate">{video.title}</p>
+                            <p className="text-xs text-blue-700 mt-1">{video.description || video.category}</p>
+                            <p className="text-xs text-gray-500 mt-1">Library Video • {video.duration || 'Duration unknown'}</p>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="ml-3 bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={() => {
+                              updateVideoData({
+                                videoUrl: video.url,
+                                title: video.title,
+                                duration: parseInt(video.duration) || 0
+                              });
+                              setShowVideoSearch(false);
+                              setVideoSearchQuery('');
+                              setSearchResults([]);
+                              setYoutubeResults([]);
+                              toast({
+                                title: "Video Added",
+                                description: `Added "${video.title}" from library`,
+                              });
+                            }}
+                          >
+                            <BookOpen className="h-3 w-3 mr-1" />
+                            Add Video
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        onClick={() => selectVideo(video)}
-                        className="bg-red-600 hover:bg-red-700 text-white flex items-center space-x-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Video</span>
-                      </Button>
-                    </div>
-                  ))}
+                    ))}
+                    
+                    {/* YouTube Videos */}
+                    {youtubeResults.map((video, index) => (
+                      <div key={`youtube-${index}`} className="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-red-900 truncate">{video.title}</p>
+                            <p className="text-xs text-red-700 mt-1">{video.channelTitle}</p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{video.description}</p>
+                            <p className="text-xs text-gray-500 mt-1">YouTube Video</p>
+                          </div>
+                          {video.thumbnail && (
+                            <img src={video.thumbnail} alt="" className="w-16 h-12 object-cover rounded ml-3 flex-shrink-0" />
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="ml-3 bg-red-600 hover:bg-red-700 text-white"
+                            onClick={() => {
+                              updateVideoData({
+                                videoUrl: video.url,
+                                title: video.title,
+                                duration: 0
+                              });
+                              setShowVideoSearch(false);
+                              setVideoSearchQuery('');
+                              setSearchResults([]);
+                              setYoutubeResults([]);
+                              toast({
+                                title: "Video Added",
+                                description: `Added "${video.title}" from YouTube`,
+                              });
+                            }}
+                          >
+                            <Youtube className="h-3 w-3 mr-1" />
+                            Add Video
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
