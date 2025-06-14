@@ -939,7 +939,7 @@ export default function ComprehensiveModuleCreator() {
     
     // Check if this is a user module template
     if (template.isUserModule && modules) {
-      const originalModule = modules.find((m: any) => m.id === template.originalModuleId);
+      const originalModule = Array.isArray(modules) ? modules.find((m: any) => m.id === template.originalModuleId) : null;
       
       if (originalModule) {
         const parsedSections = originalModule.sections ? JSON.parse(originalModule.sections) : [];
@@ -1039,7 +1039,8 @@ export default function ComprehensiveModuleCreator() {
         const updatedSections = [...newModule.sections];
         updatedSections[currentSectionIndex] = {
           ...currentSection,
-          ...quizData
+          ...quizData,
+          type: currentSection.type as 'text' | 'quiz' | 'scenario-match' | 'podcast' | 'slide' | 'video' | 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'mnemonic' | 'simulation'
         };
         setNewModule(prev => ({ ...prev, sections: updatedSections }));
         
@@ -1141,7 +1142,8 @@ export default function ComprehensiveModuleCreator() {
     setCurrentQuizQuestion({
       question: '',
       answers: ['', '', '', ''],
-      correctAnswer: 0
+      correctAnswer: 0,
+      explanation: ''
     });
     setBuiltQuizQuestions([]);
   };
@@ -2013,7 +2015,8 @@ export default function ComprehensiveModuleCreator() {
           const updatedSections = [...newModule.sections];
           updatedSections[sectionIndex] = {
             ...updatedSections[sectionIndex],
-            ...quizData
+            ...quizData,
+            type: updatedSections[sectionIndex].type as 'text' | 'quiz' | 'scenario-match' | 'podcast' | 'slide' | 'video' | 'story' | 'example' | 'matching' | 'scenario' | 'triage' | 'mnemonic' | 'simulation'
           };
           setNewModule(prev => ({ ...prev, sections: updatedSections }));
           
