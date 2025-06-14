@@ -20,7 +20,6 @@ interface VideoData {
   videoUrl: string;
   title: string;
   duration?: number;
-  discussionPoints: string[];
 }
 
 export default function VideoSectionBuilder({
@@ -32,8 +31,7 @@ export default function VideoSectionBuilder({
   const [videoData, setVideoData] = useState<VideoData>({
     videoUrl: '',
     title: '',
-    duration: 0,
-    discussionPoints: []
+    duration: 0
   });
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [showVideoSearch, setShowVideoSearch] = useState(false);
@@ -53,8 +51,7 @@ export default function VideoSectionBuilder({
         setVideoData({
           videoUrl: parsed.videoUrl || '',
           title: parsed.title || '',
-          duration: parsed.duration || 0,
-          discussionPoints: parsed.discussionPoints || []
+          duration: parsed.duration || 0
         });
       }
     } catch (error) {
@@ -62,8 +59,7 @@ export default function VideoSectionBuilder({
       setVideoData({
         videoUrl: '',
         title: '',
-        duration: 0,
-        discussionPoints: []
+        duration: 0
       });
     }
   }, [content]);
@@ -169,60 +165,7 @@ export default function VideoSectionBuilder({
 
 
 
-  const [isGeneratingDiscussion, setIsGeneratingDiscussion] = useState(false);
 
-  const generateDiscussionPoints = async () => {
-    if (!videoData.title && !videoData.videoUrl) {
-      toast({
-        title: "Video Required",
-        description: "Please select or add a video first.",
-        variant: "destructive"
-      });
-      return;
-    }
-console.log(videoData,'video data')
-    setIsGeneratingDiscussion(true);
-    try {
-      const response = await apiRequest('/api/ai/generate-section', 'POST', {
-        topic: videoData.title || 'Educational Video',
-        sectionType: 'video',
-        sectionTitle: 'Video Discussion Points',
-        targetAudience: 'early childhood educators',
-        difficulty: 'medium',
-        templateContext: 'Video Section'
-      });
-
-      if (response && response.blocks && response.blocks.length > 0) {
-        // Extract content from the first block
-        const generatedText = response.blocks[0].content;
-        const points = generatedText
-          .split('\n')
-          .filter(line => line.trim())
-          .map(line => line.replace(/^[-*•]\s*/, '').trim())
-          .filter(point => point.length > 0);
-
-        updateVideoData({
-          discussionPoints: [...videoData.discussionPoints, ...points]
-        });
-        
-        toast({
-          title: "Discussion Points Generated",
-          description: `Added ${points.length} discussion points.`,
-        });
-      } else {
-        throw new Error('Failed to generate discussion points');
-      }
-    } catch (error) {
-      console.error('Discussion generation error:', error);
-      toast({
-        title: "Generation Error",
-        description: "Unable to generate discussion points. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingDiscussion(false);
-    }
-  };
 
 
 
@@ -289,45 +232,7 @@ console.log(videoData,'video data')
           </div>
         )}
 
-        {/* Discussion Points */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-lg font-medium">Discussion Points</Label>
-            {isEditing && (
-              <Button
-                onClick={generateDiscussionPoints}
-                variant="outline"
-                size="sm"
-                disabled={isGeneratingDiscussion || (!videoData.title && !videoData.videoUrl)}
-                className="flex items-center space-x-1"
-              >
-                {isGeneratingDiscussion ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Wand2 className="w-4 h-4" />
-                )}
-                <span>{isGeneratingDiscussion ? 'Generating...' : 'Generate AI Points'}</span>
-              </Button>
-            )}
-          </div>
 
-          <div className="space-y-3">
-            <Textarea
-              value={videoData.discussionPoints.join('\n')}
-              onChange={(e) => {
-                const points = e.target.value.split('\n').filter(point => point.trim());
-                updateVideoData({ discussionPoints: points });
-              }}
-              placeholder="Enter discussion points, one per line..."
-              rows={6}
-              className="w-full"
-              disabled={!isEditing}
-            />
-            {!isEditing && videoData.discussionPoints.length === 0 && (
-              <p className="text-gray-500 text-sm">No discussion points added yet.</p>
-            )}
-          </div>
-        </div>
 
         {/* Manual Input Fields */}
         {isEditing && (
