@@ -18,22 +18,25 @@ interface LessonPlanVisualizerProps {
 const extractLessonSummary = (text: string) => {
   const defaultSummary = {
     theme: "educational activities",
-    ageGroup: "preschool"
+    ageGroup: "preschool",
+    activities: [],
+    objectives: [],
+    title: ""
   };
 
   if (!text || text.trim().length === 0) {
     return defaultSummary;
   }
 
-  // Extract theme/topic - look for common patterns
-  const themeMatches = text.match(/(?:theme|topic|subject|about|focus):\s*([^.\n]+)/i) ||
-                      text.match(/(?:learning about|exploring|studying)\s+([^.\n,]+)/i) ||
-                      text.match(/^([^.\n]+)(?:\s+lesson|\s+activities|\s+plan)/i);
+  // Extract title/theme - look for common patterns
+  const titleMatches = text.match(/^([^.\n]{3,50})/i) ||
+                      text.match(/(?:theme|topic|subject|title):\s*([^.\n]+)/i) ||
+                      text.match(/(?:learning about|exploring|studying)\s+([^.\n,]+)/i);
   
-  let theme = themeMatches ? themeMatches[1].trim().toLowerCase() : "educational activities";
+  let title = titleMatches ? titleMatches[1].trim() : "Weekly Lesson Plan";
+  title = title.replace(/[^\w\s-]/g, '').substring(0, 50);
   
-  // Clean up theme and limit length
-  theme = theme.replace(/[^\w\s]/g, '').substring(0, 50);
+  let theme = title.toLowerCase();
   if (!theme) theme = "educational activities";
 
   // Extract age group
@@ -44,7 +47,26 @@ const extractLessonSummary = (text: string) => {
   let ageGroup = ageMatches ? ageMatches[1].trim() : "preschool";
   ageGroup = ageGroup.toLowerCase().replace(/[^\w\s-]/g, '');
 
-  return { theme, ageGroup };
+  // Extract activities - look for bulleted lists or numbered items
+  const activityMatches = text.match(/(?:activit(?:y|ies)|exercise|task):\s*([^.\n]+)/gi) ||
+                         text.match(/(?:^|\n)\s*[-•*]\s*([^.\n]{5,100})/gm) ||
+                         text.match(/(?:^|\n)\s*\d+\.\s*([^.\n]{5,100})/gm);
+  
+  const activities = activityMatches ? 
+    activityMatches.slice(0, 5).map(match => 
+      match.replace(/^(?:activit(?:y|ies)|exercise|task):\s*|^[-•*\d.\s]+/i, '').trim()
+    ) : [];
+
+  // Extract learning objectives
+  const objectiveMatches = text.match(/(?:objective|goal|learn|understand):\s*([^.\n]+)/gi) ||
+                          text.match(/(?:students will|children will)\s+([^.\n]+)/gi);
+  
+  const objectives = objectiveMatches ? 
+    objectiveMatches.slice(0, 3).map(match => 
+      match.replace(/^(?:objective|goal|learn|understand):\s*|(?:students will|children will)\s+/i, '').trim()
+    ) : [];
+
+  return { theme, ageGroup, activities, objectives, title };
 };
 
 const generateImageFromPrompt = async (prompt: string): Promise<string | null> => {
@@ -106,7 +128,22 @@ export default function LessonPlanVisualizer({
     try {
       // Extract key elements from lesson plan to create a concise prompt
       const lessonSummary = extractLessonSummary(lessonText);
-      const promptBase = `Create a ${style} ${purpose === "outline" ? "infographic-style visual" : "educational illustration"} for ${audience}. Show ${lessonSummary.theme} activities for ${lessonSummary.ageGroup} children. Include colorful, engaging elements appropriate for early childhood education.`;
+      let promptBase = "";
+
+      switch (purpose) {
+        case "formatted":
+          promptBase = `Create a clean, ${style} formatted lesson plan layout for ${audience}. Title: "${lessonSummary.title}". Include sections for activities, objectives, and materials. Use professional typography with colorful accents. No decorative images, focus on clear text layout.`;
+          break;
+        case "wall-display":
+          promptBase = `Create a ${style} classroom wall poster for ${audience}. Title: "${lessonSummary.title}" for ${lessonSummary.ageGroup}. Include visual activity icons, colorful borders, and space for daily activities. Classroom-ready design.`;
+          break;
+        case "sections":
+          promptBase = `Create ${style} educational illustrations for ${audience}. Show ${lessonSummary.theme} learning activities for ${lessonSummary.ageGroup}. Focus on visual elements without text to avoid spelling errors.`;
+          break;
+        default: // outline
+          promptBase = `Create a ${style} infographic overview for ${audience}. Theme: ${lessonSummary.theme} for ${lessonSummary.ageGroup}. Use icons and visual elements, minimal text. Colorful, engaging educational design.`;
+          break;
+      }
       
       const imageUrl = await generateImageFromPrompt(promptBase);
       
@@ -188,7 +225,7 @@ export default function LessonPlanVisualizer({
           Visualize Your Lesson Plan
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Transform your lesson plan into beautiful, shareable visuals using AI
+          Transform your lesson plan into beautiful, shareable visuals using AI. Choose from infographics, formatted lesson plans, or wall display posters.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -216,8 +253,16 @@ export default function LessonPlanVisualizer({
               <SelectContent>
                 <SelectItem value="outline">Infographic Overview</SelectItem>
                 <SelectItem value="sections">Section-by-Section Images</SelectItem>
+                <SelectItem value="formatted">Pretty Formatted Plan</SelectItem>
+                <SelectItem value="wall-display">Wall Display Poster</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              {purpose === "formatted" && "Clean text layout for printing and posting"}
+              {purpose === "wall-display" && "Colorful poster with activity spaces for classroom walls"}
+              {purpose === "sections" && "Visual illustrations without text to avoid spelling errors"}
+              {purpose === "outline" && "Overview infographic with icons and minimal text"}
+            </p>
           </div>
 
           <div>
