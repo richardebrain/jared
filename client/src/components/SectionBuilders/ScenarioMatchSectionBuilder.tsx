@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ interface ScenarioItem {
 }
 
 interface ScenarioMatchSectionBuilderProps {
-  content: string;
+  content: any;
   onContentChange: (content: string) => void;
   isEditing: boolean;
   onEditToggle: () => void;
@@ -39,33 +39,37 @@ export default function ScenarioMatchSectionBuilder({
   // Parse content when it changes
   useEffect(() => {
     try {
-      if (content && content !== '[]' && content !== '') {
-        const parsed = JSON.parse(content);
-        if (Array.isArray(parsed)) {
-          setScenarios(parsed);
-        }
+      let aiContent = '';
+        console.log(content?.blocks?.[0],'content')
+      if (content?.blocks?.[0]?.content) {
+        aiContent = content.blocks[0].content;
+      } else if (content?.content) {
+        aiContent = content.content;
+      } else if (typeof content === 'string') {
+        aiContent = content;
       }
+      if (aiContent) {
+        console.log(aiContent,'ai contnent')
+        try {
+          if(Array.isArray(aiContent)){
+            setScenarios(aiContent)
+          }else{
+          const parsedScenarios = JSON.parse(aiContent);
+          setScenarios(parsedScenarios);
+          }
+        }
+        catch(err){}}
     } catch (error) {
       console.error('Error parsing scenario content:', error);
       setScenarios([]);
     }
   }, [content]);
 
-  // Update content when scenarios change (with debouncing to prevent infinite loops)
-  const updateContent = useCallback((newScenarios: ScenarioItem[]) => {
-    const newContent = JSON.stringify(newScenarios);
-    if (newContent !== content) {
-      onContentChange(newContent);
-    }
-  }, [content, onContentChange]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      updateContent(scenarios);
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [scenarios, updateContent]);
+  // Helper function to update content only when user makes changes
+  const updateContent = (newScenarios: ScenarioItem[]) => {
+    setScenarios(newScenarios);
+    onContentChange(JSON.stringify(newScenarios));
+  };
 
   const addNewScenario = () => {
     const newScenario: ScenarioItem = {
@@ -75,34 +79,40 @@ export default function ScenarioMatchSectionBuilder({
       correctAnswer: 0,
       explanation: ''
     };
-    setScenarios([...scenarios, newScenario]);
+    updateContent([...scenarios, newScenario]);
   };
 
   const updateScenario = (index: number, field: keyof ScenarioItem, value: any) => {
     const updated = [...scenarios];
     updated[index] = { ...updated[index], [field]: value };
-    setScenarios(updated);
+    updateContent(updated);
   };
 
   const updateOption = (scenarioIndex: number, optionIndex: number, value: string) => {
     const updated = [...scenarios];
     updated[scenarioIndex].options[optionIndex] = value;
-    setScenarios(updated);
+    updateContent(updated);
   };
 
   const removeScenario = (index: number) => {
-    setScenarios(scenarios.filter((_, i) => i !== index));
+    updateContent(scenarios.filter((_, i) => i !== index));
   };
 
   const generateAIScenarios = async () => {
     setIsGenerating(true);
     try {
-      // Use the AI regeneration function passed from parent
-      onRegenerateAI();
-      toast({
-        title: "Generating Scenarios",
-        description: "AI is creating interactive scenario matching exercises.",
+      const response = await apiRequest('POST', '/api/ai/generate-scenario-match', {
+        count: 3,
+        topic: 'early childhood education'
       });
+
+      if (response.scenarios) {
+        setScenarios(response.scenarios);
+        toast({
+          title: "Scenarios Generated",
+          description: "AI has created interactive scenario matching exercises.",
+        });
+      }
     } catch (error) {
       console.error('Error generating scenarios:', error);
       // Provide example scenarios
@@ -144,7 +154,7 @@ export default function ScenarioMatchSectionBuilder({
           explanation: 'A consistent goodbye routine with comfort items helps children feel secure and builds trust, making transitions easier over time.'
         }
       ];
-      setScenarios(exampleScenarios);
+      updateContent(exampleScenarios);
       toast({
         title: "Example Scenarios Provided",
         description: "Sample scenarios have been added to get you started.",
