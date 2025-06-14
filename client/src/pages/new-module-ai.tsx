@@ -495,28 +495,6 @@ export default function NewModuleAI() {
                   );
                 })}
               </div>
-              
-              {/* Share with Community Toggle */}
-              <div className="mt-6 flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <Switch
-                  id="share-community"
-                  checked={moduleConfig.shareWithCommunity}
-                  onCheckedChange={(checked) =>
-                    setModuleConfig((prev) => ({
-                      ...prev,
-                      shareWithCommunity: checked,
-                    }))
-                  }
-                />
-                <div className="flex-1">
-                  <Label htmlFor="share-community" className="text-sm font-medium">
-                    Share with Community
-                  </Label>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Make this module available to other educators in the community library
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -668,6 +646,28 @@ export default function NewModuleAI() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* Share with Community Toggle */}
+              <div className="mt-6 flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <Switch
+                  id="share-community"
+                  checked={moduleConfig.shareWithCommunity}
+                  onCheckedChange={(checked) =>
+                    setModuleConfig((prev) => ({
+                      ...prev,
+                      shareWithCommunity: checked,
+                    }))
+                  }
+                />
+                <div className="flex-1">
+                  <Label htmlFor="share-community" className="text-sm font-medium">
+                    Share with Community
+                  </Label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Make this module available to other educators in the community library
+                  </p>
                 </div>
               </div>
 
@@ -935,11 +935,29 @@ export default function NewModuleAI() {
                     </div>
                     {sectionContents[index] && (
                       <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                        {sectionContents[index]?.blocks?.[0]?.preview ||
-                          sectionContents[
-                            index
-                          ]?.blocks?.[0]?.content?.substring(0, 150) + "..." ||
-                          "AI-generated content ready"}
+                        {(() => {
+                          const content = sectionContents[index];
+                          if (typeof content === 'string') {
+                            try {
+                              const parsed = JSON.parse(content);
+                              if (parsed.title) {
+                                return `${parsed.title}${parsed.videoUrl ? ' - Video Content' : ''}`;
+                              }
+                              if (parsed.videoUrl) {
+                                return `Video: ${parsed.videoUrl.substring(0, 50)}...`;
+                              }
+                            } catch (e) {
+                              return content.substring(0, 150) + "...";
+                            }
+                          }
+                          if (content?.blocks?.[0]?.preview) {
+                            return content.blocks[0].preview;
+                          }
+                          if (content?.blocks?.[0]?.content) {
+                            return content.blocks[0].content.substring(0, 150) + "...";
+                          }
+                          return "Content ready";
+                        })()}
                       </div>
                     )}
                   </div>
