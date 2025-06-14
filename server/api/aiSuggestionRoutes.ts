@@ -1231,7 +1231,9 @@ router.post('/generate-section', async (req, res) => {
         - Specific scenarios teachers encounter
         - Step-by-step implementation
         
-        Make examples relatable and actionable.`;
+        Make examples relatable and actionable.
+        Format as clear, structured content with headings and bullet points where appropriate.
+        `;
         break;
         
       case 'scenario':
@@ -1255,8 +1257,33 @@ router.post('/generate-section', async (req, res) => {
         - Have clear correct answers with explanations
         - Are appropriate for ${difficulty} level
         
-        Include both the questions and answer explanations.`;
-        break;
+        Include both the questions and answer explanations.
+
+
+        Return ONLY a valid JSON array using this exact structure:
+
+        [
+          {
+            "id": "question-1",
+            "question": "Your question here?",
+            "options": [
+              "First option",
+              "Second option",
+              "Third option",
+              "Fourth option"
+            ],
+            "correctAnswer": 2,
+            "explanation": "Explain why this option is correct."
+          }
+        ]
+
+        IMPORTANT:
+        - 'correctAnswer' must be the index (0-based) of the correct option from the 'options' array.
+        - Do not prefix options with 'A)', 'B)', etc.
+        - Do not include any explanation outside the JSON.
+        - Do not wrap the JSON in a string.
+        - Return only the array as JSON, no markdown or prose.`;
+          break;
         
       case 'matching':
         sectionPrompt = `Create a matching activity for "${sectionTitle}" about ${topic} for ${targetAudience} at ${difficulty} level. This is part of a ${templateContext}.
@@ -1266,7 +1293,16 @@ router.post('/generate-section', async (req, res) => {
         - Concepts and examples
         - Problems and solutions
         
-        Provide 6-8 matching pairs with clear connections.`;
+        Provide 6-8 matching pairs with clear connections.
+        Return the result strictly as a JSON array of objects like this:
+        [
+          { "left": "Photosynthesis", "right": "Process by which plants make food using sunlight" },
+          { "left": "Gravity", "right": "Force that pulls objects toward the Earth" },
+          ...
+        ]
+
+        Only return the JSON array — no additional text, explanation, or formatting.
+        `;
         break;
         
       case 'story':
@@ -1302,7 +1338,8 @@ router.post('/generate-section', async (req, res) => {
         - Includes feedback mechanisms
         - Builds practical skills
         
-        Make it interactive and skill-building focused.`;
+        Make it interactive and skill-building focused.
+        `;
         break;
         
       case 'triage':
@@ -1326,7 +1363,25 @@ router.post('/generate-section', async (req, res) => {
         - Show best practice matches
         - Explain reasoning behind choices
         
-        Focus on practical application skills.`;
+        Focus on practical application skills.
+        Return the output as a JSON array with this format:
+
+        [
+          {
+            "id": "scenario-1",
+            "scenario": "Describe the situation here...",
+            "options": [
+              "Option A",
+              "Option B",
+              "Option C"
+            ],
+            "correctAnswer": 1,
+            "explanation": "Explain why this is the correct response."
+          },
+          ...
+        ]
+
+        Only return the JSON. Do not include any text before or after.`;
         break;
         
       default:

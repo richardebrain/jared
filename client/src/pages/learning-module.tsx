@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { GamefiedQuiz } from "@/components/GamefiedQuiz";
 import { AIBearyModal } from "@/components/AIBearyModal";
 import { ActivitySection } from "@/components/ActivitySection";
+import ScenarioMatchSection from "@/components/sections/ScenarioMatchSection";
 
 // QuizSection component for handling quiz interactions
 interface QuizSectionProps {
@@ -1033,34 +1034,10 @@ export default function LearningModulePage() {
                                       {/* Scenario Match Section */}
                                       {moduleSections[currentSectionIndex].type === "scenario-match" && (
                                         <div className="mb-6">
-                                          <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-6">
-                                            <div className="flex items-center mb-4">
-                                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                                                <span className="text-orange-600 font-bold">🔗</span>
-                                              </div>
-                                              <h3 className="text-lg font-semibold text-orange-800">Scenario Matching</h3>
-                                            </div>
-                                            {moduleSections[currentSectionIndex].builderData?.pairs ? (
-                                              <div className="space-y-3">
-                                                {moduleSections[currentSectionIndex].builderData.pairs.map((pair: any, index: number) => (
-                                                  <div key={index} className="bg-white rounded-lg p-4 border border-orange-100">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                      <div className="bg-orange-50 rounded p-3">
-                                                        <h5 className="font-medium text-orange-800 mb-2">Scenario</h5>
-                                                        <p className="text-sm text-gray-700">{pair.scenario}</p>
-                                                      </div>
-                                                      <div className="bg-red-50 rounded p-3">
-                                                        <h5 className="font-medium text-red-800 mb-2">Appropriate Response</h5>
-                                                        <p className="text-sm text-gray-700">{pair.response}</p>
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ) : (
-                                              <div className="text-gray-700">{moduleSections[currentSectionIndex].content}</div>
-                                            )}
-                                          </div>
+                                          <ScenarioMatchSection 
+                                            content={moduleSections[currentSectionIndex].content || "[]"}
+                                            title={moduleSections[currentSectionIndex].title || "Scenario Matching"}
+                                          />
                                         </div>
                                       )}
 

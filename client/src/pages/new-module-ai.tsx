@@ -120,6 +120,7 @@ export default function NewModuleAI() {
   const [generatingSection, setGeneratingSection] = useState<number | null>(null);
   const [editingSections, setEditingSections] = useState<{[key: number]: boolean}>({});
   const [manualContent, setManualContent] = useState<{[key: number]: string}>({});
+  console.log(sectionContents,'section contents')
 
   const handleTemplateSelect = (templateId: string) => {
     const template = PROVEN_TEMPLATES.find(t => t.id === templateId);

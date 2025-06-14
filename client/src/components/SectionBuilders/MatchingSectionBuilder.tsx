@@ -28,6 +28,7 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
     // Handle different content formats from AI generation
     let aiContent = '';
     if (content?.blocks?.[0]?.content) {
+      console.log(content?.blocks?.[0]?.content,'content')
       aiContent = content.blocks[0].content;
     } else if (content?.content) {
       aiContent = content.content;
@@ -37,16 +38,27 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
     
     if (aiContent) {
       try {
+        // Check if content is already structured as matching pairs array
+        if (Array.isArray(aiContent)){
+          const structuredPairs = aiContent.map((p: any, index: number) => ({
+            id: `pair-${index + 1}`,
+            left: p.left || '',
+            right: p.right || ''
+          }));
+          setPairs(structuredPairs.length > 0 ? structuredPairs : [createEmptyPair()]);
+          
+        }else{ 
         const parsedPairs = parseAIContentToPairs(aiContent);
         setPairs(parsedPairs.length > 0 ? parsedPairs : [createEmptyPair()]);
+        }
         
         // Extract instructions if present
-        if (aiContent.toLowerCase().includes('match') || aiContent.toLowerCase().includes('connect')) {
-          const instructionMatch = aiContent.match(/^([^:]+):/);
-          if (instructionMatch) {
-            setInstructions(instructionMatch[1].trim());
-          }
-        }
+        // if (aiContent.toLowerCase().includes('match') || aiContent.toLowerCase().includes('connect')) {
+        //   const instructionMatch = aiContent.match(/^([^:]+):/);
+        //   if (instructionMatch) {
+        //     setInstructions(instructionMatch[1].trim());
+        //   }
+        // }
       } catch (error) {
         console.error('Error parsing matching content:', error);
         setPairs([createEmptyPair()]);
@@ -58,51 +70,18 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
 
   const parseAIContentToPairs = (aiContent: string): MatchingPair[] => {
     const pairs: MatchingPair[] = [];
-    const lines = aiContent.split('\n').filter(line => line.trim());
-    
-    let currentPairIndex = 0;
-    
-    lines.forEach(line => {
-      // Look for various matching patterns
-      const dashMatch = line.match(/^(.+?)\s*[-–—]\s*(.+)$/);
-      const colonMatch = line.match(/^(.+?)\s*:\s*(.+)$/);
-      const arrowMatch = line.match(/^(.+?)\s*[→\->]\s*(.+)$/);
-      const numberedMatch = line.match(/^\d+\.\s*(.+?)\s*[-–—:→\->]\s*(.+)$/);
-      
-      let leftItem = '';
-      let rightItem = '';
-      
-      if (dashMatch) {
-        leftItem = dashMatch[1].trim();
-        rightItem = dashMatch[2].trim();
-      } else if (colonMatch) {
-        leftItem = colonMatch[1].trim();
-        rightItem = colonMatch[2].trim();
-      } else if (arrowMatch) {
-        leftItem = arrowMatch[1].trim();
-        rightItem = arrowMatch[2].trim();
-      } else if (numberedMatch) {
-        leftItem = numberedMatch[1].trim();
-        rightItem = numberedMatch[2].trim();
-      } else if (line.includes('=')) {
-        const equalMatch = line.split('=');
-        if (equalMatch.length === 2) {
-          leftItem = equalMatch[0].trim();
-          rightItem = equalMatch[1].trim();
-        }
-      }
-      
-      if (leftItem && rightItem) {
-        pairs.push({
-          id: `pair-${currentPairIndex + 1}`,
-          left: leftItem,
-          right: rightItem
-        });
-        currentPairIndex++;
-      }
-    });
-    
-    return pairs.length > 0 ? pairs : [createEmptyPair()];
+    const parsedContent = JSON.parse(aiContent);
+    if (Array.isArray(parsedContent)){
+      const pairs = parsedContent.map((pair: any, index: number) =>
+      ({
+          id: `pair-${index + 1}`,
+          left: pair.left || '',
+          right: pair.right || ''
+        })
+                                      
+)  
+      return pairs}
+    return pairs
   };
 
   const createEmptyPair = (): MatchingPair => ({
