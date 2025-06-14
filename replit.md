@@ -131,7 +131,7 @@ MentorMe is a professional development platform designed specifically for early 
 
 ## Recent Changes
 
-- June 14, 2025: **Visual Lesson Plan Generator** - Added AI-powered image generation tool to both lesson plan creators using OpenAI DALL-E 3. Teachers can now transform their lesson plans into beautiful, shareable visuals with customizable styles (whimsical, modern, storybook, photographic) and target audiences (training, parents, classroom display). Integrated into both the advanced lesson plan creator and simple lesson plan maker.
+- June 14, 2025: **Enhanced Visual Lesson Plan Generator** - Improved the AI-powered image generation tool with text-aware prompts and "Pretty Formatted Plan" option. Now extracts actual lesson plan content to avoid spelling errors and create bulletin board-ready displays for parents. Features include: text-aware image generation using real lesson content, four visual types (infographic, sections, formatted plan, wall display), and medium quality images as standard.
 - June 14, 2025: **Level System Redesign** - Updated level calculation to match teacher progression roles instead of arbitrary point thresholds. Levels now correspond to: Assistant (1), Associate (2), Lead (3), Senior (4), Master (5). Created shared level utilities for consistent calculation across frontend and backend.
 - June 13, 2025: Enhanced point system with 5-30 point range across all module creation tools
 - June 13, 2025: Fixed streak reward system and updated landing page design

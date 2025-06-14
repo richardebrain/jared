@@ -132,7 +132,9 @@ export default function LessonPlanVisualizer({
 
       switch (purpose) {
         case "formatted":
-          promptBase = `Create a clean, ${style} formatted lesson plan layout for ${audience}. Title: "${lessonSummary.title}". Include sections for activities, objectives, and materials. Use professional typography with colorful accents. No decorative images, focus on clear text layout.`;
+          // Extract the actual lesson plan content to format it beautifully
+          const lessonContent = lessonText.slice(0, 400); // Keep under character limit but include real content
+          promptBase = `Create a beautifully formatted lesson plan poster for ${audience}. Use this exact content: "${lessonContent}". Format it with attractive typography, colorful headers, and bulletin board style layout. Make it parent-friendly and visually appealing for classroom display.`;
           break;
         case "wall-display":
           promptBase = `Create a ${style} classroom wall poster for ${audience}. Title: "${lessonSummary.title}" for ${lessonSummary.ageGroup}. Include visual activity icons, colorful borders, and space for daily activities. Classroom-ready design.`;
@@ -258,7 +260,7 @@ export default function LessonPlanVisualizer({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              {purpose === "formatted" && "Clean text layout for printing and posting"}
+              {purpose === "formatted" && "Takes your actual lesson plan text and formats it beautifully for bulletin board display"}
               {purpose === "wall-display" && "Colorful poster with activity spaces for classroom walls"}
               {purpose === "sections" && "Visual illustrations without text to avoid spelling errors"}
               {purpose === "outline" && "Overview infographic with icons and minimal text"}
