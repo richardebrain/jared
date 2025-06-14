@@ -1632,6 +1632,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(assessments.userId, userId))
       .orderBy(desc(assessments.createdAt));
   }
+
+  async getUserCompletedAssessments(userId: number): Promise<Assessment[]> {
+    return await db
+      .select()
+      .from(assessments)
+      .where(and(
+        eq(assessments.userId, userId),
+        eq(assessments.completed, true)
+      ))
+      .orderBy(desc(assessments.createdAt));
+  }
   
   async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
     const [newAssessment] = await db

@@ -129,6 +129,32 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+// Middleware to require assessment completion before module access
+const requireAssessmentCompletion = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    // Check if user has completed at least one assessment
+    const completedAssessments = await storage.getUserCompletedAssessments(userId);
+    
+    if (!completedAssessments || completedAssessments.length === 0) {
+      return res.status(403).json({ 
+        message: "Assessment required",
+        requiresAssessment: true,
+        details: "Please complete your initial assessment before accessing learning modules."
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking assessment completion:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // Initialize default school if needed
 async function ensureDefaultSchoolExists() {
   try {
@@ -2092,7 +2118,7 @@ Continue for all 5 questions...
   });
 
   // Learning modules routes
-  app.get("/api/modules", async (req, res) => {
+  app.get("/api/modules", requireAuth, requireAssessmentCompletion, async (req, res) => {
     console.log('fetching modules result')
 
     try {
