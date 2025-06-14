@@ -23,12 +23,16 @@ const generateImageFromPrompt = async (prompt: string): Promise<string | null> =
       },
       body: JSON.stringify({
         prompt,
-        size: "1024x1024"
+        size: "1024x1024",
+        quality: "standard", // Using standard quality (medium) as requested
+        style: "vivid"
       })
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('API Error:', response.status, errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();

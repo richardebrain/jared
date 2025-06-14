@@ -20,6 +20,8 @@ router.post('/generate-image', async (req, res) => {
   try {
     const { prompt, size = '1024x1024', quality = 'standard', style = 'vivid' }: ImageGenerationRequest = req.body;
 
+    console.log('Image generation request:', { prompt: prompt?.substring(0, 100), size, quality, style });
+
     if (!prompt || prompt.trim().length === 0) {
       return res.status(400).json({
         error: 'Prompt is required',
@@ -63,6 +65,12 @@ router.post('/generate-image', async (req, res) => {
 
   } catch (error: any) {
     console.error('Image generation error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      response: error.response?.data
+    });
 
     // Handle OpenAI API errors
     if (error.code === 'rate_limit_exceeded') {
@@ -79,7 +87,7 @@ router.post('/generate-image', async (req, res) => {
       });
     }
 
-    if (error.code === 'invalid_request_error') {
+    if (error.code === 'invalid_request_error' || error.status === 400) {
       return res.status(400).json({
         error: 'Invalid request',
         message: error.message || 'The request was invalid.'
@@ -97,8 +105,8 @@ router.post('/generate-image', async (req, res) => {
     // Generic error handling
     res.status(500).json({
       error: 'Image generation failed',
-      message: 'Unable to generate image. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: error.message || 'Unable to generate image. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.response?.data : undefined
     });
   }
 });
