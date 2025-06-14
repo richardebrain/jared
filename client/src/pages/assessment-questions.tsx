@@ -241,14 +241,14 @@ export default function AssessmentQuestions() {
             description: "Congratulations! You've completed all questions. Results are being prepared...",
           });
         } else {
-          // Show feedback for regular answers
+          // Show simple feedback for regular answers without confusing point display
           const feedbackMessage = isTimeout 
             ? "Time expired. Moving to next question..."
-            : "Answer submitted successfully!";
+            : "Answer submitted!";
             
           toast({
             title: feedbackMessage,
-            description: `Points earned: ${result.response.pointsEarned}`,
+            description: result.response.isCorrect ? "Great job!" : "Keep going!",
           });
 
           // Update session status and load next question

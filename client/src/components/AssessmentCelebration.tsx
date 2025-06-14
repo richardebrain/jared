@@ -115,6 +115,80 @@ export default function AssessmentCelebration({
             </p>
           </div>
 
+          {/* Teacher Progression System */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+            <div className="flex items-center gap-3 mb-4">
+              <Award className="w-6 h-6 text-blue-600" />
+              <h3 className="text-lg font-semibold text-blue-800">Your Teaching Journey</h3>
+            </div>
+            <p className="text-blue-700 mb-4">
+              Progress through five professional levels as you grow from Assistant Teacher to Master Teacher:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
+              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-800 text-sm">Level 1</div>
+                <div className="text-xs text-blue-600">Assistant</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-800 text-sm">Level 2</div>
+                <div className="text-xs text-blue-600">Associate</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-800 text-sm">Level 3</div>
+                <div className="text-xs text-blue-600">Lead</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-800 text-sm">Level 4</div>
+                <div className="text-xs text-blue-600">Senior</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-800 text-sm">Level 5</div>
+                <div className="text-xs text-blue-600">Master</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Points System Explanation */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+            <div className="flex items-center gap-3 mb-4">
+              <Sparkles className="w-6 h-6 text-green-600" />
+              <h3 className="text-lg font-semibold text-green-800">How You Earn Points</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 font-medium">Complete Learning Modules</span>
+                </div>
+                <span className="text-green-800 font-bold">5-30 points</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                <div className="flex items-center gap-3">
+                  <Trophy className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 font-medium">Watch Educational Videos</span>
+                </div>
+                <span className="text-green-800 font-bold">3-10 points</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 font-medium">Pass Module Quizzes (75%+)</span>
+                </div>
+                <span className="text-green-800 font-bold">Bonus points</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 font-medium">Daily Login Streak</span>
+                </div>
+                <span className="text-green-800 font-bold">Special rewards</span>
+              </div>
+            </div>
+            <p className="text-green-700 text-sm mt-4 italic">
+              Points help you unlock new content, earn Bear Bucks, and advance through teaching levels!
+            </p>
+          </div>
+
           {/* Next Steps */}
           <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
@@ -132,11 +206,11 @@ export default function AssessmentCelebration({
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                Access your customized learning path and mini-lessons
+                Access learning modules and videos to earn points
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                Begin your professional development journey
+                Begin your journey from Assistant to Master Teacher
               </li>
             </ul>
           </div>
