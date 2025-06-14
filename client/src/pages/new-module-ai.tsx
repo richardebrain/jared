@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, ArrowRight, CheckCircle2, Wand2, Loader2, Zap, BookOpen, Brain, Wrench, Users, Edit, Type, FileText, Save, Plus, RefreshCw } from 'lucide-react';
 import QuizSectionBuilder from '@/components/SectionBuilders/QuizSectionBuilder';
 import MatchingSectionBuilder from '@/components/SectionBuilders/MatchingSectionBuilder';
+import ScenarioMatchSectionBuilder from '@/components/SectionBuilders/ScenarioMatchSectionBuilder';
 import TextSectionBuilder from '@/components/SectionBuilders/TextSectionBuilder';
 
 // Proven Templates - The foundation for AI-driven content creation
@@ -261,6 +262,17 @@ export default function NewModuleAI() {
       case 'matching':
         return (
           <MatchingSectionBuilder
+            content={content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
+          />
+        );
+      
+      case 'scenario-match':
+        return (
+          <ScenarioMatchSectionBuilder
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
