@@ -135,8 +135,8 @@ export default function NewModuleAI() {
         ...prev,
         title: `${template.title} - ${prev.topic || 'New Topic'}`
       }));
-      // Initialize each section with its own unique content object
-      setSectionContents(template.sections.map(() => ({})));
+      // Initialize each section with null to properly track completion status
+      setSectionContents(template.sections.map(() => null));
       setEditingSections({});
       setCurrentStep('topic');
     }
@@ -573,7 +573,7 @@ export default function NewModuleAI() {
                             {section.type}
                           </div>
                         </div>
-                        {sectionContents[index] && (
+                        {sectionContents[index] && sectionContents[index].blocks && sectionContents[index].blocks.length > 0 && (
                           <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
                         )}
                       </div>
