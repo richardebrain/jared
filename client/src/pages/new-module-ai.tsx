@@ -232,8 +232,8 @@ export default function NewModuleAI() {
 
   const renderSectionBuilder = (section: any, index: number) => {
     const content = sectionContents[index];
-    // Video sections should default to editing mode, others use the editingSections state
-    const isEditing = section.type === 'video' ? (editingSections[index] !== false) : editingSections[index];
+    // All sections should default to editing mode
+    const isEditing = editingSections[index] !== false;
     
     const handleContentChange = (updatedContent: any) => {
       setSectionContents(prev => {
@@ -630,11 +630,9 @@ export default function NewModuleAI() {
                     </Button>
                   </div>
 
-                  {(sectionContents[currentSectionIndex] || editingSections[currentSectionIndex]) && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      {renderSectionBuilder(selectedTemplate.sections[currentSectionIndex], currentSectionIndex)}
-                    </div>
-                  )}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    {renderSectionBuilder(selectedTemplate.sections[currentSectionIndex], currentSectionIndex)}
+                  </div>
 
                   {/* Navigation Buttons */}
                   <div className="flex justify-between pt-6 border-t">
