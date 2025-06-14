@@ -17,6 +17,7 @@ import { useLocation } from 'wouter';
 import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
 import MultilingualBearyAI from "@/components/MultilingualBearyAI";
 import ActivityBlockComponent from "@/components/ActivityBlockComponent";
+import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import {
   Video,
   Link2,

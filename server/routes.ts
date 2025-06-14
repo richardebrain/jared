@@ -2239,7 +2239,7 @@ Continue for all 5 questions...
   );
 
   // Create new learning module
-  app.post("/api/modules", async (req, res) => {
+  app.post("/api/modules", requireAuth, requireAssessmentCompletion, async (req, res) => {
     try {
       // Handle both authenticated and test scenarios
       const userId = req.session?.userId || 1; // Default to user 1 for testing

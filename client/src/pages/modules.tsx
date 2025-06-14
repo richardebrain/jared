@@ -8,14 +8,31 @@ import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
 import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
+import { useState, useEffect } from "react";
 
 export default function AllModules() {
   const [, setLocation] = useLocation();
+  const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
 
   // Fetch all modules
-  const { data: modules = [] } = useQuery<LearningModule[]>({
+  const { data: modules = [], error: modulesError } = useQuery<LearningModule[]>({
     queryKey: ["/api/modules"],
+    retry: (failureCount, error: any) => {
+      // Don't retry if assessment is required (403 status)
+      if (error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 3;
+    }
   });
+
+  // Check if modules fetch failed due to assessment requirement
+  useEffect(() => {
+    if (modulesError && (modulesError as any)?.response?.status === 403) {
+      setShowAssessmentDialog(true);
+    }
+  }, [modulesError]);
 
   // Fetch user progress
   const { data: userProgress = [] } = useQuery<UserProgress[]>({
@@ -244,6 +261,12 @@ export default function AllModules() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Assessment Required Dialog */}
+      <AssessmentRequiredDialog 
+        isOpen={showAssessmentDialog}
+        onClose={() => setShowAssessmentDialog(false)}
+      />
     </div>
   );
 }
