@@ -157,6 +157,49 @@ export default function VideoSectionBuilder({
     });
   };
 
+  const [isGeneratingDiscussion, setIsGeneratingDiscussion] = useState(false);
+
+  const generateDiscussionPoints = async () => {
+    if (!videoData.title && !videoData.videoUrl) {
+      toast({
+        title: "Video Required",
+        description: "Please select or add a video first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingDiscussion(true);
+    try {
+      const response = await apiRequest('/api/ai/generate-discussion-points', 'POST', {
+        videoTitle: videoData.title,
+        videoUrl: videoData.videoUrl,
+        topic: 'early childhood education' // You can make this dynamic based on module context
+      });
+
+      if (response.success && response.discussionPoints) {
+        updateVideoData({
+          discussionPoints: [...videoData.discussionPoints, ...response.discussionPoints]
+        });
+        toast({
+          title: "Discussion Points Generated",
+          description: `Added ${response.discussionPoints.length} discussion points.`,
+        });
+      } else {
+        throw new Error('Failed to generate discussion points');
+      }
+    } catch (error) {
+      console.error('Discussion generation error:', error);
+      toast({
+        title: "Generation Error",
+        description: "Unable to generate discussion points. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingDiscussion(false);
+    }
+  };
+
 
 
   const getVideoId = (url: string) => {
@@ -227,16 +270,32 @@ export default function VideoSectionBuilder({
           <div className="flex items-center justify-between">
             <Label className="text-lg font-medium">Discussion Points</Label>
             {isEditing && (
-              <Button
-                onClick={addDiscussionPoint}
-                variant="outline"
-                size="sm"
-                disabled={!newDiscussionPoint.trim()}
-                className="flex items-center space-x-1"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Point</span>
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={generateDiscussionPoints}
+                  variant="outline"
+                  size="sm"
+                  disabled={isGeneratingDiscussion || (!videoData.title && !videoData.videoUrl)}
+                  className="flex items-center space-x-1"
+                >
+                  {isGeneratingDiscussion ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  <span>{isGeneratingDiscussion ? 'Generating...' : 'Generate AI Points'}</span>
+                </Button>
+                <Button
+                  onClick={addDiscussionPoint}
+                  variant="outline"
+                  size="sm"
+                  disabled={!newDiscussionPoint.trim()}
+                  className="flex items-center space-x-1"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Manual</span>
+                </Button>
+              </div>
             )}
           </div>
 
