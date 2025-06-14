@@ -232,7 +232,8 @@ export default function NewModuleAI() {
 
   const renderSectionBuilder = (section: any, index: number) => {
     const content = sectionContents[index];
-    const isEditing = editingSections[index];
+    // Video sections should default to editing mode, others use the editingSections state
+    const isEditing = section.type === 'video' ? (editingSections[index] !== false) : editingSections[index];
     
     const handleContentChange = (updatedContent: any) => {
       setSectionContents(prev => {

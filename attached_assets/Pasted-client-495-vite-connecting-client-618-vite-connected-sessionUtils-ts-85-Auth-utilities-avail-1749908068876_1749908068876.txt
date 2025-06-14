@@ -1,0 +1,81 @@
+client:495 [vite] connecting...
+client:618 [vite] connected.
+sessionUtils.ts:85 Auth utilities available at window.authUtils
+new-module-ai.tsx:128 [] 'section contents'
+new-module-ai.tsx:128 [] 'section contents'
+new-module-ai.tsx:128 [] 'section contents'
+new-module-ai.tsx:128 (6) [null, null, null, null, null, null] 'section contents'
+new-module-ai.tsx:128 (6) [null, null, null, null, null, null] 'section contents'
+new-module-ai.tsx:128 (6) [null, null, null, null, null, null] 'section contents'
+new-module-ai.tsx:128 (6) [null, null, null, null, null, null] 'section contents'
+new-module-ai.tsx:128 (6) [null, null, null, null, null, null] 'section contents'
+new-module-ai.tsx:241 (6) [null, '{"videoUrl":"https://www.youtube.com/watch?v=wJaAe…. Peter Gray","duration":0,"discussionPoints":[]}', null, null, null, null] 'update contnent change'
+new-module-ai.tsx:128 (6) [null, '{"videoUrl":"https://www.youtube.com/watch?v=wJaAe…. Peter Gray","duration":0,"discussionPoints":[]}', null, null, null, null] 'section contents'
+queryClient.ts:120 API Error: SyntaxError: Failed to execute 'open' on 'XMLHttpRequest': '/API/AI/GENERATE-SECTION' is not a valid HTTP method.
+    at dispatchXhrRequest (axios.js?v=107d7d1b:1543:13)
+    at new Promise (<anonymous>)
+    at xhr (axios.js?v=107d7d1b:1528:10)
+    at Axios.dispatchRequest (axios.js?v=107d7d1b:2003:10)
+    at Axios._request (axios.js?v=107d7d1b:2224:33)
+    at Axios.request (axios.js?v=107d7d1b:2115:25)
+    at wrap (axios.js?v=107d7d1b:8:15)
+    at apiRequest (queryClient.ts:117:28)
+    at generateDiscussionPoints (VideoSectionBuilder.tsx:186:30)
+    at HTMLUnknownElement.callCallback2 (chunk-276SZO74.js?v=107d7d1b:3674:22)
+    at Axios.request (axios.js?v=107d7d1b:2119:41)
+    at async apiRequest (queryClient.ts:117:22)
+    at async generateDiscussionPoints (VideoSectionBuilder.tsx:186:24)
+overrideMethod @ hook.js:608
+apiRequest @ queryClient.ts:120
+await in apiRequest
+generateDiscussionPoints @ VideoSectionBuilder.tsx:186
+callCallback2 @ chunk-276SZO74.js?v=107d7d1b:3674
+invokeGuardedCallbackDev @ chunk-276SZO74.js?v=107d7d1b:3699
+invokeGuardedCallback @ chunk-276SZO74.js?v=107d7d1b:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-276SZO74.js?v=107d7d1b:3736
+executeDispatch @ chunk-276SZO74.js?v=107d7d1b:7014
+processDispatchQueueItemsInOrder @ chunk-276SZO74.js?v=107d7d1b:7034
+processDispatchQueue @ chunk-276SZO74.js?v=107d7d1b:7043
+dispatchEventsForPlugins @ chunk-276SZO74.js?v=107d7d1b:7051
+(anonymous) @ chunk-276SZO74.js?v=107d7d1b:7174
+batchedUpdates$1 @ chunk-276SZO74.js?v=107d7d1b:18913
+batchedUpdates @ chunk-276SZO74.js?v=107d7d1b:3579
+dispatchEventForPluginEventSystem @ chunk-276SZO74.js?v=107d7d1b:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-276SZO74.js?v=107d7d1b:5478
+dispatchEvent @ chunk-276SZO74.js?v=107d7d1b:5472
+dispatchDiscreteEvent @ chunk-276SZO74.js?v=107d7d1b:5449
+VideoSectionBuilder.tsx:213 Discussion generation error: SyntaxError: Failed to execute 'open' on 'XMLHttpRequest': '/API/AI/GENERATE-SECTION' is not a valid HTTP method.
+    at dispatchXhrRequest (axios.js?v=107d7d1b:1543:13)
+    at new Promise (<anonymous>)
+    at xhr (axios.js?v=107d7d1b:1528:10)
+    at Axios.dispatchRequest (axios.js?v=107d7d1b:2003:10)
+    at Axios._request (axios.js?v=107d7d1b:2224:33)
+    at Axios.request (axios.js?v=107d7d1b:2115:25)
+    at wrap (axios.js?v=107d7d1b:8:15)
+    at apiRequest (queryClient.ts:117:28)
+    at generateDiscussionPoints (VideoSectionBuilder.tsx:186:30)
+    at HTMLUnknownElement.callCallback2 (chunk-276SZO74.js?v=107d7d1b:3674:22)
+    at Axios.request (axios.js?v=107d7d1b:2119:41)
+    at async apiRequest (queryClient.ts:117:22)
+    at async generateDiscussionPoints (VideoSectionBuilder.tsx:186:24)
+overrideMethod @ hook.js:608
+generateDiscussionPoints @ VideoSectionBuilder.tsx:213
+await in generateDiscussionPoints
+callCallback2 @ chunk-276SZO74.js?v=107d7d1b:3674
+invokeGuardedCallbackDev @ chunk-276SZO74.js?v=107d7d1b:3699
+invokeGuardedCallback @ chunk-276SZO74.js?v=107d7d1b:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-276SZO74.js?v=107d7d1b:3736
+executeDispatch @ chunk-276SZO74.js?v=107d7d1b:7014
+processDispatchQueueItemsInOrder @ chunk-276SZO74.js?v=107d7d1b:7034
+processDispatchQueue @ chunk-276SZO74.js?v=107d7d1b:7043
+dispatchEventsForPlugins @ chunk-276SZO74.js?v=107d7d1b:7051
+(anonymous) @ chunk-276SZO74.js?v=107d7d1b:7174
+batchedUpdates$1 @ chunk-276SZO74.js?v=107d7d1b:18913
+batchedUpdates @ chunk-276SZO74.js?v=107d7d1b:3579
+dispatchEventForPluginEventSystem @ chunk-276SZO74.js?v=107d7d1b:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-276SZO74.js?v=107d7d1b:5478
+dispatchEvent @ chunk-276SZO74.js?v=107d7d1b:5472
+dispatchDiscreteEvent @ chunk-276SZO74.js?v=107d7d1b:5449
+new-module-ai.tsx:128 (6) [null, '{"videoUrl":"https://www.youtube.com/watch?v=wJaAe…. Peter Gray","duration":0,"discussionPoints":[]}', null, null, null, null] 'section contents'
+new-module-ai.tsx:128 (6) [null, '{"videoUrl":"https://www.youtube.com/watch?v=wJaAe…. Peter Gray","duration":0,"discussionPoints":[]}', null, null, null, null] 'section contents'
+new-module-ai.tsx:128 (6) [null, '{"videoUrl":"https://www.youtube.com/watch?v=wJaAe…. Peter Gray","duration":0,"discussionPoints":[]}', null, null, null, null] 'section contents'

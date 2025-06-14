@@ -180,7 +180,7 @@ export default function VideoSectionBuilder({
       });
       return;
     }
-
+console.log(videoData,'video data')
     setIsGeneratingDiscussion(true);
     try {
       const response = await apiRequest('/api/ai/generate-section', 'POST', {
