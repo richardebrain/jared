@@ -218,6 +218,7 @@ export default function NewModuleAI() {
       case 'example': return '💡';
       case 'scenario': return '🎭';
       case 'quiz': return '❓';
+      case 'video': return '🎬';
       case 'matching': return '🔗';
       case 'story': return '📖';
       case 'mnemonic': return '🧠';

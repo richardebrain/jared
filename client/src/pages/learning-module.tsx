@@ -1032,6 +1032,18 @@ export default function LearningModulePage() {
                                         </div>
                                       )}
 
+                                      {/* Video Section */}
+                                      {moduleSections[currentSectionIndex].type === "video" && (
+                                        <div className="mb-6">
+                                          <VideoSection 
+                                            content={moduleSections[currentSectionIndex].content || "{}"}
+                                            title={moduleSections[currentSectionIndex].title || "Video Learning"}
+                                            onComplete={() => markSectionCompleted(currentSectionIndex)}
+                                            isCompleted={completedSections.has(currentSectionIndex)}
+                                          />
+                                        </div>
+                                      )}
+
                                       {/* Scenario Match Section */}
                                       {moduleSections[currentSectionIndex].type === "scenario-match" && (
                                         <div className="mb-6">
