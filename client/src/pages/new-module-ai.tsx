@@ -292,7 +292,6 @@ export default function NewModuleAI() {
             onContentChange={handleContentChange}
             isEditing={isEditing}
             onEditToggle={handleEditToggle}
-            onRegenerateAI={handleRegenerateAI}
           />
         );
       

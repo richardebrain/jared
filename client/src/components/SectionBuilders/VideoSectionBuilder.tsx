@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Save, Search, Video, Loader2, Play, ExternalLink, X, Plus, Wand2 } from 'lucide-react';
+import { Edit, Save, Search, Video, Loader2, Play, ExternalLink, X, Plus } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,7 +14,6 @@ interface VideoSectionBuilderProps {
   onContentChange: (content: string) => void;
   isEditing: boolean;
   onEditToggle: () => void;
-  onRegenerateAI: () => void;
 }
 
 interface VideoData {
@@ -28,8 +27,7 @@ export default function VideoSectionBuilder({
   content,
   onContentChange,
   isEditing,
-  onEditToggle,
-  onRegenerateAI
+  onEditToggle
 }: VideoSectionBuilderProps) {
   const [videoData, setVideoData] = useState<VideoData>({
     videoUrl: '',
@@ -43,7 +41,6 @@ export default function VideoSectionBuilder({
   const [isSearching, setIsSearching] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   const [newDiscussionPoint, setNewDiscussionPoint] = useState('');
-  const [isGeneratingPoints, setIsGeneratingPoints] = useState(false);
   const { toast } = useToast();
 
   // Parse content when it changes
@@ -160,51 +157,7 @@ export default function VideoSectionBuilder({
     });
   };
 
-  const generateDiscussionPoints = async () => {
-    setIsGeneratingPoints(true);
-    try {
-      const response = await apiRequest('/api/ai/generate-content-blocks', 'POST', {
-        topic: `Discussion points for video: ${videoData.title || 'educational video'}`,
-        sectionType: 'discussion',
-        sectionTitle: 'Video Discussion Points',
-        moduleTitle: 'Video Learning',
-        isRegeneration: false
-      });
 
-      if (response.success && response.blocks && response.blocks.length > 0) {
-        const discussionBlock = response.blocks[0];
-        if (discussionBlock.discussionPoints) {
-          updateVideoData({
-            discussionPoints: [...videoData.discussionPoints, ...discussionBlock.discussionPoints]
-          });
-        }
-        
-        toast({
-          title: "Discussion Points Generated",
-          description: "AI has created discussion points for your video.",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating discussion points:', error);
-      // Fallback discussion points
-      const fallbackPoints = [
-        "What key strategies did you observe in this video?",
-        "How could you apply these techniques in your own classroom?",
-        "What challenges might you face when implementing these approaches?",
-        "How do these methods align with your teaching philosophy?"
-      ];
-      updateVideoData({
-        discussionPoints: [...videoData.discussionPoints, ...fallbackPoints]
-      });
-      
-      toast({
-        title: "Discussion Points Added",
-        description: "Sample discussion points have been added for your video.",
-      });
-    } finally {
-      setIsGeneratingPoints(false);
-    }
-  };
 
   const getVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
@@ -273,36 +226,18 @@ export default function VideoSectionBuilder({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="text-lg font-medium">Discussion Points</Label>
-            <div className="flex items-center space-x-2">
-              {isEditing && (
-                <>
-                  <Button
-                    onClick={generateDiscussionPoints}
-                    variant="outline"
-                    size="sm"
-                    disabled={isGeneratingPoints}
-                    className="flex items-center space-x-1"
-                  >
-                    {isGeneratingPoints ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Wand2 className="w-4 h-4" />
-                    )}
-                    <span>AI Generate</span>
-                  </Button>
-                  <Button
-                    onClick={addDiscussionPoint}
-                    variant="outline"
-                    size="sm"
-                    disabled={!newDiscussionPoint.trim()}
-                    className="flex items-center space-x-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Point</span>
-                  </Button>
-                </>
-              )}
-            </div>
+            {isEditing && (
+              <Button
+                onClick={addDiscussionPoint}
+                variant="outline"
+                size="sm"
+                disabled={!newDiscussionPoint.trim()}
+                className="flex items-center space-x-1"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Point</span>
+              </Button>
+            )}
           </div>
 
           {isEditing && (
