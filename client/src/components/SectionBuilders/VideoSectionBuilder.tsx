@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Save, Search, Video, Loader2, Play, ExternalLink, X, Plus } from 'lucide-react';
+import { Edit, Save, Search, Video, Loader2, Play, ExternalLink, X, Plus, BookOpen, Youtube, Wand2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
