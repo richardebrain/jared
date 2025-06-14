@@ -28,9 +28,12 @@ import {
   Loader2,
   Zap,
   BookOpen,
+  Share2,
+  Users,
+  UserCheck,
+  Globe,
   Brain,
   Wrench,
-  Users,
   Edit,
   Type,
   FileText,
@@ -128,7 +131,7 @@ const PROVEN_TEMPLATES = [
   },
 ];
 
-type Step = "template" | "topic" | "sections" | "preview";
+type Step = "template" | "topic" | "sections" | "preview" | "publish";
 
 interface ModuleConfig {
   title: string;
@@ -137,7 +140,17 @@ interface ModuleConfig {
   targetAudience: string;
   difficulty: string;
   pointValue: number;
-  shareWithCommunity: boolean;
+}
+
+interface PublishSettings {
+  type: "teachers" | "groups" | "library" | "community";
+  selectedTeachers: string[];
+  selectedGroups: string[];
+  customMessage: string;
+  includeInLibrary: boolean;
+  allowComments: boolean;
+  publishToSection: boolean;
+  publishToCommunity: boolean;
 }
 
 export default function NewModuleAI() {
@@ -153,7 +166,16 @@ export default function NewModuleAI() {
     targetAudience: "preschool-teachers",
     difficulty: "intermediate",
     pointValue: 10,
-    shareWithCommunity: false,
+  });
+  const [publishSettings, setPublishSettings] = useState<PublishSettings>({
+    type: "library",
+    selectedTeachers: [],
+    selectedGroups: [],
+    customMessage: "",
+    includeInLibrary: true,
+    allowComments: true,
+    publishToSection: false,
+    publishToCommunity: false,
   });
   const [sectionContents, setSectionContents] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -378,7 +400,7 @@ export default function NewModuleAI() {
     }
   };
 
-  const saveModule = async () => {
+  const saveModule = async (publishSettings: PublishSettings) => {
     console.log(moduleConfig,'module configuration',selectedTemplate)
     if (!selectedTemplate) return;
 
@@ -410,9 +432,14 @@ export default function NewModuleAI() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           module: moduleData,
-          type: "library",
-          includeInLibrary: true,
-          allowComments: true
+          type: publishSettings.type,
+          selectedTeachers: publishSettings.selectedTeachers || [],
+          selectedGroups: publishSettings.selectedGroups || [],
+          customMessage: publishSettings.customMessage || "",
+          includeInLibrary: publishSettings.includeInLibrary,
+          allowComments: publishSettings.allowComments,
+          publishToSection: publishSettings.publishToSection,
+          publishToCommunity: publishSettings.publishToCommunity
         }),
       });
 
@@ -983,11 +1010,226 @@ export default function NewModuleAI() {
                   Back to Sections
                 </Button>
                 <Button
-                  onClick={saveModule}
+                  onClick={() => setCurrentStep("publish")}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Publish Module
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Publishing Step */}
+      {currentStep === "publish" && (
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5" />
+                Publish Your Module
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Choose how to share "{moduleConfig.title}" with your community
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-4 gap-4">
+                <Button
+                  variant={publishSettings.type === "teachers" ? "default" : "outline"}
+                  onClick={() => setPublishSettings(prev => ({ ...prev, type: "teachers" }))}
+                  className="flex flex-col items-center p-4 h-auto"
+                >
+                  <Users className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Individual Teachers</span>
+                </Button>
+                <Button
+                  variant={publishSettings.type === "groups" ? "default" : "outline"}
+                  onClick={() => setPublishSettings(prev => ({ ...prev, type: "groups" }))}
+                  className="flex flex-col items-center p-4 h-auto"
+                >
+                  <UserCheck className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Groups</span>
+                </Button>
+                <Button
+                  variant={publishSettings.type === "library" ? "default" : "outline"}
+                  onClick={() => setPublishSettings(prev => ({ ...prev, type: "library" }))}
+                  className="flex flex-col items-center p-4 h-auto"
+                >
+                  <BookOpen className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Module Section</span>
+                </Button>
+                <Button
+                  variant={publishSettings.type === "community" ? "default" : "outline"}
+                  onClick={() => setPublishSettings(prev => ({ ...prev, type: "community" }))}
+                  className="flex flex-col items-center p-4 h-auto"
+                >
+                  <Globe className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Community</span>
+                </Button>
+              </div>
+
+              {publishSettings.type === "teachers" && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Select Individual Teachers</h3>
+                  <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Choose specific teachers to share this module with
+                    </p>
+                    <div className="space-y-2">
+                      {["Sarah Johnson", "Mike Chen", "Elena Rodriguez", "David Kim", "Anna Thompson"].map((teacher) => (
+                        <label key={teacher} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={publishSettings.selectedTeachers.includes(teacher)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPublishSettings(prev => ({
+                                  ...prev,
+                                  selectedTeachers: [...prev.selectedTeachers, teacher]
+                                }));
+                              } else {
+                                setPublishSettings(prev => ({
+                                  ...prev,
+                                  selectedTeachers: prev.selectedTeachers.filter(t => t !== teacher)
+                                }));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span>{teacher}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {publishSettings.type === "groups" && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Select Groups</h3>
+                  <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Choose groups to share this module with
+                    </p>
+                    <div className="space-y-2">
+                      {["Preschool Team", "Lead Teachers", "New Hires", "Professional Development", "Administrative Staff"].map((group) => (
+                        <label key={group} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={publishSettings.selectedGroups.includes(group)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPublishSettings(prev => ({
+                                  ...prev,
+                                  selectedGroups: [...prev.selectedGroups, group]
+                                }));
+                              } else {
+                                setPublishSettings(prev => ({
+                                  ...prev,
+                                  selectedGroups: prev.selectedGroups.filter(g => g !== group)
+                                }));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span>{group}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {publishSettings.type === "library" && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Module Section Settings</h3>
+                  <div className="space-y-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={publishSettings.includeInLibrary}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, includeInLibrary: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span>Include in module library</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={publishSettings.allowComments}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, allowComments: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span>Allow comments and feedback</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={publishSettings.publishToSection}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, publishToSection: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span>Publish to specific section</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {publishSettings.type === "community" && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Community Sharing</h3>
+                  <div className="space-y-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={publishSettings.publishToCommunity}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, publishToCommunity: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span>Share with the broader MentorMe community</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={publishSettings.allowComments}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, allowComments: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span>Allow community comments</span>
+                    </label>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Custom Message (Optional)
+                      </label>
+                      <textarea
+                        value={publishSettings.customMessage}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, customMessage: e.target.value }))}
+                        placeholder="Add a message about this module..."
+                        className="w-full p-3 border rounded-lg resize-none"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between pt-6 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep("preview")}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Preview
+                </Button>
+                <Button
+                  onClick={() => saveModule(publishSettings)}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Save Module
+                  Publish Module
                 </Button>
               </div>
             </CardContent>
