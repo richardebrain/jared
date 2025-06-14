@@ -119,7 +119,7 @@ export default function NewModuleManual() {
     category: 'professional-development',
     difficulty: 'intermediate',
     estimatedTime: '15',
-    customPoints: '25',
+    pointValue: 10,
     shareWithCommunity: false
   });
 

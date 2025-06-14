@@ -100,6 +100,7 @@ interface ModuleConfig {
   topic: string;
   targetAudience: string;
   difficulty: string;
+  pointValue: number;
 }
 
 export default function NewModuleAI() {
@@ -111,7 +112,8 @@ export default function NewModuleAI() {
     description: '',
     topic: '',
     targetAudience: 'preschool-teachers',
-    difficulty: 'intermediate'
+    difficulty: 'intermediate',
+    pointValue: 10
   });
   const [sectionContents, setSectionContents] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -299,7 +301,7 @@ export default function NewModuleAI() {
       difficulty: moduleConfig.difficulty,
       category: 'professional-development',
       duration: parseInt(selectedTemplate.duration.replace(' min', '')),
-      pointValue: Math.floor(parseInt(selectedTemplate.duration.replace(' min', '')) / 5) * 5
+      pointValue: moduleConfig.pointValue
     };
 
     try {
@@ -457,6 +459,26 @@ export default function NewModuleAI() {
                       <SelectItem value="beginner">Beginner</SelectItem>
                       <SelectItem value="intermediate">Intermediate</SelectItem>
                       <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="pointValue">Point Value</Label>
+                  <Select 
+                    value={moduleConfig.pointValue.toString()} 
+                    onValueChange={(value) => setModuleConfig(prev => ({ ...prev, pointValue: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 points (Quick)</SelectItem>
+                      <SelectItem value="10">10 points (Standard)</SelectItem>
+                      <SelectItem value="15">15 points (Standard)</SelectItem>
+                      <SelectItem value="20">20 points (Comprehensive)</SelectItem>
+                      <SelectItem value="25">25 points (Comprehensive)</SelectItem>
+                      <SelectItem value="30">30 points (Comprehensive)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
