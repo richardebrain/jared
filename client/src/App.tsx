@@ -184,6 +184,11 @@ function Router(props: {
         <BusinessSignup />
       </Route>
 
+      {/* Temporary public route for testing state synchronization fix */}
+      <Route path="/new-module-ai">
+        <NewModuleAI />
+      </Route>
+
       {/* Root path shows landing page for public users or dashboard for authenticated users */}
       <Route path="/">
         {isAuthenticated ? <Dashboard /> : <LandingPage />}
