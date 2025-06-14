@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Wand2, Edit, Save, Search, Video, Loader2, Play, ExternalLink } from 'lucide-react';
+import { Edit, Save, Search, Video, Loader2, Play, ExternalLink, X, Plus, Wand2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,11 +18,10 @@ interface VideoSectionBuilderProps {
 }
 
 interface VideoData {
-  description: string;
   videoUrl: string;
   title: string;
   duration?: number;
-  generateQuestions?: boolean;
+  discussionPoints: string[];
 }
 
 export default function VideoSectionBuilder({
@@ -33,17 +32,18 @@ export default function VideoSectionBuilder({
   onRegenerateAI
 }: VideoSectionBuilderProps) {
   const [videoData, setVideoData] = useState<VideoData>({
-    description: '',
     videoUrl: '',
     title: '',
     duration: 0,
-    generateQuestions: false
+    discussionPoints: []
   });
-  const [isGenerating, setIsGenerating] = useState(false);
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [showVideoSearch, setShowVideoSearch] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [customUrl, setCustomUrl] = useState('');
+  const [newDiscussionPoint, setNewDiscussionPoint] = useState('');
+  const [isGeneratingPoints, setIsGeneratingPoints] = useState(false);
   const { toast } = useToast();
 
   // Parse content when it changes
@@ -51,17 +51,20 @@ export default function VideoSectionBuilder({
     try {
       if (content && content !== '{}' && content !== '') {
         const parsed = JSON.parse(content);
-        setVideoData(parsed);
+        setVideoData({
+          videoUrl: parsed.videoUrl || '',
+          title: parsed.title || '',
+          duration: parsed.duration || 0,
+          discussionPoints: parsed.discussionPoints || []
+        });
       }
     } catch (error) {
       console.error('Error parsing video content:', error);
-      // Initialize with default structure
       setVideoData({
-        description: content || '',
         videoUrl: '',
         title: '',
         duration: 0,
-        generateQuestions: false
+        discussionPoints: []
       });
     }
   }, [content]);
@@ -78,12 +81,24 @@ export default function VideoSectionBuilder({
     
     setIsSearching(true);
     try {
-      const response = await apiRequest('GET', `/api/videos/search?q=${encodeURIComponent(videoSearchQuery)}&limit=5`);
-      setSearchResults(response.videos || []);
+      const response = await apiRequest('/api/video-search/youtube-search', 'GET', {
+        query: videoSearchQuery,
+        maxResults: 8
+      });
+      
+      if (response.success) {
+        setSearchResults(response.videos || []);
+      } else {
+        toast({
+          title: "Search Error",
+          description: "Unable to search videos. Please try again.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
-      console.error('Error searching videos:', error);
+      console.error('Video search error:', error);
       toast({
-        title: "Search Failed",
+        title: "Search Error", 
         description: "Unable to search videos. Please try again.",
         variant: "destructive"
       });
@@ -94,43 +109,100 @@ export default function VideoSectionBuilder({
 
   const selectVideo = (video: any) => {
     updateVideoData({
-      videoUrl: `https://www.youtube.com/watch?v=${video.youtubeId}`,
-      title: video.title,
-      duration: video.duration || 0
+      videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
+      title: video.title || 'Selected Video'
     });
     setShowVideoSearch(false);
+    setVideoSearchQuery('');
     setSearchResults([]);
+    
     toast({
-      title: "Video Selected",
-      description: `Added "${video.title}" to your section.`
+      title: "Video Added",
+      description: `Selected: ${video.title}`,
     });
   };
 
-  const generateAIVideo = async () => {
-    setIsGenerating(true);
-    try {
-      onRegenerateAI();
+  const addCustomUrl = () => {
+    if (!customUrl.trim()) {
       toast({
-        title: "Generating Video Content",
-        description: "AI is creating video recommendations and content structure.",
+        title: "Invalid URL",
+        description: "Please enter a valid video URL.",
+        variant: "destructive"
       });
+      return;
+    }
+
+    updateVideoData({
+      videoUrl: customUrl,
+      title: videoData.title || 'Custom Video'
+    });
+    setCustomUrl('');
+    setShowVideoSearch(false);
+    
+    toast({
+      title: "Video Added",
+      description: "Custom video URL has been added.",
+    });
+  };
+
+  const addDiscussionPoint = () => {
+    if (!newDiscussionPoint.trim()) return;
+    
+    updateVideoData({
+      discussionPoints: [...videoData.discussionPoints, newDiscussionPoint.trim()]
+    });
+    setNewDiscussionPoint('');
+  };
+
+  const removeDiscussionPoint = (index: number) => {
+    updateVideoData({
+      discussionPoints: videoData.discussionPoints.filter((_, i) => i !== index)
+    });
+  };
+
+  const generateDiscussionPoints = async () => {
+    setIsGeneratingPoints(true);
+    try {
+      const response = await apiRequest('/api/ai/generate-content-blocks', 'POST', {
+        topic: `Discussion points for video: ${videoData.title || 'educational video'}`,
+        sectionType: 'discussion',
+        sectionTitle: 'Video Discussion Points',
+        moduleTitle: 'Video Learning',
+        isRegeneration: false
+      });
+
+      if (response.success && response.blocks && response.blocks.length > 0) {
+        const discussionBlock = response.blocks[0];
+        if (discussionBlock.discussionPoints) {
+          updateVideoData({
+            discussionPoints: [...videoData.discussionPoints, ...discussionBlock.discussionPoints]
+          });
+        }
+        
+        toast({
+          title: "Discussion Points Generated",
+          description: "AI has created discussion points for your video.",
+        });
+      }
     } catch (error) {
-      console.error('Error generating video content:', error);
-      // Provide example video structure
-      const exampleVideoData: VideoData = {
-        description: 'This video demonstrates effective classroom management techniques for early childhood educators, showing practical strategies for maintaining positive behavior and engagement during group activities.',
-        videoUrl: '',
-        title: 'Classroom Management Strategies',
-        duration: 300,
-        generateQuestions: true
-      };
-      updateVideoData(exampleVideoData);
+      console.error('Error generating discussion points:', error);
+      // Fallback discussion points
+      const fallbackPoints = [
+        "What key strategies did you observe in this video?",
+        "How could you apply these techniques in your own classroom?",
+        "What challenges might you face when implementing these approaches?",
+        "How do these methods align with your teaching philosophy?"
+      ];
+      updateVideoData({
+        discussionPoints: [...videoData.discussionPoints, ...fallbackPoints]
+      });
+      
       toast({
-        title: "Example Video Structure Created",
-        description: "Sample video section has been set up for you to customize.",
+        title: "Discussion Points Added",
+        description: "Sample discussion points have been added for your video.",
       });
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingPoints(false);
     }
   };
 
@@ -147,63 +219,130 @@ export default function VideoSectionBuilder({
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div>
-          <CardTitle className="text-lg font-semibold">Video Learning Section</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Add educational videos with interactive elements and discussion prompts
-          </p>
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Video className="w-4 h-4 text-blue-600" />
+          </div>
+          <CardTitle className="text-xl">Video Section</CardTitle>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center space-x-2">
           <Button
+            onClick={() => setShowVideoSearch(true)}
             variant="outline"
             size="sm"
-            onClick={generateAIVideo}
-            disabled={isGenerating}
+            className="flex items-center space-x-2"
           >
-            {isGenerating ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Wand2 className="w-4 h-4 mr-2" />
-            )}
-            AI Generate
+            <Search className="w-4 h-4" />
+            <span>Find Video</span>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onEditToggle}
-          >
-            {isEditing ? (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </>
-            ) : (
-              <>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </>
-            )}
+          <Button onClick={onEditToggle} variant="outline" size="sm">
+            {isEditing ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
           </Button>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {isEditing ? (
-          <>
-            {/* Video Description */}
-            <div>
-              <Label htmlFor="video-description">Video Description</Label>
-              <Textarea
-                id="video-description"
-                value={videoData.description}
-                onChange={(e) => updateVideoData({ description: e.target.value })}
-                placeholder="Describe what this video should demonstrate or teach..."
-                className="mt-1"
-                rows={3}
+        {/* Video Preview */}
+        {videoData.videoUrl && (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="aspect-video bg-white rounded-lg overflow-hidden mb-4">
+              <iframe
+                src={getEmbedUrl(videoData.videoUrl)}
+                title="Video preview"
+                className="w-full h-full"
+                frameBorder="0"
+                allowFullScreen
               />
             </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-900">{videoData.title}</h3>
+                {videoData.duration && videoData.duration > 0 && (
+                  <p className="text-sm text-gray-600">{Math.floor(videoData.duration / 60)} minutes</p>
+                )}
+              </div>
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <Video className="w-3 h-3" />
+                <span>Video</span>
+              </Badge>
+            </div>
+          </div>
+        )}
 
-            {/* Video Title */}
+        {/* Discussion Points */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-lg font-medium">Discussion Points</Label>
+            <div className="flex items-center space-x-2">
+              {isEditing && (
+                <>
+                  <Button
+                    onClick={generateDiscussionPoints}
+                    variant="outline"
+                    size="sm"
+                    disabled={isGeneratingPoints}
+                    className="flex items-center space-x-1"
+                  >
+                    {isGeneratingPoints ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-4 h-4" />
+                    )}
+                    <span>AI Generate</span>
+                  </Button>
+                  <Button
+                    onClick={addDiscussionPoint}
+                    variant="outline"
+                    size="sm"
+                    disabled={!newDiscussionPoint.trim()}
+                    className="flex items-center space-x-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Point</span>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {isEditing && (
+            <div className="flex space-x-2">
+              <Input
+                value={newDiscussionPoint}
+                onChange={(e) => setNewDiscussionPoint(e.target.value)}
+                placeholder="Enter a discussion point..."
+                onKeyPress={(e) => e.key === 'Enter' && addDiscussionPoint()}
+              />
+            </div>
+          )}
+
+          {videoData.discussionPoints.length > 0 && (
+            <div className="space-y-2">
+              {videoData.discussionPoints.map((point, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100"
+                >
+                  <p className="text-gray-800">{point}</p>
+                  {isEditing && (
+                    <Button
+                      onClick={() => removeDiscussionPoint(index)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Manual Input Fields */}
+        {isEditing && (
+          <div className="space-y-4">
             <div>
               <Label htmlFor="video-title">Video Title</Label>
               <Input
@@ -211,203 +350,134 @@ export default function VideoSectionBuilder({
                 value={videoData.title}
                 onChange={(e) => updateVideoData({ title: e.target.value })}
                 placeholder="Enter video title..."
-                className="mt-1"
               />
             </div>
 
-            {/* Video Selection */}
             <div>
-              <Label>Video Selection</Label>
-              <div className="space-y-3 mt-2">
-                {videoData.videoUrl ? (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-green-800">Video Selected</div>
-                        <div className="text-xs text-green-600 truncate max-w-md">{videoData.videoUrl}</div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowVideoSearch(true)}
-                        className="border-green-300 text-green-700 hover:bg-green-100"
-                      >
-                        Change Video
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowVideoSearch(true)}
-                    className="w-full border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 py-6"
-                  >
-                    <Search className="h-5 w-5 mr-2" />
-                    Find Video for This Section
-                  </Button>
-                )}
-
-                {/* Manual Video URL Input */}
-                <div>
-                  <Label htmlFor="video-url">Or Enter Video URL</Label>
-                  <Input
-                    id="video-url"
-                    value={videoData.videoUrl}
-                    onChange={(e) => updateVideoData({ videoUrl: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    className="mt-1"
-                  />
-                </div>
-
-                {/* Video Search Modal */}
-                {showVideoSearch && (
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <div className="flex gap-2 mb-3">
-                      <Input
-                        value={videoSearchQuery}
-                        onChange={(e) => setVideoSearchQuery(e.target.value)}
-                        placeholder="Search for educational videos..."
-                        className="flex-1"
-                        onKeyPress={(e) => e.key === 'Enter' && searchVideos()}
-                      />
-                      <Button onClick={searchVideos} disabled={isSearching}>
-                        {isSearching ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Search className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button variant="outline" onClick={() => setShowVideoSearch(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-
-                    {searchResults.length > 0 && (
-                      <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {searchResults.map((video, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-2 bg-white rounded border hover:bg-gray-50 cursor-pointer"
-                            onClick={() => selectVideo(video)}
-                          >
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">{video.title}</div>
-                              <div className="text-xs text-gray-600">
-                                {video.duration} min • {video.category?.join(', ')}
-                              </div>
-                            </div>
-                            <Button size="sm" variant="outline">
-                              Select
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div>
-              <Label htmlFor="video-duration">Duration (minutes)</Label>
+              <Label htmlFor="video-url">Video URL</Label>
               <Input
-                id="video-duration"
-                type="number"
-                value={videoData.duration || ''}
-                onChange={(e) => updateVideoData({ duration: parseInt(e.target.value) || 0 })}
-                placeholder="5"
-                className="mt-1"
-                min="1"
-                max="60"
+                id="video-url"
+                value={videoData.videoUrl}
+                onChange={(e) => updateVideoData({ videoUrl: e.target.value })}
+                placeholder="https://youtube.com/watch?v=..."
               />
             </div>
-
-            {/* Generate Questions Option */}
-            <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
-              <input
-                type="checkbox"
-                id="generate-questions"
-                checked={videoData.generateQuestions || false}
-                onChange={(e) => updateVideoData({ generateQuestions: e.target.checked })}
-                className="rounded"
-              />
-              <Label htmlFor="generate-questions" className="text-sm text-blue-700 cursor-pointer">
-                Generate quiz questions automatically from this video content
-              </Label>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Preview Mode */}
-            {videoData.title && (
-              <div>
-                <h3 className="font-semibold text-lg mb-2">{videoData.title}</h3>
-                {videoData.duration && (
-                  <Badge variant="secondary" className="mb-3">
-                    {videoData.duration} minutes
-                  </Badge>
-                )}
-              </div>
-            )}
-
-            {videoData.description && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">Learning Objectives:</h4>
-                <p className="text-blue-800 text-sm">{videoData.description}</p>
-              </div>
-            )}
-
-            {videoData.videoUrl && (
-              <div className="space-y-4">
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                  <iframe
-                    src={getEmbedUrl(videoData.videoUrl)}
-                    title={videoData.title}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allowFullScreen
-                  />
-                </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>Video embedded and ready for learners</span>
-                  <a
-                    href={videoData.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-blue-600 hover:text-blue-800"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    Open in YouTube
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {videoData.generateQuestions && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <h4 className="font-medium text-amber-900 mb-2">Interactive Features:</h4>
-                <p className="text-amber-800 text-sm">
-                  Quiz questions will be automatically generated from this video content to reinforce learning.
-                </p>
-              </div>
-            )}
-
-            {!videoData.videoUrl && !videoData.description && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Video className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="mb-4">No video content configured yet.</p>
-                <Button onClick={() => onEditToggle()} variant="outline">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Add Video Content
-                </Button>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </CardContent>
+
+      {/* Video Search Modal */}
+      {showVideoSearch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">Find Video for Your Module</h3>
+              <Button
+                onClick={() => setShowVideoSearch(false)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Search our video library, find videos on YouTube, or add your own video link
+            </p>
+
+            <div className="space-y-6">
+              {/* Search Section */}
+              <div className="flex space-x-2">
+                <Input
+                  value={videoSearchQuery}
+                  onChange={(e) => setVideoSearchQuery(e.target.value)}
+                  placeholder="help children grow"
+                  className="flex-1"
+                  onKeyPress={(e) => e.key === 'Enter' && searchVideos()}
+                />
+                <Button
+                  onClick={searchVideos}
+                  disabled={isSearching}
+                  className="bg-green-700 hover:bg-green-800 text-white px-6"
+                >
+                  {isSearching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                  <span className="ml-2">Search</span>
+                </Button>
+              </div>
+
+              {/* Custom URL Section */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Add Custom Video URL</h4>
+                <div className="flex space-x-2">
+                  <Input
+                    value={customUrl}
+                    onChange={(e) => setCustomUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={addCustomUrl}
+                    variant="outline"
+                    className="flex items-center space-x-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Add URL</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-red-600">YouTube Results ({searchResults.length})</h4>
+                  {searchResults.map((video: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50"
+                    >
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-32 h-24 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-medium text-gray-900 mb-1">{video.title}</h5>
+                        <p className="text-sm text-gray-600 mb-1">By {video.channel}</p>
+                        <p className="text-sm text-gray-600">
+                          YouTube • <span className="text-blue-600 hover:underline cursor-pointer">View on YouTube</span>
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => selectVideo(video)}
+                        className="bg-red-600 hover:bg-red-700 text-white flex items-center space-x-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Video</span>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Search Tips */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">Search Tips</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Use specific terms like "classroom management" or "early literacy"</li>
+                  <li>• Include age groups: "preschool", "toddler", "kindergarten"</li>
+                  <li>• Try topic keywords: "social emotional learning", "STEM activities"</li>
+                  <li>• Use educator terms: "ECE", "developmentally appropriate", "scaffolding"</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
