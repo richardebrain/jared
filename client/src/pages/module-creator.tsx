@@ -573,12 +573,22 @@ export default function ModuleCreator({}: ModuleCreatorProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="module-points">Point Value</Label>
-                    <Input
-                      id="module-points"
-                      type="number"
-                      value={moduleData.pointValue}
-                      onChange={(e) => setModuleData({...moduleData, pointValue: parseInt(e.target.value)})}
-                    />
+                    <Select 
+                      value={moduleData.pointValue.toString()} 
+                      onValueChange={(value) => setModuleData({...moduleData, pointValue: parseInt(value)})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 points (Quick)</SelectItem>
+                        <SelectItem value="10">10 points (Standard)</SelectItem>
+                        <SelectItem value="15">15 points (Standard)</SelectItem>
+                        <SelectItem value="20">20 points (Comprehensive)</SelectItem>
+                        <SelectItem value="25">25 points (Comprehensive)</SelectItem>
+                        <SelectItem value="30">30 points (Comprehensive)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="module-time">Estimated Time (minutes)</Label>

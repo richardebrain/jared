@@ -201,7 +201,7 @@ export default function NewModuleManual() {
           category: moduleConfig.category,
           difficulty: moduleConfig.difficulty,
           estimatedTime: moduleConfig.estimatedTime,
-          customPoints: moduleConfig.customPoints,
+          pointValue: moduleConfig.pointValue,
           shareWithCommunity: moduleConfig.shareWithCommunity,
           sections: sections.map(section => ({
             title: section.title,
@@ -455,15 +455,23 @@ export default function NewModuleManual() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="customPoints">Points Reward</Label>
-                  <Input
-                    id="customPoints"
-                    type="number"
-                    value={moduleConfig.customPoints}
-                    onChange={(e) => setModuleConfig(prev => ({ ...prev, customPoints: e.target.value }))}
-                    min="5"
-                    max="100"
-                  />
+                  <Label htmlFor="pointValue">Point Value</Label>
+                  <Select 
+                    value={moduleConfig.pointValue.toString()} 
+                    onValueChange={(value) => setModuleConfig(prev => ({ ...prev, pointValue: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 points (Quick)</SelectItem>
+                      <SelectItem value="10">10 points (Standard)</SelectItem>
+                      <SelectItem value="15">15 points (Standard)</SelectItem>
+                      <SelectItem value="20">20 points (Comprehensive)</SelectItem>
+                      <SelectItem value="25">25 points (Comprehensive)</SelectItem>
+                      <SelectItem value="30">30 points (Comprehensive)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
