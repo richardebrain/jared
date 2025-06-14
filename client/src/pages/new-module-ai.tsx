@@ -495,6 +495,28 @@ export default function NewModuleAI() {
                   );
                 })}
               </div>
+              
+              {/* Share with Community Toggle */}
+              <div className="mt-6 flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <Switch
+                  id="share-community"
+                  checked={moduleConfig.shareWithCommunity}
+                  onCheckedChange={(checked) =>
+                    setModuleConfig((prev) => ({
+                      ...prev,
+                      shareWithCommunity: checked,
+                    }))
+                  }
+                />
+                <div className="flex-1">
+                  <Label htmlFor="share-community" className="text-sm font-medium">
+                    Share with Community
+                  </Label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Make this module available to other educators in the community library
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
