@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Wand2, Loader2, Zap, BookOpen, Bra
 import QuizSectionBuilder from '@/components/SectionBuilders/QuizSectionBuilder';
 import MatchingSectionBuilder from '@/components/SectionBuilders/MatchingSectionBuilder';
 import ScenarioMatchSectionBuilder from '@/components/SectionBuilders/ScenarioMatchSectionBuilder';
+import VideoSectionBuilder from '@/components/SectionBuilders/VideoSectionBuilder';
 import TextSectionBuilder from '@/components/SectionBuilders/TextSectionBuilder';
 
 // Proven Templates - The foundation for AI-driven content creation
@@ -38,6 +39,7 @@ const PROVEN_TEMPLATES = [
     color: 'border-blue-200 bg-blue-50',
     sections: [
       { title: 'Welcome & Objectives', type: 'text', duration: 3 },
+      { type: 'video', title: 'Video or Case Story', duration: 3 },
       { title: 'Foundation Knowledge', type: 'text', duration: 8 },
       { title: 'Real-World Examples', type: 'example', duration: 6 },
       { title: 'Interactive Practice', type: 'matching', duration: 5 },
@@ -55,6 +57,7 @@ const PROVEN_TEMPLATES = [
       { title: 'Course Introduction', type: 'text', duration: 5 },
       { title: 'Theoretical Foundation', type: 'text', duration: 12 },
       { title: 'Case Study Analysis', type: 'story', duration: 10 },
+      { type: 'video', title: 'Foundational Video', duration: 3 },
       { title: 'Scenario Practice', type: 'scenario', duration: 8 },
       { title: 'Memory Techniques', type: 'mnemonic', duration: 7 },
       { title: 'Simulation Exercise', type: 'simulation', duration: 5 },
@@ -273,6 +276,17 @@ export default function NewModuleAI() {
       case 'scenario-match':
         return (
           <ScenarioMatchSectionBuilder
+            content={content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
+          />
+        );
+      
+      case 'video':
+        return (
+          <VideoSectionBuilder
             content={content}
             onContentChange={handleContentChange}
             isEditing={isEditing}
