@@ -2167,4 +2167,89 @@ Respond in JSON format with this structure:
   }
 });
 
+/**
+ * Generate discussion points for video content
+ */
+router.post('/generate-discussion-points', async (req, res) => {
+  try {
+    const { videoTitle, videoUrl, topic } = req.body;
+    
+    if (!videoTitle && !videoUrl) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Video title or URL is required' 
+      });
+    }
+    
+    console.log('Generating discussion points for video:', { videoTitle, videoUrl, topic });
+
+    const prompt = `Generate 4-6 thoughtful discussion points for early childhood educators based on this video content:
+
+Video Title: ${videoTitle || 'Educational Video'}
+Topic: ${topic || 'early childhood education'}
+Video URL: ${videoUrl || 'Not provided'}
+
+Create discussion points that:
+- Encourage reflection on teaching practices
+- Connect video content to real classroom situations
+- Promote professional development conversations
+- Are appropriate for ${topic || 'early childhood education'} context
+
+Format as a JSON array of strings:
+{
+  "discussionPoints": [
+    "How might you apply the strategies shown in this video to support children with different learning styles?",
+    "What challenges might you face when implementing these techniques in your classroom?"
+  ]
+}
+
+Make each point thought-provoking and practical for educators.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert early childhood education instructor who creates engaging discussion questions that help teachers reflect on and improve their practice."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 800
+    });
+
+    const result = JSON.parse(response.choices[0]?.message?.content || '{"discussionPoints": []}');
+    
+    if (!result.discussionPoints || result.discussionPoints.length === 0) {
+      // Fallback discussion points
+      result.discussionPoints = [
+        "How does the content in this video relate to your current teaching practices?",
+        "What key insights from this video could you implement in your classroom this week?",
+        "How might the strategies shown support children's development in your specific age group?",
+        "What challenges might you anticipate when applying these concepts, and how would you address them?"
+      ];
+    }
+
+    console.log(`Generated ${result.discussionPoints.length} discussion points for video: ${videoTitle}`);
+    
+    return res.json({
+      success: true,
+      discussionPoints: result.discussionPoints
+    });
+
+  } catch (error) {
+    console.error("Error generating discussion points:", error);
+    
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to generate discussion points',
+      error: error.message
+    });
+  }
+});
+
 export default router;
