@@ -3,9 +3,9 @@ import Header from "@/components/Header";
 import { ModulePlayer } from "@/components/ModulePlayer";
 
 export default function LearningModulePage() {
-  const { moduleId } = useParams<{ moduleId: string }>();
-
-  if (!moduleId) {
+  const params= useParams<{ moduleId: string }>();
+console.log(params,'search params')
+  if (!params.id) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -19,7 +19,7 @@ export default function LearningModulePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ModulePlayer moduleId={moduleId} />
+      <ModulePlayer moduleId={params?.id} />
     </div>
   );
 }

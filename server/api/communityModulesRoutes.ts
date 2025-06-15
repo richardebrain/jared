@@ -92,7 +92,7 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
       return res.status(400).json({ message: "User not associated with a school" });
     }
     
-    // Get all shared modules except those from user's own school
+    // Get all shared modules including those from user's own school
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
@@ -124,7 +124,7 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
       return res.status(400).json({ message: "User not associated with a school" });
     }
     
-    // Get top rated shared modules except those from user's own school
+    // Get top rated shared modules including those from user's own school
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
@@ -136,7 +136,6 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
       LIMIT ${limit}
     `);
-    // AND cm.shared_by_school_id != ${user.schoolId}
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error retrieving top community modules:", error);
@@ -371,6 +370,66 @@ router.post("/share", requireAuth, requirePaidAccess, requireAdmin, async (req, 
     }
   } catch (error) {
     console.error("Error sharing module with community:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Rate a module
+router.post("/:moduleId/rate", requireAuth, requirePaidAccess, async (req, res) => {
+  try {
+    const moduleId = parseInt(req.params.moduleId);
+    const { rating, comment } = req.body;
+    
+    if (isNaN(moduleId) || !rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Valid module ID and rating (1-5) are required" });
+    }
+    
+    const userId = req.session.userId as number;
+    
+    // Check if user has already rated this module
+    const existingRating = await db.execute(sql`
+      SELECT id FROM module_ratings 
+      WHERE module_id = ${moduleId} AND user_id = ${userId}
+    `);
+    
+    if (existingRating.rows.length > 0) {
+      // Update existing rating
+      await db.execute(sql`
+        UPDATE module_ratings 
+        SET rating = ${rating}, comment = ${comment || null}, updated_at = NOW()
+        WHERE module_id = ${moduleId} AND user_id = ${userId}
+      `);
+    } else {
+      // Insert new rating
+      await db.execute(sql`
+        INSERT INTO module_ratings (module_id, user_id, rating, comment)
+        VALUES (${moduleId}, ${userId}, ${rating}, ${comment || null})
+      `);
+    }
+    
+    // Update module's average rating
+    const ratingStats = await db.execute(sql`
+      SELECT AVG(rating) as avg_rating, COUNT(*) as rating_count
+      FROM module_ratings 
+      WHERE module_id = ${moduleId}
+    `);
+    
+    const avgRating = parseFloat(ratingStats.rows[0].avg_rating || '0');
+    const ratingCount = parseInt(ratingStats.rows[0].rating_count || '0');
+    
+    await db.execute(sql`
+      UPDATE learning_modules 
+      SET average_rating = ${avgRating}, rating_count = ${ratingCount}
+      WHERE id = ${moduleId}
+    `);
+    
+    return res.status(200).json({
+      message: "Rating submitted successfully",
+      averageRating: avgRating,
+      ratingCount: ratingCount
+    });
+  } catch (error) {
+    console.error("Error rating module:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
