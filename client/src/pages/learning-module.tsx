@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import { ModulePlayer } from "@/components/ModulePlayer";
 
 export default function LearningModulePage() {
-  const params= useParams<{ moduleId: string }>();
+  const params= useParams<{ id: string }>();
 console.log(params,'search params')
   if (!params.id) {
     return (

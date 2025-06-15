@@ -2008,7 +2008,8 @@ Continue for all 5 questions...
             interactiveElements: module.interactiveElements || {},
             certificationSystem: module.certificationSystem || {}
           }),
-          is_visible: includeInLibrary
+          is_visible: includeInLibrary,
+          is_shared_to_community: publishToCommunity,
         };
         savedModule = await storage.createModule(moduleData);
       }

@@ -421,16 +421,34 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const [ratingComment, setRatingComment] = useState("");
   const { toast } = useToast();
 
-  const { data: module, isLoading } = useQuery<LearningModule>({
+  const { data: rawModule, isLoading } = useQuery<LearningModule>({
     queryKey: [`/api/modules/${moduleId}`],
   });
+
+  // Parse the module content to extract sections
+  const module = rawModule ? {
+    ...rawModule,
+    sections: (() => {
+      try {
+        if (typeof rawModule.content === 'string') {
+          const parsedContent = JSON.parse(rawModule.content);
+          return parsedContent.sections || [];
+        }
+        return rawModule.content?.sections || [];
+      } catch (error) {
+        console.error('Error parsing module content:', error);
+        return [];
+      }
+    })()
+  } : null;
+  
 
   // Award points mutation
   const awardPointsMutation = useMutation({
     mutationFn: async (data: { points: number; reason: string }) => {
       return apiRequest(`/api/points/award`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        data: JSON.stringify(data),
       });
     },
     onSuccess: () => {
@@ -444,7 +462,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     mutationFn: async (data: { rating: number; comment?: string }) => {
       return apiRequest(`/api/community-modules/${moduleId}/rate`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        data: JSON.stringify(data),
       });
     },
     onSuccess: () => {
@@ -488,7 +506,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       }
     }
   };
-
+console.log(module,'module')
   const progressPercentage = (completedSections.size / (module?.sections?.length || 1)) * 100;
 
   if (isLoading) {
