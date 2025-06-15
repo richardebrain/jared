@@ -416,6 +416,9 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   const [totalPoints, setTotalPoints] = useState(0);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState("");
   const { toast } = useToast();
 
   const { data: module, isLoading } = useQuery<LearningModule>({
@@ -436,9 +439,41 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     },
   });
 
+  // Rate module mutation
+  const rateModuleMutation = useMutation({
+    mutationFn: async (data: { rating: number; comment?: string }) => {
+      return apiRequest(`/api/community-modules/${moduleId}/rate`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Rating Submitted",
+        description: "Thank you for rating this module!",
+      });
+      setShowRatingDialog(false);
+      setRating(0);
+      setRatingComment("");
+      queryClient.invalidateQueries({ queryKey: ['/api/community-modules'] });
+    },
+  });
+
   const handleSectionComplete = (sectionIndex: number, points: number = 0) => {
     if (!completedSections.has(sectionIndex)) {
-      setCompletedSections(prev => new Set([...prev, sectionIndex]));
+      setCompletedSections(prev => {
+        const newCompleted = new Set([...prev, sectionIndex]);
+        
+        // Check if all sections are now completed
+        if (module && newCompleted.size === module.sections.length) {
+          // Show rating dialog after a brief delay
+          setTimeout(() => {
+            setShowRatingDialog(true);
+          }, 1000);
+        }
+        
+        return newCompleted;
+      });
       setTotalPoints(prev => prev + points);
       
       if (points > 0) {
@@ -682,6 +717,73 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
           )
         )}
       </div>
+
+      {/* Star Rating Dialog */}
+      <Dialog open={showRatingDialog} onOpenChange={setShowRatingDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rate This Module</DialogTitle>
+            <DialogDescription>
+              How would you rate this learning module? Your feedback helps improve the community.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Rating</Label>
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="p-1"
+                  >
+                    <Star
+                      className={`h-6 w-6 ${
+                        star <= rating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="comment">Comment (optional)</Label>
+              <Textarea
+                id="comment"
+                placeholder="Share your thoughts about this module..."
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowRatingDialog(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Skip
+              </Button>
+              <Button
+                onClick={() => {
+                  if (rating > 0) {
+                    rateModuleMutation.mutate({
+                      rating,
+                      comment: ratingComment || undefined,
+                    });
+                  }
+                }}
+                disabled={rating === 0 || rateModuleMutation.isPending}
+                className="flex-1"
+              >
+                {rateModuleMutation.isPending ? "Submitting..." : "Submit Rating"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
