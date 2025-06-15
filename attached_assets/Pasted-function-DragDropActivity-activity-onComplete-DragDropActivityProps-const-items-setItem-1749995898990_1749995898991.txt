@@ -1,0 +1,95 @@
+function DragDropActivity({ activity, onComplete }: DragDropActivityProps) {
+  const [items, setItems] = useState(activity.promptItems || []);
+  const [showResults, setShowResults] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setItems((items: string[]) => {
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over?.id as string);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const checkAnswer = () => {
+    const correctOrder = activity.answerKey || [];
+    const isCorrect = JSON.stringify(items) === JSON.stringify(correctOrder);
+    
+    setShowResults(true);
+    setIsCompleted(true);
+
+    const points = isCorrect ? 12 : 6; // Full points for correct order, partial for attempt
+    
+    if (isCorrect) {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 }
+      });
+    }
+
+    onComplete(points);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Target className="h-5 w-5" />
+          {activity.title}
+        </CardTitle>
+        <CardDescription>{activity.instructions}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 mb-4">
+            {activity.uiHints?.dragInstruction || "Drag items to reorder them correctly"}
+          </p>
+          
+          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {items.map((item: string, index: number) => (
+                  <DragItem
+                    key={item}
+                    id={item}
+                    content={item}
+                    isCorrect={showResults && activity.answerKey && activity.answerKey[index] === item}
+                    showResult={showResults}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {showResults && (
+            <div className="mt-4 p-3 border rounded-lg bg-blue-50">
+              <p className="font-medium">Correct Order:</p>
+              <div className="mt-2 space-y-1">
+                {(activity.answerKey || []).map((item: string, index: number) => (
+                  <div key={index} className="text-sm">
+                    {index + 1}. {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button
+          onClick={checkAnswer}
+          disabled={isCompleted}
+          className="w-full"
+        >
+          {isCompleted ? "Completed!" : "Check Answer"}
+          <CheckCircle2 className="h-4 w-4 ml-2" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}

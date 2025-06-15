@@ -420,7 +420,7 @@ export default function NewModuleAI() {
         imageUrl: "",
         activities: content?.activities || [],
       })),
-      moduleType: "single",
+      moduleType: publishSettings.type,
       courseStructure: {},
       interactiveElements: {},
       certificationSystem: {}

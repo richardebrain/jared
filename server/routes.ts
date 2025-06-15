@@ -61,7 +61,6 @@ import podcastRoutes from "./routes/podcast";
 import { musicmakerRouter } from "./routes/musicmaker";
 import imageGenerationRoutes from "./api/imageGenerationRoutes";
 
-
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -132,7 +131,11 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Middleware to require assessment completion before module access
-const requireAssessmentCompletion = async (req: Request, res: Response, next: NextFunction) => {
+const requireAssessmentCompletion = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -140,13 +143,15 @@ const requireAssessmentCompletion = async (req: Request, res: Response, next: Ne
     }
 
     // Check if user has completed at least one assessment
-    const completedAssessments = await storage.getUserCompletedAssessments(userId);
-    
+    const completedAssessments =
+      await storage.getUserCompletedAssessments(userId);
+
     if (!completedAssessments || completedAssessments.length === 0) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "Assessment required",
         requiresAssessment: true,
-        details: "Please complete your initial assessment before accessing learning modules."
+        details:
+          "Please complete your initial assessment before accessing learning modules.",
       });
     }
 
@@ -182,7 +187,7 @@ async function ensureDefaultSchoolExists() {
         customization: {
           primaryColor: "#4A7B9D",
           secondaryColor: "#FFCC5C",
-          coreValues: ["Excellence", "Integrity", "Compassion", "Innovation"]
+          coreValues: ["Excellence", "Integrity", "Compassion", "Innovation"],
         },
         subscriptionStartedAt: new Date("2025-01-01"),
         subscriptionExpiresAt: new Date("2026-01-01"),
@@ -199,25 +204,45 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Generate single quiz question for module builder
   app.post("/api/ai/generate-single-quiz-question", async (req, res) => {
     try {
-      const { moduleTitle, moduleDescription, sectionTitle, category, difficulty = 'medium', existingQuestions = [], learningObjective } = req.body;
+      const {
+        moduleTitle,
+        moduleDescription,
+        sectionTitle,
+        category,
+        difficulty = "medium",
+        existingQuestions = [],
+        learningObjective,
+      } = req.body;
 
-      console.log('single quiz -->',moduleTitle, moduleDescription, sectionTitle, category, difficulty, existingQuestions)
+      console.log(
+        "single quiz -->",
+        moduleTitle,
+        moduleDescription,
+        sectionTitle,
+        category,
+        difficulty,
+        existingQuestions,
+      );
 
       if (!sectionTitle) {
         return res.status(400).json({ error: "Section title is required" });
       }
 
       const difficultyPrompts = {
-        'easy': 'Create a basic level question that tests fundamental understanding',
-        'medium': 'Create a medium difficulty question that requires practical application',
-        'hard': 'Create an advanced question that requires critical thinking and analysis'
+        easy: "Create a basic level question that tests fundamental understanding",
+        medium:
+          "Create a medium difficulty question that requires practical application",
+        hard: "Create an advanced question that requires critical thinking and analysis",
       };
 
-      const difficultyPrompt = difficultyPrompts[difficulty] || difficultyPrompts['medium'];
+      const difficultyPrompt =
+        difficultyPrompts[difficulty] || difficultyPrompts["medium"];
 
       // Use the learning objective as the primary focus, fall back to module description if not available
       const mainTopic = learningObjective || moduleDescription;
-      const topicContext = learningObjective ? "learning objective" : "module description";
+      const topicContext = learningObjective
+        ? "learning objective"
+        : "module description";
 
       const prompt = `
 You are an expert in early childhood education creating assessment questions for professional development.
@@ -239,7 +264,7 @@ The question should assess:
 - Professional decision-making about "${mainTopic}"
 - Evidence-based practices for "${mainTopic}"
 
-${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join('; ')}` : ''}
+${existingQuestions.length > 0 ? `Avoid creating questions similar to these existing ones: ${existingQuestions.join("; ")}` : ""}
 
 Create ONE multiple choice question with 4 realistic answers that directly tests knowledge of "${mainTopic}" and make sure that the answers can be either 0,1,2 or 3 while making sure the answer is within the range of 0-3. Focus on practical scenarios teachers actually face. Format as JSON:
 {
@@ -261,20 +286,27 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
         temperature: 0.7,
       });
 
-      const questionData = JSON.parse(response.choices[0].message.content || '{}');
-      
-      res.json({ question: questionData });
+      const questionData = JSON.parse(
+        response.choices[0].message.content || "{}",
+      );
 
+      res.json({ question: questionData });
     } catch (error) {
-      console.error('Single quiz question generation error:', error);
-      res.status(500).json({ 
-        error: 'Failed to generate quiz question',
+      console.error("Single quiz question generation error:", error);
+      res.status(500).json({
+        error: "Failed to generate quiz question",
         question: {
-          question: 'What is an important aspect of early childhood education?',
-          answers: ['Professional development', 'Classroom management', 'Child safety', 'All of the above'],
+          question: "What is an important aspect of early childhood education?",
+          answers: [
+            "Professional development",
+            "Classroom management",
+            "Child safety",
+            "All of the above",
+          ],
           correctAnswer: 3,
-          explanation: 'All aspects are important in early childhood education.'
-        }
+          explanation:
+            "All aspects are important in early childhood education.",
+        },
       });
     }
   });
@@ -282,26 +314,50 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
   // Generate single interactive activity for module builder
   app.post("/api/ai/generate-single-activity", async (req, res) => {
     try {
-      const { moduleTitle, moduleDescription, sectionTitle, category, activityType = 'drag-and-match', existingActivities = [], learningObjective } = req.body;
+      const {
+        moduleTitle,
+        moduleDescription,
+        sectionTitle,
+        category,
+        activityType = "drag-and-match",
+        existingActivities = [],
+        learningObjective,
+      } = req.body;
 
-      console.log('single activity -->', moduleTitle, moduleDescription, sectionTitle, category, activityType, existingActivities);
+      console.log(
+        "single activity -->",
+        moduleTitle,
+        moduleDescription,
+        sectionTitle,
+        category,
+        activityType,
+        existingActivities,
+      );
 
       if (!sectionTitle) {
         return res.status(400).json({ error: "Section title is required" });
       }
 
       const activityTypePrompts = {
-        'drag-and-match': 'Create a drag-and-match activity where learners match concepts to their definitions or examples',
-        'scenario-challenge': 'Create a scenario-based challenge with realistic classroom situations and response options',
-        'categorization': 'Create a categorization activity where learners sort items into appropriate groups',
-        'sequence-ordering': 'Create a sequence ordering activity where learners arrange steps in the correct order'
+        "drag-and-match":
+          "Create a drag-and-match activity where learners match concepts to their definitions or examples",
+        "scenario-challenge":
+          "Create a scenario-based challenge with realistic classroom situations and response options",
+        categorization:
+          "Create a categorization activity where learners sort items into appropriate groups",
+        "sequence-ordering":
+          "Create a sequence ordering activity where learners arrange steps in the correct order",
       };
 
-      const activityPrompt = activityTypePrompts[activityType] || activityTypePrompts['drag-and-match'];
+      const activityPrompt =
+        activityTypePrompts[activityType] ||
+        activityTypePrompts["drag-and-match"];
 
       // Use the learning objective as the primary focus, fall back to module description if not available
       const mainTopic = learningObjective || moduleDescription;
-      const topicContext = learningObjective ? "learning objective" : "module description";
+      const topicContext = learningObjective
+        ? "learning objective"
+        : "module description";
 
       const prompt = `
 You are an expert in early childhood education creating interactive learning activities for professional development.
@@ -323,7 +379,7 @@ The activity should focus on:
 - Evidence-based practices for "${mainTopic}"
 - Problem-solving skills for "${mainTopic}"
 
-${existingActivities.length > 0 ? `Avoid creating activities similar to these existing ones: ${existingActivities.join('; ')}` : ''}
+${existingActivities.length > 0 ? `Avoid creating activities similar to these existing ones: ${existingActivities.join("; ")}` : ""}
 
 Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 items to match/categorize/sequence. Format as JSON:
 {
@@ -349,12 +405,13 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
         messages: [
           {
             role: "system",
-            content: "You are an expert early childhood education instructor creating interactive learning activities. Always respond with valid JSON only."
+            content:
+              "You are an expert early childhood education instructor creating interactive learning activities. Always respond with valid JSON only.",
           },
           {
             role: "user",
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         max_tokens: 1000,
         temperature: 0.7,
@@ -362,34 +419,44 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
 
       const content = response.choices[0].message.content?.trim();
       if (!content) {
-        throw new Error('No content generated');
+        throw new Error("No content generated");
       }
 
       // Parse the JSON response
       const activityData = JSON.parse(content);
-      
-      res.json({ 
-        activity: activityData,
-        success: true 
-      });
 
+      res.json({
+        activity: activityData,
+        success: true,
+      });
     } catch (error) {
-      console.error('Error generating activity:', error);
-      res.status(500).json({ 
-        error: 'Failed to generate activity',
+      console.error("Error generating activity:", error);
+      res.status(500).json({
+        error: "Failed to generate activity",
         activity: {
-          activityType: 'drag-and-match',
-          title: 'Classroom Management Strategies',
-          instructions: 'Match each classroom management technique with its appropriate use case.',
-          promptItems: ['Positive reinforcement', 'Clear expectations', 'Consistent routines', 'Redirect behavior'],
-          answerKey: ['Encouraging good behavior', 'Setting boundaries', 'Creating stability', 'Managing disruptions'],
+          activityType: "drag-and-match",
+          title: "Classroom Management Strategies",
+          instructions:
+            "Match each classroom management technique with its appropriate use case.",
+          promptItems: [
+            "Positive reinforcement",
+            "Clear expectations",
+            "Consistent routines",
+            "Redirect behavior",
+          ],
+          answerKey: [
+            "Encouraging good behavior",
+            "Setting boundaries",
+            "Creating stability",
+            "Managing disruptions",
+          ],
           uiHints: {
-            leftColumnTitle: 'Management Techniques',
-            rightColumnTitle: 'Use Cases',
-            dragInstruction: 'Drag techniques to their appropriate use cases'
+            leftColumnTitle: "Management Techniques",
+            rightColumnTitle: "Use Cases",
+            dragInstruction: "Drag techniques to their appropriate use cases",
           },
-          imageSupport: false
-        }
+          imageSupport: false,
+        },
       });
     }
   });
@@ -650,8 +717,6 @@ Continue for all 5 questions...
   // Register enhanced assessment routes
   registerAssessmentRoutes(app);
 
-
-
   // Mystery box and rewards endpoints
 
   // Get daily mystery boxes information
@@ -732,7 +797,7 @@ Continue for all 5 questions...
         const newTotalPoints = (user.points || 0) + rewardAmount;
         const oldLevel = user.level || 1;
         let newCalculatedLevel = 1; // Assistant (0 points)
-        
+
         if (newTotalPoints >= 1000) {
           newCalculatedLevel = 5; // Master (1000+ points)
         } else if (newTotalPoints >= 500) {
@@ -742,7 +807,7 @@ Continue for all 5 questions...
         } else if (newTotalPoints >= 100) {
           newCalculatedLevel = 2; // Associate (100+ points)
         }
-        
+
         if (newCalculatedLevel > oldLevel) {
           newLevel = newCalculatedLevel;
           levelUp = true;
@@ -1508,11 +1573,9 @@ Continue for all 5 questions...
           });
         } catch (saveErr) {
           console.error("Failed to save session:", saveErr);
-          return res
-            .status(500)
-            .json({
-              message: "Authentication succeeded but failed to create session",
-            });
+          return res.status(500).json({
+            message: "Authentication succeeded but failed to create session",
+          });
         }
 
         console.log(
@@ -1789,7 +1852,7 @@ Continue for all 5 questions...
 
       if (currentUserId) {
         currentUser = await storage.getUser(currentUserId as number);
-        
+
         // Role-based filtering for assessment results:
         // - Directors can only see their school's teachers
         // - Owners can see all teachers
@@ -1835,15 +1898,19 @@ Continue for all 5 questions...
       }
 
       // Enhanced: Fetch assessment results for each user if requested
-      const includeAssessments = req.query.includeAssessments === 'true';
+      const includeAssessments = req.query.includeAssessments === "true";
       let usersWithAssessments = rawUsers;
 
       if (includeAssessments && currentUser) {
-        console.log("Fetching assessment results for", rawUsers.length, "users");
-        
+        console.log(
+          "Fetching assessment results for",
+          rawUsers.length,
+          "users",
+        );
+
         // Get assessment results for all users in batch
-        const userIds = rawUsers.map(user => user.id);
-        
+        const userIds = rawUsers.map((user) => user.id);
+
         const assessmentData = await db
           .select({
             userId: assessments.userId,
@@ -1857,19 +1924,22 @@ Continue for all 5 questions...
             totalCorrect: assessmentResults.totalCorrect,
           })
           .from(assessments)
-          .innerJoin(assessmentResults, eq(assessments.id, assessmentResults.assessmentId))
+          .innerJoin(
+            assessmentResults,
+            eq(assessments.id, assessmentResults.assessmentId),
+          )
           .where(
             and(
               inArray(assessments.userId, userIds),
-              eq(assessments.type, 'initial'),
-              eq(assessments.completed, true)
-            )
+              eq(assessments.type, "initial"),
+              eq(assessments.completed, true),
+            ),
           )
           .orderBy(desc(assessments.completedAt));
 
         // Group assessment data by userId (taking most recent)
         const assessmentMap = new Map();
-        assessmentData.forEach(assessment => {
+        assessmentData.forEach((assessment) => {
           if (!assessmentMap.has(assessment.userId)) {
             assessmentMap.set(assessment.userId, {
               completedAt: assessment.completedAt,
@@ -1884,12 +1954,12 @@ Continue for all 5 questions...
         });
 
         // Enhance users with assessment data
-        usersWithAssessments = rawUsers.map(user => {
+        usersWithAssessments = rawUsers.map((user) => {
           const assessmentInfo = assessmentMap.get(user.id);
-          
+
           if (assessmentInfo) {
             // Get all growth areas (not limited to 3)
-            const topGrowthAreas = Array.isArray(assessmentInfo.growthAreas) 
+            const topGrowthAreas = Array.isArray(assessmentInfo.growthAreas)
               ? assessmentInfo.growthAreas
               : [];
 
@@ -1899,29 +1969,36 @@ Continue for all 5 questions...
                 completed: true,
                 completedAt: assessmentInfo.completedAt,
                 accuracyRate: assessmentInfo.accuracyRate,
-                totalTimeMinutes: assessmentInfo.totalTimeSeconds 
-                  ? Math.round(assessmentInfo.totalTimeSeconds / 60) 
+                totalTimeMinutes: assessmentInfo.totalTimeSeconds
+                  ? Math.round(assessmentInfo.totalTimeSeconds / 60)
                   : null,
                 topGrowthAreas,
                 overallScore: assessmentInfo.overallScore,
                 totalQuestions: assessmentInfo.totalQuestions,
                 totalCorrect: assessmentInfo.totalCorrect,
-              }
+              },
             };
           } else {
             return {
               ...user,
               assessmentResults: {
-                completed: false
-              }
+                completed: false,
+              },
             };
           }
         });
 
-        console.log("Enhanced", usersWithAssessments.length, "users with assessment data");
+        console.log(
+          "Enhanced",
+          usersWithAssessments.length,
+          "users with assessment data",
+        );
       }
 
-      console.log("Returning users count for leaderboard:", usersWithAssessments.length);
+      console.log(
+        "Returning users count for leaderboard:",
+        usersWithAssessments.length,
+      );
       res.status(200).json(usersWithAssessments);
     } catch (error) {
       console.error("Error fetching all users:", error);
@@ -1981,17 +2058,24 @@ Continue for all 5 questions...
         includeInLibrary,
         allowComments,
         publishToSection,
-        publishToCommunity
+        publishToCommunity,
       } = req.body;
 
-      console.log('Publishing module with type:', type);
+      console.log("Publishing module with type:", type);
+
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      if (!user || !user.schoolId) {
+        return res
+          .status(400)
+          .json({ message: "User not associated with a school" });
+      }
 
       // First save the module if it doesn't exist
       let savedModule;
       if (moduleId) {
         savedModule = await storage.getModule(moduleId);
       }
-
       if (!savedModule) {
         // Create the module
         const moduleData = {
@@ -2006,7 +2090,7 @@ Continue for all 5 questions...
             moduleType: module.moduleType || "deep-dive",
             courseStructure: module.courseStructure || {},
             interactiveElements: module.interactiveElements || {},
-            certificationSystem: module.certificationSystem || {}
+            certificationSystem: module.certificationSystem || {},
           }),
           is_visible: includeInLibrary,
           is_shared_to_community: publishToCommunity,
@@ -2015,31 +2099,49 @@ Continue for all 5 questions...
       }
 
       // Handle different publishing types
-      if (type === 'community' && publishToCommunity) {
-        // Add to community modules (skipping for now since table may not exist)
-        console.log('Publishing to community:', savedModule.title);
+      if (publishToCommunity) {
+        if (savedModule.id) {
+          // share to community_modules table
+          const existingShared = await db.execute(sql`
+                SELECT * FROM community_modules
+                WHERE module_id = ${savedModule.id}
+              `);
+          if (existingShared.rows.length > 0) {
+            return res.status(400).json({
+              message: "Module already shared",
+              details: "This module has already been shared with the community",
+            });
+          }
+          await db.execute(sql`
+            INSERT INTO community_modules (module_id, shared_by_school_id, status)
+            VALUES (${savedModule.id}, ${user.schoolId}, 'active')
+          `);
+        }
       }
 
       // For individual teachers and groups, we'll log the distribution
       // In a real system, this would send notifications/emails
-      if (type === 'individual' && selectedTeachers?.length > 0) {
-        console.log(`Publishing module "${savedModule.title}" to ${selectedTeachers.length} teachers`);
-        console.log('Custom message:', customMessage);
+      if (type === "individual" && selectedTeachers?.length > 0) {
+        console.log(
+          `Publishing module "${savedModule.title}" to ${selectedTeachers.length} teachers`,
+        );
+        console.log("Custom message:", customMessage);
       }
 
-      if (type === 'group' && selectedGroups?.length > 0) {
-        console.log(`Publishing module "${savedModule.title}" to ${selectedGroups.length} groups`);
-        console.log('Custom message:', customMessage);
+      if (type === "group" && selectedGroups?.length > 0) {
+        console.log(
+          `Publishing module "${savedModule.title}" to ${selectedGroups.length} groups`,
+        );
+        console.log("Custom message:", customMessage);
       }
 
       res.json({
         success: true,
         moduleId: savedModule.id,
-        message: 'Module published successfully'
+        message: "Module published successfully",
       });
-
     } catch (error) {
-      console.error('Module publishing error:', error);
+      console.error("Module publishing error:", error);
       res.status(500).json({ message: "Failed to publish module" });
     }
   });
@@ -2048,8 +2150,16 @@ Continue for all 5 questions...
   app.put("/api/modules/:id", requireAuth, async (req, res) => {
     try {
       const moduleId = parseInt(req.params.id);
-      const { title, description, content, category, difficulty, duration, pointValue } = req.body;
-      
+      const {
+        title,
+        description,
+        content,
+        category,
+        difficulty,
+        duration,
+        pointValue,
+      } = req.body;
+
       const updatedModule = await storage.updateModule(moduleId, {
         title,
         description,
@@ -2057,12 +2167,12 @@ Continue for all 5 questions...
         category,
         difficulty,
         duration: duration || 10,
-        pointValue: pointValue || 100
+        pointValue: pointValue || 100,
       });
-      
+
       res.json(updatedModule);
     } catch (error) {
-      console.error('Module update error:', error);
+      console.error("Module update error:", error);
       res.status(500).json({ message: "Failed to update module" });
     }
   });
@@ -2070,21 +2180,22 @@ Continue for all 5 questions...
   // Get teachers for publishing dialog
   app.get("/api/teachers", async (req, res) => {
     try {
-      const teachers = await db.select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        schoolName: schools.name
-      })
-      .from(users)
-      .leftJoin(schools, eq(users.schoolId, schools.id))
-      .where(eq(users.isAdmin, false))
-      .limit(50);
+      const teachers = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          schoolName: schools.name,
+        })
+        .from(users)
+        .leftJoin(schools, eq(users.schoolId, schools.id))
+        .where(eq(users.isAdmin, false))
+        .limit(50);
 
       res.json(teachers);
     } catch (error) {
-      console.error('Error fetching teachers:', error);
+      console.error("Error fetching teachers:", error);
       res.json([]); // Return empty array on error
     }
   });
@@ -2098,35 +2209,39 @@ Continue for all 5 questions...
           id: 1,
           name: "Early Childhood Educators",
           description: "Professional development group for ECE teachers",
-          memberCount: 25
+          memberCount: 25,
         },
         {
           id: 2,
           name: "New Teacher Mentorship",
           description: "Support group for first-year teachers",
-          memberCount: 12
+          memberCount: 12,
         },
         {
           id: 3,
           name: "Advanced Learning Methods",
           description: "Experienced teachers exploring innovative approaches",
-          memberCount: 18
-        }
+          memberCount: 18,
+        },
       ];
       res.json(sampleGroups);
     } catch (error) {
-      console.error('Error fetching groups:', error);
+      console.error("Error fetching groups:", error);
       res.json([]);
     }
   });
 
   // Learning modules routes
-  app.get("/api/modules", requireAuth, requireAssessmentCompletion, async (req, res) => {
-    console.log('fetching modules result')
+  app.get(
+    "/api/modules",
+    requireAuth,
+    requireAssessmentCompletion,
+    async (req, res) => {
+      console.log("fetching modules result");
 
-    try {
-      // Use direct SQL query to handle schema changes gracefully
-      const result = await db.execute(sql`
+      try {
+        // Use direct SQL query to handle schema changes gracefully
+        const result = await db.execute(sql`
         SELECT id, title, description, duration, point_value as "pointValue", 
                image_url as "imageUrl", featured, difficulty, category, content, 
                quiz, is_visible as "isVisible", created_at as "createdAt",
@@ -2135,65 +2250,63 @@ Continue for all 5 questions...
         FROM learning_modules
         ORDER BY created_at DESC
       `);
-      console.log('modules result',result.rows[0])
+        console.log("modules result", result.rows[0]);
 
-      // Transform the results to ensure consistent data format
-      const modules = result.rows.map((row) => ({
-        ...row,
-        pointValue: row.pointValue || 5, // Default pointValue if null
-        averageRating: row.averageRating || 0,
-        ratingCount: row.ratingCount || 0,
-        isSharedToCommunity: row.isSharedToCommunity || false,
-        schoolId: row.schoolId || null,
-      }));
-      res.status(200).json(modules);
-    } catch (error) {
-      console.error("Error fetching modules:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+        // Transform the results to ensure consistent data format
+        const modules = result.rows.map((row) => ({
+          ...row,
+          pointValue: row.pointValue || 5, // Default pointValue if null
+          averageRating: row.averageRating || 0,
+          ratingCount: row.ratingCount || 0,
+          isSharedToCommunity: row.isSharedToCommunity || false,
+          schoolId: row.schoolId || null,
+        }));
+        res.status(200).json(modules);
+      } catch (error) {
+        console.error("Error fetching modules:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
 
-  app.get(
-    "/api/modules/:id",
-    requireAuth,
-    async (req, res, next) => {
-      try {
-        // Special case: Skip this handler for management route
-        if (req.params.id === "management") {
-          return next();
-        }
+  app.get("/api/modules/:id", requireAuth, async (req, res, next) => {
+    try {
+      // Special case: Skip this handler for management route
+      if (req.params.id === "management") {
+        return next();
+      }
 
-        // Special case: Skip this handler for visible route
-        if (req.params.id === "visible") {
-          return next();
-        }
+      // Special case: Skip this handler for visible route
+      if (req.params.id === "visible") {
+        return next();
+      }
 
-        // Validate the module ID parameter
-        if (!req.params.id || req.params.id === "undefined") {
-          console.error(`Invalid module ID requested: ${req.params.id}`);
-          return res.status(400).json({
-            message: "Invalid module ID",
-            details: "A valid module ID is required",
-          });
-        }
+      // Validate the module ID parameter
+      if (!req.params.id || req.params.id === "undefined") {
+        console.error(`Invalid module ID requested: ${req.params.id}`);
+        return res.status(400).json({
+          message: "Invalid module ID",
+          details: "A valid module ID is required",
+        });
+      }
 
-        const moduleId = parseInt(req.params.id);
+      const moduleId = parseInt(req.params.id);
 
-        // Check for NaN which indicates parsing failure
-        if (isNaN(moduleId)) {
-          console.error(`Failed to parse module ID: ${req.params.id}`);
-          return res.status(400).json({
-            message: "Invalid module ID format",
-            details: "Module ID must be a number",
-          });
-        }
+      // Check for NaN which indicates parsing failure
+      if (isNaN(moduleId)) {
+        console.error(`Failed to parse module ID: ${req.params.id}`);
+        return res.status(400).json({
+          message: "Invalid module ID format",
+          details: "Module ID must be a number",
+        });
+      }
 
-        // Get user info for logging
-        const userId = req.session.userId as number;
-        console.log(`User ${userId} requesting module ${moduleId}`);
+      // Get user info for logging
+      const userId = req.session.userId as number;
+      console.log(`User ${userId} requesting module ${moduleId}`);
 
-        // Fetch the module with error handling using direct SQL to handle schema changes
-        const result = await db.execute(sql`
+      // Fetch the module with error handling using direct SQL to handle schema changes
+      const result = await db.execute(sql`
         SELECT id, title, description, duration, point_value as "pointValue", 
                image_url as "imageUrl", featured, difficulty, category, content, 
                quiz, is_visible as "isVisible", created_at as "createdAt",
@@ -2203,83 +2316,86 @@ Continue for all 5 questions...
         WHERE id = ${moduleId}
       `);
 
-        if (result.rows.length === 0) {
-          console.log(`Module ${moduleId} not found for user ${userId}`);
-          return res.status(404).json({
-            message: "Module not found",
-            details: "The requested learning module does not exist",
+      if (result.rows.length === 0) {
+        console.log(`Module ${moduleId} not found for user ${userId}`);
+        return res.status(404).json({
+          message: "Module not found",
+          details: "The requested learning module does not exist",
+        });
+      }
+
+      // Transform the module data to ensure consistent format
+      const moduleData = result.rows[0];
+
+      // Ensure default values for new fields
+      const transformedModule = {
+        ...moduleData,
+        pointValue: moduleData.pointValue || 5, // Default pointValue if null
+        averageRating: moduleData.averageRating || 0,
+        ratingCount: moduleData.ratingCount || 0,
+        isSharedToCommunity: moduleData.isSharedToCommunity || false,
+        schoolId: moduleData.schoolId || null,
+      };
+
+      // Log successful module access for analytics
+      console.log(
+        `Module ${moduleId} (${moduleData.title || "Unnamed module"}) served to user ${userId}`,
+      );
+
+      // Return the module
+      res.status(200).json(transformedModule);
+    } catch (error) {
+      console.error("Error fetching module:", error);
+      res.status(500).json({
+        message: "Error retrieving module",
+        details: "An unexpected error occurred while fetching the module",
+      });
+    }
+  });
+
+  // Create new learning module
+  app.post(
+    "/api/modules",
+    requireAuth,
+    requireAssessmentCompletion,
+    async (req, res) => {
+      try {
+        // Handle both authenticated and test scenarios
+        const userId = req.session?.userId || 1; // Default to user 1 for testing
+        let user;
+        if (userId !== 1) {
+          user = await storage.getUser(userId);
+        }
+
+        // Allow module creation without strict user validation for now
+        // This ensures modules save properly during testing
+
+        const {
+          title,
+          description,
+          category,
+          difficulty,
+          estimatedTime,
+          customPoints,
+          shareWithCommunity,
+          sections,
+        } = req.body;
+
+        // Validate required fields
+        if (!title || !description || !sections || sections.length === 0) {
+          return res.status(400).json({
+            message:
+              "Missing required fields: title, description, and at least one section are required",
           });
         }
 
-        // Transform the module data to ensure consistent format
-        const moduleData = result.rows[0];
+        // Calculate points (custom or based on estimated time)
+        const pointValue = customPoints
+          ? parseInt(customPoints)
+          : Math.max(5, Math.ceil(parseInt(estimatedTime) / 3));
 
-        // Ensure default values for new fields
-        const transformedModule = {
-          ...moduleData,
-          pointValue: moduleData.pointValue || 5, // Default pointValue if null
-          averageRating: moduleData.averageRating || 0,
-          ratingCount: moduleData.ratingCount || 0,
-          isSharedToCommunity: moduleData.isSharedToCommunity || false,
-          schoolId: moduleData.schoolId || null,
-        };
-
-        // Log successful module access for analytics
-        console.log(
-          `Module ${moduleId} (${moduleData.title || "Unnamed module"}) served to user ${userId}`,
-        );
-
-        // Return the module
-        res.status(200).json(transformedModule);
-      } catch (error) {
-        console.error("Error fetching module:", error);
-        res.status(500).json({
-          message: "Error retrieving module",
-          details: "An unexpected error occurred while fetching the module",
-        });
-      }
-    },
-  );
-
-  // Create new learning module
-  app.post("/api/modules", requireAuth, requireAssessmentCompletion, async (req, res) => {
-    try {
-      // Handle both authenticated and test scenarios
-      const userId = req.session?.userId || 1; // Default to user 1 for testing
-      let user;
-      if (userId !== 1) {
-        user = await storage.getUser(userId);
-      }
-
-      // Allow module creation without strict user validation for now
-      // This ensures modules save properly during testing
-
-      const {
-        title,
-        description,
-        category,
-        difficulty,
-        estimatedTime,
-        customPoints,
-        shareWithCommunity,
-        sections,
-      } = req.body;
-
-      // Validate required fields
-      if (!title || !description || !sections || sections.length === 0) {
-        return res.status(400).json({
-          message:
-            "Missing required fields: title, description, and at least one section are required",
-        });
-      }
-
-      // Calculate points (custom or based on estimated time)
-      const pointValue = customPoints
-        ? parseInt(customPoints)
-        : Math.max(5, Math.ceil(parseInt(estimatedTime) / 3));
-
-      // Insert into database using SQL
-      const result = await db.execute(sql`
+        // Insert into database using SQL
+        const result = await db.execute(sql`
         INSERT INTO learning_modules (
           title, description, category, difficulty, duration, point_value, 
           content, school_id, creator_id, is_visible, featured,image_url,quiz,is_shared_to_community
@@ -2291,28 +2407,29 @@ Continue for all 5 questions...
         ) RETURNING *
       `);
 
-      const newModule = result.rows[0];
+        const newModule = result.rows[0];
 
-      console.log(
-        "Successfully created module:",
-        newModule.id,
-        "titled:",
-        title,
-      );
+        console.log(
+          "Successfully created module:",
+          newModule.id,
+          "titled:",
+          title,
+        );
 
-      res.status(201).json({
-        success: true,
-        module: newModule,
-        message: "Module created successfully",
-      });
-    } catch (error) {
-      console.error("Error creating module:", error);
-      res.status(500).json({
-        message: "Failed to create module",
-        error: error.message,
-      });
-    }
-  });
+        res.status(201).json({
+          success: true,
+          module: newModule,
+          message: "Module created successfully",
+        });
+      } catch (error) {
+        console.error("Error creating module:", error);
+        res.status(500).json({
+          message: "Failed to create module",
+          error: error.message,
+        });
+      }
+    },
+  );
 
   // Endpoint to update the Child Development Milestones module content
   app.post(
@@ -2598,7 +2715,9 @@ Continue for all 5 questions...
       const { points, reason, gameType } = req.body;
 
       if (!points || points <= 0) {
-        return res.status(400).json({ message: "Valid points amount required" });
+        return res
+          .status(400)
+          .json({ message: "Valid points amount required" });
       }
 
       const user = await storage.getUser(userId);
@@ -2607,15 +2726,15 @@ Continue for all 5 questions...
       }
 
       // Deduct points from user
-      await storage.updateUser(userId, { 
-        points: user.points - points 
+      await storage.updateUser(userId, {
+        points: user.points - points,
       });
 
       res.status(200).json({
         success: true,
         pointsSpent: points,
         remainingPoints: user.points - points,
-        reason
+        reason,
       });
     } catch (error) {
       console.error("Error spending points:", error);
@@ -2628,9 +2747,11 @@ Continue for all 5 questions...
     try {
       const userId = req.session.userId;
       const { points, reason, gameType } = req.body;
-console.log(points,'points award system')
+      console.log(points, "points award system");
       if (!points || points <= 0) {
-        return res.status(400).json({ message: "Valid points amount required" });
+        return res
+          .status(400)
+          .json({ message: "Valid points amount required" });
       }
 
       const user = await storage.getUser(userId);
@@ -2639,16 +2760,16 @@ console.log(points,'points award system')
       }
 
       // Award points to user
-      await storage.updateUser(userId, { 
+      await storage.updateUser(userId, {
         points: user.points + points,
-        lifetimePoints: user.lifetimePoints + points
+        lifetimePoints: user.lifetimePoints + points,
       });
 
       res.status(200).json({
         success: true,
         pointsAwarded: points,
         totalPoints: user.points + points,
-        reason
+        reason,
       });
     } catch (error) {
       console.error("Error awarding points:", error);
@@ -2815,11 +2936,9 @@ console.log(points,'points award system')
 
     if (adminPassword !== "BIGSURF55") {
       console.log("Admin password incorrect, access denied");
-      return res
-        .status(403)
-        .json({
-          message: "Forbidden: Admin access required. Password incorrect.",
-        });
+      return res.status(403).json({
+        message: "Forbidden: Admin access required. Password incorrect.",
+      });
     }
 
     console.log("Admin password correct, proceeding to fetch users");
@@ -3667,12 +3786,10 @@ console.log(points,'points award system')
 
       if (!rewardType || rewardAmount === undefined) {
         console.log("Mystery box reward error: Missing required fields");
-        return res
-          .status(400)
-          .json({
-            message: "Missing required fields: rewardType and rewardAmount",
-            success: false,
-          });
+        return res.status(400).json({
+          message: "Missing required fields: rewardType and rewardAmount",
+          success: false,
+        });
       }
 
       // Get current user data
@@ -4002,7 +4119,7 @@ console.log(points,'points award system')
           message: `You've already submitted ${userShoutOutsToday.length} core value nominations today. You can submit up to 3 per day. Please try again tomorrow!`,
           remaining: 0,
           currentCount: userShoutOutsToday.length,
-          dailyLimit: 3
+          dailyLimit: 3,
         });
       }
 
@@ -4024,17 +4141,19 @@ console.log(points,'points award system')
 
       // Create notification message for the nominee
       const nominator = await storage.getUser(nominatorId);
-      const nominatorName = nominator ? `${nominator.firstName} ${nominator.lastName}` : 'A colleague';
-      
+      const nominatorName = nominator
+        ? `${nominator.firstName} ${nominator.lastName}`
+        : "A colleague";
+
       await db.insert(teacherMessages).values({
         senderId: nominatorId,
         recipientId: nomineeId,
         schoolId: nominator?.schoolId || 1,
-        messageType: 'shoutout',
+        messageType: "shoutout",
         title: `Core Value Recognition: ${coreValue}`,
         content: `${nominatorName} nominated you for demonstrating "${coreValue}"! They said: "${nominationText}". You earned ${pointsAwarded} points!`,
         important: true,
-        isRead: false
+        isRead: false,
       });
 
       // Mark nominee as having unread messages
@@ -4066,11 +4185,9 @@ console.log(points,'points award system')
       const nominationText = description || message;
 
       if (!nomineeId || !coreValue || !nominationText) {
-        return res
-          .status(400)
-          .json({
-            message: "Nominee ID, core value, and description are required",
-          });
+        return res.status(400).json({
+          message: "Nominee ID, core value, and description are required",
+        });
       }
 
       // Check if user has already submitted a shout-out today
@@ -4125,11 +4242,9 @@ console.log(points,'points award system')
       const nominationText = description || message;
 
       if (!nomineeId || !coreValue || !nominationText) {
-        return res
-          .status(400)
-          .json({
-            message: "Nominee ID, core value, and description are required",
-          });
+        return res.status(400).json({
+          message: "Nominee ID, core value, and description are required",
+        });
       }
 
       // Check if user has already submitted a shout-out today
@@ -4283,11 +4398,9 @@ console.log(points,'points award system')
         // Verify the teacher is in the same school
         const teacher = await storage.getUser(teacherId);
         if (!teacher || teacher.schoolId !== user.schoolId) {
-          return res
-            .status(403)
-            .json({
-              message: "Cannot send reminder to teacher from different school",
-            });
+          return res.status(403).json({
+            message: "Cannot send reminder to teacher from different school",
+          });
         }
 
         // Create a teacher message for the certification reminder
@@ -4346,11 +4459,9 @@ console.log(points,'points award system')
       } = req.body;
 
       if (!title || !startTime || !endTime || !timeZone) {
-        return res
-          .status(400)
-          .json({
-            message: "Title, start time, end time, and time zone are required",
-          });
+        return res.status(400).json({
+          message: "Title, start time, end time, and time zone are required",
+        });
       }
 
       // Create meeting
@@ -4774,20 +4885,22 @@ console.log(points,'points award system')
 
         const responseContent = response.choices[0].message.content;
         console.log("OpenAI Response:", responseContent);
-        
+
         if (!responseContent) {
           throw new Error("Empty response from OpenAI");
         }
-        
+
         const result = JSON.parse(responseContent);
         console.log("Parsed result:", result);
-        
+
         const suggestions = result.suggestions || result;
         console.log("Final suggestions array:", suggestions);
-        
+
         // Ensure we always return an array
-        const finalSuggestions = Array.isArray(suggestions) ? suggestions : [suggestions];
-        
+        const finalSuggestions = Array.isArray(suggestions)
+          ? suggestions
+          : [suggestions];
+
         res.json(finalSuggestions);
       } catch (error) {
         console.error("Error generating newsletter suggestions:", error);
@@ -4944,58 +5057,58 @@ console.log(points,'points award system')
   // Helper function to generate newsletter HTML
   function generateNewsletterHTML(newsletter: any): string {
     const sections = newsletter.content?.sections || [];
-    
-    let sectionsHTML = '';
+
+    let sectionsHTML = "";
     sections.forEach((section: any) => {
       switch (section.type) {
-        case 'text':
+        case "text":
           sectionsHTML += `
             <div class="section text-section">
-              <h3>${section.title || ''}</h3>
-              <p>${section.content || ''}</p>
+              <h3>${section.title || ""}</h3>
+              <p>${section.content || ""}</p>
             </div>
           `;
           break;
-        case 'announcement':
+        case "announcement":
           sectionsHTML += `
             <div class="section announcement-section">
-              <h3>📢 ${section.title || 'Announcement'}</h3>
-              <p>${section.content || ''}</p>
+              <h3>📢 ${section.title || "Announcement"}</h3>
+              <p>${section.content || ""}</p>
             </div>
           `;
           break;
-        case 'event':
+        case "event":
           sectionsHTML += `
             <div class="section event-section">
-              <h3>📅 ${section.title || 'Event'}</h3>
-              <p>${section.content || ''}</p>
-              ${section.date ? `<p><strong>Date:</strong> ${section.date}</p>` : ''}
-              ${section.location ? `<p><strong>Location:</strong> ${section.location}</p>` : ''}
+              <h3>📅 ${section.title || "Event"}</h3>
+              <p>${section.content || ""}</p>
+              ${section.date ? `<p><strong>Date:</strong> ${section.date}</p>` : ""}
+              ${section.location ? `<p><strong>Location:</strong> ${section.location}</p>` : ""}
             </div>
           `;
           break;
-        case 'staff_spotlight':
+        case "staff_spotlight":
           sectionsHTML += `
             <div class="section spotlight-section">
-              <h3>⭐ ${section.title || 'Staff Spotlight'}</h3>
-              <p>${section.content || ''}</p>
+              <h3>⭐ ${section.title || "Staff Spotlight"}</h3>
+              <p>${section.content || ""}</p>
             </div>
           `;
           break;
-        case 'image':
+        case "image":
           sectionsHTML += `
             <div class="section image-section">
-              <h3>${section.title || ''}</h3>
-              ${section.imageUrl ? `<img src="${section.imageUrl}" alt="${section.title || 'Newsletter image'}" style="max-width: 100%; height: auto;">` : ''}
-              <p>${section.content || ''}</p>
+              <h3>${section.title || ""}</h3>
+              ${section.imageUrl ? `<img src="${section.imageUrl}" alt="${section.title || "Newsletter image"}" style="max-width: 100%; height: auto;">` : ""}
+              <p>${section.content || ""}</p>
             </div>
           `;
           break;
         default:
           sectionsHTML += `
             <div class="section">
-              <h3>${section.title || ''}</h3>
-              <p>${section.content || ''}</p>
+              <h3>${section.title || ""}</h3>
+              <p>${section.content || ""}</p>
             </div>
           `;
       }
@@ -5027,7 +5140,7 @@ console.log(points,'points award system')
       <body>
         <div class="header">
           <h1>${newsletter.title}</h1>
-          ${newsletter.subtitle ? `<h2>${newsletter.subtitle}</h2>` : ''}
+          ${newsletter.subtitle ? `<h2>${newsletter.subtitle}</h2>` : ""}
           <p>Published: ${new Date(newsletter.publishedAt || newsletter.createdAt).toLocaleDateString()}</p>
         </div>
         
@@ -5042,47 +5155,51 @@ console.log(points,'points award system')
   }
 
   // Newsletter admin endpoints
-  app.post("/api/admin/newsletters/:id/publish", requireAuth, async (req, res) => {
-    try {
-      const user = await storage.getUser(req.session!.userId!);
-      if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
-        return res.status(403).json({ error: "Access denied" });
+  app.post(
+    "/api/admin/newsletters/:id/publish",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const user = await storage.getUser(req.session!.userId!);
+        if (!user || !user.schoolId || (!user.isAdmin && !user.isSchoolAdmin)) {
+          return res.status(403).json({ error: "Access denied" });
+        }
+
+        const newsletterId = parseInt(req.params.id);
+        const { scheduledFor } = req.body;
+
+        // Update newsletter status to published
+        const [newsletter] = await db
+          .update(newsletters)
+          .set({
+            status: "published",
+            publishedAt: new Date(),
+            scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(newsletters.id, newsletterId),
+              eq(newsletters.schoolId, user.schoolId),
+            ),
+          )
+          .returning();
+
+        if (!newsletter) {
+          return res.status(404).json({ error: "Newsletter not found" });
+        }
+
+        res.json({
+          success: true,
+          message: "Newsletter published successfully",
+          newsletter,
+        });
+      } catch (error) {
+        console.error("Error publishing newsletter:", error);
+        res.status(500).json({ error: "Failed to publish newsletter" });
       }
-
-      const newsletterId = parseInt(req.params.id);
-      const { scheduledFor } = req.body;
-
-      // Update newsletter status to published
-      const [newsletter] = await db
-        .update(newsletters)
-        .set({
-          status: 'published',
-          publishedAt: new Date(),
-          scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(newsletters.id, newsletterId),
-            eq(newsletters.schoolId, user.schoolId),
-          ),
-        )
-        .returning();
-
-      if (!newsletter) {
-        return res.status(404).json({ error: "Newsletter not found" });
-      }
-
-      res.json({ 
-        success: true, 
-        message: "Newsletter published successfully",
-        newsletter 
-      });
-    } catch (error) {
-      console.error("Error publishing newsletter:", error);
-      res.status(500).json({ error: "Failed to publish newsletter" });
-    }
-  });
+    },
+  );
 
   app.post("/api/admin/newsletters/:id/pdf", requireAuth, async (req, res) => {
     try {
@@ -5113,10 +5230,12 @@ console.log(points,'points award system')
 
       // For now, return the HTML as a simple text file since we don't have PDF generation library
       // In production, you'd use puppeteer or similar to generate actual PDFs
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `attachment; filename="newsletter-${newsletter.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html"`);
+      res.setHeader("Content-Type", "text/html");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="newsletter-${newsletter.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.html"`,
+      );
       res.send(htmlContent);
-
     } catch (error) {
       console.error("Error generating newsletter PDF:", error);
       res.status(500).json({ error: "Failed to generate PDF" });
@@ -5550,34 +5669,35 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   app.post("/api/bear-assistant/ask", requireAuth, async (req, res) => {
     try {
       const { query } = req.body;
-      
-      if (!query || typeof query !== 'string') {
+
+      if (!query || typeof query !== "string") {
         return res.status(400).json({ message: "Query is required" });
       }
 
       // Import the BearyAI service
       const { AIBearyService } = await import("./services/aiBearyService");
-      
+
       // Process the query through BearyAI
       const response = await AIBearyService.processQuery(query);
-      
+
       res.json(response);
     } catch (error) {
       console.error("BearyAI endpoint error:", error);
-      res.status(500).json({ 
-        message: "🐻 **AI Beary says:** I'm having trouble processing your request right now. Please try again in a moment!",
+      res.status(500).json({
+        message:
+          "🐻 **AI Beary says:** I'm having trouble processing your request right now. Please try again in a moment!",
         isAppropriate: true,
-        category: 'general'
+        category: "general",
       });
     }
   });
 
   // Register AI suggestion routes under specific paths to avoid conflicts
   app.use("/api/flashcards", aiSuggestionRoutes);
-  
+
   // Register new AI suggestion routes (includes parent response)
   app.use("/api/ai", newAiSuggestionRoutes);
-  
+
   // Register AI Module Designer routes
   app.use("/api/ai", aiModuleDesignerRoutes);
 
@@ -5592,10 +5712,10 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
 
   // Register podcast generation routes
   app.use("/api/podcast", podcastRoutes);
-  
+
   // Register music maker routes for director toolkit
   app.use("/api/musicmaker", musicmakerRouter);
-  
+
   // Register image generation routes for lesson plan visualization
   app.use("/api/ai", imageGenerationRoutes);
 
@@ -5614,16 +5734,16 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
     try {
       const id = parseInt(req.params.id);
       const draft = await storage.getModuleDraft(id);
-      
+
       if (!draft) {
         return res.status(404).json({ error: "Draft not found" });
       }
-      
+
       // Ensure user owns this draft
       if (draft.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       res.json(draft);
     } catch (error) {
       console.error("Error fetching module draft:", error);
@@ -5634,15 +5754,15 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   app.post("/api/module-drafts", requireAuth, async (req, res) => {
     try {
       const { name, moduleData, creationMethod, aiWorkflowStep } = req.body;
-      
+
       const draft = await storage.createModuleDraft({
         userId: req.user!.id,
         name,
         moduleData,
         creationMethod,
-        aiWorkflowStep
+        aiWorkflowStep,
       });
-      
+
       res.json(draft);
     } catch (error) {
       console.error("Error creating module draft:", error);
@@ -5654,24 +5774,24 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
     try {
       const id = parseInt(req.params.id);
       const { name, moduleData, creationMethod, aiWorkflowStep } = req.body;
-      
+
       // Verify draft exists and user owns it
       const existingDraft = await storage.getModuleDraft(id);
       if (!existingDraft) {
         return res.status(404).json({ error: "Draft not found" });
       }
-      
+
       if (existingDraft.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       const updatedDraft = await storage.updateModuleDraft(id, {
         name,
         moduleData,
         creationMethod,
-        aiWorkflowStep
+        aiWorkflowStep,
       });
-      
+
       res.json(updatedDraft);
     } catch (error) {
       console.error("Error updating module draft:", error);
@@ -5682,17 +5802,17 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
   app.delete("/api/module-drafts/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      
+
       // Verify draft exists and user owns it
       const existingDraft = await storage.getModuleDraft(id);
       if (!existingDraft) {
         return res.status(404).json({ error: "Draft not found" });
       }
-      
+
       if (existingDraft.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       await storage.deleteModuleDraft(id);
       res.json({ success: true });
     } catch (error) {

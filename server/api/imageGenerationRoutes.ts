@@ -8,6 +8,29 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Enhanced prompt engineering for educational content
+function enhanceEducationalPrompt(originalPrompt: string): string {
+  // Check if it's a lesson plan visualization request
+  const isLessonPlan = originalPrompt.toLowerCase().includes('lesson plan') || 
+                       originalPrompt.toLowerCase().includes('educational') ||
+                       originalPrompt.toLowerCase().includes('classroom') ||
+                       originalPrompt.toLowerCase().includes('teaching');
+  
+  if (isLessonPlan) {
+    return `Professional educational infographic design: ${originalPrompt}. 
+    Style: Clean, modern, child-friendly design with bright colors and clear typography. 
+    Layout: Well-organized sections with visual hierarchy, icons, and illustrations. 
+    Quality: High-resolution, classroom-ready, bulletin board appropriate. 
+    Colors: Warm, inviting educational palette with good contrast for readability.
+    Typography: Clear, legible fonts suitable for parents and educators.
+    Elements: Include relevant educational icons, decorative borders, and child-appropriate illustrations.`;
+  }
+  
+  // For general educational content, add quality and style improvements
+  return `High-quality educational visual: ${originalPrompt}. 
+  Professional design with vibrant colors, clear layout, and educational styling appropriate for early childhood education.`;
+}
+
 interface ImageGenerationRequest {
   prompt: string;
   size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
@@ -18,7 +41,7 @@ interface ImageGenerationRequest {
 // Generate image using OpenAI DALL-E
 router.post('/generate-image', async (req, res) => {
   try {
-    const { prompt, size = '1024x1024', quality = 'standard', style = 'vivid' }: ImageGenerationRequest = req.body;
+    const { prompt, size = '1024x1024', quality = 'hd', style = 'vivid' }: ImageGenerationRequest = req.body;
 
     console.log('Image generation request:', { prompt: prompt?.substring(0, 100), size, quality, style });
 
@@ -37,15 +60,18 @@ router.post('/generate-image', async (req, res) => {
       });
     }
 
-    console.log(`Generating image with prompt: ${prompt.substring(0, 100)}...`);
+    // Enhance prompt for better educational content generation
+    const enhancedPrompt = enhanceEducationalPrompt(prompt);
+    
+    console.log(`Generating high-quality image with enhanced prompt: ${enhancedPrompt.substring(0, 100)}...`);
 
-    // Generate image using OpenAI DALL-E 3
+    // Generate image using OpenAI DALL-E 3 with enhanced settings
     const response = await openai.images.generate({
-      model: "dall-e-3", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      prompt: prompt,
+      model: "dall-e-3", // Using DALL-E 3 for best image generation quality
+      prompt: enhancedPrompt,
       n: 1,
       size: size,
-      quality: quality,
+      quality: quality, // Default to 'hd' for better quality
       style: style,
     });
 

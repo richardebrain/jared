@@ -571,9 +571,9 @@ console.log(module,'module')
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {currentSection.videoUrl ? (
+              {currentSection.videoUrl || currentSection.content ? (
                 <VideoPlayer
-                  videoUrl={currentSection.videoUrl}
+                  videoUrl={currentSection.videoUrl || currentSection.content}
                   title={currentSection.title}
                   onComplete={() => handleSectionComplete(currentSectionIndex, 8)}
                 />
@@ -608,7 +608,7 @@ console.log(module,'module')
       case 'activity':
       case 'matching':
         try {
-          const activities = currentSection.activities || [];
+          const activities = JSON.parse(currentSection.content || '[]');
           if (activities.length > 0) {
             const activity = activities[0];
             return (

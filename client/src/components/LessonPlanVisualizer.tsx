@@ -96,7 +96,7 @@ const generateImageFromPrompt = async (prompt: string): Promise<string | null> =
       body: JSON.stringify({
         prompt,
         size: "1024x1024",
-        quality: "standard", // Using standard quality (medium) as requested
+        quality: "hd", // Using high-definition quality for better lesson plan visuals
         style: "vivid"
       })
     });

@@ -363,7 +363,7 @@ export default function ProgressionMap() {
                 <div>
                   <div className="flex items-center justify-between text-white/90 mb-3">
                     <span className="font-medium">🚀 Progress to next level</span>
-                    <span className="font-bold text-yellow-300 text-lg">{progress}%</span>
+                    <span className="font-bold text-yellow-300 text-lg">{Math.round(progress)}%</span>
                   </div>
                   <div className="bg-white/20 rounded-full h-4 overflow-hidden">
                     <div 

@@ -109,11 +109,12 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
       blocks: [{
         type: 'matching',
         title: 'Matching Activity',
-        content: JSON.stringify({ pairs, instructions }),
+        content: JSON.stringify(pairs),
         preview: `${pairs.length} matching pairs ready`,
         pairs: pairs,
         instructions: instructions
-      }]
+      }],
+      activities:pairs
     };
     onContentChange(updatedContent);
     onEditToggle();
