@@ -448,7 +448,10 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     mutationFn: async (data: { points: number; reason: string }) => {
       return apiRequest(`/api/points/award`, {
         method: 'POST',
-        data: JSON.stringify(data),
+        data: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
     },
     onSuccess: () => {
@@ -462,7 +465,10 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     mutationFn: async (data: { rating: number; comment?: string }) => {
       return apiRequest(`/api/community-modules/${moduleId}/rate`, {
         method: 'POST',
-        data: JSON.stringify(data),
+        data: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
     },
     onSuccess: () => {

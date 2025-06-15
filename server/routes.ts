@@ -2628,7 +2628,7 @@ Continue for all 5 questions...
     try {
       const userId = req.session.userId;
       const { points, reason, gameType } = req.body;
-
+console.log(points,'points award system')
       if (!points || points <= 0) {
         return res.status(400).json({ message: "Valid points amount required" });
       }
