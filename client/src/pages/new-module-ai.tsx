@@ -39,7 +39,6 @@ import {
   Type,
   FileText,
   Save,
-  Plus,
   RefreshCw,
   Clock,
   Search,
@@ -50,6 +49,7 @@ import {
   Palette,
   Trash2,
   AlertTriangle,
+  Plus,
 } from "lucide-react";
 import QuizSectionBuilder from "@/components/SectionBuilders/QuizSectionBuilder";
 import MatchingSectionBuilder from "@/components/SectionBuilders/MatchingSectionBuilder";
@@ -915,14 +915,45 @@ export default function NewModuleAI() {
                             {section.type}
                           </div>
                         </div>
-                        {sectionContents[index] &&
-                          sectionContents[index].blocks &&
-                          sectionContents[index].blocks.length > 0 && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <div className="flex items-center gap-1">
+                          {sectionContents[index] &&
+                            sectionContents[index].blocks &&
+                            sectionContents[index].blocks.length > 0 && (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            )}
+                          {selectedTemplate.id === "custom" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteCustomSection(index);
+                              }}
+                              disabled={selectedTemplate.sections.length <= 1}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           )}
+                        </div>
                       </div>
                     </div>
                   ))}
+                  
+                  {/* Add Section Button for Custom Template */}
+                  {selectedTemplate.id === "custom" && (
+                    <div className="mx-4 mb-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                        onClick={() => setShowAddSectionDialog(true)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Section
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
