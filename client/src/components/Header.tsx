@@ -159,7 +159,9 @@ export default function Header() {
       return response.data;
     },
     onSuccess: () => {
+      // Force immediate query refetch to update UI
       queryClient.invalidateQueries({ queryKey: ["/api/director-messages"] });
+      queryClient.refetchQueries({ queryKey: ["/api/director-messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
         title: "Message dismissed",
