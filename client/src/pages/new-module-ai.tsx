@@ -581,6 +581,9 @@ export default function NewModuleAI() {
         console.log(updated, "update contnent change");
         return updated;
       });
+      
+      // Auto-save after content changes
+      setTimeout(() => autoSaveDraft(), 2000);
     };
 
     const handleEditToggle = () => {
@@ -1285,6 +1288,21 @@ export default function NewModuleAI() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* Auto-save indicator */}
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        {isAutoSaving ? (
+                          <div className="flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span>Saving draft...</span>
+                          </div>
+                        ) : lastSaved ? (
+                          <div className="flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            <span>Saved {lastSaved.toLocaleTimeString()}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                      
                       {selectedTemplate.sections.length > 1 && (
                         <Button
                           onClick={() => handleDeleteSection(currentSectionIndex)}
