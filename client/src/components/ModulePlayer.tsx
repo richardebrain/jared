@@ -915,7 +915,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       });
     }
   };
-console.log(module,'module')
+
   const progressPercentage = (completedSections.size / (module?.sections?.length || 1)) * 100;
 
   if (isLoading) {
@@ -1074,6 +1074,8 @@ console.log(module,'module')
             <QuizComponent
               questions={questions}
               onComplete={(score, points) => handleQuizComplete(score, points, isLastSection)}
+              hasRetakeAttempt={!retakeAttempts[currentSectionIndex]}
+              onRetakeRequest={handleRetakeRequest}
             />
           );
         } catch (error) {
