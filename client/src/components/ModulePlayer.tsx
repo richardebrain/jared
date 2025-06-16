@@ -431,7 +431,10 @@ function ScenarioMatchComponent({ scenario, onComplete }: ScenarioMatchProps) {
     onComplete(0); // No points for scenario-match, only completion tracking
   };
 
-  const isCorrect = selectedOption === scenario.correctAnswer;
+  // Handle both string and index-based correct answers
+  const isCorrect = typeof scenario.correctAnswer === 'number' 
+    ? selectedOption === scenario.options[scenario.correctAnswer]
+    : selectedOption === scenario.correctAnswer;
 
   return (
     <Card>
@@ -495,11 +498,15 @@ function ScenarioMatchComponent({ scenario, onComplete }: ScenarioMatchProps) {
                   {isCorrect ? "Correct!" : "Not quite right"}
                 </h4>
                 <p className="text-gray-700 mt-1">
-                  {isCorrect ? scenario.correctFeedback : scenario.incorrectFeedback}
+                  {isCorrect ? scenario.correctFeedback || scenario.explanation : scenario.incorrectFeedback || "Consider a different approach."}
                 </p>
-                {!isCorrect && scenario.correctAnswer && (
+                {!isCorrect && scenario.correctAnswer !== undefined && (
                   <p className="text-gray-600 mt-2 text-sm">
-                    <strong>The best approach:</strong> {scenario.correctAnswer}
+                    <strong>The best approach:</strong> {
+                      typeof scenario.correctAnswer === 'number' 
+                        ? scenario.options[scenario.correctAnswer]
+                        : scenario.correctAnswer
+                    }
                   </p>
                 )}
               </div>
@@ -747,7 +754,7 @@ console.log(module,'module')
             </CardContent>
             <CardFooter>
               <Button
-                onClick={() => handleSectionComplete(currentSectionIndex, 5)}
+                onClick={() => handleSectionComplete(currentSectionIndex, 0)}
                 disabled={completedSections.has(currentSectionIndex)}
                 className="w-full"
               >
@@ -772,7 +779,7 @@ console.log(module,'module')
                 <VideoPlayer
                   videoUrl={currentSection.videoUrl || currentSection.content}
                   title={currentSection.title}
-                  onComplete={() => handleSectionComplete(currentSectionIndex, 8)}
+                  onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
                 />
               ) : (
                 <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
@@ -918,12 +925,25 @@ console.log(module,'module')
           
           console.log('Parsed scenario data:', scenarioData);
           
-          return (
-            <ScenarioMatchComponent
-              scenario={scenarioData}
-              onComplete={(points) => handleSectionComplete(currentSectionIndex, points)}
-            />
-          );
+          // Handle array of scenarios vs single scenario
+          if (Array.isArray(scenarioData)) {
+            // Multiple scenarios - show the first one for now, or create a multi-scenario component
+            const firstScenario = scenarioData[0];
+            return (
+              <ScenarioMatchComponent
+                scenario={firstScenario}
+                onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
+              />
+            );
+          } else {
+            // Single scenario object
+            return (
+              <ScenarioMatchComponent
+                scenario={scenarioData}
+                onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
+              />
+            );
+          }
         } catch (error) {
           console.error('Error parsing scenario match content:', error);
           console.log('Raw content:', currentSection.content);
