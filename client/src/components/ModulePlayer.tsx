@@ -589,51 +589,34 @@ console.log(module,'module')
 
       case 'quiz':
         try {
-          console.log('Raw quiz content:', currentSection.content);
-          console.log('Current section:', currentSection);
-          
           let questions = [];
           
-          // Parse the quiz content
+          // The content might be already parsed as an array or a JSON string
           if (currentSection.content) {
-            let parsedContent;
-            try {
-              parsedContent = JSON.parse(currentSection.content);
-              console.log('Successfully parsed content:', parsedContent);
-            } catch (parseError) {
-              console.error('JSON parse error:', parseError);
-              throw new Error(`Failed to parse JSON: ${parseError.message}`);
+            if (Array.isArray(currentSection.content)) {
+              // Content is already an array of questions
+              questions = currentSection.content;
+            } else if (typeof currentSection.content === 'string') {
+              // Content is a JSON string that needs parsing
+              const parsedContent = JSON.parse(currentSection.content);
+              if (Array.isArray(parsedContent)) {
+                questions = parsedContent;
+              } else if (parsedContent.blocks && Array.isArray(parsedContent.blocks)) {
+                questions = parsedContent.blocks;
+              } else if (parsedContent.questions && Array.isArray(parsedContent.questions)) {
+                questions = parsedContent.questions;
+              }
+            } else if (typeof currentSection.content === 'object' && currentSection.content.questions) {
+              // Content is an object with a questions property
+              questions = currentSection.content.questions;
             }
-            
-            // The content is directly an array of questions
-            if (Array.isArray(parsedContent)) {
-              questions = parsedContent;
-              console.log('Found questions as direct array:', questions.length);
-            }
-            // Check other possible structures
-            else if (parsedContent.blocks && Array.isArray(parsedContent.blocks)) {
-              questions = parsedContent.blocks;
-              console.log('Found questions in blocks:', questions.length);
-            }
-            else if (parsedContent.questions && Array.isArray(parsedContent.questions)) {
-              questions = parsedContent.questions;
-              console.log('Found questions in questions property:', questions.length);
-            }
-            else {
-              console.log('Unknown content structure:', parsedContent);
-            }
-          } else {
-            console.log('No content found in current section');
           }
-          
-          console.log('Final questions to render:', questions);
           
           if (questions.length === 0) {
             return (
               <Card>
                 <CardContent>
                   <p className="text-yellow-600">No quiz questions found in this section</p>
-                  <p className="text-sm text-gray-500 mt-2">Section type: {currentSection.type}</p>
                 </CardContent>
               </Card>
             );
@@ -647,14 +630,10 @@ console.log(module,'module')
           );
         } catch (error) {
           console.error('Quiz parsing error:', error);
-          console.error('Error details:', error.message, error.stack);
           return (
             <Card>
               <CardContent>
-                <p className="text-red-500">Error loading quiz content: {error.message}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Content length: {currentSection.content?.length || 0} characters
-                </p>
+                <p className="text-red-500">Error loading quiz content</p>
               </CardContent>
             </Card>
           );
