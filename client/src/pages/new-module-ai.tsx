@@ -600,7 +600,7 @@ export default function NewModuleAI() {
         title: selectedTemplate.sections[index].title,
         type: selectedTemplate.sections[index].type,
         duration: selectedTemplate.sections[index].duration,
-        content: content?.blocks?.[0]?.content || "Generated content",
+        content: content || "Generated content",
         videoUrl: "",
         imageUrl: "",
         activities: content?.activities || [],

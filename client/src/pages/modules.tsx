@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
@@ -109,11 +109,19 @@ export default function AllModules() {
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-semibold leading-tight">{module.title}</CardTitle>
-            {isRecommended && (
-              <Badge variant="secondary" className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200">
-                Recommended
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {isCompleted && (
+                <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Completed
+                </Badge>
+              )}
+              {isRecommended && (
+                <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
+                  Recommended
+                </Badge>
+              )}
+            </div>
           </div>
           <CardDescription className="line-clamp-2">{module.description}</CardDescription>
         </CardHeader>
