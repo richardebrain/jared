@@ -28,7 +28,7 @@ export function ModuleEditButton({ module, className }: ModuleEditButtonProps) {
   const saveModuleMutation = useMutation({
     mutationFn: async (moduleData: any) => {
       return apiRequest(`/api/modules/${module.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         data: {
           title: moduleData.title,
           description: moduleData.description,
