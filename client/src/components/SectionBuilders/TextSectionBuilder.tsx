@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus, X, Upload } from 'lucide-react';
 import ModuleImageGenerator from '@/components/ModuleImageGenerator';
 import VoiceInputTextarea from '@/components/VoiceInputTextarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface TextSectionBuilderProps {
   content: any;
@@ -17,6 +18,7 @@ interface TextSectionBuilderProps {
 }
 
 export default function TextSectionBuilder({ content, onContentChange, isEditing, onEditToggle, onRegenerateAI }: TextSectionBuilderProps) {
+  const { toast } = useToast();
   const [textContent, setTextContent] = useState('');
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [sectionImages, setSectionImages] = useState<Array<{url: string, description: string}>>([]);
@@ -120,13 +122,12 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
       // Show success feedback with toast notification
       console.log('Image uploaded and auto-saved:', newImage.description);
       
-      // Visual feedback for successful upload
-      setTimeout(() => {
-        const event = new CustomEvent('imageUploaded', { 
-          detail: { description: newImage.description }
-        });
-        window.dispatchEvent(event);
-      }, 100);
+      // Show toast notification for successful upload and save
+      toast({
+        title: "Image Uploaded & Saved!",
+        description: `"${newImage.description}" has been uploaded and automatically saved to your module.`,
+        variant: "default",
+      });
     };
     reader.readAsDataURL(file);
 
