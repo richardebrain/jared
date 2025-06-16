@@ -68,7 +68,7 @@ router.post('/generate-section', async (req, res) => {
           generatedContent = await generateScenarioSection(topic, sectionTitle, customGuidance);
           break;
         case 'video':
-          generatedContent = await generateVideoSection(topic, sectionTitle);
+          generatedContent = generateVideoSection(topic, sectionTitle);
           break;
         default:
           generatedContent = await generateTextSection(topic, sectionTitle, customGuidance);
@@ -79,7 +79,14 @@ router.post('/generate-section', async (req, res) => {
     } catch (aiError) {
       console.error('AI generation failed, using fallback content:', aiError);
       // Provide fallback content instead of failing
-      generatedContent = generateFallbackContent(sectionType, sectionTitle, topic);
+      generatedContent = {
+        blocks: [{
+          type: sectionType,
+          title: sectionTitle,
+          content: `Educational content about ${topic} will be available here. Please try generating again or add content manually.`,
+          preview: `${sectionTitle} - Content ready for ${topic}`
+        }]
+      };
       res.json(generatedContent);
     }
   } catch (error) {
@@ -239,7 +246,7 @@ Format as JSON:
   };
 }
 
-async function generateVideoSection(basePrompt: string, topic: string, sectionTitle: string) {
+function generateVideoSection(topic: string, sectionTitle: string) {
   // Find relevant videos from the library
   const relevantVideos = findRelevantVideos(topic, undefined, 3);
   
