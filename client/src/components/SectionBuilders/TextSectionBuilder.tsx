@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus } from 'lucide-react';
+import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus, X } from 'lucide-react';
 import ModuleImageGenerator from '@/components/ModuleImageGenerator';
+import VoiceInputTextarea from '@/components/VoiceInputTextarea';
 
 interface TextSectionBuilderProps {
   content: any;
@@ -160,19 +161,63 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="text-content">Educational Content</Label>
-            <Textarea
-              id="text-content"
+            <VoiceInputTextarea
               value={textContent}
-              onChange={(e) => setTextContent(e.target.value)}
+              onChange={(value) => setTextContent(value)}
               placeholder="Enter your educational content here. You can include key concepts, explanations, examples, and important information for teachers..."
               className="mt-1 min-h-[300px] resize-none"
             />
+          </div>
+
+          {/* Image Generation Section */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <Label>Educational Illustrations</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowImageGenerator(true)}
+              >
+                <Image className="h-4 w-4 mr-2" />
+                Generate Image
+              </Button>
+            </div>
+            
+            {sectionImages.length > 0 && (
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {sectionImages.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={image.url}
+                      alt={image.description}
+                      className="w-full h-32 object-cover rounded-lg border"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <p className="text-xs bg-black/70 text-white p-1 rounded truncate">
+                        {image.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="flex items-center justify-between text-sm text-gray-500 border-t pt-3">
             <div className="flex items-center gap-4">
               <span>{getWordCount()} words</span>
               <span>~{getReadingTime()} minute read</span>
+              {sectionImages.length > 0 && (
+                <span>{sectionImages.length} image{sectionImages.length !== 1 ? 's' : ''}</span>
+              )}
             </div>
             <div className="text-xs">
               Tip: Use clear headings and bullet points for better readability
@@ -199,6 +244,15 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
           </div>
         </CardContent>
       </Card>
+
+      {/* Image Generator Dialog */}
+      <ModuleImageGenerator
+        open={showImageGenerator}
+        onOpenChange={setShowImageGenerator}
+        onImageGenerated={handleImageGenerated}
+        moduleTitle="Text Section"
+        sectionContext="Educational Content"
+      />
     </div>
   );
 }
