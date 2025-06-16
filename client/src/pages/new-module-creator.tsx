@@ -133,6 +133,13 @@ export default function NewModuleCreator() {
 
   // Type the modules data properly
   const modules = Array.isArray(userModules) ? userModules : [];
+  
+  // Debug logging
+  console.log('[NEW MODULE CREATOR] User ID:', user?.id);
+  console.log('[NEW MODULE CREATOR] Modules loading:', modulesLoading);
+  console.log('[NEW MODULE CREATOR] Modules error:', error);
+  console.log('[NEW MODULE CREATOR] Raw userModules data:', userModules);
+  console.log('[NEW MODULE CREATOR] Processed modules array:', modules);
 
 
 
