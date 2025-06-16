@@ -54,6 +54,8 @@ router.post('/generate-section', async (req, res) => {
     let generatedContent;
     
     try {
+      console.log(`Starting AI generation for ${sectionType} section: ${sectionTitle}`);
+      
       switch (sectionType) {
         case 'text':
           generatedContent = await generateTextSection(topic, sectionTitle, customGuidance);
@@ -74,20 +76,17 @@ router.post('/generate-section', async (req, res) => {
           generatedContent = await generateTextSection(topic, sectionTitle, customGuidance);
       }
       
-      console.log(`Generated content for ${sectionType} section: ${sectionTitle}`);
+      console.log(`Successfully generated content for ${sectionType} section: ${sectionTitle}`);
       res.json(generatedContent);
     } catch (aiError) {
-      console.error('AI generation failed, using fallback content:', aiError);
-      // Provide fallback content instead of failing
-      generatedContent = {
-        blocks: [{
-          type: sectionType,
-          title: sectionTitle,
-          content: `Educational content about ${topic} will be available here. Please try generating again or add content manually.`,
-          preview: `${sectionTitle} - Content ready for ${topic}`
-        }]
-      };
-      res.json(generatedContent);
+      console.error(`AI generation failed for ${sectionType} section:`, aiError.message || aiError);
+      console.error('Full error details:', aiError);
+      
+      // Return error to client instead of fallback
+      res.status(500).json({ 
+        message: `AI generation failed: ${aiError.message || 'Unknown error'}`,
+        error: aiError.message || 'Failed to generate content'
+      });
     }
   } catch (error) {
     console.error('Error generating section content:', error);
@@ -113,6 +112,7 @@ Generate comprehensive text content that includes:
 
 Format with proper headings and structure. Make it engaging and practical.`;
 
+  console.log('Making OpenAI request for text section...');
   const response = await Promise.race([
     openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -124,6 +124,7 @@ Format with proper headings and structure. Make it engaging and practical.`;
       setTimeout(() => reject(new Error('Request timeout')), 20000)
     )
   ]);
+  console.log('OpenAI response received for text section');
 
   const content = (response as any).choices[0].message.content;
   
@@ -138,6 +139,8 @@ Format with proper headings and structure. Make it engaging and practical.`;
 }
 
 async function generateQuizSection(topic: string, sectionTitle: string, customGuidance?: string) {
+  console.log('Starting quiz generation for:', topic, sectionTitle);
+  
   const prompt = `Create quiz questions for early childhood educators on "${topic}".
 
 Section: ${sectionTitle}
@@ -161,29 +164,40 @@ Format as JSON with this structure:
   ]
 }`;
 
-  const response = await Promise.race([
-    openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-      max_tokens: 1500,
-      temperature: 0.7,
-    }),
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 20000)
-    )
-  ]);
+  console.log('Making OpenAI request for quiz section...');
+  try {
+    const response = await Promise.race([
+      openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        max_tokens: 1500,
+        temperature: 0.7,
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 20000)
+      )
+    ]);
+    console.log('OpenAI response received for quiz section');
 
-  const content = JSON.parse((response as any).choices[0].message.content);
-  
-  return {
-    blocks: [{
-      type: 'quiz',
-      title: sectionTitle,
-      content: content,
-      preview: `Quiz with ${content.questions?.length || 0} questions about ${topic}`
-    }]
-  };
+    const rawContent = (response as any).choices[0].message.content;
+    console.log('Quiz response content:', rawContent?.substring(0, 200) + '...');
+    
+    const content = JSON.parse(rawContent);
+    console.log('Successfully parsed quiz JSON');
+    
+    return {
+      blocks: [{
+        type: 'quiz',
+        title: sectionTitle,
+        content: content,
+        preview: `Quiz with ${content.questions?.length || 0} questions about ${topic}`
+      }]
+    };
+  } catch (error) {
+    console.error('Quiz generation error:', error);
+    throw error;
+  }
 }
 
 async function generateMatchingSection(topic: string, sectionTitle: string, customGuidance?: string) {

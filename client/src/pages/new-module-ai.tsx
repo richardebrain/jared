@@ -409,21 +409,10 @@ export default function NewModuleAI() {
     const section = selectedTemplate.sections[sectionIndex];
 
     try {
-      // For quiz and matching sections, send minimal context to avoid payload size issues
-      const isQuizOrMatching = section.type === 'quiz' || section.type === 'matching';
-      const contextData = isQuizOrMatching ? 
-        // Only send basic context for quiz/matching to keep payload small
-        {
-          topic: moduleConfig.topic,
-          sectionType: section.type,
-          sectionTitle: section.title,
-          targetAudience: moduleConfig.targetAudience,
-          difficulty: moduleConfig.difficulty,
-          templateContext: selectedTemplate.title,
-          customGuidance: customGuidance
-        } :
-        // Send full context for other section types
-        {
+      const response = await fetch("/api/ai-suggestions/generate-section", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           topic: moduleConfig.topic,
           sectionType: section.type,
           sectionTitle: section.title,
@@ -432,12 +421,7 @@ export default function NewModuleAI() {
           templateContext: selectedTemplate.title,
           dependsOn: sectionContents,
           customGuidance: customGuidance
-        };
-
-      const response = await fetch("/api/ai-suggestions/generate-section", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contextData),
+        }),
       });
 
       if (response.ok) {
