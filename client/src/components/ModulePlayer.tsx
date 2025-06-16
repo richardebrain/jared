@@ -801,6 +801,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       setRating(0);
       setRatingComment("");
       queryClient.invalidateQueries({ queryKey: ['/api/community-modules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       
       // Redirect to dashboard after rating submission
       setTimeout(() => {

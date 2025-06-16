@@ -62,55 +62,54 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
     }
   ];
 
-  // Check authentication status with improved fallback handling
+  // Check authentication status
   const { data: user, isError: authError } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: 1,
-    retryDelay: 1000,
-    onError: (error) => {
-      console.log('Auth error in CommunityModules, using fallback content:', error);
-    }
+    retryDelay: 1000
   });
 
   // Fetch community modules when user is authenticated
   const { data: communityModules, isLoading, error } = useQuery({
     queryKey: [viewAll ? "/api/community-modules" : "/api/community-modules/top"],
     queryFn: async () => {
-      try {
-        const endpoint = viewAll ? "/api/community-modules" : `/api/community-modules/top?limit=${limit}`;
-        const response = await fetch(endpoint, {
-          credentials: 'include', // Include cookies for session authentication
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.log('Using demo modules due to API error');
-          // Just return the demo modules to avoid breaking the UI
-          return demoModules;
-        }
-        
-        return response.json();
-      } catch (err) {
-        console.log('Error fetching modules, using demo data:', err);
-        return demoModules;
+      const endpoint = viewAll ? "/api/community-modules" : `/api/community-modules/top?limit=${limit}`;
+      const response = await fetch(endpoint, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+      
+      return response.json();
     },
-    // Show community modules even when user auth state is uncertain
-    // This ensures the component always renders something
-    enabled: true,
-    // Always return demo modules on error so the UI never breaks
-    onError: (err) => {
-      console.log('Error in community modules query, falling back to demo data:', err);
-    },
-    // Add fallback data to ensure we always have something to render
-    placeholderData: demoModules,
-    // Use stale data while refetching
-    staleTime: 60 * 1000, // 1 minute
-    // Prevent refetching on window focus to reduce potential errors
-    refetchOnWindowFocus: false,
+    enabled: !!user && !authError,
+    staleTime: 30 * 1000, // 30 seconds
+    refetchOnWindowFocus: true,
   });
+
+  // Show error state when data cannot be fetched
+  if (error || (!communityModules && !isLoading)) {
+    return (
+      <Card className="shadow-md bg-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
+            Community Modules
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 text-center py-4">
+            Unable to load community modules. Please check your connection and try again.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (

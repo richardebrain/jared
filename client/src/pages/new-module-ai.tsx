@@ -244,10 +244,13 @@ export default function NewModuleAI() {
     const template = PROVEN_TEMPLATES.find((t) => t.id === templateId);
     if (template) {
       setSelectedTemplate(template);
-      setModuleConfig((prev) => ({
-        ...prev,
-        title: `${template.title} - ${prev.topic || "New Topic"}`,
-      }));
+      // Only set template-based title for non-custom templates
+      if (templateId !== "custom") {
+        setModuleConfig((prev) => ({
+          ...prev,
+          title: `${template.title} - ${prev.topic || "New Topic"}`,
+        }));
+      }
       
       // For custom template, initialize custom sections management
       if (templateId === "custom") {
