@@ -153,9 +153,11 @@ function VideoPlayer({ videoUrl, title, onComplete }: VideoPlayerProps) {
 interface QuizProps {
   questions: any[];
   onComplete: (score: number, totalPoints: number) => void;
+  hasRetakeAttempt?: boolean;
+  onRetakeRequest?: () => void;
 }
 
-function QuizComponent({ questions, onComplete }: QuizProps) {
+function QuizComponent({ questions, onComplete, hasRetakeAttempt = false, onRetakeRequest }: QuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
@@ -244,6 +246,33 @@ function QuizComponent({ questions, onComplete }: QuizProps) {
                 </div>
               ))}
             </div>
+            
+            {/* Retake button for failing scores */}
+            {score / questions.length < 0.8 && !hasRetakeAttempt && onRetakeRequest && (
+              <div className="mt-6 pt-4 border-t">
+                <Button
+                  onClick={onRetakeRequest}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Retake Quiz (One attempt remaining)
+                </Button>
+              </div>
+            )}
+            
+            {/* Message for those who used their retake */}
+            {score / questions.length < 0.8 && hasRetakeAttempt && (
+              <div className="mt-6 pt-4 border-t">
+                <div className="text-center p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-orange-800 font-medium">
+                    You'll need to retake the entire module to earn completion credit.
+                  </p>
+                  <p className="text-orange-600 text-sm mt-1">
+                    Please restart the module from the beginning.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
