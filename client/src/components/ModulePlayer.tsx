@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { LearningModule } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -740,6 +740,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const [moduleCompleted, setModuleCompleted] = useState(false);
   const [retakeAttempts, setRetakeAttempts] = useState<{ [sectionIndex: number]: boolean }>({});
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: rawModule, isLoading } = useQuery<LearningModule>({
     queryKey: [`/api/modules/${moduleId}`],
@@ -794,12 +795,17 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     onSuccess: () => {
       toast({
         title: "Rating Submitted",
-        description: "Thank you for rating this module!",
+        description: "Thank you for rating this module! Returning to dashboard.",
       });
       setShowRatingDialog(false);
       setRating(0);
       setRatingComment("");
       queryClient.invalidateQueries({ queryKey: ['/api/community-modules'] });
+      
+      // Redirect to dashboard after rating submission
+      setTimeout(() => {
+        setLocation('/');
+      }, 2000);
     },
   });
 
@@ -907,11 +913,28 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       });
       setShowCompletionModal(true);
     } else if (isLastSection && percentage < 80) {
-      toast({
-        title: "Quiz Complete",
-        description: `You scored ${score} out of ${totalQuestions}. You need 80% or higher to earn module points.`,
-        variant: "destructive"
-      });
+      // Check if this is a retake attempt
+      const hasUsedRetake = retakeAttempts[sectionIndex];
+      
+      if (hasUsedRetake) {
+        // Failed second attempt - redirect to dashboard
+        toast({
+          title: "Module Complete",
+          description: `You scored ${score} out of ${totalQuestions}. Unfortunately, you did not pass after your retake attempt. Returning to dashboard.`,
+          variant: "destructive"
+        });
+        
+        // Redirect to dashboard after a brief delay
+        setTimeout(() => {
+          setLocation('/');
+        }, 3000);
+      } else {
+        toast({
+          title: "Quiz Complete",
+          description: `You scored ${score} out of ${totalQuestions}. You need 80% or higher to earn module points.`,
+          variant: "destructive"
+        });
+      }
     } else {
       // Regular quiz section - no points awarded
       toast({
@@ -1481,7 +1504,13 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => setShowRatingDialog(false)}
+                onClick={() => {
+                  setShowRatingDialog(false);
+                  // Redirect to dashboard when skipping rating
+                  setTimeout(() => {
+                    setLocation('/');
+                  }, 1000);
+                }}
                 variant="outline"
                 className="flex-1"
               >
