@@ -25,25 +25,25 @@ const IMAGE_STYLES = [
     id: 'friendly-illustration', 
     name: 'Friendly Illustration', 
     description: 'Warm, welcoming cartoon-style illustrations perfect for educational materials',
-    prompt: 'friendly cartoon illustration style, warm colors, educational, child-friendly'
+    prompt: 'cartoon illustration, bright vibrant colors, simple clean background, child-friendly design, soft rounded edges'
   },
   { 
     id: 'simple-diagram', 
     name: 'Simple Diagram', 
     description: 'Clean, minimalist diagrams with clear labels and simple shapes',
-    prompt: 'simple educational diagram, clean lines, minimal colors, clear labels'
+    prompt: 'simple diagram style, clean geometric shapes, minimal color palette, clear visual hierarchy'
   },
   { 
     id: 'storybook', 
     name: 'Storybook Style', 
     description: 'Colorful storybook illustrations with soft edges and bright colors',
-    prompt: 'children\'s book illustration style, soft edges, bright cheerful colors, educational'
+    prompt: 'children\'s book illustration, watercolor style, soft pastel colors, whimsical design'
   },
   { 
     id: 'infographic', 
     name: 'Educational Infographic', 
     description: 'Clear informational graphics with icons and visual elements',
-    prompt: 'educational infographic style, clear icons, organized layout, professional yet friendly'
+    prompt: 'professional infographic, organized layout, educational icons, clean typography'
   }
 ];
 
@@ -75,8 +75,11 @@ export default function ModuleImageGenerator({
 
   const generateImageMutation = useMutation({
     mutationFn: async (data: { prompt: string; style: string; moduleContext?: string }) => {
-      const style = IMAGE_STYLES.find(s => s.id === selectedStyle);
-      const enhancedPrompt = `${data.prompt}, ${style?.prompt || ''}, educational content, professional quality, suitable for teaching materials, no text or words in image`;
+      const selectedStyleObj = IMAGE_STYLES.find(s => s.id === selectedStyle);
+      
+      // Create a clean, focused prompt that prioritizes user intent
+      const cleanPrompt = data.prompt.trim();
+      const finalPrompt = `${cleanPrompt}, ${selectedStyleObj?.prompt || 'educational illustration style'}`;
       
       const response = await fetch('/api/ai/generate-image', {
         method: 'POST',
@@ -84,7 +87,7 @@ export default function ModuleImageGenerator({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: enhancedPrompt,
+          prompt: finalPrompt,
           quality: 'hd',
           style: 'natural',
           moduleContext: data.moduleContext

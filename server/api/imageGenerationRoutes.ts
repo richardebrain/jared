@@ -10,25 +10,20 @@ const openai = new OpenAI({
 
 // Enhanced prompt engineering for educational content
 function enhanceEducationalPrompt(originalPrompt: string): string {
+  // Clean and prioritize the user's original request
+  const cleanPrompt = originalPrompt.trim();
+  
   // Check if it's a lesson plan visualization request
-  const isLessonPlan = originalPrompt.toLowerCase().includes('lesson plan') || 
-                       originalPrompt.toLowerCase().includes('educational') ||
-                       originalPrompt.toLowerCase().includes('classroom') ||
-                       originalPrompt.toLowerCase().includes('teaching');
+  const isLessonPlan = cleanPrompt.toLowerCase().includes('lesson plan') || 
+                       cleanPrompt.toLowerCase().includes('formatted plan') ||
+                       cleanPrompt.toLowerCase().includes('bulletin board');
   
   if (isLessonPlan) {
-    return `Professional educational infographic design: ${originalPrompt}. 
-    Style: Clean, modern, child-friendly design with bright colors and clear typography. 
-    Layout: Well-organized sections with visual hierarchy, icons, and illustrations. 
-    Quality: High-resolution, classroom-ready, bulletin board appropriate. 
-    Colors: Warm, inviting educational palette with good contrast for readability.
-    Typography: Clear, legible fonts suitable for parents and educators.
-    Elements: Include relevant educational icons, decorative borders, and child-appropriate illustrations.`;
+    return `${cleanPrompt}. Professional educational infographic style with clean layout, bright child-friendly colors, clear visual hierarchy, educational icons, and classroom-appropriate design. High quality, bulletin board ready, no text overlays.`;
   }
   
-  // For general educational content, add quality and style improvements
-  return `High-quality educational visual: ${originalPrompt}. 
-  Professional design with vibrant colors, clear layout, and educational styling appropriate for early childhood education.`;
+  // For specific educational illustrations, be more precise
+  return `${cleanPrompt}. Professional illustration style: cartoon-friendly, bright educational colors, clean simple background, child-appropriate, classroom suitable, high quality detail, no text or words in image.`;
 }
 
 interface ImageGenerationRequest {
