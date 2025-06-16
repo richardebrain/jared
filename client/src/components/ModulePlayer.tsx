@@ -916,36 +916,50 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     }
 
     // Award points only if this is the final assessment and score is 80% or higher
-    if (isLastSection && percentage >= 80) {
+    if (isLastSection) {
       const modulePoints = module?.pointValue || 10;
-      setTotalPoints(prev => prev + modulePoints);
+      const passed = percentage >= 80;
       
-      // Award points for module completion
-      awardPointsMutation.mutate({
-        points: modulePoints,
-        reason: `Module completion with ${score} out of ${totalQuestions} quiz score`
-      });
-
-      // Track ECE hours if module is approved for ECE training
-      const moduleData = module as any; // Type assertion for ECE fields
-      if (moduleData?.eceApproved && moduleData?.eceCategory && moduleData?.eceHours) {
-        recordEceHoursMutation.mutate({
-          moduleId: module.id,
-          hours: moduleData.eceHours,
-          category: moduleData.eceCategory,
-          trainerId: moduleData.approvedTrainerId || null
+      if (passed) {
+        setTotalPoints(prev => prev + modulePoints);
+        
+        // Award points for module completion
+        awardPointsMutation.mutate({
+          points: modulePoints,
+          reason: `Module completion with ${score} out of ${totalQuestions} quiz score`
         });
+
+        // Track ECE hours if module is approved for ECE training
+        const moduleData = module as any; // Type assertion for ECE fields
+        if (moduleData?.eceApproved && moduleData?.eceCategory && moduleData?.eceHours) {
+          recordEceHoursMutation.mutate({
+            moduleId: module.id,
+            hours: moduleData.eceHours,
+            category: moduleData.eceCategory,
+            trainerId: moduleData.approvedTrainerId || null
+          });
+        }
+
+        // Show completion modal with points and ECE hours
+        setCompletionData({
+          score,
+          totalQuestions,
+          points: modulePoints,
+          eceHours: moduleData?.eceApproved ? moduleData.eceHours : undefined,
+          eceCategory: moduleData?.eceApproved ? moduleData.eceCategory : undefined,
+        });
+        setShowCompletionModal(true);
       }
 
-      // Show completion modal with points and ECE hours
-      setCompletionData({
-        score,
-        totalQuestions,
-        points: modulePoints,
-        eceHours: moduleData?.eceApproved ? moduleData.eceHours : undefined,
-        eceCategory: moduleData?.eceApproved ? moduleData.eceCategory : undefined,
+      // Update progress with pass/fail status for all final quiz completions
+      updateProgressMutation.mutate({
+        moduleId: module?.id || 0,
+        progress: 100,
+        completed: true,
+        passed: passed,
+        finalScore: percentage,
+        pointsEarned: passed ? modulePoints : 0
       });
-      setShowCompletionModal(true);
     } else if (isLastSection && percentage < 80) {
       // Check if this is a retake attempt
       const hasUsedRetake = retakeAttempts[sectionIndex];

@@ -51,10 +51,10 @@ export default function AllModules() {
     return progress ? progress.progress : 0;
   };
 
-  // Check if module is completed
+  // Check if module is completed and passed
   const isModuleCompleted = (moduleId: number) => {
     const progress = userProgress.find(p => p.moduleId === moduleId);
-    return progress ? progress.completed : false;
+    return progress ? (progress.completed && progress.passed) : false;
   };
 
   // Check if module is recommended

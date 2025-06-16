@@ -128,13 +128,13 @@ export default function Dashboard() {
   // Check if the user has completed the Core Values module (ID: 33)
   const hasCoreValuesComplete = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 33 && progress.completed);
+    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 33 && progress.completed && progress.passed);
   }, [userProgress]);
   
   // Check if Mindful Mornings module is completed (ID: 28)
   const hasMindfulMorningsComplete = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 28 && progress.completed);
+    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 28 && progress.completed && progress.passed);
   }, [userProgress]);
 
   // Check if a bonus game has been played today via localStorage or gameHistory
@@ -349,7 +349,7 @@ export default function Dashboard() {
   // Check if Chapter 1 (ID:34) is complete
   const hasChapterOneComplete = useMemo(() => {
     if (!userProgress) return false;
-    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 34 && progress.completed);
+    return Array.isArray(userProgress) && userProgress.some((progress) => progress.moduleId === 34 && progress.completed && progress.passed);
   }, [userProgress]);
   
   // Core Values Module card
