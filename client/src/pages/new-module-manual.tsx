@@ -117,6 +117,7 @@ export default function NewModuleManual() {
   
   console.log(`[EDIT MODE] URL: ${window.location.pathname}${window.location.search}`);
   console.log(`[EDIT MODE] Edit module ID: ${editModuleId}, isEditMode: ${isEditMode}`);
+  console.log(`[EDIT MODE] Query will be enabled: ${isEditMode && !!editModuleId}`);
 
   const [currentStep, setCurrentStep] = useState<'template' | 'config' | 'build' | 'preview'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
