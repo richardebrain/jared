@@ -167,7 +167,7 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
           )}
 
           {/* Director Messages */}
-          {directorMessages.length > 0 && (
+          {directorMessages.filter(msg => !msg.isRead).length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -176,7 +176,7 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {directorMessages.map((message, index) => (
+                {directorMessages.filter(msg => !msg.isRead).map((message, index) => (
                   <div key={index} className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
