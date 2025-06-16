@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import VoiceInputTextarea from "@/components/VoiceInputTextarea";
+import VoiceEnabledInput from "@/components/VoiceEnabledInput";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -309,11 +311,10 @@ export default function QuizSectionBuilder({
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor={`question-${question.id}`}>Question</Label>
-              <Textarea
-                id={`question-${question.id}`}
+              <VoiceInputTextarea
                 value={question.question}
-                onChange={(e) =>
-                  updateQuestion(question.id, "question", e.target.value)
+                onChange={(value) =>
+                  updateQuestion(question.id, "question", value)
                 }
                 placeholder="Enter your question here..."
                 className="mt-1"
@@ -338,10 +339,10 @@ export default function QuizSectionBuilder({
                       }
                       className="text-green-600"
                     />
-                    <Input
+                    <VoiceEnabledInput
                       value={option}
-                      onChange={(e) =>
-                        updateOption(question.id, optionIndex, e.target.value)
+                      onChange={(value) =>
+                        updateOption(question.id, optionIndex, value)
                       }
                       placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
                       className="flex-1"

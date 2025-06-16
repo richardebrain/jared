@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import VoiceEnabledInput from '@/components/VoiceEnabledInput';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Edit3, Save, Move, ArrowRight, RefreshCw } from 'lucide-react';
@@ -213,10 +214,9 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
         </CardHeader>
         <CardContent>
           <Label htmlFor="instructions">Instructions for Students</Label>
-          <Input
-            id="instructions"
+          <VoiceEnabledInput
             value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
+            onChange={(value) => setInstructions(value)}
             placeholder="Enter instructions for the matching activity..."
             className="mt-1"
           />
@@ -245,20 +245,18 @@ export default function MatchingSectionBuilder({ content, onContentChange, isEdi
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor={`left-${pair.id}`}>Left Item (to be matched)</Label>
-                  <Input
-                    id={`left-${pair.id}`}
+                  <VoiceEnabledInput
                     value={pair.left}
-                    onChange={(e) => updatePair(pair.id, 'left', e.target.value)}
+                    onChange={(value) => updatePair(pair.id, 'left', value)}
                     placeholder="Enter item to match..."
                     className="mt-1"
                   />
                 </div>
                 <div>
                   <Label htmlFor={`right-${pair.id}`}>Right Item (correct match)</Label>
-                  <Input
-                    id={`right-${pair.id}`}
+                  <VoiceEnabledInput
                     value={pair.right}
-                    onChange={(e) => updatePair(pair.id, 'right', e.target.value)}
+                    onChange={(value) => updatePair(pair.id, 'right', value)}
                     placeholder="Enter matching item..."
                     className="mt-1"
                   />
