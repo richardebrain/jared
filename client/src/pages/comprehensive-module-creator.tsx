@@ -152,7 +152,7 @@ export default function ComprehensiveModuleCreator() {
 
   // Fetch existing module data for edit mode
   const { data: existingModule, isLoading: moduleLoading, error: moduleError } = useQuery({
-    queryKey: ['/api/modules', editModuleId],
+    queryKey: [`/api/modules/${editModuleId}`],
     enabled: !!editModuleId && isEditMode
   });
 
@@ -211,9 +211,24 @@ export default function ComprehensiveModuleCreator() {
     if (existingModule && isEditMode) {
       console.log('[EDIT MODE] Loading existing module data:', existingModule);
       
-      const content = typeof existingModule.content === 'string' 
-        ? JSON.parse(existingModule.content) 
-        : existingModule.content;
+      // Handle both content and sections data structure
+      let sectionsData = [];
+      if (existingModule.content) {
+        try {
+          const content = typeof existingModule.content === 'string' 
+            ? JSON.parse(existingModule.content) 
+            : existingModule.content;
+          sectionsData = Array.isArray(content) ? content : [];
+        } catch (error) {
+          console.error('[EDIT MODE] Error parsing content:', error);
+          sectionsData = [];
+        }
+      }
+      
+      // Check if module has sections field as well
+      if (existingModule.sections && Array.isArray(existingModule.sections)) {
+        sectionsData = existingModule.sections;
+      }
 
       setNewModule(prev => ({
         ...prev,
@@ -3635,6 +3650,39 @@ Create a natural conversation between two podcast hosts discussing this specific
             onBack={() => setCreationMethod('selection')}
           />
         </div>
+      </div>
+    );
+  }
+
+  // Show loading state in edit mode
+  if (isEditMode && moduleLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <h3 className="text-lg font-semibold mb-2">Loading Module for Editing</h3>
+            <p className="text-gray-600">Please wait while we load your module data...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state if module loading fails
+  if (isEditMode && moduleError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-600" />
+            <h3 className="text-lg font-semibold mb-2 text-red-800">Failed to Load Module</h3>
+            <p className="text-gray-600 mb-4">Unable to load the module for editing.</p>
+            <Button onClick={() => navigate('/admin')} variant="outline">
+              Back to Admin
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
