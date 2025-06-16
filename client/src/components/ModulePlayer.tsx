@@ -1226,51 +1226,65 @@ console.log(module,'module')
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Module Header */}
-      <Card>
+      <Card className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200 shadow-lg">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">{module.title}</CardTitle>
-              <CardDescription className="mt-1">{module.description}</CardDescription>
+              <CardTitle className="text-2xl text-blue-900 font-bold">{module.title}</CardTitle>
+              <CardDescription className="mt-1 text-blue-700 text-lg">{module.description}</CardDescription>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-yellow-500" />
-                  <span className="font-semibold">{totalPoints} pts</span>
+                <div className="flex items-center gap-2 bg-yellow-100 px-3 py-2 rounded-full border-2 border-yellow-300">
+                  <Award className="h-5 w-5 text-yellow-600" />
+                  <span className="font-bold text-yellow-800">{totalPoints} pts</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="h-3 w-3" />
-                  <span>{module.estimatedTime || '30 min'}</span>
+                <div className="flex items-center gap-2 text-sm text-blue-600 mt-2">
+                  <Clock className="h-4 w-4" />
+                  <span className="font-medium">{module.estimatedTime || '30 min'}</span>
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-4">
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-              <span>Progress</span>
-              <span>{completedSections.size} of {module.sections.length} sections completed</span>
+            <div className="flex items-center justify-between text-sm text-blue-700 mb-2 font-medium">
+              <span>Learning Progress</span>
+              <span className="bg-green-100 px-2 py-1 rounded-full text-green-800">
+                {completedSections.size} of {module.sections.length} sections completed
+              </span>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
+            <Progress 
+              value={progressPercentage} 
+              className="h-3 bg-blue-100" 
+              style={{
+                background: 'linear-gradient(90deg, #3b82f6 0%, #10b981 100%)'
+              }}
+            />
           </div>
         </CardHeader>
       </Card>
 
       {/* Section Navigation */}
-      <Card>
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 shadow-md">
         <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {module.sections.map((section, index) => (
               <Button
                 key={index}
                 variant={index === currentSectionIndex ? "default" : "outline"}
                 size="sm"
                 onClick={() => setCurrentSectionIndex(index)}
-                className="relative"
+                className={`relative font-medium transition-all duration-200 ${
+                  index === currentSectionIndex 
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105" 
+                    : completedSections.has(index)
+                    ? "bg-green-100 border-green-400 text-green-800 hover:bg-green-200"
+                    : "bg-white border-purple-300 text-purple-700 hover:bg-purple-50"
+                }`}
               >
                 {section.title}
                 {completedSections.has(index) && (
-                  <CheckCircle2 className="h-3 w-3 ml-1 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 ml-2 text-green-600" />
                 )}
               </Button>
             ))}
@@ -1287,6 +1301,7 @@ console.log(module,'module')
           variant="outline"
           onClick={() => setCurrentSectionIndex(Math.max(0, currentSectionIndex - 1))}
           disabled={currentSectionIndex === 0}
+          className="bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-300 text-gray-700 hover:from-gray-200 hover:to-gray-300 font-medium shadow-md disabled:opacity-50"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Previous Section
@@ -1296,6 +1311,7 @@ console.log(module,'module')
           <Button
             onClick={() => setCurrentSectionIndex(currentSectionIndex + 1)}
             disabled={!completedSections.has(currentSectionIndex)}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none"
           >
             Next Section
             <ArrowRight className="h-4 w-4 ml-2" />
@@ -1304,13 +1320,13 @@ console.log(module,'module')
           completedSections.size === module.sections.length && (
             <Button 
               onClick={handleModuleComplete}
-              className={`${
+              className={`font-bold shadow-xl transform hover:scale-105 transition-all duration-200 ${
                 finalQuizScore !== null && finalQuizScore >= 80 
-                  ? "bg-green-600 hover:bg-green-700" 
-                  : "bg-orange-500 hover:bg-orange-600"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white" 
+                  : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
               }`}
             >
-              <Trophy className="h-4 w-4 mr-2" />
+              <Trophy className="h-5 w-5 mr-2" />
               {finalQuizScore !== null && finalQuizScore >= 80 
                 ? "Module Complete!" 
                 : finalQuizScore !== null 
