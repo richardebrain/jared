@@ -3270,21 +3270,18 @@ Continue for all 5 questions...
           // lastAccessed is handled automatically by the schema
         });
 
-        // If the module is newly completed, add points to user account
-        if (completed && !existingProgress.completed && pointsEarned) {
-          // Fetch the module to get pointValue if needed
+        // If the module is newly completed, add points to user account and track ECE hours
+        if (completed && !existingProgress.completed) {
+          // Fetch the module to get pointValue and ECE information
           const module = await db.query.learningModules.findFirst({
             where: (m, { eq }) => eq(m.id, moduleId),
           });
 
-          // Award either the specified pointsEarned or the module's pointValue
+          // Award points
           const pointsToAward = pointsEarned || module?.pointValue || 0;
-
           if (pointsToAward > 0) {
-            // Get user's current points
             const user = await storage.getUser(userId);
             if (user) {
-              // Update user's points
               await storage.updateUser(userId, {
                 points: (user.points || 0) + pointsToAward,
               });
@@ -3292,6 +3289,32 @@ Continue for all 5 questions...
               console.log(
                 `Awarded ${pointsToAward} points to user ${userId} for completing module ${moduleId}`,
               );
+            }
+          }
+
+          // Track ECE hours if module is eligible
+          if (module?.eceHoursEligible && module.eceCategory && module.trainingDuration) {
+            try {
+              const user = await storage.getUser(userId);
+              const eceHourData = {
+                userId,
+                moduleId,
+                category: module.eceCategory,
+                duration: module.trainingDuration,
+                trainingTitle: module.title,
+                approvedBy: module.approvedTrainerId,
+                schoolId: user?.schoolId || null,
+                notes: `Completed training module: ${module.title}`
+              };
+
+              await db.insert(eceHours).values(eceHourData);
+
+              console.log(
+                `ECE hours tracked: ${module.trainingDuration} minutes in ${module.eceCategory} for user ${userId} completing module "${module.title}"`
+              );
+            } catch (eceError) {
+              console.error("Error tracking ECE hours:", eceError);
+              // Don't fail the whole request if ECE tracking fails
             }
           }
         }
@@ -3309,19 +3332,52 @@ Continue for all 5 questions...
           // lastAccessed is handled automatically by the schema
         });
 
-        // If the module is created as completed, add points to user account
-        if (completed && pointsEarned) {
-          // Get user's current points
-          const user = await storage.getUser(userId);
-          if (user) {
-            // Update user's points
-            await storage.updateUser(userId, {
-              points: (user.points || 0) + pointsEarned,
-            });
+        // If the module is created as completed, add points to user account and track ECE hours
+        if (completed) {
+          // Fetch the module to get pointValue and ECE information
+          const module = await db.query.learningModules.findFirst({
+            where: (m, { eq }) => eq(m.id, moduleId),
+          });
 
-            console.log(
-              `Awarded ${pointsEarned} points to user ${userId} for completing module ${moduleId}`,
-            );
+          // Award points
+          const pointsToAward = pointsEarned || module?.pointValue || 0;
+          if (pointsToAward > 0) {
+            const user = await storage.getUser(userId);
+            if (user) {
+              await storage.updateUser(userId, {
+                points: (user.points || 0) + pointsToAward,
+              });
+
+              console.log(
+                `Awarded ${pointsToAward} points to user ${userId} for completing module ${moduleId}`,
+              );
+            }
+          }
+
+          // Track ECE hours if module is eligible
+          if (module?.eceHoursEligible && module.eceCategory && module.trainingDuration) {
+            try {
+              const user = await storage.getUser(userId);
+              const eceHourData = {
+                userId,
+                moduleId,
+                category: module.eceCategory,
+                duration: module.trainingDuration,
+                trainingTitle: module.title,
+                approvedBy: module.approvedTrainerId,
+                schoolId: user?.schoolId || null,
+                notes: `Completed training module: ${module.title}`
+              };
+
+              await db.insert(eceHours).values(eceHourData);
+
+              console.log(
+                `ECE hours tracked: ${module.trainingDuration} minutes in ${module.eceCategory} for user ${userId} completing module "${module.title}"`
+              );
+            } catch (eceError) {
+              console.error("Error tracking ECE hours:", eceError);
+              // Don't fail the whole request if ECE tracking fails
+            }
           }
         }
 
