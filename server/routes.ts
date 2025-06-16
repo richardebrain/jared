@@ -5979,7 +5979,7 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
       const { name, moduleData, creationMethod, aiWorkflowStep } = req.body;
 
       const draft = await storage.createModuleDraft({
-        userId: req.user!.id,
+        userId: req.user?.id || req.session?.userId,
         name,
         moduleData,
         creationMethod,

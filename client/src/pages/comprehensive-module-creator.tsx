@@ -150,6 +150,7 @@ export default function ComprehensiveModuleCreator() {
   // Edit mode detection and module loading
   const [isEditMode, setIsEditMode] = useState(false);
   const [editModuleId, setEditModuleId] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch existing module data for edit mode
   const { data: existingModule, isLoading: moduleLoading, error: moduleError } = useQuery({
@@ -7832,6 +7833,56 @@ Create a natural conversation between two podcast hosts discussing this specific
         isOpen={showAssessmentDialog}
         onClose={() => setShowAssessmentDialog(false)}
       />
+
+      {/* Edit Mode Action Bar */}
+      {isEditMode && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-50">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="border-blue-300 text-blue-700">
+                Editing: {newModule.title}
+              </Badge>
+              <span className="text-sm text-gray-600">
+                {newModule.sections.length} sections • Last saved: Auto-draft
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/modules')}
+                className="border-gray-300"
+              >
+                Cancel Changes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/modules/${moduleId}/preview`)}
+                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+              <Button
+                onClick={updateExistingModule}
+                disabled={isSaving}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
