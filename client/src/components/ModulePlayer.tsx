@@ -412,11 +412,161 @@ function DragDropActivity({ activity, onComplete }: DragDropActivityProps) {
 
 // Main Module Player Component
 interface ScenarioMatchProps {
+  scenarios: any[];
+  onComplete: (points: number) => void;
+}
+
+function MultiScenarioMatchComponent({ scenarios, onComplete }: ScenarioMatchProps) {
+  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [completedScenarios, setCompletedScenarios] = useState<Set<number>>(new Set());
+
+  const currentScenario = scenarios[currentScenarioIndex];
+
+  const handleSubmit = () => {
+    if (!selectedOption) return;
+    setShowFeedback(true);
+  };
+
+  const handleNext = () => {
+    const newCompleted = new Set(completedScenarios);
+    newCompleted.add(currentScenarioIndex);
+    setCompletedScenarios(newCompleted);
+    
+    if (currentScenarioIndex < scenarios.length - 1) {
+      setCurrentScenarioIndex(currentScenarioIndex + 1);
+      setSelectedOption("");
+      setShowFeedback(false);
+    } else {
+      // All scenarios completed
+      onComplete(0);
+    }
+  };
+
+  // Handle both string and index-based correct answers
+  const isCorrect = typeof currentScenario.correctAnswer === 'number' 
+    ? selectedOption === currentScenario.options[currentScenario.correctAnswer]
+    : selectedOption === currentScenario.correctAnswer;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>{currentScenario.title || "Scenario Challenge"}</CardTitle>
+          <span className="text-sm text-gray-500">
+            {currentScenarioIndex + 1} of {scenarios.length}
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Scenario Description */}
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+          <h4 className="font-semibold mb-2 text-blue-800">Scenario:</h4>
+          <p className="text-gray-700">{currentScenario.scenario}</p>
+        </div>
+
+        {/* Options */}
+        <div className="space-y-4">
+          <h4 className="font-semibold">What would you do in this situation?</h4>
+          <RadioGroup
+            value={selectedOption}
+            onValueChange={setSelectedOption}
+            disabled={showFeedback}
+          >
+            {currentScenario.options?.map((option: string, index: number) => {
+              const isThisCorrect = typeof currentScenario.correctAnswer === 'number' 
+                ? index === currentScenario.correctAnswer
+                : option === currentScenario.correctAnswer;
+              const isThisSelected = option === selectedOption;
+              
+              return (
+                <div key={index} className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value={option}
+                    id={`option-${index}`}
+                  />
+                  <Label 
+                    htmlFor={`option-${index}`}
+                    className={`flex-1 cursor-pointer p-3 rounded-lg border ${
+                      showFeedback ? (
+                        isThisCorrect ? "bg-green-50 border-green-200" : 
+                        isThisSelected ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"
+                      ) : "bg-white border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    {option}
+                  </Label>
+                </div>
+              );
+            })}
+          </RadioGroup>
+        </div>
+
+        {/* Feedback */}
+        {showFeedback && (
+          <div className={`p-4 rounded-lg border-l-4 ${
+            isCorrect ? "bg-green-50 border-green-400" : "bg-red-50 border-red-400"
+          }`}>
+            <div className="flex items-start gap-2">
+              {isCorrect ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600 mt-1" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-600 mt-1" />
+              )}
+              <div>
+                <h4 className={`font-semibold ${isCorrect ? "text-green-800" : "text-red-800"}`}>
+                  {isCorrect ? "Excellent!" : "Not quite right"}
+                </h4>
+                <p className="text-gray-700 mt-1">
+                  {currentScenario.explanation || (isCorrect ? "Great choice!" : "Consider a different approach.")}
+                </p>
+                {!isCorrect && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded border">
+                    <p className="text-gray-700 text-sm">
+                      <strong>The correct answer:</strong> {
+                        typeof currentScenario.correctAnswer === 'number' 
+                          ? currentScenario.options[currentScenario.correctAnswer]
+                          : currentScenario.correctAnswer
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        {!showFeedback ? (
+          <Button
+            onClick={handleSubmit}
+            disabled={!selectedOption}
+            className="w-full"
+          >
+            Submit Answer
+          </Button>
+        ) : (
+          <Button
+            onClick={handleNext}
+            className="w-full"
+          >
+            {currentScenarioIndex < scenarios.length - 1 ? "Next Scenario" : "Complete Activity"}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
+// Single scenario component for backward compatibility
+interface SingleScenarioMatchProps {
   scenario: any;
   onComplete: (points: number) => void;
 }
 
-function ScenarioMatchComponent({ scenario, onComplete }: ScenarioMatchProps) {
+function ScenarioMatchComponent({ scenario, onComplete }: SingleScenarioMatchProps) {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -927,11 +1077,10 @@ console.log(module,'module')
           
           // Handle array of scenarios vs single scenario
           if (Array.isArray(scenarioData)) {
-            // Multiple scenarios - show the first one for now, or create a multi-scenario component
-            const firstScenario = scenarioData[0];
+            // Multiple scenarios - use the multi-scenario component
             return (
-              <ScenarioMatchComponent
-                scenario={firstScenario}
+              <MultiScenarioMatchComponent
+                scenarios={scenarioData}
                 onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
               />
             );
