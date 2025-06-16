@@ -844,7 +844,10 @@ export default function ComprehensiveModuleCreator() {
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   
   // Initial setup phase for title and learning objective
-  const [showInitialSetup, setShowInitialSetup] = useState(true);
+  // Check if we're in edit mode to bypass initial setup
+  const urlParams = new URLSearchParams(window.location.search);
+  const isInEditMode = urlParams.get('edit');
+  const [showInitialSetup, setShowInitialSetup] = useState(!isInEditMode);
   const [initialModuleData, setInitialModuleData] = useState({
     title: '',
     learningObjective: ''
