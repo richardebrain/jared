@@ -943,8 +943,23 @@ export default function ComprehensiveModuleCreator() {
     setNewModule(updatedModule);
     
     // Auto-save to database
-    if (currentDraftId) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editModuleId = urlParams.get('edit');
+    const moduleId = currentDraftId || editModuleId;
+    
+    if (moduleId) {
       autoSaveModule(updatedModule);
+      
+      // Show auto-save confirmation for image uploads
+      if (updatedContent && typeof updatedContent === 'object' && 
+          updatedContent.blocks && updatedContent.blocks[0] && 
+          updatedContent.blocks[0].images && updatedContent.blocks[0].images.length > 0) {
+        toast({
+          title: "Images Auto-Saved",
+          description: `${updatedContent.blocks[0].images.length} image(s) saved to database`,
+          variant: "default",
+        });
+      }
     }
   };
 
@@ -7259,24 +7274,32 @@ Create a natural conversation between two podcast hosts discussing this specific
             ))}
           </div>
 
-          {/* Create Button */}
-          <div className="flex justify-end">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3">
             <Button 
               onClick={handleCreateModule}
               disabled={isCreatingModule || !newModule.title || !newModule.description}
-              className="px-8"
+              variant="outline"
             >
               {isCreatingModule ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating Module...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Create Module
+                  Save as Draft
                 </>
               )}
+            </Button>
+            <Button 
+              onClick={() => setAiWorkflowStep('preview')}
+              disabled={!newModule.title || !newModule.description}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Preview & Publish
             </Button>
           </div>
         </CardContent>

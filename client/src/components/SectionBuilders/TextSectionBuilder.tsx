@@ -117,8 +117,16 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
       // Immediately persist the content change
       onContentChange(updatedContent);
       
-      // Show success feedback
+      // Show success feedback with toast notification
       console.log('Image uploaded and auto-saved:', newImage.description);
+      
+      // Visual feedback for successful upload
+      setTimeout(() => {
+        const event = new CustomEvent('imageUploaded', { 
+          detail: { description: newImage.description }
+        });
+        window.dispatchEvent(event);
+      }, 100);
     };
     reader.readAsDataURL(file);
 
