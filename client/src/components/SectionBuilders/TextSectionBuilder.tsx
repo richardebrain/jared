@@ -61,6 +61,38 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
     setSectionImages(prev => [...prev, newImage]);
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file.');
+      return;
+    }
+
+    // Validate file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image file size must be less than 5MB.');
+      return;
+    }
+
+    // Create a data URL for the image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      const newImage = { 
+        url: imageUrl, 
+        description: file.name.replace(/\.[^/.]+$/, '') // Remove file extension for description
+      };
+      setSectionImages(prev => [...prev, newImage]);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset the input
+    event.target.value = '';
+  };
+
   const removeImage = (index: number) => {
     setSectionImages(prev => prev.filter((_, i) => i !== index));
   };
