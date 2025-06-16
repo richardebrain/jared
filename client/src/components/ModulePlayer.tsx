@@ -894,6 +894,20 @@ console.log(module,'module')
               <CardTitle>{currentSection.title}</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Display AI-generated image if present */}
+              {currentSection.imageUrl && (
+                <div className="mb-6">
+                  <img 
+                    src={currentSection.imageUrl} 
+                    alt={`Visual for ${currentSection.title}`}
+                    className="w-full max-w-2xl mx-auto rounded-lg shadow-md"
+                    onError={(e) => {
+                      console.log('Image failed to load:', currentSection.imageUrl);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
               <div className="prose prose-lg max-w-none">
                 <ReactMarkdown>
                   {typeof currentSection.content === 'string' 
@@ -1122,6 +1136,20 @@ console.log(module,'module')
               <CardTitle>{currentSection.title}</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Display AI-generated image if present */}
+              {currentSection.imageUrl && (
+                <div className="mb-6">
+                  <img 
+                    src={currentSection.imageUrl} 
+                    alt={`Visual for ${currentSection.title}`}
+                    className="w-full max-w-2xl mx-auto rounded-lg shadow-md"
+                    onError={(e) => {
+                      console.log('Image failed to load:', currentSection.imageUrl);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
               <div className="prose prose-lg max-w-none">
                 <ReactMarkdown>
                   {typeof currentSection.content === 'string' 
