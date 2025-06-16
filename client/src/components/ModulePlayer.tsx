@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   CheckCircle2,
   PlayCircle,
@@ -38,6 +39,7 @@ import {
   Users,
   Target,
   Award,
+  AlertCircle,
 } from "lucide-react";
 
 // Drag and Drop Item Component
@@ -409,6 +411,127 @@ function DragDropActivity({ activity, onComplete }: DragDropActivityProps) {
 }
 
 // Main Module Player Component
+interface ScenarioMatchProps {
+  scenario: any;
+  onComplete: (points: number) => void;
+}
+
+function ScenarioMatchComponent({ scenario, onComplete }: ScenarioMatchProps) {
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  const handleSubmit = () => {
+    if (!selectedOption) return;
+    setShowFeedback(true);
+  };
+
+  const handleComplete = () => {
+    const points = selectedOption === scenario.correctAnswer ? 15 : 5;
+    setIsCompleted(true);
+    onComplete(points);
+  };
+
+  const isCorrect = selectedOption === scenario.correctAnswer;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{scenario.title || "Scenario Challenge"}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Scenario Description */}
+        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+          <h4 className="font-semibold mb-2 text-blue-800">Scenario:</h4>
+          <p className="text-gray-700">{scenario.scenario}</p>
+        </div>
+
+        {/* Options */}
+        <div className="space-y-4">
+          <h4 className="font-semibold">What would you do in this situation?</h4>
+          <RadioGroup
+            value={selectedOption}
+            onValueChange={setSelectedOption}
+            disabled={showFeedback}
+          >
+            {scenario.options?.map((option: string, index: number) => (
+              <div key={index} className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value={option}
+                  id={`option-${index}`}
+                  className={showFeedback ? (
+                    option === scenario.correctAnswer ? "border-green-500" : 
+                    option === selectedOption ? "border-red-500" : ""
+                  ) : ""}
+                />
+                <Label 
+                  htmlFor={`option-${index}`}
+                  className={`flex-1 cursor-pointer p-3 rounded-lg border ${
+                    showFeedback ? (
+                      option === scenario.correctAnswer ? "bg-green-50 border-green-200" : 
+                      option === selectedOption && option !== scenario.correctAnswer ? "bg-red-50 border-red-200" : "bg-gray-50"
+                    ) : "bg-white border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
+
+        {/* Feedback */}
+        {showFeedback && (
+          <div className={`p-4 rounded-lg border-l-4 ${
+            isCorrect ? "bg-green-50 border-green-400" : "bg-red-50 border-red-400"
+          }`}>
+            <div className="flex items-start gap-2">
+              {isCorrect ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600 mt-1" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-600 mt-1" />
+              )}
+              <div>
+                <h4 className={`font-semibold ${isCorrect ? "text-green-800" : "text-red-800"}`}>
+                  {isCorrect ? "Correct!" : "Not quite right"}
+                </h4>
+                <p className="text-gray-700 mt-1">
+                  {isCorrect ? scenario.correctFeedback : scenario.incorrectFeedback}
+                </p>
+                {!isCorrect && scenario.correctAnswer && (
+                  <p className="text-gray-600 mt-2 text-sm">
+                    <strong>The best approach:</strong> {scenario.correctAnswer}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        {!showFeedback ? (
+          <Button
+            onClick={handleSubmit}
+            disabled={!selectedOption}
+            className="w-full"
+          >
+            Submit Answer
+          </Button>
+        ) : (
+          <Button
+            onClick={handleComplete}
+            disabled={isCompleted}
+            className="w-full"
+          >
+            {isCompleted ? "Completed!" : "Continue"}
+            <CheckCircle2 className="h-4 w-4 ml-2" />
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
 interface ModulePlayerProps {
   moduleId: string;
 }
@@ -767,6 +890,26 @@ console.log(module,'module')
         //     </CardContent>
         //   </Card>
         // );
+
+      case 'scenario-match':
+        try {
+          const scenarioData = JSON.parse(currentSection.content || '{}');
+          return (
+            <ScenarioMatchComponent
+              scenario={scenarioData}
+              onComplete={(points) => handleSectionComplete(currentSectionIndex, points)}
+            />
+          );
+        } catch (error) {
+          console.error('Error parsing scenario match content:', error);
+          return (
+            <Card>
+              <CardContent>
+                <p className="text-red-500">Error loading scenario content</p>
+              </CardContent>
+            </Card>
+          );
+        }
 
       default:
         return (
