@@ -80,7 +80,8 @@ router.post('/generate-section', async (req, res) => {
       res.json(generatedContent);
     } catch (aiError) {
       console.error(`AI generation failed for ${sectionType} section:`, aiError.message || aiError);
-      console.error('Full error details:', aiError);
+      console.error('Full error details:', JSON.stringify(aiError, null, 2));
+      console.error('Error stack:', aiError.stack);
       
       // Return error to client instead of fallback
       res.status(500).json({ 
@@ -113,17 +114,12 @@ Generate comprehensive text content that includes:
 Format with proper headings and structure. Make it engaging and practical.`;
 
   console.log('Making OpenAI request for text section...');
-  const response = await Promise.race([
-    openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 2000,
-      temperature: 0.7,
-    }),
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 20000)
-    )
-  ]);
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 2000,
+    temperature: 0.7,
+  });
   console.log('OpenAI response received for text section');
 
   const content = (response as any).choices[0].message.content;
@@ -166,18 +162,13 @@ Format as JSON with this structure:
 
   console.log('Making OpenAI request for quiz section...');
   try {
-    const response = await Promise.race([
-      openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-        max_tokens: 1500,
-        temperature: 0.7,
-      }),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 20000)
-      )
-    ]);
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_tokens: 1500,
+      temperature: 0.7,
+    });
     console.log('OpenAI response received for quiz section');
 
     const rawContent = (response as any).choices[0].message.content;
@@ -216,18 +207,13 @@ Format as JSON:
   ]
 }`;
 
-  const response = await Promise.race([
-    openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-      max_tokens: 1000,
-      temperature: 0.7,
-    }),
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 20000)
-    )
-  ]);
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_tokens: 1000,
+    temperature: 0.7,
+  });
 
   const content = JSON.parse((response as any).choices[0].message.content);
   
@@ -260,18 +246,13 @@ Format as JSON:
   ]
 }`;
 
-  const response = await Promise.race([
-    openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-      max_tokens: 1500,
-      temperature: 0.7,
-    }),
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 20000)
-    )
-  ]);
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_tokens: 1500,
+    temperature: 0.7,
+  });
 
   const content = JSON.parse((response as any).choices[0].message.content);
   
