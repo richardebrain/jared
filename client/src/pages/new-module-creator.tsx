@@ -164,7 +164,7 @@ export default function NewModuleCreator() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/modules/user', user?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/modules/user/${user?.id}`] });
       toast({
         title: "Module Deleted",
         description: "The module has been successfully deleted.",
