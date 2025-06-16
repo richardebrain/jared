@@ -616,7 +616,11 @@ console.log(module,'module')
             </CardHeader>
             <CardContent>
               <div className="prose prose-lg max-w-none">
-                <ReactMarkdown>{currentSection.content || ''}</ReactMarkdown>
+                <ReactMarkdown>
+                  {typeof currentSection.content === 'string' 
+                    ? currentSection.content 
+                    : JSON.stringify(currentSection.content, null, 2) || ''}
+                </ReactMarkdown>
               </div>
             </CardContent>
             <CardFooter>
@@ -772,7 +776,11 @@ console.log(module,'module')
             </CardHeader>
             <CardContent>
               <div className="prose prose-lg max-w-none">
-                <ReactMarkdown>{currentSection.content || ''}</ReactMarkdown>
+                <ReactMarkdown>
+                  {typeof currentSection.content === 'string' 
+                    ? currentSection.content 
+                    : JSON.stringify(currentSection.content, null, 2) || ''}
+                </ReactMarkdown>
               </div>
             </CardContent>
             <CardFooter>
