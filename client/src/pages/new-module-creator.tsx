@@ -213,7 +213,12 @@ export default function NewModuleCreator() {
           <FileEdit className="h-6 w-6 text-blue-600" />
           My Modules
         </h2>
-        {modules && modules.length > 0 ? (
+        {modulesLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <span className="ml-3 text-gray-600">Loading your modules...</span>
+          </div>
+        ) : modules && modules.length > 0 ? (
           <>
             <p className="text-gray-600 mb-4">
               Your recently created modules - click to view or edit
