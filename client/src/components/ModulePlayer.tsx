@@ -1154,7 +1154,16 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
                   videoUrl = currentSection.content;
                 } else if (typeof currentSection.content === 'object' && currentSection.content?.videoUrl) {
                   videoUrl = currentSection.content.videoUrl;
+                } else if (typeof currentSection.content === 'object' && currentSection.content?.blocks?.[0]?.content) {
+                  // Check if URL is in content.blocks[0].content (for user-added videos)
+                  videoUrl = currentSection.content.blocks[0].content;
                 }
+                
+                console.log('Video URL extraction:', {
+                  videoUrl: currentSection.videoUrl,
+                  content: currentSection.content,
+                  extractedUrl: videoUrl
+                });
                 
                 return videoUrl ? (
                   <VideoPlayer
