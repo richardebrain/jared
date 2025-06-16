@@ -62,6 +62,17 @@ import VoiceEnabledInput from "@/components/VoiceEnabledInput";
 // Proven Templates - The foundation for AI-driven content creation
 const PROVEN_TEMPLATES = [
   {
+    id: "custom",
+    title: "Custom Template",
+    description: "Build your own module with custom sections in any order",
+    duration: "Variable",
+    icon: Palette,
+    color: "border-indigo-200 bg-indigo-50",
+    sections: [
+      { title: "Welcome Section", type: "text", duration: 3 },
+    ],
+  },
+  {
     id: "lightning",
     title: "Lightning Module",
     description: "Quick 10-15 minute focused learning for busy teachers",
@@ -137,17 +148,6 @@ const PROVEN_TEMPLATES = [
       { title: "Alternative Approaches", type: "scenario-match", duration: 8 },
       { title: "Best Practice Examples", type: "example", duration: 5 },
       { title: "Scenario Assessment", type: "quiz", duration: 3 },
-    ],
-  },
-  {
-    id: "custom",
-    title: "Custom Template",
-    description: "Build your own module with custom sections in any order",
-    duration: "Variable",
-    icon: Palette,
-    color: "border-indigo-200 bg-indigo-50",
-    sections: [
-      { title: "Welcome Section", type: "text", duration: 3 },
     ],
   },
 ];
