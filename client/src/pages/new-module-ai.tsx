@@ -51,6 +51,8 @@ import MatchingSectionBuilder from "@/components/SectionBuilders/MatchingSection
 import ScenarioMatchSectionBuilder from "@/components/SectionBuilders/ScenarioMatchSectionBuilder";
 import VideoSectionBuilder from "@/components/SectionBuilders/VideoSectionBuilder";
 import TextSectionBuilder from "@/components/SectionBuilders/TextSectionBuilder";
+import VoiceInputTextarea from "@/components/VoiceInputTextarea";
+import VoiceEnabledInput from "@/components/VoiceEnabledInput";
 
 // Proven Templates - The foundation for AI-driven content creation
 const PROVEN_TEMPLATES = [
@@ -574,37 +576,38 @@ export default function NewModuleAI() {
 
               <div>
                 <Label htmlFor="topic">Module Topic</Label>
-                <Input
-                  id="topic"
-                  value={moduleConfig.topic}
-                  onChange={(e) =>
-                    setModuleConfig((prev) => ({
-                      ...prev,
-                      topic: e.target.value,
-                    }))
-                  }
-                  placeholder="e.g., Positive Behavior Support, Classroom Management, Social-Emotional Learning..."
-                  className="mt-1"
-                />
+                <div className="mt-1">
+                  <VoiceEnabledInput
+                    id="topic"
+                    value={moduleConfig.topic}
+                    onChange={(value) =>
+                      setModuleConfig((prev) => ({
+                        ...prev,
+                        topic: value,
+                      }))
+                    }
+                    placeholder="e.g., Positive Behavior Support, Classroom Management, Social-Emotional Learning... (Click microphone for voice input)"
+                  />
+                </div>
               </div>
 
               <div>
                 <Label htmlFor="description">
                   Brief Description (Optional)
                 </Label>
-                <Textarea
-                  id="description"
-                  value={moduleConfig.description}
-                  onChange={(e) =>
-                    setModuleConfig((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="Describe what this module should cover..."
-                  rows={3}
-                  className="mt-1"
-                />
+                <div className="mt-1">
+                  <VoiceInputTextarea
+                    value={moduleConfig.description}
+                    onChange={(value) =>
+                      setModuleConfig((prev) => ({
+                        ...prev,
+                        description: value,
+                      }))
+                    }
+                    placeholder="Describe what this module should cover... (Click the microphone to use voice input)"
+                    minHeight="min-h-[80px]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
