@@ -349,9 +349,9 @@ export default function Header() {
                 <DropdownMenuSeparator />
                 {Array.isArray(unreadMessages) && unreadMessages.filter((msg: any) => !msg.isRead).length > 0 ? (
                   unreadMessages.filter((msg: any) => !msg.isRead).slice(0, 5).map((message: any, index: number) => (
-                    <DropdownMenuItem 
+                    <div 
                       key={`message-${message.id}`} 
-                      className="flex-col items-start p-3 min-h-[80px] max-w-[320px]"
+                      className="p-3 min-h-[80px] max-w-[320px] border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
                     >
                       <div className="flex items-start justify-between w-full mb-2">
                         <div className="font-medium text-sm flex-1 pr-2 leading-tight">
@@ -361,13 +361,16 @@ export default function Header() {
                           {!message.isRead && (
                             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                           )}
-                          <X 
-                            className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-pointer" 
+                          <button
+                            className="p-1 hover:bg-gray-200 rounded-full transition-colors"
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent triggering the parent onClick
+                              e.preventDefault();
+                              e.stopPropagation();
                               handleDismissMessage(message.id);
                             }}
-                          />
+                          >
+                            <X className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+                          </button>
                         </div>
                       </div>
                       <div className="text-xs text-gray-600 mb-2 leading-relaxed max-h-[36px] overflow-hidden">
@@ -379,7 +382,7 @@ export default function Header() {
                       <div className="text-xs text-gray-400">
                         From: {message.senderName} • {new Date(message.createdAt).toLocaleDateString()}
                       </div>
-                    </DropdownMenuItem>
+                    </div>
                   ))
                 ) : (
                   <DropdownMenuItem disabled>
