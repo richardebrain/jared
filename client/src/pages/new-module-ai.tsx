@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth-context";
 import {
   Card,
   CardContent,
@@ -182,6 +184,7 @@ interface PublishSettings {
 export default function NewModuleAI() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch real teachers from the admin's school
   const { data: schoolTeachers = [] } = useQuery({
@@ -238,7 +241,58 @@ export default function NewModuleAI() {
   const [sectionToRegenerate, setSectionToRegenerate] = useState<number | null>(null);
   const [customSections, setCustomSections] = useState<any[]>([]);
   const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
+  const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   console.log(sectionContents, "section contents");
+
+  // Auto-save draft function
+  const autoSaveDraft = async () => {
+    if (!user?.id || !selectedTemplate || !moduleConfig.title) return;
+    
+    setIsAutoSaving(true);
+    try {
+      const draftName = `${moduleConfig.title} - AI Generated - ${new Date().toLocaleDateString()}`;
+      
+      const draftData = {
+        name: draftName,
+        moduleData: {
+          moduleConfig,
+          selectedTemplate,
+          sectionContents,
+          customSections,
+          currentStep,
+          publishSettings,
+          currentSectionIndex,
+          editingSections,
+          manualContent
+        },
+        creationMethod: 'ai-generated',
+        aiWorkflowStep: currentStep
+      };
+
+      if (currentDraftId) {
+        // Update existing draft
+        await apiRequest(`/api/module-drafts/${currentDraftId}`, {
+          method: 'PUT',
+          data: draftData
+        });
+      } else {
+        // Create new draft
+        const newDraft = await apiRequest('/api/module-drafts', {
+          method: 'POST',
+          data: draftData
+        });
+        setCurrentDraftId(newDraft.id);
+      }
+      
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  };
 
   const handleTemplateSelect = (templateId: string) => {
     const template = PROVEN_TEMPLATES.find((t) => t.id === templateId);
@@ -431,6 +485,9 @@ export default function NewModuleAI() {
           updated[sectionIndex] = generatedContent;
           return updated;
         });
+        
+        // Auto-save after successful generation
+        setTimeout(() => autoSaveDraft(), 1000);
         
         toast({
           title: "Content Generated!",
