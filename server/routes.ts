@@ -2012,6 +2012,33 @@ Continue for all 5 questions...
     }
   });
 
+  // Get user's own modules
+  app.get("/api/modules/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.session;
+      const requestedUserId = parseInt(req.params.userId);
+      
+      if (!userId || userId !== requestedUserId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get modules created by this user
+      const modules = await db.execute(sql`
+        SELECT id, title, description, duration, difficulty, category, 
+               average_rating, rating_count, created_at, image_url
+        FROM learning_modules 
+        WHERE created_by = ${userId}
+        ORDER BY created_at DESC
+        LIMIT 10
+      `);
+
+      res.status(200).json(modules.rows);
+    } catch (error) {
+      console.error("Error fetching user modules:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get teachers from the same school as the current user for the leaderboard
   app.get("/api/teachers-by-school", async (req, res) => {
     try {

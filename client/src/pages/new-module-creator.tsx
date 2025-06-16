@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Brain,
@@ -16,7 +17,11 @@ import {
   Mic,
   MessageSquare,
   Wand2,
-  CheckCircle2
+  CheckCircle2,
+  Edit3,
+  Star,
+  Calendar,
+  Eye
 } from 'lucide-react';
 
 const creationMethods = [
@@ -99,6 +104,12 @@ export default function NewModuleCreator() {
   const [location, setLocation] = useLocation();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
+  // Fetch user's modules
+  const { data: userModules, isLoading: modulesLoading } = useQuery({
+    queryKey: ['/api/modules/user', user?.id],
+    enabled: !!user?.id,
+  });
+
   if (!isAuthenticated) {
     setLocation('/login');
     return null;
@@ -107,6 +118,14 @@ export default function NewModuleCreator() {
   const handleMethodSelect = (methodId: string, route: string) => {
     setSelectedMethod(methodId);
     setLocation(route);
+  };
+
+  const handleEditModule = (moduleId: number) => {
+    setLocation(`/modules/${moduleId}/edit`);
+  };
+
+  const handleViewModule = (moduleId: number) => {
+    setLocation(`/modules/${moduleId}`);
   };
 
   return (
@@ -123,6 +142,81 @@ export default function NewModuleCreator() {
           </Button>
         </div>
       </div>
+
+      {/* My Modules Section */}
+      {userModules && userModules.length > 0 && (
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+            <FileEdit className="h-6 w-6 text-blue-600" />
+            My Modules
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Your recently created modules - click to view or edit
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {userModules.slice(0, 6).map((module: any) => (
+              <Card key={module.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-base line-clamp-2">{module.title}</CardTitle>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {module.duration} min
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {module.difficulty}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      <span>{module.average_rating ? Math.round(module.average_rating * 10) / 10 : 'New'}</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                    {module.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(module.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewModule(module.id)}
+                        className="text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleEditModule(module.id)}
+                        className="text-xs"
+                      >
+                        <Edit3 className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {userModules.length > 6 && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" onClick={() => setLocation('/modules')}>
+                View All My Modules ({userModules.length})
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Creation Methods */}
       <div className="mb-12">
