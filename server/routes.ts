@@ -2209,6 +2209,62 @@ Continue for all 5 questions...
     }
   });
 
+  // PATCH endpoint for module updates (used by edit functionality)
+  app.patch("/api/modules/:id", requireAuth, async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const {
+        title,
+        description,
+        content,
+        category,
+        difficulty,
+        duration,
+        pointValue,
+        isShared,
+        eceCategory,
+        eceHours,
+        approvedTrainerId,
+      } = req.body;
+
+      // Verify user owns the module or has admin access
+      const user = await storage.getUser(req.session!.userId!);
+      if (!user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Get existing module to check ownership
+      const existingModule = await storage.getModule(moduleId);
+      if (!existingModule) {
+        return res.status(404).json({ error: "Module not found" });
+      }
+
+      // Check if user owns the module or is admin
+      if (existingModule.createdBy !== user.id && !user.isAdmin && !user.isSchoolAdmin) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const updatedModule = await storage.updateModule(moduleId, {
+        title,
+        description,
+        content,
+        category,
+        difficulty,
+        duration: duration || existingModule.duration,
+        pointValue: pointValue || existingModule.pointValue,
+        isShared: isShared !== undefined ? isShared : existingModule.isShared,
+        eceCategory: eceCategory || existingModule.eceCategory,
+        eceHours: eceHours !== undefined ? eceHours : existingModule.eceHours,
+        approvedTrainerId: approvedTrainerId !== undefined ? approvedTrainerId : existingModule.approvedTrainerId,
+      });
+
+      res.json(updatedModule);
+    } catch (error) {
+      console.error("Module PATCH error:", error);
+      res.status(500).json({ message: "Failed to update module" });
+    }
+  });
+
   // Get teachers for publishing dialog
   app.get("/api/teachers", async (req, res) => {
     try {
