@@ -201,95 +201,105 @@ export default function NewModuleCreator() {
       </div>
 
       {/* My Modules Section */}
-      {modules && modules.length > 0 && (
-        <div className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <FileEdit className="h-6 w-6 text-blue-600" />
-            My Modules
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Your recently created modules - click to view or edit
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+          <FileEdit className="h-6 w-6 text-blue-600" />
+          My Modules
+        </h2>
+        {modules && modules.length > 0 ? (
+          <>
+            <p className="text-gray-600 mb-4">
+              Your recently created modules - click to view or edit
+            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {modules.slice(0, 6).map((module: any) => (
-              <Card key={module.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
+              <Card 
+                key={module.id} 
+                className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-105 transform relative overflow-hidden bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm border-2 border-purple-200 hover:border-purple-300"
+              >
+                {/* Background gradient effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Floating animation circle */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full -mr-12 -mt-12 transition-transform duration-700 group-hover:scale-150"></div>
+                
+                <CardHeader className="pb-3 relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-base line-clamp-2">{module.title}</CardTitle>
+                      <CardTitle className="text-base line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">{module.title}</CardTitle>
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border-0">
                           {module.duration} min
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs border-blue-200 text-blue-600">
                           {module.difficulty}
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span>{module.average_rating ? Math.round(module.average_rating * 10) / 10 : 'New'}</span>
+                    <div className="flex items-center gap-1 text-sm">
+                      <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-100 to-orange-100 px-2 py-1 rounded-full">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-yellow-700 font-medium">{module.average_rating ? Math.round(module.average_rating * 10) / 10 : 'New'}</span>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                <CardContent className="pt-0 relative z-10">
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-4">
                     {module.description}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <Calendar className="h-3 w-3" />
                       <span>{new Date(module.created_at).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewModule(module.id)}
-                        className="text-xs"
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleEditModule(module.id)}
-                        className="text-xs"
-                      >
-                        <Edit3 className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs text-red-600 border-red-200 hover:bg-red-50"
-                            disabled={deleteModuleMutation.isPending}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewModule(module.id)}
+                      className="text-xs flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleEditModule(module.id)}
+                      className="text-xs flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border-0"
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          disabled={deleteModuleMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the module "{module.title}" and remove all associated data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteModule(module.id)}
+                            className="bg-red-600 hover:bg-red-700"
                           >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Delete
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the module "{module.title}" and remove all associated data.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteModule(module.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Delete Module
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                            Delete Module
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
@@ -302,8 +312,21 @@ export default function NewModuleCreator() {
               </Button>
             </div>
           )}
-        </div>
-      )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-8 border-2 border-dashed border-blue-200">
+              <FileEdit className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No modules yet</h3>
+              <p className="text-gray-600 mb-4">Start creating your first module using one of the methods below</p>
+              <div className="flex items-center justify-center gap-2 text-sm text-blue-600">
+                <span>Get started by choosing a creation method</span>
+                <span className="animate-bounce">↓</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Creation Methods */}
       <div className="mb-12">
