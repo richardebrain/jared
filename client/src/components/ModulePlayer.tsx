@@ -894,7 +894,7 @@ console.log(module,'module')
               <CardTitle>{currentSection.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Display AI-generated image if present */}
+              {/* Display AI-generated images if present */}
               {currentSection.imageUrl && (
                 <div className="mb-6">
                   <img 
@@ -908,10 +908,35 @@ console.log(module,'module')
                   />
                 </div>
               )}
+              
+              {/* Display images from content blocks (AI-generated during creation) */}
+              {currentSection.content?.blocks?.[0]?.images && currentSection.content.blocks[0].images.length > 0 && (
+                <div className="mb-6 space-y-4">
+                  {currentSection.content.blocks[0].images.map((image: any, index: number) => (
+                    <div key={index} className="text-center">
+                      <img 
+                        src={image.url} 
+                        alt={image.description || `Visual ${index + 1} for ${currentSection.title}`}
+                        className="w-full max-w-2xl mx-auto rounded-lg shadow-md"
+                        onError={(e) => {
+                          console.log('Content block image failed to load:', image.url);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      {image.description && (
+                        <p className="text-sm text-gray-600 mt-2 italic">{image.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <div className="prose prose-lg max-w-none">
                 <ReactMarkdown>
                   {typeof currentSection.content === 'string' 
                     ? currentSection.content 
+                    : typeof currentSection.content?.blocks?.[0]?.content === 'string'
+                    ? currentSection.content.blocks[0].content
                     : JSON.stringify(currentSection.content, null, 2) || ''}
                 </ReactMarkdown>
               </div>
@@ -1136,7 +1161,7 @@ console.log(module,'module')
               <CardTitle>{currentSection.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Display AI-generated image if present */}
+              {/* Display AI-generated images if present */}
               {currentSection.imageUrl && (
                 <div className="mb-6">
                   <img 
@@ -1150,10 +1175,35 @@ console.log(module,'module')
                   />
                 </div>
               )}
+              
+              {/* Display images from content blocks (AI-generated during creation) */}
+              {currentSection.content?.blocks?.[0]?.images && currentSection.content.blocks[0].images.length > 0 && (
+                <div className="mb-6 space-y-4">
+                  {currentSection.content.blocks[0].images.map((image: any, index: number) => (
+                    <div key={index} className="text-center">
+                      <img 
+                        src={image.url} 
+                        alt={image.description || `Visual ${index + 1} for ${currentSection.title}`}
+                        className="w-full max-w-2xl mx-auto rounded-lg shadow-md"
+                        onError={(e) => {
+                          console.log('Content block image failed to load:', image.url);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      {image.description && (
+                        <p className="text-sm text-gray-600 mt-2 italic">{image.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <div className="prose prose-lg max-w-none">
                 <ReactMarkdown>
                   {typeof currentSection.content === 'string' 
                     ? currentSection.content 
+                    : typeof currentSection.content?.blocks?.[0]?.content === 'string'
+                    ? currentSection.content.blocks[0].content
                     : JSON.stringify(currentSection.content, null, 2) || ''}
                 </ReactMarkdown>
               </div>
