@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -47,6 +48,8 @@ import {
   Volume2,
   Image,
   Palette,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import QuizSectionBuilder from "@/components/SectionBuilders/QuizSectionBuilder";
 import MatchingSectionBuilder from "@/components/SectionBuilders/MatchingSectionBuilder";
@@ -196,6 +199,11 @@ export default function NewModuleAI() {
     {},
   );
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  const [regenerateGuidance, setRegenerateGuidance] = useState("");
+  const [sectionToRegenerate, setSectionToRegenerate] = useState<number | null>(null);
   console.log(sectionContents, "section contents");
 
   const handleTemplateSelect = (templateId: string) => {
@@ -213,6 +221,72 @@ export default function NewModuleAI() {
     }
   };
 
+  const handleDeleteSection = (sectionIndex: number) => {
+    setSectionToDelete(sectionIndex);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteSection = () => {
+    if (selectedTemplate && sectionToDelete !== null) {
+      const updatedSections = selectedTemplate.sections.filter((_, index) => index !== sectionToDelete);
+      const updatedContents = sectionContents.filter((_, index) => index !== sectionToDelete);
+      
+      setSelectedTemplate({
+        ...selectedTemplate,
+        sections: updatedSections
+      });
+      setSectionContents(updatedContents);
+      
+      // Adjust current section index if needed
+      if (currentSectionIndex >= updatedSections.length) {
+        setCurrentSectionIndex(Math.max(0, updatedSections.length - 1));
+      } else if (currentSectionIndex > sectionToDelete) {
+        setCurrentSectionIndex(currentSectionIndex - 1);
+      }
+    }
+    setShowDeleteDialog(false);
+    setSectionToDelete(null);
+    toast({
+      title: "Section Deleted",
+      description: "The section has been removed from your module.",
+    });
+  };
+
+  const handleRegenerateWithGuidance = (sectionIndex: number) => {
+    setSectionToRegenerate(sectionIndex);
+    setRegenerateGuidance("");
+    setShowRegenerateDialog(true);
+  };
+
+  const confirmRegenerateSection = async () => {
+    if (selectedTemplate && sectionToRegenerate !== null) {
+      setGeneratingSection(sectionToRegenerate);
+      setShowRegenerateDialog(false);
+      
+      try {
+        const section = selectedTemplate.sections[sectionToRegenerate];
+        const guidance = regenerateGuidance.trim() 
+          ? `Additional guidance: ${regenerateGuidance}` 
+          : "";
+        
+        await generateSectionContent(sectionToRegenerate, guidance);
+        
+        toast({
+          title: "Section Regenerated",
+          description: "The section has been regenerated with your guidance.",
+        });
+      } catch (error) {
+        toast({
+          title: "Regeneration Failed",
+          description: "Unable to regenerate section. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
+    setSectionToRegenerate(null);
+    setRegenerateGuidance("");
+  };
+
   const handleTopicComplete = () => {
     if (moduleConfig.topic.trim()) {
       setModuleConfig((prev) => ({
@@ -225,7 +299,7 @@ export default function NewModuleAI() {
 
   console.log(sectionContents,'section contents to make quiz generate questioms')
 
-  const generateSectionContent = async (sectionIndex: number) => {
+  const generateSectionContent = async (sectionIndex: number, customGuidance?: string) => {
     if (!selectedTemplate || generatingSection === sectionIndex) return;
 
     setGeneratingSection(sectionIndex);
@@ -242,7 +316,8 @@ export default function NewModuleAI() {
           targetAudience: moduleConfig.targetAudience,
           difficulty: moduleConfig.difficulty,
           templateContext: selectedTemplate.title,
-          dependsOn: sectionContents
+          dependsOn: sectionContents,
+          customGuidance: customGuidance
         }),
       });
 
