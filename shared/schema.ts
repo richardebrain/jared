@@ -224,6 +224,12 @@ export const learningModules = pgTable("learning_modules", {
     };
   }>(),
   
+  // ECE Training Hours fields
+  eceHoursEligible: boolean("ece_hours_eligible").default(false),
+  eceCategory: text("ece_category"), // e.g., "social-emotional", "cognitive-development"
+  trainingDuration: integer("training_duration"), // minutes - actual training time
+  approvedTrainerId: integer("approved_trainer_id").references(() => users.id), // trainer who created this
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1793,6 +1799,58 @@ export const insertLessonPlanSchema = createInsertSchema(lessonPlans).omit({
 
 export type LessonPlan = typeof lessonPlans.$inferSelect;
 export type InsertLessonPlan = z.infer<typeof insertLessonPlanSchema>;
+
+// ECE Hours Tracking schema
+export const eceHours = pgTable("ece_hours", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  moduleId: integer("module_id").references(() => learningModules.id), // null for non-module hours
+  category: text("category").notNull(), // e.g., "social-emotional", "cognitive-development"
+  duration: integer("duration").notNull(), // minutes completed
+  completedAt: timestamp("completed_at").defaultNow(),
+  trainingTitle: text("training_title").notNull(),
+  approvedBy: integer("approved_by").references(() => users.id), // approved trainer who created/validated the content
+  schoolId: integer("school_id").references(() => schools.id),
+  certificateGenerated: boolean("certificate_generated").default(false),
+  notes: text("notes"), // additional notes about the training
+}, (table) => ({
+  // Index for user's ECE hours lookup
+  userHoursIdx: index("ece_hours_user_idx").on(table.userId),
+  // Index for category-based reporting
+  categoryIdx: index("ece_hours_category_idx").on(table.category),
+  // Index for school reporting
+  schoolIdx: index("ece_hours_school_idx").on(table.schoolId),
+  // Index for completion date range queries
+  completedDateIdx: index("ece_hours_completed_date_idx").on(table.completedAt),
+}));
+
+export const insertEceHoursSchema = createInsertSchema(eceHours).omit({
+  id: true,
+  completedAt: true,
+});
+
+export const eceHoursRelations = relations(eceHours, ({ one }) => ({
+  user: one(users, {
+    fields: [eceHours.userId],
+    references: [users.id],
+  }),
+  module: one(learningModules, {
+    fields: [eceHours.moduleId],
+    references: [learningModules.id],
+  }),
+  approver: one(users, {
+    fields: [eceHours.approvedBy],
+    references: [users.id],
+    relationName: "approver"
+  }),
+  school: one(schools, {
+    fields: [eceHours.schoolId],
+    references: [schools.id],
+  }),
+}));
+
+export type EceHours = typeof eceHours.$inferSelect;
+export type InsertEceHours = z.infer<typeof insertEceHoursSchema>;
 
 // Helper type for when we convert back to proper numeric structure
 export type AssessmentResponseWithParsedFields = Omit<AssessmentResponse, 'difficulty'> & {

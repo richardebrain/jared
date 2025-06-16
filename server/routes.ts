@@ -24,6 +24,9 @@ import {
   insertNewsletterSchema,
   assessments,
   assessmentResults,
+  eceHours,
+  insertEceHoursSchema,
+  userProgress,
 } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
@@ -2493,6 +2496,95 @@ Continue for all 5 questions...
       .status(403)
       .json({ message: "Forbidden: Admin access required" });
   };
+
+  // ECE Hours Tracking API Routes
+  
+  // Get ECE hours for a user
+  app.get("/api/ece-hours", requireAuth, requirePaidAccess, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { category, startDate, endDate } = req.query;
+
+      let query = db.select().from(eceHours).where(eq(eceHours.userId, userId));
+
+      // Add category filter if provided
+      if (category) {
+        query = query.where(and(eq(eceHours.userId, userId), eq(eceHours.category, category as string)));
+      }
+
+      // Add date range filter if provided
+      if (startDate && endDate) {
+        query = query.where(
+          and(
+            eq(eceHours.userId, userId),
+            sql`${eceHours.completedAt} >= ${startDate}`,
+            sql`${eceHours.completedAt} <= ${endDate}`
+          )
+        );
+      }
+
+      const hours = await query.orderBy(desc(eceHours.completedAt));
+
+      // Calculate total hours by category
+      const hoursByCategory = hours.reduce((acc, hour) => {
+        const category = hour.category;
+        const durationHours = hour.duration / 60; // Convert minutes to hours
+        acc[category] = (acc[category] || 0) + durationHours;
+        return acc;
+      }, {} as Record<string, number>);
+
+      res.json({
+        hours,
+        totalHours: hours.reduce((sum, h) => sum + (h.duration / 60), 0),
+        hoursByCategory
+      });
+    } catch (error) {
+      console.error("Error fetching ECE hours:", error);
+      res.status(500).json({ message: "Failed to fetch ECE hours" });
+    }
+  });
+
+  // Add ECE hours manually (for admins/approved trainers)
+  app.post("/api/ece-hours", requireAuth, requirePaidAccess, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { targetUserId, category, duration, trainingTitle, notes } = req.body;
+
+      // Only allow admins or approved trainers to add hours for other users
+      const finalUserId = targetUserId || userId;
+      if (targetUserId && targetUserId !== userId && !user.isAdmin && !user.isSchoolAdmin) {
+        return res.status(403).json({ message: "Only administrators can add hours for other users" });
+      }
+
+      const eceHourData = {
+        userId: finalUserId,
+        category,
+        duration: parseInt(duration),
+        trainingTitle,
+        approvedBy: userId,
+        schoolId: user.schoolId,
+        notes
+      };
+
+      const newEceHour = await db.insert(eceHours).values(eceHourData).returning();
+
+      console.log(`ECE hours added: ${duration} minutes in ${category} for user ${finalUserId}`);
+
+      res.status(201).json({
+        success: true,
+        eceHour: newEceHour[0]
+      });
+    } catch (error) {
+      console.error("Error adding ECE hours:", error);
+      res.status(500).json({ message: "Failed to add ECE hours" });
+    }
+  });
 
   // School Admin middleware - restricts access to only administrators of a specific school
   const requireSchoolAdmin = async (
