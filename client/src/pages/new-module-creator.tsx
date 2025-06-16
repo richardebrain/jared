@@ -29,8 +29,20 @@ import {
   Star,
   Calendar,
   Eye,
-  Save
+  Save,
+  Trash2
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const creationMethods = [
   {
@@ -144,6 +156,33 @@ export default function NewModuleCreator() {
     setLocation(`/modules/${moduleId}`);
   };
 
+  // Delete module mutation
+  const deleteModuleMutation = useMutation({
+    mutationFn: async (moduleId: number) => {
+      return apiRequest(`/api/modules/${moduleId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/modules/user', user?.id] });
+      toast({
+        title: "Module Deleted",
+        description: "The module has been successfully deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to delete module",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleDeleteModule = (moduleId: number) => {
+    deleteModuleMutation.mutate(moduleId);
+  };
+
 
 
   return (
@@ -220,6 +259,36 @@ export default function NewModuleCreator() {
                         <Edit3 className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs text-red-600 border-red-200 hover:bg-red-50"
+                            disabled={deleteModuleMutation.isPending}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the module "{module.title}" and remove all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteModule(module.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete Module
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardContent>
