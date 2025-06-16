@@ -396,7 +396,7 @@ router.post("/:moduleId/rate", requireAuth, requirePaidAccess, async (req, res) 
       // Update existing rating
       await db.execute(sql`
         UPDATE module_ratings 
-        SET rating = ${rating}, comment = ${comment || null}, updated_at = NOW()
+        SET rating = ${rating}, comment = ${comment || null}
         WHERE module_id = ${moduleId} AND user_id = ${userId}
       `);
     } else {
