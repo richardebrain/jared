@@ -20,6 +20,236 @@ const openai = new OpenAI({
 
 const router = Router();
 
+/**
+ * AI section generation endpoint with custom guidance support
+ * Generates or regenerates module sections based on topic and optional guidance
+ */
+router.post('/generate-section', async (req, res) => {
+  try {
+    const { 
+      topic, 
+      sectionType, 
+      sectionTitle, 
+      targetAudience, 
+      difficulty, 
+      templateContext, 
+      dependsOn,
+      customGuidance 
+    } = req.body;
+    
+    if (!topic || !sectionType || !sectionTitle) {
+      return res.status(400).json({ 
+        message: 'Topic, section type, and section title are required' 
+      });
+    }
+
+    console.log("Generating AI section content:", { 
+      topic, 
+      sectionType, 
+      sectionTitle, 
+      customGuidance: customGuidance ? "provided" : "none"
+    });
+
+    // Build context-aware prompt
+    let basePrompt = `Create educational content for early childhood educators on the topic: "${topic}".
+
+Section Type: ${sectionType}
+Section Title: ${sectionTitle}
+Target Audience: ${targetAudience || 'preschool teachers'}
+Difficulty Level: ${difficulty || 'intermediate'}
+Template Context: ${templateContext || 'professional development module'}
+
+`;
+
+    // Add custom guidance if provided
+    if (customGuidance) {
+      basePrompt += `IMPORTANT GUIDANCE: ${customGuidance}\n\n`;
+    }
+
+    // Generate content based on section type
+    let generatedContent;
+    
+    switch (sectionType) {
+      case 'text':
+        generatedContent = await generateTextSection(basePrompt, topic, sectionTitle);
+        break;
+      case 'quiz':
+        generatedContent = await generateQuizSection(basePrompt, topic, sectionTitle);
+        break;
+      case 'matching':
+        generatedContent = await generateMatchingSection(basePrompt, topic, sectionTitle);
+        break;
+      case 'scenario':
+        generatedContent = await generateScenarioSection(basePrompt, topic, sectionTitle);
+        break;
+      case 'video':
+        generatedContent = await generateVideoSection(basePrompt, topic, sectionTitle);
+        break;
+      default:
+        generatedContent = await generateTextSection(basePrompt, topic, sectionTitle);
+    }
+
+    res.json(generatedContent);
+  } catch (error) {
+    console.error('Error generating section content:', error);
+    res.status(500).json({ 
+      message: 'Failed to generate section content',
+      error: error.message 
+    });
+  }
+});
+
+// Helper functions for generating different section types
+async function generateTextSection(basePrompt: string, topic: string, sectionTitle: string) {
+  const prompt = `${basePrompt}Generate comprehensive educational text content that includes:
+- Clear explanations and key concepts
+- Practical examples for classroom use
+- Evidence-based strategies
+- Actionable takeaways for teachers
+
+Format the content with proper headings and structure. Make it engaging and practical.`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 2000,
+    temperature: 0.7,
+  });
+
+  const content = response.choices[0].message.content;
+  
+  return {
+    blocks: [{
+      type: 'text',
+      title: sectionTitle,
+      content: content,
+      preview: content.substring(0, 200) + (content.length > 200 ? '...' : '')
+    }]
+  };
+}
+
+async function generateQuizSection(basePrompt: string, topic: string, sectionTitle: string) {
+  const prompt = `${basePrompt}Generate 3-5 multiple choice quiz questions that test understanding of key concepts. Each question should have:
+- A clear, practical question relevant to early childhood education
+- 4 answer options (A, B, C, D)
+- One correct answer
+- A brief explanation of why the answer is correct
+
+Format as JSON with this structure:
+{
+  "questions": [
+    {
+      "question": "Question text",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": 0,
+      "explanation": "Explanation text"
+    }
+  ]
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_tokens: 1500,
+    temperature: 0.7,
+  });
+
+  const content = JSON.parse(response.choices[0].message.content);
+  
+  return {
+    blocks: [{
+      type: 'quiz',
+      title: sectionTitle,
+      content: content,
+      preview: `Quiz with ${content.questions?.length || 0} questions about ${topic}`
+    }]
+  };
+}
+
+async function generateMatchingSection(basePrompt: string, topic: string, sectionTitle: string) {
+  const prompt = `${basePrompt}Generate a matching exercise with 5-7 pairs of items that teachers need to match. Create practical, educational pairs related to early childhood development. 
+
+Format as JSON:
+{
+  "instructions": "Match each item on the left with its corresponding item on the right",
+  "pairs": [
+    { "left": "Term or concept", "right": "Definition or example" }
+  ]
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_tokens: 1000,
+    temperature: 0.7,
+  });
+
+  const content = JSON.parse(response.choices[0].message.content);
+  
+  return {
+    blocks: [{
+      type: 'matching',
+      title: sectionTitle,
+      content: content,
+      preview: `Matching activity with ${content.pairs?.length || 0} pairs`
+    }]
+  };
+}
+
+async function generateScenarioSection(basePrompt: string, topic: string, sectionTitle: string) {
+  const prompt = `${basePrompt}Generate 2-3 realistic classroom scenarios that teachers might encounter, along with appropriate responses and strategies. Make them practical and specific to early childhood education.
+
+Format as JSON:
+{
+  "scenarios": [
+    {
+      "situation": "Detailed scenario description",
+      "response": "Recommended teacher response",
+      "rationale": "Why this response is effective"
+    }
+  ]
+}`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_tokens: 1500,
+    temperature: 0.7,
+  });
+
+  const content = JSON.parse(response.choices[0].message.content);
+  
+  return {
+    blocks: [{
+      type: 'scenario',
+      title: sectionTitle,
+      content: content,
+      preview: `${content.scenarios?.length || 0} classroom scenarios with responses`
+    }]
+  };
+}
+
+async function generateVideoSection(basePrompt: string, topic: string, sectionTitle: string) {
+  // Find relevant videos from the library
+  const relevantVideos = findRelevantVideos(topic, undefined, 3);
+  
+  return {
+    blocks: [{
+      type: 'video',
+      title: sectionTitle,
+      content: {
+        selectedVideo: relevantVideos[0] || null,
+        alternativeVideos: relevantVideos.slice(1),
+        description: `Educational video content about ${topic}`
+      },
+      preview: `Video section about ${topic} with ${relevantVideos.length} available videos`
+    }]
+  };
+}
+
 // Helper function to find relevant videos from the comprehensive library
 function findRelevantVideos(topic: string, category?: string, maxResults: number = 3) {
   const topicLower = topic.toLowerCase();

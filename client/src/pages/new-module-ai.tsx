@@ -165,6 +165,7 @@ interface PublishSettings {
 
 export default function NewModuleAI() {
   const [location, setLocation] = useLocation();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>("template");
   const [selectedTemplate, setSelectedTemplate] = useState<
     (typeof PROVEN_TEMPLATES)[0] | null
@@ -306,7 +307,7 @@ export default function NewModuleAI() {
     const section = selectedTemplate.sections[sectionIndex];
 
     try {
-      const response = await fetch("/api/ai/generate-section", {
+      const response = await fetch("/api/ai-suggestions/generate-section", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -879,37 +880,63 @@ export default function NewModuleAI() {
               <CardContent className="p-6 overflow-y-auto">
                 {/* Render all section types with their builders */}
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Button
-                      onClick={() => toggleSectionEdit(currentSectionIndex)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Type className="h-4 w-4 mr-1" />
-                      Type Content
-                    </Button>
-                    {selectedTemplate.sections[currentSectionIndex].type !==
-                      "video" && (
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
                       <Button
-                        onClick={() =>
-                          generateSectionContent(currentSectionIndex)
-                        }
-                        disabled={generatingSection === currentSectionIndex}
+                        onClick={() => toggleSectionEdit(currentSectionIndex)}
+                        variant="outline"
                         size="sm"
                       >
-                        {generatingSection === currentSectionIndex ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="h-4 w-4 mr-2" />
-                            Generate with AI
-                          </>
-                        )}
+                        <Type className="h-4 w-4 mr-1" />
+                        Type Content
                       </Button>
-                    )}
+                      {selectedTemplate.sections[currentSectionIndex].type !==
+                        "video" && (
+                        <>
+                          <Button
+                            onClick={() =>
+                              generateSectionContent(currentSectionIndex)
+                            }
+                            disabled={generatingSection === currentSectionIndex}
+                            size="sm"
+                          >
+                            {generatingSection === currentSectionIndex ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Wand2 className="h-4 w-4 mr-2" />
+                                Generate with AI
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => handleRegenerateWithGuidance(currentSectionIndex)}
+                            variant="outline"
+                            size="sm"
+                            disabled={generatingSection === currentSectionIndex}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Regenerate with Guidance
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedTemplate.sections.length > 1 && (
+                        <Button
+                          onClick={() => handleDeleteSection(currentSectionIndex)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete Section
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
@@ -1298,6 +1325,99 @@ export default function NewModuleAI() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Section Deletion Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Section</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete "{selectedTemplate?.sections[sectionToDelete || 0]?.title}"? 
+              All content for this section will be permanently removed.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setSectionToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteSection}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Section
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guided Regeneration Dialog */}
+      {showRegenerateDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
+                <RefreshCw className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Regenerate with Guidance</h3>
+                <p className="text-sm text-gray-600">Provide specific instructions for AI</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="regenerate-guidance">
+                  How would you like this section to be different?
+                </Label>
+                <Textarea
+                  id="regenerate-guidance"
+                  value={regenerateGuidance}
+                  onChange={(e) => setRegenerateGuidance(e.target.value)}
+                  placeholder="e.g., Make it more interactive, focus on practical examples, include more case studies, simplify the language..."
+                  className="mt-2"
+                  rows={4}
+                />
+              </div>
+              <div className="text-xs text-gray-500">
+                <strong>Section:</strong> {selectedTemplate?.sections[sectionToRegenerate || 0]?.title}
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowRegenerateDialog(false);
+                  setSectionToRegenerate(null);
+                  setRegenerateGuidance("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmRegenerateSection}
+                disabled={!regenerateGuidance.trim()}
+              >
+                <Wand2 className="h-4 w-4 mr-2" />
+                Regenerate Section
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
