@@ -78,7 +78,7 @@ export default function ModuleImageGenerator({
       const style = IMAGE_STYLES.find(s => s.id === selectedStyle);
       const enhancedPrompt = `${data.prompt}, ${style?.prompt || ''}, educational content, professional quality, suitable for teaching materials, no text or words in image`;
       
-      return apiRequest('/api/generate-image', {
+      return apiRequest('/api/ai/generate-image', {
         data: {
           prompt: enhancedPrompt,
           quality: 'hd',
