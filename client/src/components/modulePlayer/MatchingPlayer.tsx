@@ -72,7 +72,21 @@ export default function MatchingActivityPlayer({ activity, onComplete }: Matchin
     rightId: `right-${index}`
   }));
 
-  const [leftItems, setLeftItems] = useState(pairsWithIds.map(p => ({ id: p.leftId, content: p.left, pairId: p.id })));
+  // Shuffle function to randomize order
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Create shuffled left items and right options
+  const [leftItems, setLeftItems] = useState(() => 
+    shuffleArray(pairsWithIds.map(p => ({ id: p.leftId, content: p.left, pairId: p.id })))
+  );
+  const [rightOptions] = useState(() => shuffleArray(pairsWithIds));
   const [matches, setMatches] = useState<{ [key: string]: string }>({}); // rightId: leftId
   const [showResults, setShowResults] = useState(false);
 
@@ -116,7 +130,7 @@ export default function MatchingActivityPlayer({ activity, onComplete }: Matchin
 
             <div className="space-y-3">
               <h4 className="font-medium text-sm text-gray-700">Match With</h4>
-              {pairsWithIds.map(pair => {
+              {rightOptions.map(pair => {
                 const matchedLeft = leftItems.find(i => i.id === matches[pair.rightId]);
                 const isCorrect = showResults && pair.leftId === matches[pair.rightId];
                 return (
