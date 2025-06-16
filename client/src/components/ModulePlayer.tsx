@@ -589,45 +589,30 @@ console.log(module,'module')
 
       case 'quiz':
         try {
-          console.log('Quiz section content:', currentSection.content);
           let questions = [];
           
-          // Try to parse the content - it might be nested differently
+          // Parse the quiz content
           if (currentSection.content) {
             const parsedContent = JSON.parse(currentSection.content);
-            console.log('Parsed quiz content:', parsedContent);
             
-            // Check if it's an array of questions directly
+            // The content is directly an array of questions
             if (Array.isArray(parsedContent)) {
               questions = parsedContent;
             }
-            // Check if it's nested in a blocks structure
+            // Check other possible structures
             else if (parsedContent.blocks && Array.isArray(parsedContent.blocks)) {
               questions = parsedContent.blocks;
             }
-            // Check if it's nested in a questions property
             else if (parsedContent.questions && Array.isArray(parsedContent.questions)) {
               questions = parsedContent.questions;
             }
-            // Check if it's a single question object
-            else if (parsedContent.question) {
-              questions = [parsedContent];
-            }
           }
-          
-          console.log('Final questions array:', questions);
           
           if (questions.length === 0) {
             return (
               <Card>
                 <CardContent>
                   <p className="text-yellow-600">No quiz questions found in this section</p>
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-sm text-gray-500">Debug Info</summary>
-                    <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
-                      {JSON.stringify(currentSection, null, 2)}
-                    </pre>
-                  </details>
                 </CardContent>
               </Card>
             );
@@ -644,13 +629,7 @@ console.log(module,'module')
           return (
             <Card>
               <CardContent>
-                <p className="text-red-500">Error loading quiz content: {error.message}</p>
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-sm text-gray-500">Debug Info</summary>
-                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
-                    Raw content: {currentSection.content}
-                  </pre>
-                </details>
+                <p className="text-red-500">Error loading quiz content</p>
               </CardContent>
             </Card>
           );
