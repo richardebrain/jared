@@ -103,15 +103,43 @@ export default function ModulePublishingDialog({
 
   const publishMutation = useMutation({
     mutationFn: async (publishData: any) => {
-      return await apiRequest('/api/modules/publish', {
-        method: 'POST',
-        data: publishData
-      });
+      // Check if this is an update (existing module) or new module
+      if (publishData.moduleId && typeof publishData.moduleId === 'number') {
+        // Update existing module
+        const updateData = {
+          title: publishData.module.title,
+          description: publishData.module.description,
+          content: JSON.stringify({
+            sections: publishData.module.sections || [],
+            moduleType: publishData.module.moduleType || "deep-dive",
+            courseStructure: publishData.module.courseStructure || {},
+            interactiveElements: publishData.module.interactiveElements || {},
+            certificationSystem: publishData.module.certificationSystem || {},
+          }),
+          category: publishData.module.category,
+          difficulty: publishData.module.difficulty,
+          duration: parseInt(publishData.module.estimatedTime) || 10,
+          pointValue: parseInt(publishData.module.customPoints) || 100,
+          isShared: publishData.module.shareWithCommunity || false
+        };
+
+        return await apiRequest(`/api/modules/${publishData.moduleId}`, {
+          method: 'PATCH',
+          data: updateData
+        });
+      } else {
+        // Create new module
+        return await apiRequest('/api/modules/publish', {
+          method: 'POST',
+          data: publishData
+        });
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      const isUpdate = variables.moduleId && typeof variables.moduleId === 'number';
       toast({
-        title: "Module Published Successfully!",
-        description: "Your module has been distributed to the selected recipients.",
+        title: isUpdate ? "Module Updated Successfully!" : "Module Published Successfully!",
+        description: isUpdate ? "Your changes have been saved." : "Your module has been distributed to the selected recipients.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
       onPublishSuccess();
