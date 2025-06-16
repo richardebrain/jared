@@ -58,6 +58,7 @@ import {
   ArrowRight,
   Building,
   Heart,
+  AlertCircle,
   Link,
   Target,
   Music,
@@ -233,37 +234,29 @@ export default function ComprehensiveModuleCreator() {
       setNewModule(prev => ({
         ...prev,
         id: existingModule.id,
-        title: existingModule.title || '',
-        description: existingModule.description || '',
-        category: existingModule.category || 'professional-development',
-        difficulty: existingModule.difficulty || 'intermediate',
-        estimatedTime: existingModule.duration?.toString() || '15',
-        pointValue: existingModule.pointValue || 10,
-        shareWithCommunity: existingModule.isShared || false,
-        sections: content && content.sections ? content.sections.map((section: any, index: number) => ({
-          ...section,
-          id: section.id || `section-${index}-${Date.now()}`
-        })) : []
+        title: existingModule.title || prev.title,
+        description: existingModule.description || prev.description,
+        category: existingModule.category || prev.category,
+        difficulty: existingModule.difficulty || prev.difficulty,
+        estimatedTime: existingModule.estimatedTime || prev.estimatedTime,
+        pointValue: existingModule.pointValue || prev.pointValue,
+        sections: sectionsData,
       }));
 
-      // Skip intro and go directly to section builder - BYPASS initial setup entirely
-      setShowInitialSetup(false);
+      // Set workflow to section builder mode for edit
       setCreationMethod('manual');
       setAiWorkflowStep('section-builder');
-      setCurrentSectionIndex(0);
       
-      // Update initial module data to prevent re-showing setup
-      setInitialModuleData({
-        title: existingModule.title || '',
-        learningObjective: existingModule.description || ''
-      });
-      
-      toast({
-        title: "Module Loaded for Editing",
-        description: "You can now edit sections, regenerate content, and add new sections",
+      console.log('[EDIT MODE] Module data loaded successfully', {
+        moduleId: existingModule.id,
+        title: existingModule.title,
+        sectionsCount: sectionsData.length
       });
     }
   }, [existingModule, isEditMode]);
+
+  // Handle draft management and other workflow states
+  const [draftSaveInterval, setDraftSaveInterval] = useState<NodeJS.Timeout | null>(null);
   
   // Universal quiz conversion function - applies to all module creation tools
   const convertContentToQuiz = (content: string, sectionTitle: string) => {
