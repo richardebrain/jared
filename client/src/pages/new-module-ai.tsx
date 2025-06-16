@@ -602,15 +602,18 @@ export default function NewModuleAI() {
   };
 
   const saveModule = async (publishSettings: PublishSettings) => {
-    console.log(moduleConfig,'module configuration',selectedTemplate)
-    if (!selectedTemplate) return;
+    console.log('Starting module save with:', moduleConfig, 'template:', selectedTemplate);
+    if (!selectedTemplate) {
+      console.error('No template selected');
+      return;
+    }
 
     const moduleData = {
       title: moduleConfig.title,
       description: moduleConfig.description || selectedTemplate.description,
       category: "professional-development",
       difficulty: moduleConfig.difficulty,
-      estimatedTime: parseInt(selectedTemplate.duration.replace(" min", "")).toString(),
+      estimatedTime: (selectedTemplate.duration === "Variable" ? "30" : parseInt(selectedTemplate.duration.replace(/[^\d]/g, "") || "30")).toString(),
       customPoints: moduleConfig.pointValue.toString(),
       sections: sectionContents.map((content, index) => ({
         title: selectedTemplate.sections[index].title,
@@ -627,28 +630,50 @@ export default function NewModuleAI() {
       certificationSystem: {}
     };
 
+    const publishData = {
+      module: moduleData,
+      type: publishSettings.type,
+      selectedTeachers: publishSettings.selectedTeachers || [],
+      selectedGroups: publishSettings.selectedGroups || [],
+      customMessage: publishSettings.customMessage || "",
+      includeInLibrary: publishSettings.includeInLibrary,
+      allowComments: publishSettings.allowComments,
+      publishToSection: publishSettings.publishToSection,
+      publishToCommunity: publishSettings.publishToCommunity
+    };
+
+    console.log('Publishing module with data:', publishData);
+
     try {
       const response = await fetch("/api/modules/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          module: moduleData,
-          type: publishSettings.type,
-          selectedTeachers: publishSettings.selectedTeachers || [],
-          selectedGroups: publishSettings.selectedGroups || [],
-          customMessage: publishSettings.customMessage || "",
-          includeInLibrary: publishSettings.includeInLibrary,
-          allowComments: publishSettings.allowComments,
-          publishToSection: publishSettings.publishToSection,
-          publishToCommunity: publishSettings.publishToCommunity
-        }),
+        body: JSON.stringify(publishData),
       });
 
+      console.log('Response status:', response.status);
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
       if (response.ok) {
+        console.log('Module published successfully, navigating to modules');
         setLocation("/modules");
+      } else {
+        console.error('Publish failed:', responseData);
+        // Show error to user
+        toast({
+          title: "Publishing Failed",
+          description: responseData.message || "Failed to publish module. Please try again.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Error saving module:", error);
+      toast({
+        title: "Network Error",
+        description: "Failed to connect to server. Please check your connection and try again.",
+        variant: "destructive"
+      });
     }
   };
 
