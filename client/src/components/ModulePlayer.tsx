@@ -1365,6 +1365,16 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
               <CardTitle>{currentSection.title}</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Debug: Log section content to find images */}
+              {console.log('Section content for images:', {
+                title: currentSection.title,
+                imageUrl: currentSection.imageUrl,
+                content: currentSection.content,
+                contentType: typeof currentSection.content,
+                hasBlocks: currentSection.content?.blocks,
+                firstBlock: currentSection.content?.blocks?.[0]
+              })}
+              
               {/* Display AI-generated images if present */}
               {currentSection.imageUrl && (
                 <div className="mb-6">
