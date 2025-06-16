@@ -814,6 +814,35 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     },
   });
 
+  // Progress update mutation
+  const updateProgressMutation = useMutation({
+    mutationFn: async (data: { 
+      moduleId: number; 
+      progress: number; 
+      completed: boolean; 
+      passed?: boolean; 
+      finalScore?: number; 
+      pointsEarned?: number; 
+    }) => {
+      return apiRequest(`/api/progress/${data.moduleId}`, {
+        method: 'POST',
+        data: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+    onSuccess: () => {
+      // Invalidate progress queries to refresh completion status
+      queryClient.invalidateQueries({ queryKey: ['/api/progress'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    },
+    onError: (error) => {
+      console.error('Failed to update progress:', error);
+    },
+  });
+
   // ECE hours tracking mutation
   const recordEceHoursMutation = useMutation({
     mutationFn: async (data: { moduleId: number; hours: number; category: string; trainerId?: number | null }) => {

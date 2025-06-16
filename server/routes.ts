@@ -3360,20 +3360,22 @@ Continue for all 5 questions...
     try {
       const userId = req.session.userId as number;
       const moduleId = parseInt(req.params.moduleId);
-      const { progress, completed, pointsEarned } = req.body;
+      const { progress, completed, pointsEarned, passed, finalScore } = req.body;
 
       // This should be replaced with a proper get by user and module function
       const allProgress = await storage.getProgressByUserId(userId);
       const existingProgress = allProgress.find((p) => p.moduleId === moduleId);
 
       if (existingProgress) {
-        // Update existing progress
+        // Update existing progress with pass/fail tracking
         const updatedProgress = await storage.updateUserProgress({
           userId: existingProgress.userId,
           moduleId: existingProgress.moduleId,
           progress: progress || existingProgress.progress,
           completed:
             completed !== undefined ? completed : existingProgress.completed,
+          passed: passed !== undefined ? passed : existingProgress.passed,
+          finalScore: finalScore !== undefined ? finalScore : existingProgress.finalScore,
           pointsEarned:
             pointsEarned !== undefined
               ? pointsEarned
