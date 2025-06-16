@@ -2027,7 +2027,7 @@ Continue for all 5 questions...
         SELECT id, title, description, duration, difficulty, category, 
                average_rating, rating_count, created_at, image_url
         FROM learning_modules 
-        WHERE created_by = ${userId}
+        WHERE creator_id = ${userId}
         ORDER BY created_at DESC
         LIMIT 10
       `);

@@ -105,10 +105,12 @@ export default function NewModuleCreator() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
   // Fetch user's modules
-  const { data: userModules, isLoading: modulesLoading } = useQuery({
-    queryKey: ['/api/modules/user', user?.id],
+  const { data: userModules, isLoading: modulesLoading, error } = useQuery({
+    queryKey: [`/api/modules/user/${user?.id}`],
     enabled: !!user?.id,
   });
+
+
 
   if (!isAuthenticated) {
     setLocation('/login');
@@ -144,7 +146,7 @@ export default function NewModuleCreator() {
       </div>
 
       {/* My Modules Section */}
-      {userModules && userModules.length > 0 && (
+      {userModules && Array.isArray(userModules) && userModules.length > 0 && (
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
             <FileEdit className="h-6 w-6 text-blue-600" />
