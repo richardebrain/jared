@@ -1580,6 +1580,49 @@ export default function ComprehensiveModuleCreator() {
 
 
 
+  // Function to update existing module in edit mode
+  const updateExistingModule = async () => {
+    if (!editModuleId) return;
+    
+    setIsSaving(true);
+    try {
+      const moduleData = {
+        title: newModule.title,
+        description: newModule.description,
+        category: newModule.category,
+        difficulty: newModule.difficulty,
+        estimatedTime: newModule.estimatedTime,
+        customPoints: newModule.customPoints,
+        sections: newModule.sections,
+        shareWithCommunity: newModule.shareWithCommunity
+      };
+
+      await apiRequest(`/api/modules/${editModuleId}`, {
+        method: 'PUT',
+        data: moduleData
+      });
+
+      toast({
+        title: "Module Updated",
+        description: "Your changes have been saved successfully",
+      });
+
+      // Invalidate cache to refresh module data
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/modules/${editModuleId}`] });
+
+    } catch (error) {
+      console.error('Error updating module:', error);
+      toast({
+        title: "Save Failed",
+        description: "Unable to save changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const finishActivityAndSave = () => {
     if (builtActivities.length === 0) {
       toast({
@@ -7856,7 +7899,7 @@ Create a natural conversation between two podcast hosts discussing this specific
               </Button>
               <Button
                 variant="outline"
-                onClick={() => navigate(`/modules/${moduleId}/preview`)}
+                onClick={() => navigate(`/modules/${editModuleId}`)}
                 className="border-blue-300 text-blue-700 hover:bg-blue-50"
               >
                 <Eye className="h-4 w-4 mr-2" />
