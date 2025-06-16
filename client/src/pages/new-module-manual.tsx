@@ -167,6 +167,20 @@ export default function NewModuleManual() {
     return null;
   }
 
+  // Show loading state when fetching existing module data
+  if (isEditMode && moduleLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-600">Loading module data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
     const template = moduleTemplates.find(t => t.id === templateId);
@@ -231,41 +245,50 @@ export default function NewModuleManual() {
     }
 
     try {
-      const response = await fetch('/api/modules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: moduleConfig.title,
-          description: moduleConfig.description,
-          category: moduleConfig.category,
-          difficulty: moduleConfig.difficulty,
-          estimatedTime: moduleConfig.estimatedTime,
-          pointValue: moduleConfig.pointValue,
-          shareWithCommunity: moduleConfig.shareWithCommunity,
-          sections: sections.map(section => ({
-            title: section.title,
-            content: section.content,
-            type: section.type,
-            duration: section.duration,
-            videoUrl: section.videoUrl || '',
-            imageUrl: section.imageUrl || '',
-            activities: []
-          }))
-        })
-      });
+      const moduleData = {
+        title: moduleConfig.title,
+        description: moduleConfig.description,
+        category: moduleConfig.category,
+        difficulty: moduleConfig.difficulty,
+        estimatedTime: moduleConfig.estimatedTime,
+        pointValue: moduleConfig.pointValue,
+        shareWithCommunity: moduleConfig.shareWithCommunity,
+        sections: sections.map(section => ({
+          title: section.title,
+          content: section.content,
+          type: section.type,
+          duration: section.duration,
+          videoUrl: section.videoUrl || '',
+          imageUrl: section.imageUrl || '',
+          activities: []
+        }))
+      };
 
-      if (!response.ok) throw new Error('Failed to save module');
+      let response;
+      if (isEditMode && editModuleId) {
+        // Update existing module
+        response = await apiRequest('PATCH', `/api/modules/${editModuleId}`, moduleData);
+      } else {
+        // Create new module
+        response = await fetch('/api/modules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(moduleData)
+        });
+        
+        if (!response.ok) throw new Error('Failed to save module');
+      }
 
       toast({
-        title: "Module Saved!",
-        description: "Your manual module has been saved successfully."
+        title: isEditMode ? "Module Updated!" : "Module Saved!",
+        description: isEditMode ? "Your module has been updated successfully." : "Your manual module has been saved successfully."
       });
 
       setLocation('/dashboard');
     } catch (error) {
       toast({
-        title: "Save Error",
-        description: "Failed to save module. Please try again.",
+        title: isEditMode ? "Update Error" : "Save Error",
+        description: isEditMode ? "Failed to update module. Please try again." : "Failed to save module. Please try again.",
         variant: "destructive"
       });
     }
@@ -332,9 +355,11 @@ export default function NewModuleManual() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <FileEdit className="h-8 w-8 text-green-600" />
-              Manual Module Builder
+              {isEditMode ? 'Edit Module' : 'Manual Module Builder'}
             </h1>
-            <p className="text-gray-600 mt-2">Build your module step-by-step with full control over content</p>
+            <p className="text-gray-600 mt-2">
+              {isEditMode ? 'Update your module with full control over content' : 'Build your module step-by-step with full control over content'}
+            </p>
           </div>
           <Button variant="outline" onClick={() => setLocation('/new-module')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -619,7 +644,7 @@ export default function NewModuleManual() {
                   disabled={sections.length === 0}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Module
+                  {isEditMode ? 'Update Module' : 'Save Module'}
                 </Button>
               </div>
             </>
