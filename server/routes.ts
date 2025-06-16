@@ -1833,6 +1833,42 @@ Continue for all 5 questions...
     }
   });
 
+  // Get school teachers for module publishing
+  app.get("/api/users/school-teachers", async (req, res) => {
+    try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser || !currentUser.schoolId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Fetch teachers from the same school
+      const schoolTeachers = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        })
+        .from(users)
+        .where(
+          and(
+            eq(users.schoolId, currentUser.schoolId),
+            eq(users.isOwner, false) // Exclude owners, only get teachers
+          )
+        );
+
+      res.json(schoolTeachers);
+    } catch (error) {
+      console.error("Error fetching school teachers:", error);
+      res.status(500).json({ message: "Failed to fetch school teachers" });
+    }
+  });
+
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -181,6 +182,17 @@ interface PublishSettings {
 export default function NewModuleAI() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Fetch real teachers from the admin's school
+  const { data: schoolTeachers = [] } = useQuery({
+    queryKey: ['/api/users/school-teachers'],
+    queryFn: async () => {
+      const response = await fetch('/api/users/school-teachers');
+      if (!response.ok) throw new Error('Failed to fetch teachers');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
   const [currentStep, setCurrentStep] = useState<Step>("template");
   const [selectedTemplate, setSelectedTemplate] = useState<
     (typeof PROVEN_TEMPLATES)[0] | null
@@ -1420,29 +1432,33 @@ export default function NewModuleAI() {
                       Choose specific teachers to share this module with
                     </p>
                     <div className="space-y-2">
-                      {["Sarah Johnson", "Mike Chen", "Elena Rodriguez", "David Kim", "Anna Thompson"].map((teacher) => (
-                        <label key={teacher} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={publishSettings.selectedTeachers.includes(teacher)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setPublishSettings(prev => ({
-                                  ...prev,
-                                  selectedTeachers: [...prev.selectedTeachers, teacher]
-                                }));
-                              } else {
-                                setPublishSettings(prev => ({
-                                  ...prev,
-                                  selectedTeachers: prev.selectedTeachers.filter(t => t !== teacher)
-                                }));
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <span>{teacher}</span>
-                        </label>
-                      ))}
+                      {schoolTeachers.map((teacher) => {
+                        const teacherName = `${teacher.firstName} ${teacher.lastName}`;
+                        const teacherId = teacher.id.toString();
+                        return (
+                          <label key={teacher.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={publishSettings.selectedTeachers.includes(teacherId)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setPublishSettings(prev => ({
+                                    ...prev,
+                                    selectedTeachers: [...prev.selectedTeachers, teacherId]
+                                  }));
+                                } else {
+                                  setPublishSettings(prev => ({
+                                    ...prev,
+                                    selectedTeachers: prev.selectedTeachers.filter(t => t !== teacherId)
+                                  }));
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <span>{teacherName}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

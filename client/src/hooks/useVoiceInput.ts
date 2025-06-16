@@ -90,6 +90,8 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
+      setIsListening(false);
+      setTranscript('');
     }
   };
 
