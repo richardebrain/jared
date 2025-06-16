@@ -3938,11 +3938,11 @@ Create a natural conversation between two podcast hosts discussing this specific
           )}
           <Button 
             variant="outline" 
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Admin
+            Back to Dashboard
           </Button>
         </div>
       </div>
