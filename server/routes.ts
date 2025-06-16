@@ -2080,7 +2080,7 @@ Continue for all 5 questions...
         savedModule = await storage.getModule(moduleId);
       }
       if (!savedModule) {
-        // Create the module
+        // Create the module with proper creator and school assignment
         const moduleData = {
           title: module.title || "Untitled Module",
           description: module.description || "Module description",
@@ -2097,6 +2097,8 @@ Continue for all 5 questions...
           }),
           is_visible: includeInLibrary,
           is_shared_to_community: publishToCommunity,
+          creator_id: userId,
+          school_id: user.schoolId,
         };
         savedModule = await storage.createModule(moduleData);
       }
