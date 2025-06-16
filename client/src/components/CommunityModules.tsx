@@ -293,7 +293,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
                             <h3 className="font-bold text-base">
-                              {module.title}
+                              {module.title.replace(/^Custom Template\s*[-:]\s*/i, '')}
                             </h3>
                             <div className="flex items-center bg-white px-2 py-0.5 rounded-full text-amber-700 border border-amber-100">
                               <Star className="h-4 w-4 fill-amber-500 text-amber-500 mr-1" />

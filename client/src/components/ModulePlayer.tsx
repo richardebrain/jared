@@ -1425,7 +1425,9 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl text-blue-900 font-bold">{module.title}</CardTitle>
+              <CardTitle className="text-2xl text-blue-900 font-bold">
+                {module.title.replace(/^Custom Template\s*[-:]\s*/i, '')}
+              </CardTitle>
               <CardDescription className="mt-1 text-blue-700 text-lg">{module.description}</CardDescription>
             </div>
             <div className="flex items-center gap-4">
