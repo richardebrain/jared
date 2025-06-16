@@ -20,24 +20,26 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   useEffect(() => {
     // Initialize content only once when component mounts or when content changes
     let newContent = '';
-    if (content?.blocks?.[0]?.content) {
+    if (content?.blocks?.[0]?.content && typeof content.blocks[0].content === 'string') {
       newContent = content.blocks[0].content;
-    } else if (content?.content) {
+    } else if (content?.content && typeof content.content === 'string') {
       newContent = content.content;
     } else if (typeof content === 'string' && content !== '') {
       newContent = content;
     }
     
-    setTextContent(newContent);
+    // Ensure we always set a string
+    setTextContent(typeof newContent === 'string' ? newContent : '');
   }, [content]);
 
   const saveChanges = () => {
+    const contentString = typeof textContent === 'string' ? textContent : '';
     const updatedContent = {
       blocks: [{
         type: 'text',
         title: 'Text Section',
-        content: textContent,
-        preview: textContent.substring(0, 200) + (textContent.length > 200 ? '...' : '')
+        content: contentString,
+        preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
       }]
     };
     onContentChange(updatedContent);
@@ -45,6 +47,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   };
 
   const getWordCount = () => {
+    if (typeof textContent !== 'string') return 0;
     return textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
 
