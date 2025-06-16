@@ -125,12 +125,62 @@ const logoUpload = multer({
   },
 });
 
-// Helper middleware for requiring authentication
-const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+// Helper middleware for requiring authentication with comprehensive session verification
+const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Auth check - Session ID:", req.session.id);
+  console.log("Auth check - Session data:", req.session);
+
   if (!req.session.userId) {
+    console.log("Auth failed - No userId in session");
     return res.status(401).json({ message: "Unauthorized" });
   }
-  next();
+
+  try {
+    // Verify user exists in database
+    const userId = req.session.userId as number;
+    const user = await storage.getUser(userId);
+
+    if (!user) {
+      console.log(
+        `Auth failed - User with ID ${userId} not found in database`,
+      );
+      req.session.destroy(() => {
+        console.log("Session destroyed due to user not found");
+      });
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update last active time
+    await storage.updateUser(userId, {
+      lastActive: new Date(),
+    });
+
+    // Refresh session expiration
+    req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+    // Force session update
+    try {
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error in auth middleware:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    } catch (saveErr) {
+      console.error("Failed to refresh session in auth middleware:", saveErr);
+      // Continue anyway as this is just a refresh
+    }
+
+    console.log(`Auth successful - User ID: ${req.session.userId}`);
+    next();
+  } catch (error) {
+    console.error("Error in auth middleware:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 // Middleware to require assessment completion before module access
@@ -992,67 +1042,7 @@ Continue for all 5 questions...
   // Do not set up session middleware here as it will override the existing one
   // and cause authentication issues with assessment routes
 
-  // Auth middleware
-  const requireAuth = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    console.log("Auth check - Session ID:", req.session.id);
-    console.log("Auth check - Session data:", req.session);
 
-    if (!req.session.userId) {
-      console.log("Auth failed - No userId in session");
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    try {
-      // Verify user exists in database
-      const userId = req.session.userId as number;
-      const user = await storage.getUser(userId);
-
-      if (!user) {
-        console.log(
-          `Auth failed - User with ID ${userId} not found in database`,
-        );
-        req.session.destroy(() => {
-          console.log("Session destroyed due to user not found");
-        });
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Update last active time
-      await storage.updateUser(userId, {
-        lastActive: new Date(),
-      });
-
-      // Refresh session expiration
-      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-      // Force session update
-      try {
-        await new Promise<void>((resolve, reject) => {
-          req.session.save((err) => {
-            if (err) {
-              console.error("Session save error in auth middleware:", err);
-              reject(err);
-            } else {
-              resolve();
-            }
-          });
-        });
-      } catch (saveErr) {
-        console.error("Failed to refresh session in auth middleware:", saveErr);
-        // Continue anyway as this is just a refresh
-      }
-
-      console.log(`Auth successful - User ID: ${req.session.userId}`);
-      next();
-    } catch (error) {
-      console.error("Error in auth middleware:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  };
 
   // Login reset endpoint (helps with debugging stuck sessions)
   // This endpoint allows any user to reset their session when they encounter login issues
