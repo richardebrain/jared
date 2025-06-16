@@ -2381,7 +2381,7 @@ Continue for all 5 questions...
 
       // Get user info for logging
       const userId = req.session.userId as number;
-      console.log(`User ${userId} requesting module ${moduleId}`);
+      console.log(`[MODULE REQUEST] User ${userId} requesting module ${moduleId}`);
 
       // Fetch the module with error handling using direct SQL to handle schema changes
       const result = await db.execute(sql`
