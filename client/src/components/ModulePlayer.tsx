@@ -420,6 +420,8 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [rating, setRating] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
+  const [finalQuizScore, setFinalQuizScore] = useState<number | null>(null);
+  const [moduleCompleted, setModuleCompleted] = useState(false);
   const { toast } = useToast();
 
   const { data: rawModule, isLoading } = useQuery<LearningModule>({
@@ -515,6 +517,8 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
         
         // Check if all sections are now completed
         if (module && newCompleted.size === module.sections.length) {
+          // Mark module as fully completed
+          setModuleCompleted(true);
           // Show rating dialog after a brief delay
           setTimeout(() => {
             setShowRatingDialog(true);
@@ -523,6 +527,11 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
         
         return newCompleted;
       });
+    }
+
+    // Store final quiz score if this is the last section
+    if (isLastSection) {
+      setFinalQuizScore(score);
     }
 
     // Award points only if this is the final assessment and score is 80% or higher
@@ -550,6 +559,27 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       toast({
         title: "Quiz Complete",
         description: `You scored ${score}% on this quiz section.`,
+      });
+    }
+  };
+
+  const handleModuleComplete = () => {
+    if (finalQuizScore !== null && finalQuizScore >= 80) {
+      toast({
+        title: "Congratulations!",
+        description: `Module completed successfully with ${finalQuizScore}% on the final assessment!`,
+      });
+    } else if (finalQuizScore !== null && finalQuizScore < 80) {
+      toast({
+        title: "Module Incomplete",
+        description: `You scored ${finalQuizScore}% on the final assessment. You need 80% or higher to complete the module.`,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Please Complete Final Assessment",
+        description: "You need to complete the final quiz to finish this module.",
+        variant: "destructive"
       });
     }
   };
@@ -662,10 +692,13 @@ console.log(module,'module')
             );
           }
           
+          // Check if this is the final assessment (last section)
+          const isLastSection = module && currentSectionIndex === module.sections.length - 1;
+          
           return (
             <QuizComponent
               questions={questions}
-              onComplete={(score, points) => handleSectionComplete(currentSectionIndex, points)}
+              onComplete={(score, points) => handleQuizComplete(score, points, isLastSection)}
             />
           );
         } catch (error) {
@@ -836,9 +869,21 @@ console.log(module,'module')
           </Button>
         ) : (
           completedSections.size === module.sections.length && (
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button 
+              onClick={handleModuleComplete}
+              className={`${
+                finalQuizScore !== null && finalQuizScore >= 80 
+                  ? "bg-green-600 hover:bg-green-700" 
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
+            >
               <Trophy className="h-4 w-4 mr-2" />
-              Module Complete!
+              {finalQuizScore !== null && finalQuizScore >= 80 
+                ? "Module Complete!" 
+                : finalQuizScore !== null 
+                  ? `Retake Quiz (${finalQuizScore}%)`
+                  : "Complete Final Assessment"
+              }
             </Button>
           )
         )}
