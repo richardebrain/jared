@@ -728,6 +728,14 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [rating, setRating] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionData, setCompletionData] = useState<{
+    score: number;
+    totalQuestions: number;
+    points: number;
+    eceHours?: number;
+    eceCategory?: string;
+  } | null>(null);
   const [finalQuizScore, setFinalQuizScore] = useState<number | null>(null);
   const [moduleCompleted, setModuleCompleted] = useState(false);
   const [retakeAttempts, setRetakeAttempts] = useState<{ [sectionIndex: number]: boolean }>({});
@@ -795,6 +803,27 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     },
   });
 
+  // ECE hours tracking mutation
+  const recordEceHoursMutation = useMutation({
+    mutationFn: async (data: { moduleId: number; hours: number; category: string; trainerId?: number | null }) => {
+      return apiRequest('/api/ece-hours', {
+        method: 'POST',
+        data: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries to refresh ECE hours data
+      queryClient.invalidateQueries({ queryKey: ['/api/ece-hours'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    },
+    onError: (error) => {
+      console.error('Failed to record ECE hours:', error);
+    },
+  });
+
   const handleSectionComplete = (sectionIndex: number, points: number = 0) => {
     if (!completedSections.has(sectionIndex)) {
       setCompletedSections(prev => {
@@ -851,15 +880,32 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       const modulePoints = module?.pointValue || 10;
       setTotalPoints(prev => prev + modulePoints);
       
+      // Award points for module completion
       awardPointsMutation.mutate({
         points: modulePoints,
         reason: `Module completion with ${score} out of ${totalQuestions} quiz score`
       });
-      
-      toast({
-        title: "Module Completed!",
-        description: `Congratulations! You scored ${score} out of ${totalQuestions} and earned ${modulePoints} points!`,
+
+      // Track ECE hours if module is approved for ECE training
+      const moduleData = module as any; // Type assertion for ECE fields
+      if (moduleData?.eceApproved && moduleData?.eceCategory && moduleData?.eceHours) {
+        recordEceHoursMutation.mutate({
+          moduleId: module.id,
+          hours: moduleData.eceHours,
+          category: moduleData.eceCategory,
+          trainerId: moduleData.approvedTrainerId || null
+        });
+      }
+
+      // Show completion modal with points and ECE hours
+      setCompletionData({
+        score,
+        totalQuestions,
+        points: modulePoints,
+        eceHours: moduleData?.eceApproved ? moduleData.eceHours : undefined,
+        eceCategory: moduleData?.eceApproved ? moduleData.eceCategory : undefined,
       });
+      setShowCompletionModal(true);
     } else if (isLastSection && percentage < 80) {
       toast({
         title: "Quiz Complete",
@@ -1456,6 +1502,63 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
                 {rateModuleMutation.isPending ? "Submitting..." : "Submit Rating"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Module Completion Modal */}
+      <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-bold text-green-600 flex items-center justify-center gap-2">
+              <Trophy className="h-8 w-8 text-yellow-500" />
+              Congratulations!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center space-y-4">
+            {completionData && (
+              <>
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border">
+                  <div className="text-lg font-semibold text-gray-800">
+                    Quiz Score: {completionData.score} out of {completionData.totalQuestions}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {Math.round((completionData.score / completionData.totalQuestions) * 100)}% - Great job!
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border">
+                  <div className="flex items-center justify-center gap-2 text-xl font-bold text-orange-600">
+                    <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+                    +{completionData.points} Points Earned!
+                  </div>
+                </div>
+
+                {completionData.eceHours && completionData.eceCategory && (
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border">
+                    <div className="text-lg font-semibold text-purple-700">
+                      🎓 ECE Training Hours Earned
+                    </div>
+                    <div className="text-sm text-purple-600 mt-1">
+                      {completionData.eceHours} hours in {completionData.eceCategory}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+            
+            <Button 
+              onClick={() => {
+                setShowCompletionModal(false);
+                // Show rating dialog after completion modal
+                if (module?.shareWithCommunity) {
+                  setShowRatingDialog(true);
+                }
+              }}
+              className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+            >
+              Continue
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
