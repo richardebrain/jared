@@ -43,53 +43,45 @@ router.post('/generate-section', async (req, res) => {
       });
     }
 
-    console.log("Generating AI section content:", { 
+    console.log("Generating section content:", { 
       topic, 
       sectionType, 
       sectionTitle, 
-      customGuidance: customGuidance ? "provided" : "none"
+      templateContext
     });
 
-    // Build context-aware prompt
-    let basePrompt = `Create educational content for early childhood educators on the topic: "${topic}".
-
-Section Type: ${sectionType}
-Section Title: ${sectionTitle}
-Target Audience: ${targetAudience || 'preschool teachers'}
-Difficulty Level: ${difficulty || 'intermediate'}
-Template Context: ${templateContext || 'professional development module'}
-
-`;
-
-    // Add custom guidance if provided
-    if (customGuidance) {
-      basePrompt += `IMPORTANT GUIDANCE: ${customGuidance}\n\n`;
-    }
-
-    // Generate content based on section type
+    // Generate content based on section type with fallback
     let generatedContent;
     
-    switch (sectionType) {
-      case 'text':
-        generatedContent = await generateTextSection(basePrompt, topic, sectionTitle);
-        break;
-      case 'quiz':
-        generatedContent = await generateQuizSection(basePrompt, topic, sectionTitle);
-        break;
-      case 'matching':
-        generatedContent = await generateMatchingSection(basePrompt, topic, sectionTitle);
-        break;
-      case 'scenario':
-        generatedContent = await generateScenarioSection(basePrompt, topic, sectionTitle);
-        break;
-      case 'video':
-        generatedContent = await generateVideoSection(basePrompt, topic, sectionTitle);
-        break;
-      default:
-        generatedContent = await generateTextSection(basePrompt, topic, sectionTitle);
+    try {
+      switch (sectionType) {
+        case 'text':
+          generatedContent = await generateTextSection(topic, sectionTitle, customGuidance);
+          break;
+        case 'quiz':
+          generatedContent = await generateQuizSection(topic, sectionTitle, customGuidance);
+          break;
+        case 'matching':
+          generatedContent = await generateMatchingSection(topic, sectionTitle, customGuidance);
+          break;
+        case 'scenario':
+          generatedContent = await generateScenarioSection(topic, sectionTitle, customGuidance);
+          break;
+        case 'video':
+          generatedContent = await generateVideoSection(topic, sectionTitle);
+          break;
+        default:
+          generatedContent = await generateTextSection(topic, sectionTitle, customGuidance);
+      }
+      
+      console.log(`Generated content for ${sectionType} section: ${sectionTitle}`);
+      res.json(generatedContent);
+    } catch (aiError) {
+      console.error('AI generation failed, using fallback content:', aiError);
+      // Provide fallback content instead of failing
+      generatedContent = generateFallbackContent(sectionType, sectionTitle, topic);
+      res.json(generatedContent);
     }
-
-    res.json(generatedContent);
   } catch (error) {
     console.error('Error generating section content:', error);
     res.status(500).json({ 
@@ -100,23 +92,33 @@ Template Context: ${templateContext || 'professional development module'}
 });
 
 // Helper functions for generating different section types
-async function generateTextSection(basePrompt: string, topic: string, sectionTitle: string) {
-  const prompt = `${basePrompt}Generate comprehensive educational text content that includes:
+async function generateTextSection(topic: string, sectionTitle: string, customGuidance?: string) {
+  const prompt = `Create educational content for early childhood educators on "${topic}".
+
+Section: ${sectionTitle}
+${customGuidance ? `Special instructions: ${customGuidance}` : ''}
+
+Generate comprehensive text content that includes:
 - Clear explanations and key concepts
 - Practical examples for classroom use
 - Evidence-based strategies
 - Actionable takeaways for teachers
 
-Format the content with proper headings and structure. Make it engaging and practical.`;
+Format with proper headings and structure. Make it engaging and practical.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 2000,
-    temperature: 0.7,
-  });
+  const response = await Promise.race([
+    openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 2000,
+      temperature: 0.7,
+    }),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 20000)
+    )
+  ]);
 
-  const content = response.choices[0].message.content;
+  const content = (response as any).choices[0].message.content;
   
   return {
     blocks: [{
@@ -147,13 +149,18 @@ Format as JSON with this structure:
   ]
 }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
-    max_tokens: 1500,
-    temperature: 0.7,
-  });
+  const response = await Promise.race([
+    openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_tokens: 1500,
+      temperature: 0.7,
+    }),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 25000)
+    )
+  ]);
 
   const content = JSON.parse(response.choices[0].message.content);
   
