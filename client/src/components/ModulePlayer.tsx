@@ -203,7 +203,7 @@ function QuizComponent({ questions, onComplete, hasRetakeAttempt = false, onReta
 
     toast({
       title: "Quiz Completed!",
-      description: `You scored ${finalScore}/${questions.length} and earned ${points} points!`,
+      description: `You scored ${finalScore} out of ${questions.length} and earned ${points} points!`,
     });
 
     onComplete(finalScore, points);
@@ -730,6 +730,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const [ratingComment, setRatingComment] = useState("");
   const [finalQuizScore, setFinalQuizScore] = useState<number | null>(null);
   const [moduleCompleted, setModuleCompleted] = useState(false);
+  const [retakeAttempts, setRetakeAttempts] = useState<{ [sectionIndex: number]: boolean }>({});
   const { toast } = useToast();
 
   const { data: rawModule, isLoading } = useQuery<LearningModule>({
@@ -817,6 +818,9 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
 
   const handleQuizComplete = (score: number, points: number, isLastSection: boolean = false) => {
     const sectionIndex = currentSectionIndex;
+    const currentSection = module?.sections[sectionIndex];
+    const totalQuestions = currentSection?.content?.questions?.length || 5;
+    const percentage = Math.round((score / totalQuestions) * 100);
     
     // Mark section as completed
     if (!completedSections.has(sectionIndex)) {
@@ -839,36 +843,56 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
 
     // Store final quiz score if this is the last section
     if (isLastSection) {
-      setFinalQuizScore(score);
+      setFinalQuizScore(percentage);
     }
 
     // Award points only if this is the final assessment and score is 80% or higher
-    if (isLastSection && score >= 80) {
+    if (isLastSection && percentage >= 80) {
       const modulePoints = module?.pointValue || 10;
       setTotalPoints(prev => prev + modulePoints);
       
       awardPointsMutation.mutate({
         points: modulePoints,
-        reason: `Module completion with ${score}% quiz score`
+        reason: `Module completion with ${score} out of ${totalQuestions} quiz score`
       });
       
       toast({
         title: "Module Completed!",
-        description: `Congratulations! You scored ${score}% and earned ${modulePoints} points!`,
+        description: `Congratulations! You scored ${score} out of ${totalQuestions} and earned ${modulePoints} points!`,
       });
-    } else if (isLastSection && score < 80) {
+    } else if (isLastSection && percentage < 80) {
       toast({
         title: "Quiz Complete",
-        description: `You scored ${score}%. You need 80% or higher to earn module points. You can retake the quiz.`,
+        description: `You scored ${score} out of ${totalQuestions}. You need 80% or higher to earn module points.`,
         variant: "destructive"
       });
     } else {
       // Regular quiz section - no points awarded
       toast({
         title: "Quiz Complete",
-        description: `You scored ${score}% on this quiz section.`,
+        description: `You scored ${score} out of ${totalQuestions} on this quiz section.`,
       });
     }
+  };
+
+  const handleRetakeRequest = () => {
+    // Mark this section as having used its retake attempt
+    setRetakeAttempts(prev => ({
+      ...prev,
+      [currentSectionIndex]: true
+    }));
+    
+    // Force re-render of the quiz component by removing completion status
+    setCompletedSections(prev => {
+      const newCompleted = new Set(prev);
+      newCompleted.delete(currentSectionIndex);
+      return newCompleted;
+    });
+    
+    toast({
+      title: "Quiz Reset",
+      description: "You can now retake the quiz. This is your final attempt.",
+    });
   };
 
   const handleModuleComplete = () => {
