@@ -1295,13 +1295,23 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
           
           console.log('Parsed matching content:', matchingContent);
           
-          if (matchingContent && matchingContent.pairs && Array.isArray(matchingContent.pairs)) {
+          // Handle both direct array of pairs and object with pairs property
+          let pairs = null;
+          if (Array.isArray(matchingContent)) {
+            // Content is directly an array of pairs
+            pairs = matchingContent;
+          } else if (matchingContent && matchingContent.pairs && Array.isArray(matchingContent.pairs)) {
+            // Content is an object with pairs property
+            pairs = matchingContent.pairs;
+          }
+          
+          if (pairs && pairs.length > 0) {
             return (
               <MatchingActivityPlayer
                 activity={{
-                  title: matchingContent.title || currentSection.title || "Matching Activity",
-                  instructions: matchingContent.instructions || "Match each item on the left with its corresponding item on the right",
-                  pairs: matchingContent.pairs
+                  title: (matchingContent && matchingContent.title) || currentSection.title || "Matching Activity",
+                  instructions: (matchingContent && matchingContent.instructions) || "Match each item on the left with its corresponding item on the right",
+                  pairs: pairs
                 }}
                 onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
               />
