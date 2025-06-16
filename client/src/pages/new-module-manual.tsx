@@ -168,11 +168,16 @@ export default function NewModuleManual() {
       });
 
       if (content && content.sections) {
-        setSections(content.sections);
+        // Ensure sections have unique IDs for React rendering
+        const sectionsWithIds = content.sections.map((section: any, index: number) => ({
+          ...section,
+          id: section.id || `section-${index}-${Date.now()}`
+        }));
+        setSections(sectionsWithIds);
       }
 
-      // Skip template selection for edit mode
-      setCurrentStep('config');
+      // Skip template selection and config for edit mode - go directly to build
+      setCurrentStep('build');
     }
   }, [existingModule, isEditMode]);
 
@@ -629,7 +634,11 @@ export default function NewModuleManual() {
                         <div key={section.id} className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex-1">
                             <h4 className="font-semibold">{section.title}</h4>
-                            <p className="text-sm text-gray-600 mt-1">{section.content.substring(0, 100)}...</p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {typeof section.content === 'string' 
+                                ? section.content.substring(0, 100) + '...'
+                                : `${section.type} section`}
+                            </p>
                             <div className="flex gap-2 mt-2">
                               <Badge variant="outline">{section.type}</Badge>
                               <Badge variant="outline">{section.duration} min</Badge>
