@@ -64,24 +64,32 @@ function DroppableSlot({ id, children }: { id: string; children: React.ReactNode
 }
 
 export default function MatchingActivityPlayer({ activity, onComplete }: MatchingActivityProps) {
-  const [leftItems, setLeftItems] = useState(activity.pairs.map(p => ({ id: p.id, content: p.left })));
+  // Create proper IDs for pairs since they don't have them from AI generation
+  const pairsWithIds = activity.pairs.map((pair, index) => ({
+    ...pair,
+    id: pair.id || `pair-${index}`,
+    leftId: `left-${index}`,
+    rightId: `right-${index}`
+  }));
+
+  const [leftItems, setLeftItems] = useState(pairsWithIds.map(p => ({ id: p.leftId, content: p.left, pairId: p.id })));
   const [matches, setMatches] = useState<{ [key: string]: string }>({}); // rightId: leftId
   const [showResults, setShowResults] = useState(false);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over) {
-      setMatches(prev => ({ ...prev, [over.id]: active.id }));
+      setMatches(prev => ({ ...prev, [over.id as string]: active.id as string }));
     }
   };
 
   const checkAnswers = () => {
     let correct = 0;
-    activity.pairs.forEach(pair => {
-      if (matches[pair.id] === pair.id) correct++;
+    pairsWithIds.forEach(pair => {
+      if (matches[pair.rightId] === pair.leftId) correct++;
     });
     setShowResults(true);
-    const points = correct === activity.pairs.length ? 12 : 6;
+    const points = correct === pairsWithIds.length ? 12 : 6;
     if (points === 12) {
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     }
@@ -108,11 +116,11 @@ export default function MatchingActivityPlayer({ activity, onComplete }: Matchin
 
             <div className="space-y-3">
               <h4 className="font-medium text-sm text-gray-700">Match With</h4>
-              {activity.pairs.map(pair => {
-                const matchedLeft = leftItems.find(i => i.id === matches[pair.id]);
-                const isCorrect = showResults && pair.id === matches[pair.id];
+              {pairsWithIds.map(pair => {
+                const matchedLeft = leftItems.find(i => i.id === matches[pair.rightId]);
+                const isCorrect = showResults && pair.leftId === matches[pair.rightId];
                 return (
-                  <DroppableSlot key={pair.id} id={pair.id}>
+                  <DroppableSlot key={pair.rightId} id={pair.rightId}>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{pair.right}</span>
                       <span className={`text-xs ${showResults ? (isCorrect ? 'text-green-600' : 'text-red-500') : 'text-muted-foreground'}`}>
@@ -128,7 +136,7 @@ export default function MatchingActivityPlayer({ activity, onComplete }: Matchin
 
         {showResults && (
           <div className="mt-4 text-sm text-gray-700">
-            You got {Object.keys(matches).filter(key => key === matches[key]).length} out of {activity.pairs.length} correct.
+            You got {pairsWithIds.filter(pair => matches[pair.rightId] === pair.leftId).length} out of {pairsWithIds.length} correct.
           </div>
         )}
       </CardContent>
