@@ -110,6 +110,9 @@ export default function NewModuleCreator() {
     enabled: !!user?.id,
   });
 
+  // Type the modules data properly
+  const modules = Array.isArray(userModules) ? userModules : [];
+
 
 
   if (!isAuthenticated) {
@@ -146,7 +149,7 @@ export default function NewModuleCreator() {
       </div>
 
       {/* My Modules Section */}
-      {userModules && Array.isArray(userModules) && userModules.length > 0 && (
+      {modules && modules.length > 0 && (
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
             <FileEdit className="h-6 w-6 text-blue-600" />
@@ -156,7 +159,7 @@ export default function NewModuleCreator() {
             Your recently created modules - click to view or edit
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {userModules.slice(0, 6).map((module: any) => (
+            {modules.slice(0, 6).map((module: any) => (
               <Card key={module.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -210,10 +213,10 @@ export default function NewModuleCreator() {
               </Card>
             ))}
           </div>
-          {userModules.length > 6 && (
+          {modules.length > 6 && (
             <div className="mt-4 text-center">
               <Button variant="outline" onClick={() => setLocation('/modules')}>
-                View All My Modules ({userModules.length})
+                View All My Modules ({modules.length})
               </Button>
             </div>
           )}
