@@ -499,18 +499,58 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
         
         return newCompleted;
       });
-      setTotalPoints(prev => prev + points);
       
-      if (points > 0) {
-        awardPointsMutation.mutate({
-          points,
-          reason: `Module section completion: ${module?.sections[sectionIndex]?.title || 'Section ' + (sectionIndex + 1)}`
-        });
-        toast({
-          title: "Points Earned!",
-          description: `You earned ${points} points for completing this section!`,
-        });
-      }
+      // Don't award points for regular section completion
+      // Points will only be awarded based on final quiz performance
+    }
+  };
+
+  const handleQuizComplete = (score: number, points: number, isLastSection: boolean = false) => {
+    const sectionIndex = currentSectionIndex;
+    
+    // Mark section as completed
+    if (!completedSections.has(sectionIndex)) {
+      setCompletedSections(prev => {
+        const newCompleted = new Set([...prev, sectionIndex]);
+        
+        // Check if all sections are now completed
+        if (module && newCompleted.size === module.sections.length) {
+          // Show rating dialog after a brief delay
+          setTimeout(() => {
+            setShowRatingDialog(true);
+          }, 1000);
+        }
+        
+        return newCompleted;
+      });
+    }
+
+    // Award points only if this is the final assessment and score is 80% or higher
+    if (isLastSection && score >= 80) {
+      const modulePoints = module?.pointValue || 10;
+      setTotalPoints(prev => prev + modulePoints);
+      
+      awardPointsMutation.mutate({
+        points: modulePoints,
+        reason: `Module completion with ${score}% quiz score`
+      });
+      
+      toast({
+        title: "Module Completed!",
+        description: `Congratulations! You scored ${score}% and earned ${modulePoints} points!`,
+      });
+    } else if (isLastSection && score < 80) {
+      toast({
+        title: "Quiz Complete",
+        description: `You scored ${score}%. You need 80% or higher to earn module points. You can retake the quiz.`,
+        variant: "destructive"
+      });
+    } else {
+      // Regular quiz section - no points awarded
+      toast({
+        title: "Quiz Complete",
+        description: `You scored ${score}% on this quiz section.`,
+      });
     }
   };
 console.log(module,'module')
