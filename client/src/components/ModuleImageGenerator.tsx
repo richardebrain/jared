@@ -78,14 +78,24 @@ export default function ModuleImageGenerator({
       const style = IMAGE_STYLES.find(s => s.id === selectedStyle);
       const enhancedPrompt = `${data.prompt}, ${style?.prompt || ''}, educational content, professional quality, suitable for teaching materials, no text or words in image`;
       
-      return apiRequest('/api/ai/generate-image', {
-        data: {
+      const response = await fetch('/api/ai/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           prompt: enhancedPrompt,
           quality: 'hd',
           style: 'natural',
           moduleContext: data.moduleContext
-        }
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: (data) => {
       console.log("Image generation response:", data);
