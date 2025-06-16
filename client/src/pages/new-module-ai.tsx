@@ -1530,6 +1530,112 @@ export default function NewModuleAI() {
           </div>
         </div>
       )}
+
+      {/* Add Section Dialog for Custom Template */}
+      {showAddSectionDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Add New Section</h3>
+            <AddSectionForm
+              onAdd={(type, title, duration) => {
+                addSection(type, title, duration);
+                setShowAddSectionDialog(false);
+              }}
+              onCancel={() => setShowAddSectionDialog(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Add Section Form Component
+function AddSectionForm({ onAdd, onCancel }: {
+  onAdd: (type: string, title: string, duration: number) => void;
+  onCancel: () => void;
+}) {
+  const [sectionType, setSectionType] = useState('text');
+  const [sectionTitle, setSectionTitle] = useState('');
+  const [sectionDuration, setSectionDuration] = useState(3);
+
+  const sectionTypes = [
+    { value: 'text', label: 'Text Content' },
+    { value: 'video', label: 'Video Section' },
+    { value: 'quiz', label: 'Quiz/Assessment' },
+    { value: 'matching', label: 'Matching Activity' },
+    { value: 'scenario', label: 'Scenario Practice' },
+    { value: 'example', label: 'Examples' },
+    { value: 'story', label: 'Story/Case Study' },
+    { value: 'triage', label: 'Triage Activity' },
+    { value: 'mnemonic', label: 'Memory Techniques' },
+    { value: 'simulation', label: 'Simulation' },
+    { value: 'scenario-match', label: 'Scenario Matching' }
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sectionTitle.trim()) {
+      onAdd(sectionType, sectionTitle.trim(), sectionDuration);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-2">Section Type</label>
+        <select
+          value={sectionType}
+          onChange={(e) => setSectionType(e.target.value)}
+          className="w-full p-2 border rounded-lg"
+        >
+          {sectionTypes.map(type => (
+            <option key={type.value} value={type.value}>
+              {type.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-2">Section Title</label>
+        <input
+          type="text"
+          value={sectionTitle}
+          onChange={(e) => setSectionTitle(e.target.value)}
+          placeholder="Enter section title..."
+          className="w-full p-2 border rounded-lg"
+          required
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+        <input
+          type="number"
+          value={sectionDuration}
+          onChange={(e) => setSectionDuration(parseInt(e.target.value) || 3)}
+          min="1"
+          max="60"
+          className="w-full p-2 border rounded-lg"
+        />
+      </div>
+      
+      <div className="flex justify-end gap-2 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Add Section
+        </button>
+      </div>
+    </form>
   );
 }
