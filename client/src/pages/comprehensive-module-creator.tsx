@@ -146,11 +146,34 @@ export default function ComprehensiveModuleCreator() {
   const queryClient = useQueryClient();
   const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
 
-  // Extract URL parameters for AI-generated module data
+  // Edit mode detection and module loading
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editModuleId, setEditModuleId] = useState<number | null>(null);
+
+  // Fetch existing module data for edit mode
+  const { data: existingModule, isLoading: moduleLoading, error: moduleError } = useQuery({
+    queryKey: ['/api/modules', editModuleId],
+    enabled: !!editModuleId && isEditMode
+  });
+
+  // Extract URL parameters for AI-generated module data and edit mode
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const aiGeneratedData = urlParams.get('ai-generated');
+    const editId = urlParams.get('edit');
     
+    // Handle edit mode
+    if (editId) {
+      const moduleId = parseInt(editId, 10);
+      if (!isNaN(moduleId)) {
+        console.log(`[EDIT MODE] Loading module ${moduleId} for editing`);
+        setIsEditMode(true);
+        setEditModuleId(moduleId);
+        return; // Exit early, don't process AI-generated data
+      }
+    }
+    
+    // Handle AI-generated module data
     if (aiGeneratedData) {
       try {
         const moduleData = JSON.parse(decodeURIComponent(aiGeneratedData));
@@ -182,6 +205,43 @@ export default function ComprehensiveModuleCreator() {
       }
     }
   }, [location]);
+
+  // Load existing module data when available
+  useEffect(() => {
+    if (existingModule && isEditMode) {
+      console.log('[EDIT MODE] Loading existing module data:', existingModule);
+      
+      const content = typeof existingModule.content === 'string' 
+        ? JSON.parse(existingModule.content) 
+        : existingModule.content;
+
+      setNewModule(prev => ({
+        ...prev,
+        id: existingModule.id,
+        title: existingModule.title || '',
+        description: existingModule.description || '',
+        category: existingModule.category || 'professional-development',
+        difficulty: existingModule.difficulty || 'intermediate',
+        estimatedTime: existingModule.duration?.toString() || '15',
+        pointValue: existingModule.pointValue || 10,
+        shareWithCommunity: existingModule.isShared || false,
+        sections: content && content.sections ? content.sections.map((section: any, index: number) => ({
+          ...section,
+          id: section.id || `section-${index}-${Date.now()}`
+        })) : []
+      }));
+
+      // Skip intro and go directly to section builder
+      setCreationMethod('manual');
+      setAiWorkflowStep('section-builder');
+      setCurrentSectionIndex(0);
+      
+      toast({
+        title: "Module Loaded for Editing",
+        description: "You can now edit sections, regenerate content, and add new sections",
+      });
+    }
+  }, [existingModule, isEditMode]);
   
   // Universal quiz conversion function - applies to all module creation tools
   const convertContentToQuiz = (content: string, sectionTitle: string) => {
@@ -7469,6 +7529,7 @@ Create a natural conversation between two podcast hosts discussing this specific
         isOpen={showPublishDialog}
         onClose={() => setShowPublishDialog(false)}
         module={{
+          id: isEditMode ? editModuleId : undefined,
           title: newModule.title,
           description: newModule.description,
           category: newModule.category,
@@ -7484,8 +7545,8 @@ Create a natural conversation between two podcast hosts discussing this specific
         }}
         onPublishSuccess={() => {
           toast({
-            title: "Module Published Successfully!",
-            description: "Your module has been saved and distributed.",
+            title: isEditMode ? "Module Updated Successfully!" : "Module Published Successfully!",
+            description: isEditMode ? "Your changes have been saved." : "Your module has been saved and distributed.",
           });
           // Navigate back to dashboard after successful publish
           navigate('/');
