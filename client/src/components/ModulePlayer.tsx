@@ -1185,6 +1185,10 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
         try {
           let questions = [];
           
+          // Debug log to see the actual content structure
+          console.log('Quiz section content:', currentSection.content);
+          console.log('Quiz section content type:', typeof currentSection.content);
+          
           // The content might be already parsed as an array or a JSON string
           if (currentSection.content) {
             if (Array.isArray(currentSection.content)) {
@@ -1200,11 +1204,26 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
               } else if (parsedContent.questions && Array.isArray(parsedContent.questions)) {
                 questions = parsedContent.questions;
               }
-            } else if (typeof currentSection.content === 'object' && currentSection.content.questions) {
-              // Content is an object with a questions property
-              questions = currentSection.content.questions;
+            } else if (typeof currentSection.content === 'object') {
+              // Handle object content structure from AI generation
+              if (currentSection.content.questions && Array.isArray(currentSection.content.questions)) {
+                questions = currentSection.content.questions;
+              } else if (currentSection.content.blocks && Array.isArray(currentSection.content.blocks)) {
+                // Check if blocks contain quiz content
+                const quizBlock = currentSection.content.blocks.find(block => block.type === 'quiz');
+                if (quizBlock && Array.isArray(quizBlock.content)) {
+                  questions = quizBlock.content;
+                } else if (currentSection.content.blocks[0] && Array.isArray(currentSection.content.blocks[0].content)) {
+                  questions = currentSection.content.blocks[0].content;
+                }
+              } else if (Array.isArray(currentSection.content.content)) {
+                // Direct content array
+                questions = currentSection.content.content;
+              }
             }
           }
+          
+          console.log('Parsed questions:', questions);
           
           if (questions.length === 0) {
             return (
@@ -1241,18 +1260,49 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       case 'activity':
       case 'matching':
         try {
-          const matchingData = JSON.parse(currentSection.content || '[]');
-          console.log(matchingData,'matching data')
-          const activity = matchingData || matchingData[0]
-          const content = {
-            title:"test",
-            instructions:'test instructions',
-            pairs:activity
+          console.log('Matching section content:', currentSection.content);
+          console.log('Matching section content type:', typeof currentSection.content);
+          
+          let matchingContent = null;
+          
+          if (currentSection.content) {
+            if (typeof currentSection.content === 'string') {
+              // Parse JSON string
+              const parsedContent = JSON.parse(currentSection.content);
+              if (parsedContent.blocks && parsedContent.blocks[0]) {
+                matchingContent = parsedContent.blocks[0].content;
+              } else if (parsedContent.pairs) {
+                matchingContent = parsedContent;
+              } else if (Array.isArray(parsedContent)) {
+                matchingContent = { pairs: parsedContent };
+              }
+            } else if (typeof currentSection.content === 'object') {
+              // Handle object content structure from AI generation
+              if (currentSection.content.blocks && currentSection.content.blocks[0]) {
+                const matchingBlock = currentSection.content.blocks.find(block => block.type === 'matching');
+                if (matchingBlock && matchingBlock.content) {
+                  matchingContent = matchingBlock.content;
+                } else if (currentSection.content.blocks[0].content) {
+                  matchingContent = currentSection.content.blocks[0].content;
+                }
+              } else if (currentSection.content.pairs) {
+                matchingContent = currentSection.content;
+              } else if (Array.isArray(currentSection.content.content)) {
+                matchingContent = { pairs: currentSection.content.content };
+              }
+            }
           }
-          if (Array.isArray(activity)) {
+          
+          console.log('Parsed matching content:', matchingContent);
+          
+          if (matchingContent && matchingContent.pairs && Array.isArray(matchingContent.pairs)) {
             return (
               <MatchingActivityPlayer
-                activity={content}
+                activity={{
+                  title: matchingContent.title || currentSection.title || "Matching Activity",
+                  instructions: matchingContent.instructions || "Match each item on the left with its corresponding item on the right",
+                  pairs: matchingContent.pairs
+                }}
                 onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
               />
             );
