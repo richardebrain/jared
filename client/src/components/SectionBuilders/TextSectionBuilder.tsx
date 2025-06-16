@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Edit3, Save, BookOpen, FileText, RefreshCw } from 'lucide-react';
+import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus } from 'lucide-react';
+import ModuleImageGenerator from '@/components/ModuleImageGenerator';
 
 interface TextSectionBuilderProps {
   content: any;
@@ -16,20 +17,27 @@ interface TextSectionBuilderProps {
 
 export default function TextSectionBuilder({ content, onContentChange, isEditing, onEditToggle, onRegenerateAI }: TextSectionBuilderProps) {
   const [textContent, setTextContent] = useState('');
+  const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [sectionImages, setSectionImages] = useState<Array<{url: string, description: string}>>([]);
 
   useEffect(() => {
     // Initialize content only once when component mounts or when content changes
     let newContent = '';
+    let images = [];
+    
     if (content?.blocks?.[0]?.content && typeof content.blocks[0].content === 'string') {
       newContent = content.blocks[0].content;
+      images = content.blocks[0].images || [];
     } else if (content?.content && typeof content.content === 'string') {
       newContent = content.content;
+      images = content.images || [];
     } else if (typeof content === 'string' && content !== '') {
       newContent = content;
     }
     
     // Ensure we always set a string
     setTextContent(typeof newContent === 'string' ? newContent : '');
+    setSectionImages(images);
   }, [content]);
 
   const saveChanges = () => {
@@ -39,11 +47,21 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
         type: 'text',
         title: 'Text Section',
         content: contentString,
+        images: sectionImages,
         preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
       }]
     };
     onContentChange(updatedContent);
     onEditToggle();
+  };
+
+  const handleImageGenerated = (imageUrl: string, description: string) => {
+    const newImage = { url: imageUrl, description };
+    setSectionImages(prev => [...prev, newImage]);
+  };
+
+  const removeImage = (index: number) => {
+    setSectionImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const getWordCount = () => {

@@ -45,6 +45,8 @@ import {
   Mic,
   MicOff,
   Volume2,
+  Image,
+  Palette,
 } from "lucide-react";
 import QuizSectionBuilder from "@/components/SectionBuilders/QuizSectionBuilder";
 import MatchingSectionBuilder from "@/components/SectionBuilders/MatchingSectionBuilder";
