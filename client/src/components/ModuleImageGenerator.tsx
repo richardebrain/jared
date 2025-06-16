@@ -88,11 +88,19 @@ export default function ModuleImageGenerator({
       });
     },
     onSuccess: (data) => {
+      console.log("Image generation response:", data);
       if (data.imageUrl) {
         setGeneratedImage(data.imageUrl);
         toast({
           title: "Image Generated!",
           description: "Your educational illustration is ready to use.",
+        });
+      } else {
+        console.log("No imageUrl in response:", data);
+        toast({
+          title: "Image Generated with Issues",
+          description: "Image was created but URL not found in response.",
+          variant: "destructive"
         });
       }
     },
