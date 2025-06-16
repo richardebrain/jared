@@ -2102,7 +2102,7 @@ Continue for all 5 questions...
   });
 
   // Module publishing route
-  app.post("/api/modules/publish", async (req, res) => {
+  app.post("/api/modules/publish", requireAuth, async (req, res) => {
     try {
       const {
         moduleId,
