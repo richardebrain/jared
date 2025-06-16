@@ -1008,6 +1008,17 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
   const renderSectionContent = () => {
     if (!currentSection) return null;
 
+    // Debug: Log the current section structure to see what's actually stored
+    console.log('Current section data:', {
+      title: currentSection.title,
+      type: currentSection.type,
+      imageUrl: currentSection.imageUrl,
+      content: currentSection.content,
+      hasContentBlocks: !!currentSection.content?.blocks,
+      hasImages: !!currentSection.content?.blocks?.[0]?.images,
+      imageCount: currentSection.content?.blocks?.[0]?.images?.length || 0
+    });
+
     switch (currentSection.type) {
       case 'text':
         return (
