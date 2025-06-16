@@ -161,6 +161,10 @@ interface ModuleConfig {
   targetAudience: string;
   difficulty: string;
   pointValue: number;
+  duration: number;
+  eceHoursEligible: boolean;
+  eceCategory: string;
+  isApprovedTrainer: boolean;
 }
 
 interface PublishSettings {
@@ -188,6 +192,10 @@ export default function NewModuleAI() {
     targetAudience: "preschool-teachers",
     difficulty: "intermediate",
     pointValue: 10,
+    duration: 30,
+    eceHoursEligible: false,
+    eceCategory: "",
+    isApprovedTrainer: false,
   });
   const [publishSettings, setPublishSettings] = useState<PublishSettings>({
     type: "library",
@@ -850,6 +858,138 @@ export default function NewModuleAI() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* ECE Training Hours Configuration */}
+              <div className="border-t pt-6 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-sm font-medium">
+                    ECE
+                  </div>
+                  <h3 className="text-lg font-semibold">ECE Training Hours Settings</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="duration">Training Duration (minutes)</Label>
+                    <Select
+                      value={moduleConfig.duration.toString()}
+                      onValueChange={(value) =>
+                        setModuleConfig((prev) => ({
+                          ...prev,
+                          duration: parseInt(value),
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="90">1.5 hours</SelectItem>
+                        <SelectItem value="120">2 hours</SelectItem>
+                        <SelectItem value="180">3 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="approvedTrainer">Trainer Status</Label>
+                    <Select
+                      value={moduleConfig.isApprovedTrainer ? "approved" : "not-approved"}
+                      onValueChange={(value) =>
+                        setModuleConfig((prev) => ({
+                          ...prev,
+                          isApprovedTrainer: value === "approved",
+                          eceHoursEligible: false, // Reset ECE eligibility when trainer status changes
+                          eceCategory: "",
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="not-approved">Standard User</SelectItem>
+                        <SelectItem value="approved">Approved ECE Trainer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {moduleConfig.isApprovedTrainer && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="eceEligible"
+                        checked={moduleConfig.eceHoursEligible}
+                        onChange={(e) =>
+                          setModuleConfig((prev) => ({
+                            ...prev,
+                            eceHoursEligible: e.target.checked,
+                            eceCategory: e.target.checked ? prev.eceCategory : "",
+                          }))
+                        }
+                        className="rounded"
+                      />
+                      <label htmlFor="eceEligible" className="font-medium text-purple-900">
+                        This module qualifies for ECE continuing education hours
+                      </label>
+                    </div>
+
+                    {moduleConfig.eceHoursEligible && (
+                      <div>
+                        <Label htmlFor="eceCategory">ECE Topic Category</Label>
+                        <Select
+                          value={moduleConfig.eceCategory}
+                          onValueChange={(value) =>
+                            setModuleConfig((prev) => ({
+                              ...prev,
+                              eceCategory: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select ECE category..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="social-emotional">Social-Emotional Learning</SelectItem>
+                            <SelectItem value="cognitive-development">Cognitive Development</SelectItem>
+                            <SelectItem value="physical-development">Physical Development & Health</SelectItem>
+                            <SelectItem value="language-literacy">Language & Literacy</SelectItem>
+                            <SelectItem value="creative-arts">Creative Arts</SelectItem>
+                            <SelectItem value="classroom-management">Classroom Management</SelectItem>
+                            <SelectItem value="family-engagement">Family & Community Engagement</SelectItem>
+                            <SelectItem value="assessment-observation">Assessment & Observation</SelectItem>
+                            <SelectItem value="diversity-inclusion">Diversity & Inclusion</SelectItem>
+                            <SelectItem value="special-needs">Special Needs & Inclusive Practices</SelectItem>
+                            <SelectItem value="safety-wellness">Safety & Wellness</SelectItem>
+                            <SelectItem value="professional-development">Professional Development</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {moduleConfig.eceCategory && (
+                          <div className="mt-2 text-sm text-purple-700 bg-purple-100 p-2 rounded">
+                            ✓ This {moduleConfig.duration}-minute module will fulfill {moduleConfig.duration} minutes of {moduleConfig.eceCategory.replace('-', ' ')} ECE hours
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!moduleConfig.isApprovedTrainer && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="text-sm text-gray-600">
+                      <div className="font-medium mb-1">Note:</div>
+                      Only approved ECE trainers can create modules that count toward continuing education hours. 
+                      Standard users can create training modules for internal professional development.
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between pt-4">
