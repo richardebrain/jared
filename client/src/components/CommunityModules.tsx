@@ -240,7 +240,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                     </div>
                     <div className="flex items-center bg-amber-50 px-2 py-0.5 rounded-full text-amber-700">
                       <Star className="h-4 w-4 fill-amber-500 text-amber-500 mr-1" />
-                      <span className="text-sm font-medium">{module.average_rating || 0}</span>
+                      <span className="text-sm font-medium">{(module.average_rating || 0).toFixed(1)}</span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 line-clamp-1 mt-1.5">{module.description}</p>
@@ -298,7 +298,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                             </h3>
                             <div className="flex items-center bg-white px-2 py-0.5 rounded-full text-amber-700 border border-amber-100">
                               <Star className="h-4 w-4 fill-amber-500 text-amber-500 mr-1" />
-                              <span className="text-sm font-medium">{module.average_rating || 0}</span>
+                              <span className="text-sm font-medium">{(module.average_rating || 0).toFixed(1)}</span>
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">{module.description}</p>
