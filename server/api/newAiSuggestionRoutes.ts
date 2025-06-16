@@ -137,8 +137,13 @@ Format with proper headings and structure. Make it engaging and practical.`;
   };
 }
 
-async function generateQuizSection(basePrompt: string, topic: string, sectionTitle: string) {
-  const prompt = `${basePrompt}Generate 3-5 multiple choice quiz questions that test understanding of key concepts. Each question should have:
+async function generateQuizSection(topic: string, sectionTitle: string, customGuidance?: string) {
+  const prompt = `Create quiz questions for early childhood educators on "${topic}".
+
+Section: ${sectionTitle}
+${customGuidance ? `Special instructions: ${customGuidance}` : ''}
+
+Generate 3-5 multiple choice quiz questions that test understanding of key concepts. Each question should have:
 - A clear, practical question relevant to early childhood education
 - 4 answer options (A, B, C, D)
 - One correct answer
@@ -165,11 +170,11 @@ Format as JSON with this structure:
       temperature: 0.7,
     }),
     new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 25000)
+      setTimeout(() => reject(new Error('Request timeout')), 20000)
     )
   ]);
 
-  const content = JSON.parse(response.choices[0].message.content);
+  const content = JSON.parse((response as any).choices[0].message.content);
   
   return {
     blocks: [{
@@ -181,8 +186,13 @@ Format as JSON with this structure:
   };
 }
 
-async function generateMatchingSection(basePrompt: string, topic: string, sectionTitle: string) {
-  const prompt = `${basePrompt}Generate a matching exercise with 5-7 pairs of items that teachers need to match. Create practical, educational pairs related to early childhood development. 
+async function generateMatchingSection(topic: string, sectionTitle: string, customGuidance?: string) {
+  const prompt = `Create matching exercise for early childhood educators on "${topic}".
+
+Section: ${sectionTitle}
+${customGuidance ? `Special instructions: ${customGuidance}` : ''}
+
+Generate a matching exercise with 5-7 pairs of items that teachers need to match. Create practical, educational pairs related to early childhood development. 
 
 Format as JSON:
 {
@@ -192,15 +202,20 @@ Format as JSON:
   ]
 }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
-    max_tokens: 1000,
-    temperature: 0.7,
-  });
+  const response = await Promise.race([
+    openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_tokens: 1000,
+      temperature: 0.7,
+    }),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 20000)
+    )
+  ]);
 
-  const content = JSON.parse(response.choices[0].message.content);
+  const content = JSON.parse((response as any).choices[0].message.content);
   
   return {
     blocks: [{
@@ -212,8 +227,13 @@ Format as JSON:
   };
 }
 
-async function generateScenarioSection(basePrompt: string, topic: string, sectionTitle: string) {
-  const prompt = `${basePrompt}Generate 2-3 realistic classroom scenarios that teachers might encounter, along with appropriate responses and strategies. Make them practical and specific to early childhood education.
+async function generateScenarioSection(topic: string, sectionTitle: string, customGuidance?: string) {
+  const prompt = `Create classroom scenarios for early childhood educators on "${topic}".
+
+Section: ${sectionTitle}
+${customGuidance ? `Special instructions: ${customGuidance}` : ''}
+
+Generate 2-3 realistic classroom scenarios that teachers might encounter, along with appropriate responses and strategies. Make them practical and specific to early childhood education.
 
 Format as JSON:
 {
@@ -226,15 +246,20 @@ Format as JSON:
   ]
 }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
-    max_tokens: 1500,
-    temperature: 0.7,
-  });
+  const response = await Promise.race([
+    openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_tokens: 1500,
+      temperature: 0.7,
+    }),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 20000)
+    )
+  ]);
 
-  const content = JSON.parse(response.choices[0].message.content);
+  const content = JSON.parse((response as any).choices[0].message.content);
   
   return {
     blocks: [{

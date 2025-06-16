@@ -431,9 +431,22 @@ export default function NewModuleAI() {
           updated[sectionIndex] = generatedContent;
           return updated;
         });
+        
+        toast({
+          title: "Content Generated!",
+          description: `${section.title} content has been generated successfully.`,
+        });
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to generate content (${response.status})`);
       }
     } catch (error) {
       console.error("Error generating section content:", error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate content. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setGeneratingSection(null);
     }
