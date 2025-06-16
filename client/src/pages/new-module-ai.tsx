@@ -42,6 +42,9 @@ import {
   RefreshCw,
   Clock,
   Search,
+  Mic,
+  MicOff,
+  Volume2,
 } from "lucide-react";
 import QuizSectionBuilder from "@/components/SectionBuilders/QuizSectionBuilder";
 import MatchingSectionBuilder from "@/components/SectionBuilders/MatchingSectionBuilder";
@@ -216,6 +219,8 @@ export default function NewModuleAI() {
     }
   };
 
+  console.log(sectionContents,'section contents to make quiz generate questioms')
+
   const generateSectionContent = async (sectionIndex: number) => {
     if (!selectedTemplate || generatingSection === sectionIndex) return;
 
@@ -233,6 +238,7 @@ export default function NewModuleAI() {
           targetAudience: moduleConfig.targetAudience,
           difficulty: moduleConfig.difficulty,
           templateContext: selectedTemplate.title,
+          dependsOn: sectionContents
         }),
       });
 

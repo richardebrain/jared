@@ -10,6 +10,7 @@ import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import MatchingActivityPlayer from '@/components/modulePlayer/MatchingPlayer'
 
 import {
   Card,
@@ -608,26 +609,54 @@ console.log(module,'module')
       case 'activity':
       case 'matching':
         try {
-          const activities = JSON.parse(currentSection.content || '[]');
-          if (activities.length > 0) {
-            const activity = activities[0];
+          const matchingData = JSON.parse(currentSection.content || '[]');
+          console.log(matchingData,'matching data')
+          const activity = matchingData || matchingData[0]
+          const content = {
+            title:"test",
+            instructions:'test instructions',
+            pairs:activity
+          }
+          if (Array.isArray(activity)) {
             return (
-              <DragDropActivity
-                activity={activity}
+              <MatchingActivityPlayer
+                activity={content}
                 onComplete={(points) => handleSectionComplete(currentSectionIndex, points)}
               />
             );
           }
         } catch (error) {
-          console.error('Error parsing activity content:', error);
+          console.error('Error parsing matching activity:', error);
         }
         return (
           <Card>
             <CardContent>
-              <p className="text-gray-500">No interactive content available</p>
+              <p className="text-gray-500">No valid matching activity found.</p>
             </CardContent>
           </Card>
         );
+
+        // try {
+        //   const activities = JSON.parse(currentSection.content || '[]');
+        //   if (activities.length > 0) {
+        //     const activity = activities[0];
+        //     return (
+        //       <DragDropActivity
+        //         activity={activity}
+        //         onComplete={(points) => handleSectionComplete(currentSectionIndex, points)}
+        //       />
+        //     );
+        //   }
+        // } catch (error) {
+        //   console.error('Error parsing activity content:', error);
+        // }
+        // return (
+        //   <Card>
+        //     <CardContent>
+        //       <p className="text-gray-500">No interactive content available</p>
+        //     </CardContent>
+        //   </Card>
+        // );
 
       default:
         return (

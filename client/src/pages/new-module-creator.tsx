@@ -27,7 +27,7 @@ const creationMethods = [
     icon: Brain,
     color: 'bg-blue-50 border-blue-200',
     features: ['Instant content generation', 'Professional templates', 'Smart recommendations', 'Auto-formatted lessons'],
-    route: '/new-module/ai'
+    route: '/module-creator/ai'
   },
   {
     id: 'manual',
@@ -36,7 +36,7 @@ const creationMethods = [
     icon: FileEdit,
     color: 'bg-green-50 border-green-200',
     features: ['Complete customization', 'Drag & drop interface', 'Rich content tools', 'Preview mode'],
-    route: '/new-module/manual'
+    route: '/module-creator/manual'
   },
   {
     id: 'import',
@@ -45,7 +45,7 @@ const creationMethods = [
     icon: Upload,
     color: 'bg-purple-50 border-purple-200',
     features: ['Easy file upload', 'Auto-conversion', 'Preserve formatting', 'Add interactions'],
-    route: '/new-module/import'
+    route: '/module-creator/import'
   }
 ];
 

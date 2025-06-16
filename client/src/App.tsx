@@ -185,9 +185,7 @@ function Router(props: {
       </Route>
 
       {/* Temporary public route for testing state synchronization fix */}
-      <Route path="/new-module-ai">
-        <NewModuleAI />
-      </Route>
+      
 
       {/* Root path shows landing page for public users or dashboard for authenticated users */}
       <Route path="/">
@@ -710,7 +708,7 @@ function Router(props: {
       <Route path="/admin/teachers/:teacherId/assessment-results">
         <ProtectedRoute adminOnly={true}>
           <AdminTeacherAssessmentResultsPage />
-        </ProtectedRoute>
+        </ProtectedRoute>m
       </Route>
 
       <Route path="/admin/assign-modules">
@@ -755,7 +753,19 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
-      <Route path="/module-creator">
+      {/* <Route path="/module-creator">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+        <NewModuleAI />
+        )}
+      </Route> */}
+
+      {/* <Route path="/comprehensive-module-creator">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
         ) : isLoading ? (
@@ -765,21 +775,9 @@ function Router(props: {
         ) : (
           <ComprehensiveModuleCreator />
         )}
-      </Route>
+      </Route> */}
 
-      <Route path="/comprehensive-module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ComprehensiveModuleCreator />
-        )}
-      </Route>
-
-      <Route path="/new-comprehensive-module-creator">
+      {/* <Route path="/new-comprehensive-module-creator">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
         ) : isLoading ? (
@@ -789,9 +787,9 @@ function Router(props: {
         ) : (
           <NewComprehensiveModuleCreator />
         )}
-      </Route>
+      </Route> */}
 
-      <Route path="/new-module">
+      <Route path="/module-creator">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
         ) : isLoading ? (
@@ -803,11 +801,22 @@ function Router(props: {
         )}
       </Route>
 
-      <Route path="/new-module/ai">
+      {/* <Route path="/new-module/ai">
         <NewModuleAI />
+      </Route> */}
+      <Route path="/module-creator/ai">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+      <NewModuleAI />
+        )}
       </Route>
 
-      <Route path="/new-module/manual">
+      <Route path="/module-creator/manual">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
         ) : isLoading ? (
@@ -819,7 +828,7 @@ function Router(props: {
         )}
       </Route>
 
-      <Route path="/new-module/import">
+      <Route path="/module-creator/import">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
         ) : isLoading ? (

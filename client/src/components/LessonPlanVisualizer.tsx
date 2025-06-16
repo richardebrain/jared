@@ -141,6 +141,12 @@ export default function LessonPlanVisualizer({
     }
 
     setGenerating(true);
+    
+    // Show initial loading toast with time expectation
+    toast({
+      title: "Generating Visual",
+      description: "Creating your high-quality lesson plan visual. This may take 30-60 seconds for best results.",
+    });
 
     try {
       // Extract schedule and timing information for bulletin board displays
@@ -183,8 +189,8 @@ export default function LessonPlanVisualizer({
         onImageGenerated?.(imageUrl);
         
         toast({
-          title: "Visual Generated!",
-          description: "Your lesson plan visual has been created successfully.",
+          title: "HD Visual Generated Successfully!",
+          description: "Your high-quality lesson plan visual is ready for classroom use.",
         });
       } else {
         throw new Error("No image URL returned");
@@ -335,15 +341,47 @@ export default function LessonPlanVisualizer({
           {generating ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Generating Visual...
+              Generating HD Visual...
             </>
           ) : (
             <>
               <Image className="h-4 w-4 mr-2" />
-              Generate Visual ({MAX_IMAGES_PER_DAY - imageCount} remaining today)
+              Generate HD Visual ({MAX_IMAGES_PER_DAY - imageCount} remaining today)
             </>
           )}
         </Button>
+
+        {/* Loading State with Progress Information */}
+        {generating && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+            <div className="flex items-center justify-center mb-4">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-600 mr-3" />
+              <div className="text-center">
+                <h3 className="font-semibold text-purple-800">Creating Your High-Quality Visual</h3>
+                <p className="text-sm text-purple-600 mt-1">This process takes 30-60 seconds for best results</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-purple-700">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 animate-pulse"></div>
+                Enhancing your prompt with professional educational styling
+              </div>
+              <div className="flex items-center text-sm text-purple-700">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 animate-pulse"></div>
+                Generating HD quality image with DALL-E 3
+              </div>
+              <div className="flex items-center text-sm text-purple-700">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 animate-pulse"></div>
+                Optimizing for classroom and bulletin board display
+              </div>
+            </div>
+            
+            <div className="mt-4 text-xs text-center text-purple-600">
+              Please keep this page open while we create your visual...
+            </div>
+          </div>
+        )}
 
         {/* Generated Image Display */}
         {imageURL && (
