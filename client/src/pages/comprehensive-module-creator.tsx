@@ -219,17 +219,25 @@ export default function ComprehensiveModuleCreator() {
           const content = typeof existingModule.content === 'string' 
             ? JSON.parse(existingModule.content) 
             : existingModule.content;
-          sectionsData = Array.isArray(content) ? content : [];
+          
+          // Check if content has a sections property
+          if (content && content.sections && Array.isArray(content.sections)) {
+            sectionsData = content.sections;
+          } else if (Array.isArray(content)) {
+            sectionsData = content;
+          }
         } catch (error) {
           console.error('[EDIT MODE] Error parsing content:', error);
           sectionsData = [];
         }
       }
       
-      // Check if module has sections field as well
+      // Check if module has direct sections field as well
       if (existingModule.sections && Array.isArray(existingModule.sections)) {
         sectionsData = existingModule.sections;
       }
+      
+      console.log('[EDIT MODE] Parsed sections data:', sectionsData);
 
       setNewModule(prev => ({
         ...prev,
