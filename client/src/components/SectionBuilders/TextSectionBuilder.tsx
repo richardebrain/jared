@@ -58,7 +58,21 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
 
   const handleImageGenerated = (imageUrl: string, description: string) => {
     const newImage = { url: imageUrl, description };
-    setSectionImages(prev => [...prev, newImage]);
+    const updatedImages = [...sectionImages, newImage];
+    setSectionImages(updatedImages);
+    
+    // Auto-save the content with new image
+    const contentString = typeof textContent === 'string' ? textContent : '';
+    const updatedContent = {
+      blocks: [{
+        type: 'text',
+        title: 'Text Section',
+        content: contentString,
+        images: updatedImages,
+        preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
+      }]
+    };
+    onContentChange(updatedContent);
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +99,21 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
         url: imageUrl, 
         description: file.name.replace(/\.[^/.]+$/, '') // Remove file extension for description
       };
-      setSectionImages(prev => [...prev, newImage]);
+      const updatedImages = [...sectionImages, newImage];
+      setSectionImages(updatedImages);
+      
+      // Auto-save the content with new image
+      const contentString = typeof textContent === 'string' ? textContent : '';
+      const updatedContent = {
+        blocks: [{
+          type: 'text',
+          title: 'Text Section',
+          content: contentString,
+          images: updatedImages,
+          preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
+        }]
+      };
+      onContentChange(updatedContent);
     };
     reader.readAsDataURL(file);
 
@@ -94,7 +122,21 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   };
 
   const removeImage = (index: number) => {
-    setSectionImages(prev => prev.filter((_, i) => i !== index));
+    const updatedImages = sectionImages.filter((_, i) => i !== index);
+    setSectionImages(updatedImages);
+    
+    // Auto-save the content with image removed
+    const contentString = typeof textContent === 'string' ? textContent : '';
+    const updatedContent = {
+      blocks: [{
+        type: 'text',
+        title: 'Text Section',
+        content: contentString,
+        images: updatedImages,
+        preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
+      }]
+    };
+    onContentChange(updatedContent);
   };
 
   const getWordCount = () => {
