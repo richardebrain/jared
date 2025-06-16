@@ -1365,7 +1365,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-blue-600 mt-2">
                   <Clock className="h-4 w-4" />
-                  <span className="font-medium">{module.estimatedTime || '30 min'}</span>
+                  <span className="font-medium">{module.duration || '30'} min</span>
                 </div>
               </div>
             </div>
@@ -1580,7 +1580,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
               onClick={() => {
                 setShowCompletionModal(false);
                 // Show rating dialog after completion modal
-                if (module?.shareWithCommunity) {
+                if (module?.isSharedToCommunity) {
                   setShowRatingDialog(true);
                 }
               }}
