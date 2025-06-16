@@ -347,23 +347,11 @@ export default function Header() {
                   Messages from Leadership
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {Array.isArray(unreadMessages) && unreadMessages.length > 0 ? (
-                  unreadMessages.slice(0, 5).map((message: any, index: number) => (
+                {Array.isArray(unreadMessages) && unreadMessages.filter((msg: any) => !msg.isRead).length > 0 ? (
+                  unreadMessages.filter((msg: any) => !msg.isRead).slice(0, 5).map((message: any, index: number) => (
                     <DropdownMenuItem 
-                      key={`message-${index}`} 
-                      className="flex-col items-start p-3 cursor-pointer hover:bg-gray-50 min-h-[80px] max-w-[320px]"
-                      onClick={async () => {
-                        // Mark message as read
-                        try {
-                          await apiRequest(`/api/director-messages/${message.id}/mark-read`, {
-                            method: "POST"
-                          });
-                          // Refresh messages
-                          queryClient.invalidateQueries({ queryKey: ["/api/director-messages"] });
-                        } catch (error) {
-                          console.error("Error marking message as read:", error);
-                        }
-                      }}
+                      key={`message-${message.id}`} 
+                      className="flex-col items-start p-3 min-h-[80px] max-w-[320px]"
                     >
                       <div className="flex items-start justify-between w-full mb-2">
                         <div className="font-medium text-sm flex-1 pr-2 leading-tight">
