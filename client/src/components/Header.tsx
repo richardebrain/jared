@@ -153,17 +153,26 @@ export default function Header() {
   // Message dismissal mutation
   const dismissMessageMutation = useMutation({
     mutationFn: async (messageId: number) => {
-      const response = await apiRequest(`/api/messages/${messageId}/read`, {
+      const response = await apiRequest(`/api/director-messages/${messageId}/mark-read`, {
         method: "POST",
       });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/messages/unread"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/director-messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast({
+        title: "Message dismissed",
+        description: "The message has been marked as read.",
+      });
     },
     onError: (error) => {
       console.error("Error dismissing message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to dismiss message. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
