@@ -1983,6 +1983,41 @@ export default function ComprehensiveModuleCreator() {
     }
   };
 
+  // Delete a section from the module
+  const deleteSection = (sectionIndex: number) => {
+    if (newModule.sections.length <= 1) {
+      toast({
+        title: "Cannot Delete",
+        description: "A module must have at least one section.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setNewModule(prev => ({
+      ...prev,
+      sections: prev.sections.filter((_, index) => index !== sectionIndex)
+    }));
+
+    // Adjust current section index if needed
+    if (currentSectionIndex >= sectionIndex && currentSectionIndex > 0) {
+      setCurrentSectionIndex(prev => prev - 1);
+    } else if (currentSectionIndex >= newModule.sections.length - 1) {
+      setCurrentSectionIndex(0);
+    }
+
+    // Remove from completed sections if it was completed
+    setCompletedSections(prev => 
+      prev.filter(index => index !== sectionIndex)
+        .map(index => index > sectionIndex ? index - 1 : index)
+    );
+
+    toast({
+      title: "Section Deleted",
+      description: "The section has been removed from your module.",
+    });
+  };
+
   // Generate AI matching exercises
   const generateMatchingContent = async (sectionIndex: number) => {
     if (!newModule.title || !newModule.description) {
@@ -4013,6 +4048,19 @@ Create a natural conversation between two podcast hosts discussing this specific
                           <div className="font-medium text-sm">{section.title}</div>
                           <div className="text-xs text-gray-500">{section.type}</div>
                         </div>
+                        {newModule.sections.length > 1 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSection(index);
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
