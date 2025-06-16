@@ -800,8 +800,12 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       setShowRatingDialog(false);
       setRating(0);
       setRatingComment("");
+      
+      // Invalidate all module-related queries to refresh ratings
       queryClient.invalidateQueries({ queryKey: ['/api/community-modules'] });
       queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/progress'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/profile'] });
       
       // Redirect to dashboard after rating submission
       setTimeout(() => {
@@ -858,7 +862,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
     const totalQuestions = currentSection?.content?.questions?.length || 5;
     const percentage = Math.round((score / totalQuestions) * 100);
     
-    // Mark section as completed
+    // Mark section as completed regardless of pass/fail
     if (!completedSections.has(sectionIndex)) {
       setCompletedSections(prev => {
         const newCompleted = new Set([...prev, sectionIndex]);
@@ -867,7 +871,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
         if (module && newCompleted.size === module.sections.length) {
           // Mark module as fully completed
           setModuleCompleted(true);
-          // Show rating dialog after a brief delay
+          // Show rating dialog after a brief delay for ALL completions
           setTimeout(() => {
             setShowRatingDialog(true);
           }, 1000);
@@ -918,22 +922,28 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       const hasUsedRetake = retakeAttempts[sectionIndex];
       
       if (hasUsedRetake) {
-        // Failed second attempt - redirect to dashboard
+        // Failed second attempt - still show rating dialog since module is complete
         toast({
           title: "Module Complete",
-          description: `You scored ${score} out of ${totalQuestions}. Unfortunately, you did not pass after your retake attempt. Returning to dashboard.`,
+          description: `You scored ${score} out of ${totalQuestions}. You did not pass the final assessment, but you can still rate the module.`,
           variant: "destructive"
         });
         
-        // Redirect to dashboard after a brief delay
-        setTimeout(() => {
-          setLocation('/');
-        }, 3000);
+        // Don't redirect yet - let them rate the module first
+        // Rating dialog will handle the redirect
       } else {
+        // First failed attempt - allow retake but don't mark as complete yet
         toast({
           title: "Quiz Complete",
-          description: `You scored ${score} out of ${totalQuestions}. You need 80% or higher to earn module points.`,
+          description: `You scored ${score} out of ${totalQuestions}. You need 80% or higher to pass. The quiz section remains available for retake.`,
           variant: "destructive"
+        });
+        
+        // Remove section from completed to allow retake
+        setCompletedSections(prev => {
+          const newCompleted = new Set(prev);
+          newCompleted.delete(sectionIndex);
+          return newCompleted;
         });
       }
     } else {

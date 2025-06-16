@@ -245,6 +245,8 @@ export const userProgress = pgTable("user_progress", {
   moduleId: integer("module_id").notNull().references(() => learningModules.id),
   progress: integer("progress").notNull().default(0), // percentage complete
   completed: boolean("completed").default(false),
+  passed: boolean("passed").default(false), // true only if passed the final assessment
+  finalScore: integer("final_score"), // percentage score on final assessment
   recommended: boolean("recommended").default(false), // added for personalized recommendations
   pointsEarned: integer("points_earned").default(0), // points earned from this module
   lastAccessed: timestamp("last_accessed").defaultNow(),
