@@ -84,7 +84,7 @@ const PROVEN_TEMPLATES = [
     color: "border-blue-200 bg-blue-50",
     sections: [
       { title: "Welcome & Objectives", type: "text", duration: 3 },
-      { type: "video", title: "Video or Case Story", duration: 3 },
+      { type: "video", title: "Video or Case Story", duration: 6 },
       { title: "Foundation Knowledge", type: "text", duration: 8 },
       { title: "Real-World Examples", type: "example", duration: 6 },
       { title: "Interactive Practice", type: "matching", duration: 5 },
@@ -102,7 +102,7 @@ const PROVEN_TEMPLATES = [
       { title: "Course Introduction", type: "text", duration: 5 },
       { title: "Theoretical Foundation", type: "text", duration: 12 },
       { title: "Case Study Analysis", type: "story", duration: 10 },
-      { type: "video", title: "Foundational Video", duration: 3 },
+      { type: "video", title: "Foundational Video", duration: 6 },
       { title: "Scenario Practice", type: "scenario", duration: 8 },
       { title: "Memory Techniques", type: "mnemonic", duration: 7 },
       { title: "Simulation Exercise", type: "simulation", duration: 5 },
@@ -137,6 +137,17 @@ const PROVEN_TEMPLATES = [
       { title: "Alternative Approaches", type: "scenario-match", duration: 8 },
       { title: "Best Practice Examples", type: "example", duration: 5 },
       { title: "Scenario Assessment", type: "quiz", duration: 3 },
+    ],
+  },
+  {
+    id: "custom",
+    title: "Custom Template",
+    description: "Build your own module with custom sections in any order",
+    duration: "Variable",
+    icon: Palette,
+    color: "border-indigo-200 bg-indigo-50",
+    sections: [
+      { title: "Welcome Section", type: "text", duration: 3 },
     ],
   },
 ];
@@ -205,6 +216,8 @@ export default function NewModuleAI() {
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   const [regenerateGuidance, setRegenerateGuidance] = useState("");
   const [sectionToRegenerate, setSectionToRegenerate] = useState<number | null>(null);
+  const [customSections, setCustomSections] = useState<any[]>([]);
+  const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
   console.log(sectionContents, "section contents");
 
   const handleTemplateSelect = (templateId: string) => {
@@ -215,10 +228,76 @@ export default function NewModuleAI() {
         ...prev,
         title: `${template.title} - ${prev.topic || "New Topic"}`,
       }));
+      
+      // For custom template, initialize custom sections management
+      if (templateId === "custom") {
+        setCustomSections([...template.sections]);
+      }
+      
       // Initialize each section with null to properly track completion status
       setSectionContents(template.sections.map(() => null));
       setEditingSections({});
       setCurrentStep("topic");
+    }
+  };
+
+  // Section management functions for custom template
+  const addSection = (type: string, title: string, duration: number) => {
+    if (selectedTemplate?.id === "custom") {
+      const newSection = { title, type, duration };
+      const updatedSections = [...customSections, newSection];
+      setCustomSections(updatedSections);
+      
+      // Update selected template with new sections
+      setSelectedTemplate({
+        ...selectedTemplate,
+        sections: updatedSections
+      });
+      
+      // Add empty content for new section
+      setSectionContents([...sectionContents, null]);
+    }
+  };
+
+  const deleteCustomSection = (index: number) => {
+    if (selectedTemplate?.id === "custom" && customSections.length > 1) {
+      const updatedSections = customSections.filter((_, i) => i !== index);
+      setCustomSections(updatedSections);
+      
+      // Update selected template
+      setSelectedTemplate({
+        ...selectedTemplate,
+        sections: updatedSections
+      });
+      
+      // Remove content for deleted section
+      const updatedContents = sectionContents.filter((_, i) => i !== index);
+      setSectionContents(updatedContents);
+      
+      // Adjust current section index if needed
+      if (currentSectionIndex >= updatedSections.length) {
+        setCurrentSectionIndex(Math.max(0, updatedSections.length - 1));
+      }
+    }
+  };
+
+  const moveSection = (fromIndex: number, toIndex: number) => {
+    if (selectedTemplate?.id === "custom") {
+      const updatedSections = [...customSections];
+      const [movedSection] = updatedSections.splice(fromIndex, 1);
+      updatedSections.splice(toIndex, 0, movedSection);
+      
+      setCustomSections(updatedSections);
+      setSelectedTemplate({
+        ...selectedTemplate,
+        sections: updatedSections
+      });
+      
+      // Reorder content accordingly
+      const updatedContents = [...sectionContents];
+      const [movedContent] = updatedContents.splice(fromIndex, 1);
+      updatedContents.splice(toIndex, 0, movedContent);
+      setSectionContents(updatedContents);
     }
   };
 
