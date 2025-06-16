@@ -363,7 +363,7 @@ export default function Dashboard() {
       : null;
     
     const progressValue = progress ? progress.progress : 0;
-    const isComplete = progress && progress.completed;
+    const isComplete = progress && progress.completed && progress.passed;
     
     return (
       <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
@@ -416,7 +416,7 @@ export default function Dashboard() {
       : null;
     
     const progressValue = progress ? progress.progress : 0;
-    const isComplete = progress && progress.completed;
+    const isComplete = progress && progress.completed && progress.passed;
     
     return (
       <Card className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
@@ -902,7 +902,7 @@ export default function Dashboard() {
                         <span className="text-sm">Modules Completed</span>
                       </div>
                       <Badge variant="secondary">
-                        {Array.isArray(userProgress) ? userProgress.filter((p) => p.completed).length : 0}
+                        {Array.isArray(userProgress) ? userProgress.filter((p) => p.completed && p.passed).length : 0}
                       </Badge>
                     </div>
                     
