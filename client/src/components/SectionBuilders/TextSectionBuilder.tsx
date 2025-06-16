@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus, X } from 'lucide-react';
+import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus, X, Upload } from 'lucide-react';
 import ModuleImageGenerator from '@/components/ModuleImageGenerator';
 import VoiceInputTextarea from '@/components/VoiceInputTextarea';
 
@@ -173,14 +173,31 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-3">
               <Label>Educational Illustrations</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowImageGenerator(true)}
-              >
-                <Image className="h-4 w-4 mr-2" />
-                Generate Image
-              </Button>
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  id="image-upload"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Image
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowImageGenerator(true)}
+                >
+                  <Image className="h-4 w-4 mr-2" />
+                  Generate Image
+                </Button>
+              </div>
             </div>
             
             {sectionImages.length > 0 && (
