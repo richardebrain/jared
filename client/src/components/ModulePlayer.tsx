@@ -427,9 +427,8 @@ function ScenarioMatchComponent({ scenario, onComplete }: ScenarioMatchProps) {
   };
 
   const handleComplete = () => {
-    const points = selectedOption === scenario.correctAnswer ? 15 : 5;
     setIsCompleted(true);
-    onComplete(points);
+    onComplete(0); // No points for scenario-match, only completion tracking
   };
 
   const isCorrect = selectedOption === scenario.correctAnswer;
@@ -854,7 +853,7 @@ console.log(module,'module')
             return (
               <MatchingActivityPlayer
                 activity={content}
-                onComplete={(points) => handleSectionComplete(currentSectionIndex, points)}
+                onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
               />
             );
           }
@@ -893,7 +892,32 @@ console.log(module,'module')
 
       case 'scenario-match':
         try {
-          const scenarioData = JSON.parse(currentSection.content || '{}');
+          console.log('Scenario match content:', currentSection.content);
+          let scenarioData;
+          
+          // Handle different content formats
+          if (typeof currentSection.content === 'string') {
+            try {
+              scenarioData = JSON.parse(currentSection.content);
+            } catch {
+              // If JSON parsing fails, treat as plain text and create a basic structure
+              scenarioData = {
+                title: currentSection.title || "Scenario Challenge",
+                scenario: currentSection.content,
+                options: ["Option A", "Option B", "Option C"],
+                correctAnswer: "Option A",
+                correctFeedback: "Great choice!",
+                incorrectFeedback: "Consider a different approach."
+              };
+            }
+          } else if (typeof currentSection.content === 'object') {
+            scenarioData = currentSection.content;
+          } else {
+            throw new Error('Invalid content format');
+          }
+          
+          console.log('Parsed scenario data:', scenarioData);
+          
           return (
             <ScenarioMatchComponent
               scenario={scenarioData}
@@ -902,10 +926,21 @@ console.log(module,'module')
           );
         } catch (error) {
           console.error('Error parsing scenario match content:', error);
+          console.log('Raw content:', currentSection.content);
           return (
             <Card>
               <CardContent>
                 <p className="text-red-500">Error loading scenario content</p>
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-sm text-gray-600">Debug Info</summary>
+                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
+                    {JSON.stringify({ 
+                      content: currentSection.content, 
+                      type: typeof currentSection.content,
+                      error: error.message 
+                    }, null, 2)}
+                  </pre>
+                </details>
               </CardContent>
             </Card>
           );
@@ -928,7 +963,7 @@ console.log(module,'module')
             </CardContent>
             <CardFooter>
               <Button
-                onClick={() => handleSectionComplete(currentSectionIndex, 3)}
+                onClick={() => handleSectionComplete(currentSectionIndex, 0)}
                 disabled={completedSections.has(currentSectionIndex)}
                 className="w-full"
               >
