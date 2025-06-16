@@ -111,11 +111,7 @@ export default function NewModuleCreator() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [editingModule, setEditingModule] = useState<any>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+
 
   // Fetch user's modules
   const { data: userModules, isLoading: modulesLoading, error } = useQuery({
@@ -126,28 +122,7 @@ export default function NewModuleCreator() {
   // Type the modules data properly
   const modules = Array.isArray(userModules) ? userModules : [];
 
-  // Update module mutation
-  const updateModuleMutation = useMutation({
-    mutationFn: async (moduleData: any) => {
-      return await apiRequest('PATCH', `/api/modules/${moduleData.id}`, moduleData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/modules/user/${user?.id}`] });
-      toast({
-        title: 'Module Updated',
-        description: 'Module has been successfully updated.',
-      });
-      setIsEditDialogOpen(false);
-      setEditingModule(null);
-    },
-    onError: (error) => {
-      toast({
-        title: 'Update Failed',
-        description: 'There was a problem updating the module. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  });
+
 
   if (!isAuthenticated) {
     setLocation('/login');
@@ -159,39 +134,16 @@ export default function NewModuleCreator() {
     setLocation(route);
   };
 
-  const handleEditModule = async (moduleId: number) => {
-    try {
-      // Fetch the full module data for editing
-      const moduleData = await apiRequest('GET', `/api/modules/${moduleId}`);
-      setEditingModule(moduleData);
-      setIsEditDialogOpen(true);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Could not load module for editing.',
-        variant: 'destructive',
-      });
-    }
+  const handleEditModule = (moduleId: number) => {
+    // Navigate to the full module builder in edit mode
+    setLocation(`/new-module-manual?edit=${moduleId}`);
   };
 
   const handleViewModule = (moduleId: number) => {
     setLocation(`/modules/${moduleId}`);
   };
 
-  const updateModuleField = (field: string, value: any) => {
-    if (editingModule) {
-      setEditingModule({
-        ...editingModule,
-        [field]: value
-      });
-    }
-  };
 
-  const handleSaveModuleChanges = () => {
-    if (editingModule) {
-      updateModuleMutation.mutate(editingModule);
-    }
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -379,121 +331,7 @@ export default function NewModuleCreator() {
         </div>
       </div>
 
-      {/* Edit Module Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Edit3 className="h-5 w-5 text-primary" />
-              Edit Module
-            </DialogTitle>
-            <DialogDescription>
-              Make changes to your module. These changes will be saved to your account.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {editingModule && (
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-module-title">Module Title</Label>
-                  <Input 
-                    id="edit-module-title" 
-                    value={editingModule.title || ''}
-                    onChange={(e) => updateModuleField('title', e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="edit-module-category">Category</Label>
-                  <Select 
-                    value={editingModule.category || ''}
-                    onValueChange={(value) => updateModuleField('category', value)}
-                  >
-                    <SelectTrigger id="edit-module-category">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="social-emotional">Social-Emotional</SelectItem>
-                      <SelectItem value="cognitive-development">Cognitive Development</SelectItem>
-                      <SelectItem value="classroom-management">Classroom Management</SelectItem>
-                      <SelectItem value="child-development">Child Development</SelectItem>
-                      <SelectItem value="curriculum-planning">Curriculum Planning</SelectItem>
-                      <SelectItem value="assessment">Assessment</SelectItem>
-                      <SelectItem value="family-engagement">Family Engagement</SelectItem>
-                      <SelectItem value="professional-development">Professional Development</SelectItem>
-                      <SelectItem value="health-safety">Health & Safety</SelectItem>
-                      <SelectItem value="special-needs">Special Needs</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="edit-module-difficulty">Difficulty Level</Label>
-                  <Select 
-                    value={editingModule.difficulty || ''}
-                    onValueChange={(value) => updateModuleField('difficulty', value)}
-                  >
-                    <SelectTrigger id="edit-module-difficulty">
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="edit-module-duration">Duration (minutes)</Label>
-                  <Input 
-                    id="edit-module-duration" 
-                    type="number" 
-                    value={editingModule.duration || 15}
-                    onChange={(e) => updateModuleField('duration', parseInt(e.target.value))}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-module-description">Description</Label>
-                <Textarea 
-                  id="edit-module-description" 
-                  value={editingModule.description || ''}
-                  onChange={(e) => updateModuleField('description', e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsEditDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveModuleChanges}
-              disabled={updateModuleMutation.isPending}
-            >
-              {updateModuleMutation.isPending ? (
-                <>
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }

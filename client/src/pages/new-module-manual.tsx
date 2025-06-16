@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import {
   ArrowLeft,
   FileEdit,
@@ -108,6 +110,11 @@ export default function NewModuleManual() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
+  // Check if we're in edit mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const editModuleId = urlParams.get('edit');
+  const isEditMode = !!editModuleId;
+
   const [currentStep, setCurrentStep] = useState<'template' | 'config' | 'build' | 'preview'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [currentSectionType, setCurrentSectionType] = useState<string | null>(null);
@@ -122,6 +129,38 @@ export default function NewModuleManual() {
     pointValue: 10,
     shareWithCommunity: false
   });
+
+  // Fetch existing module data if in edit mode
+  const { data: existingModule, isLoading: moduleLoading } = useQuery({
+    queryKey: [`/api/modules/${editModuleId}`],
+    enabled: isEditMode && !!editModuleId,
+  });
+
+  // Load existing module data when available
+  useEffect(() => {
+    if (existingModule && isEditMode) {
+      const content = typeof existingModule.content === 'string' 
+        ? JSON.parse(existingModule.content) 
+        : existingModule.content;
+
+      setModuleConfig({
+        title: existingModule.title || '',
+        description: existingModule.description || '',
+        category: existingModule.category || 'professional-development',
+        difficulty: existingModule.difficulty || 'intermediate',
+        estimatedTime: existingModule.duration?.toString() || '15',
+        pointValue: existingModule.pointValue || 10,
+        shareWithCommunity: existingModule.isShared || false
+      });
+
+      if (content && content.sections) {
+        setSections(content.sections);
+      }
+
+      // Skip template selection for edit mode
+      setCurrentStep('config');
+    }
+  }, [existingModule, isEditMode]);
 
   if (!isAuthenticated) {
     setLocation('/login');
