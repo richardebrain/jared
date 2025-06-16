@@ -114,6 +114,9 @@ export default function NewModuleManual() {
   const urlParams = new URLSearchParams(window.location.search);
   const editModuleId = urlParams.get('edit');
   const isEditMode = !!editModuleId;
+  
+  console.log(`[EDIT MODE] URL: ${window.location.pathname}${window.location.search}`);
+  console.log(`[EDIT MODE] Edit module ID: ${editModuleId}, isEditMode: ${isEditMode}`);
 
   const [currentStep, setCurrentStep] = useState<'template' | 'config' | 'build' | 'preview'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -131,10 +134,20 @@ export default function NewModuleManual() {
   });
 
   // Fetch existing module data if in edit mode
-  const { data: existingModule, isLoading: moduleLoading } = useQuery({
+  const { data: existingModule, isLoading: moduleLoading, error: moduleError } = useQuery({
     queryKey: [`/api/modules/${editModuleId}`],
     enabled: isEditMode && !!editModuleId,
   });
+
+  // Log query results
+  React.useEffect(() => {
+    if (existingModule && isEditMode) {
+      console.log(`[EDIT FETCH SUCCESS] Module ${editModuleId} data:`, existingModule);
+    }
+    if (moduleError && isEditMode) {
+      console.error(`[EDIT FETCH ERROR] Failed to fetch module ${editModuleId}:`, moduleError);
+    }
+  }, [existingModule, moduleError, editModuleId, isEditMode]);
 
   // Load existing module data when available
   useEffect(() => {

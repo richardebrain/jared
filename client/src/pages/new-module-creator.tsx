@@ -135,6 +135,7 @@ export default function NewModuleCreator() {
   };
 
   const handleEditModule = (moduleId: number) => {
+    console.log(`[EDIT CLICK] Navigating to edit module ${moduleId}`);
     // Navigate to the full module builder in edit mode
     setLocation(`/new-module-manual?edit=${moduleId}`);
   };
