@@ -18,6 +18,7 @@ import { VoiceNarrationPanel } from "@/components/VoiceNarrationPanel";
 import MultilingualBearyAI from "@/components/MultilingualBearyAI";
 import ActivityBlockComponent from "@/components/ActivityBlockComponent";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
+import TextSectionBuilder from "@/components/SectionBuilders/TextSectionBuilder";
 import {
   Video,
   Link2,
@@ -888,6 +889,64 @@ export default function ComprehensiveModuleCreator() {
   const [activeBuilder, setActiveBuilder] = useState<string | null>(null);
   const [builderData, setBuilderData] = useState<any>(null);
   const [currentBuilderSection, setCurrentBuilderSection] = useState<number | null>(null);
+
+  // Auto-save function for immediate database persistence
+  const autoSaveModule = async (moduleData: any) => {
+    // Get module ID from current draft or edit mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const editModuleId = urlParams.get('edit');
+    const moduleId = currentDraftId || editModuleId;
+    
+    if (!moduleId) return;
+    
+    try {
+      await fetch(`/api/modules/${moduleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: JSON.stringify({
+            sections: moduleData.sections || [],
+            moduleType: moduleData.moduleType || "deep-dive",
+            courseStructure: moduleData.courseStructure || {},
+            interactiveElements: moduleData.interactiveElements || {},
+            certificationSystem: moduleData.certificationSystem || {},
+          }),
+          title: moduleData.title,
+          description: moduleData.description,
+        }),
+      });
+      console.log('Auto-saved module changes to database');
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  };
+
+  // Content change handler with auto-save
+  const handleContentChange = (updatedContent: any, sectionIndex?: number) => {
+    let updatedModule;
+    
+    if (typeof sectionIndex === 'number') {
+      // Update specific section
+      const updatedSections = [...newModule.sections];
+      updatedSections[sectionIndex] = {
+        ...updatedSections[sectionIndex],
+        content: updatedContent
+      };
+      updatedModule = { ...newModule, sections: updatedSections };
+    } else {
+      // Update entire module
+      updatedModule = { ...newModule, ...updatedContent };
+    }
+    
+    setNewModule(updatedModule);
+    
+    // Auto-save to database
+    if (currentDraftId) {
+      autoSaveModule(updatedModule);
+    }
+  };
 
   // Builder handler functions
   const openBuilder = (builderType: string, sectionIndex: number) => {
@@ -6669,35 +6728,24 @@ Create a natural conversation between two podcast hosts discussing this specific
 
                   {/* Text Content Template */}
                   {section.type === 'text' && (
-                    <>
-                      <div>
-                        <Label>Content</Label>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => updateSection(index, 'content', e.target.value)}
-                          placeholder="Enter section content..."
-                          rows={4}
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Video URL (optional)</Label>
-                          <Input
-                            value={section.videoUrl}
-                            onChange={(e) => updateSection(index, 'videoUrl', e.target.value)}
-                            placeholder="https://youtube.com/watch?v=..."
-                          />
-                        </div>
-                        <div>
-                          <Label>Image URL (optional)</Label>
-                          <Input
-                            value={section.imageUrl}
-                            onChange={(e) => updateSection(index, 'imageUrl', e.target.value)}
-                            placeholder="https://example.com/image.jpg"
-                          />
-                        </div>
-                      </div>
-                    </>
+                    <TextSectionBuilder
+                      content={section.content}
+                      onContentChange={(updatedContent) => {
+                        // Update the section with the new content structure
+                        const updatedSections = [...newModule.sections];
+                        updatedSections[index] = {
+                          ...updatedSections[index],
+                          content: updatedContent
+                        };
+                        const updatedModule = { ...newModule, sections: updatedSections };
+                        setNewModule(updatedModule);
+                        
+                        // Auto-save immediately when content changes
+                        handleContentChange(updatedContent, index);
+                      }}
+                      isEditing={true}
+                      onEditToggle={() => {}}
+                    />
                   )}
 
                   {/* Interactive Story Template */}

@@ -102,7 +102,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
       const updatedImages = [...sectionImages, newImage];
       setSectionImages(updatedImages);
       
-      // Auto-save the content with new image
+      // Auto-save the content with new image immediately
       const contentString = typeof textContent === 'string' ? textContent : '';
       const updatedContent = {
         blocks: [{
@@ -113,7 +113,12 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
           preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
         }]
       };
+      
+      // Immediately persist the content change
       onContentChange(updatedContent);
+      
+      // Show success feedback
+      console.log('Image uploaded and auto-saved:', newImage.description);
     };
     reader.readAsDataURL(file);
 
