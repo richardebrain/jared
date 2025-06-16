@@ -231,10 +231,17 @@ export default function ComprehensiveModuleCreator() {
         })) : []
       }));
 
-      // Skip intro and go directly to section builder
+      // Skip intro and go directly to section builder - BYPASS initial setup entirely
+      setShowInitialSetup(false);
       setCreationMethod('manual');
       setAiWorkflowStep('section-builder');
       setCurrentSectionIndex(0);
+      
+      // Update initial module data to prevent re-showing setup
+      setInitialModuleData({
+        title: existingModule.title || '',
+        learningObjective: existingModule.description || ''
+      });
       
       toast({
         title: "Module Loaded for Editing",
