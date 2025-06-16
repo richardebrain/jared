@@ -2044,7 +2044,10 @@ Continue for all 5 questions...
       const { userId } = req.session;
       const requestedUserId = parseInt(req.params.userId);
       
+      console.log(`[USER MODULES] Session userId: ${userId}, requested: ${requestedUserId}`);
+      
       if (!userId || userId !== requestedUserId) {
+        console.log(`[USER MODULES] Unauthorized access attempt`);
         return res.status(401).json({ message: "Unauthorized" });
       }
 
@@ -2057,6 +2060,11 @@ Continue for all 5 questions...
         ORDER BY created_at DESC
         LIMIT 10
       `);
+
+      console.log(`[USER MODULES] Found ${modules.rows.length} modules for user ${userId}`);
+      if (modules.rows.length > 0) {
+        console.log(`[USER MODULES] Module titles:`, modules.rows.map(m => m.title));
+      }
 
       res.status(200).json(modules.rows);
     } catch (error) {
