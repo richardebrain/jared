@@ -102,8 +102,12 @@ function VideoPlayer({ videoUrl, title, onComplete }: VideoPlayerProps) {
     onComplete();
   };
 
-  // Extract YouTube video ID
-  const getYouTubeId = (url: string) => {
+  // Extract YouTube video ID with proper validation
+  const getYouTubeId = (url: string | null | undefined) => {
+    if (!url || typeof url !== 'string') {
+      console.warn('Invalid video URL provided:', url);
+      return null;
+    }
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
     return match ? match[1] : null;
   };
@@ -1140,17 +1144,30 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {currentSection.videoUrl || currentSection.content ? (
-                <VideoPlayer
-                  videoUrl={currentSection.videoUrl || currentSection.content}
-                  title={currentSection.title}
-                  onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
-                />
-              ) : (
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-500">No video URL provided</p>
-                </div>
-              )}
+              {(() => {
+                // Extract video URL from various possible formats
+                let videoUrl = '';
+                
+                if (typeof currentSection.videoUrl === 'string' && currentSection.videoUrl.trim()) {
+                  videoUrl = currentSection.videoUrl;
+                } else if (typeof currentSection.content === 'string' && currentSection.content.trim()) {
+                  videoUrl = currentSection.content;
+                } else if (typeof currentSection.content === 'object' && currentSection.content?.videoUrl) {
+                  videoUrl = currentSection.content.videoUrl;
+                }
+                
+                return videoUrl ? (
+                  <VideoPlayer
+                    videoUrl={videoUrl}
+                    title={currentSection.title}
+                    onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
+                  />
+                ) : (
+                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                    <p className="text-gray-500">No video URL provided</p>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         );
