@@ -57,12 +57,15 @@ const schoolSettingsSchema = z.object({
 });
 
 export default function SchoolDashboard() {
-  const { schoolId } = useParams();
+  const { schoolId: urlSchoolId } = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [addTeacherOpen, setAddTeacherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  
+  // Use the user's schoolId if no URL parameter is provided
+  const schoolId = urlSchoolId || user?.schoolId || '1';
   
   // Get school data
   const { 
