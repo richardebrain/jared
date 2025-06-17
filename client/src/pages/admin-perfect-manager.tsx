@@ -132,6 +132,7 @@ export default function PerfectManager() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          prompt: userMessage,
           type: 'empathy-coaching',
           context: {
             scenario: selectedScenario || customScenario,
