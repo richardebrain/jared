@@ -1969,7 +1969,41 @@ Continue for all 5 questions...
         });
       }
 
-      // Delete user from database
+      // Delete all related data first to handle foreign key constraints
+      // Delete assessment responses for this user's assessments
+      await db.execute(`
+        DELETE FROM assessment_responses 
+        WHERE assessment_id IN (SELECT id FROM assessments WHERE user_id = ${targetUserId})
+      `);
+      
+      // Delete assessments
+      await db.execute(`DELETE FROM assessments WHERE user_id = ${targetUserId}`);
+      
+      // Delete voice narration usage
+      await db.execute(`DELETE FROM voice_narration_usage WHERE user_id = ${targetUserId}`);
+      
+      // Delete user progress
+      await db.execute(`DELETE FROM user_progress WHERE user_id = ${targetUserId}`);
+      
+      // Delete user messages
+      await db.execute(`DELETE FROM director_messages WHERE recipient_id = ${targetUserId}`);
+      
+      // Delete core value nominations
+      await db.execute(`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+      
+      // Delete ECE hours
+      await db.execute(`DELETE FROM ece_hours WHERE user_id = ${targetUserId}`);
+      
+      // Delete streak rewards
+      await db.execute(`DELETE FROM streak_rewards WHERE user_id = ${targetUserId}`);
+      
+      // Delete user items
+      await db.execute(`DELETE FROM user_items WHERE user_id = ${targetUserId}`);
+      
+      // Delete module ratings
+      await db.execute(`DELETE FROM module_ratings WHERE user_id = ${targetUserId}`);
+      
+      // Finally delete the user
       await db.delete(users).where(eq(users.id, targetUserId));
 
       res.json({ 
