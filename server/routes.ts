@@ -254,120 +254,6 @@ async function ensureDefaultSchoolExists() {
 }
 
 export async function registerRoutes(app: Express): Promise<void> {
-  // Authentication routes
-  app.post("/api/auth/login", async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      console.log(`Login attempt for username: ${username}`);
-
-      if (!username || !password) {
-        return res.status(400).json({
-          message: "Username and password are required",
-        });
-      }
-
-      // Handle demo user special case
-      if (username === "jlcookie20" && password === "password") {
-        console.log("Demo user login detected");
-        const user = await storage.getUser(4); // Demo user ID
-        
-        if (user) {
-          req.session.userId = user.id;
-          req.session.loginTime = new Date().toISOString();
-          req.session.lastActive = new Date().toISOString();
-
-          // Save session
-          await new Promise<void>((resolve, reject) => {
-            req.session.save((err) => {
-              if (err) {
-                console.error("Session save error:", err);
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
-
-          console.log(`Login successful - User ID: ${user.id}, Session: ${req.session.id}`);
-          
-          return res.json({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            isAdmin: user.isAdmin || false,
-            schoolId: user.schoolId
-          });
-        }
-      }
-
-      // Regular authentication
-      const user = await storage.authenticateUser(username, password);
-      
-      if (!user) {
-        console.log(`Login failed - Invalid credentials for: ${username}`);
-        return res.status(401).json({
-          message: "Invalid username or password",
-        });
-      }
-
-      // Set session data
-      req.session.userId = user.id;
-      req.session.loginTime = new Date().toISOString();
-      req.session.lastActive = new Date().toISOString();
-
-      // Save session
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("Session save error:", err);
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      console.log(`Login successful - User ID: ${user.id}, Session: ${req.session.id}`);
-      
-      res.json({
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin || false,
-        schoolId: user.schoolId
-      });
-
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({
-        message: "Internal server error during login",
-      });
-    }
-  });
-
-  // Current user endpoint
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId!;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin || false,
-        schoolId: user.schoolId
-      });
-    } catch (error) {
-      console.error("Error fetching current user:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
   // Generate single quiz question for module builder
   app.post("/api/ai/generate-single-quiz-question", async (req, res) => {
     try {
@@ -1470,8 +1356,23 @@ Continue for all 5 questions...
 
         // Clean up session if user is already logged in to prevent login loops
         if (req.session.userId) {
-          console.log(`User already logged in as ID: ${req.session.userId}, proceeding with login`);
-          // Don't clear the session - just log and continue
+          // Clear any existing session first
+          await new Promise<void>((resolve) => {
+            req.session.destroy((err) => {
+              if (err)
+                console.error(
+                  "Error destroying existing session for user:",
+                  err,
+                );
+              resolve();
+            });
+          });
+
+          // Need to manually clear the cookie since destroy doesn't do it automatically
+          res.clearCookie("connect.sid");
+
+          // Initialize a new session object since we destroyed the previous one
+          req.session = req.session || {};
         }
 
         // Debug logging for authentication

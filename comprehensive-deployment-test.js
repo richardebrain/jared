@@ -75,59 +75,6 @@ async function runComprehensiveTests() {
   const userModulesTest = await testAPI(`/api/modules/user/${TEST_USER_ID}`);
   logTest('User Modules Retrieval', userModulesTest.success && Array.isArray(userModulesTest.data));
   
-  // Test module content parsing for deployed modules
-  if (modulesTest.success && modulesTest.data.length > 0) {
-    const testModule = modulesTest.data.find(m => m.content && m.title);
-    if (testModule) {
-      try {
-        const moduleContent = JSON.parse(testModule.content);
-        const sections = moduleContent.sections || [];
-        
-        // Test scenario-match parsing
-        const scenarioSection = sections.find(s => s.type === 'scenario-match');
-        if (scenarioSection) {
-          const hasValidScenarios = scenarioSection.content && 
-                                   scenarioSection.content.blocks && 
-                                   scenarioSection.content.blocks[0] && 
-                                   Array.isArray(scenarioSection.content.blocks[0].content);
-          logTest('Module Scenario-Match Parsing', hasValidScenarios);
-        }
-        
-        // Test quiz parsing with double-encoded JSON
-        const quizSection = sections.find(s => s.type === 'quiz');
-        if (quizSection && quizSection.content && quizSection.content.blocks && quizSection.content.blocks[0]) {
-          let hasValidQuestions = false;
-          try {
-            const quizContent = quizSection.content.blocks[0].content;
-            if (typeof quizContent === 'string') {
-              const parsedQuestions = JSON.parse(quizContent);
-              hasValidQuestions = Array.isArray(parsedQuestions) && parsedQuestions.length > 0;
-            } else if (Array.isArray(quizContent)) {
-              hasValidQuestions = quizContent.length > 0;
-            }
-          } catch (parseError) {
-            hasValidQuestions = false;
-          }
-          logTest('Module Quiz Content Parsing', hasValidQuestions);
-        }
-        
-        // Test matching activity parsing
-        const matchingSection = sections.find(s => s.type === 'matching');
-        if (matchingSection) {
-          const hasValidMatching = matchingSection.content && 
-                                  matchingSection.content.blocks && 
-                                  matchingSection.content.blocks[0] && 
-                                  Array.isArray(matchingSection.content.blocks[0].content);
-          logTest('Module Matching Activity Parsing', hasValidMatching);
-        }
-        
-        logTest('Module Content Structure Validation', sections.length > 0);
-      } catch (parseError) {
-        logTest('Module Content JSON Parsing', false, parseError.message);
-      }
-    }
-  }
-  
   // 3. School Dashboard Tests
   console.log('\n🏫 Testing School Dashboard...');
   

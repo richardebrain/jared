@@ -1211,32 +1211,10 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
               } else if (currentSection.content.blocks && Array.isArray(currentSection.content.blocks)) {
                 // Check if blocks contain quiz content
                 const quizBlock = currentSection.content.blocks.find(block => block.type === 'quiz');
-                if (quizBlock) {
-                  if (Array.isArray(quizBlock.content)) {
-                    questions = quizBlock.content;
-                  } else if (typeof quizBlock.content === 'string') {
-                    // Handle double-encoded JSON string in quiz content
-                    try {
-                      questions = JSON.parse(quizBlock.content);
-                    } catch (innerError) {
-                      console.error('Failed to parse inner quiz content JSON:', innerError);
-                    }
-                  } else if (quizBlock.questions && Array.isArray(quizBlock.questions)) {
-                    questions = quizBlock.questions;
-                  }
-                } else if (currentSection.content.blocks[0] && currentSection.content.blocks[0].content) {
-                  if (Array.isArray(currentSection.content.blocks[0].content)) {
-                    questions = currentSection.content.blocks[0].content;
-                  } else if (typeof currentSection.content.blocks[0].content === 'string') {
-                    // Handle double-encoded JSON string
-                    try {
-                      questions = JSON.parse(currentSection.content.blocks[0].content);
-                    } catch (innerError) {
-                      console.error('Failed to parse quiz content JSON string:', innerError);
-                    }
-                  }
-                } else if (currentSection.content.blocks[0] && currentSection.content.blocks[0].questions) {
-                  questions = currentSection.content.blocks[0].questions;
+                if (quizBlock && Array.isArray(quizBlock.content)) {
+                  questions = quizBlock.content;
+                } else if (currentSection.content.blocks[0] && Array.isArray(currentSection.content.blocks[0].content)) {
+                  questions = currentSection.content.blocks[0].content;
                 }
               } else if (Array.isArray(currentSection.content.content)) {
                 // Direct content array
@@ -1393,17 +1371,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
               };
             }
           } else if (typeof currentSection.content === 'object') {
-            // Handle content.blocks structure from module creator
-            if (currentSection.content.blocks && Array.isArray(currentSection.content.blocks)) {
-              const scenarioBlock = currentSection.content.blocks.find(block => block.type === 'scenario-match');
-              if (scenarioBlock && scenarioBlock.content) {
-                scenarioData = scenarioBlock.content;
-              } else if (currentSection.content.blocks[0] && currentSection.content.blocks[0].content) {
-                scenarioData = currentSection.content.blocks[0].content;
-              }
-            } else {
-              scenarioData = currentSection.content;
-            }
+            scenarioData = currentSection.content;
           } else {
             throw new Error('Invalid content format');
           }

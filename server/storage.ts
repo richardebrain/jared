@@ -62,7 +62,6 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  authenticateUser(username: string, password: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<InsertUser>): Promise<User>;
   addUserPoints(userId: number, points: number): Promise<User>;
@@ -263,39 +262,6 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
-  }
-
-  async authenticateUser(username: string, password: string): Promise<User | undefined> {
-    try {
-      // Get user by username
-      const user = await this.getUserByUsername(username);
-      
-      if (!user) {
-        console.log(`Authentication failed: User not found for username: ${username}`);
-        return undefined;
-      }
-
-      // Handle demo user special case
-      if (username === "jlcookie20" && password === "password") {
-        console.log("Demo user authentication successful");
-        return user;
-      }
-
-      // Check password with bcrypt
-      const bcrypt = await import('bcrypt');
-      const isValidPassword = await bcrypt.default.compare(password, user.password);
-      
-      if (!isValidPassword) {
-        console.log(`Authentication failed: Invalid password for username: ${username}`);
-        return undefined;
-      }
-
-      console.log(`Authentication successful for username: ${username}`);
-      return user;
-    } catch (error) {
-      console.error('Error in authenticateUser:', error);
-      return undefined;
-    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

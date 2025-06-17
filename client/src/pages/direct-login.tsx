@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 /**
  * Direct Login Page
@@ -7,48 +8,11 @@ import React, { useState, useEffect } from 'react';
  * components or context. It's used as a fallback when main login has issues.
  */
 const DirectLogin: React.FC = () => {
-  const [username, setUsername] = useState('jlcookie20');
-  const [password, setPassword] = useState('password');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-
-  // Auto-attempt login when component mounts
-  useEffect(() => {
-    const attemptAutoLogin = async () => {
-      setLoading(true);
-      setMessage('Attempting automatic login...');
-
-      try {
-        const response = await fetch('http://localhost:5001/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username: 'jlcookie20', password: 'password' }),
-          credentials: 'include'
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data) {
-          setMessage('Login successful! Redirecting to dashboard...');
-          
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 1000);
-        } else {
-          setError('Auto-login failed. Please try manual login.');
-          setLoading(false);
-        }
-      } catch (error) {
-        setError('Auto-login failed. Please try manual login.');
-        setLoading(false);
-      }
-    };
-
-    attemptAutoLogin();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,36 +21,19 @@ const DirectLogin: React.FC = () => {
     setMessage('Logging in...');
 
     try {
-      // Try main login route first
-      let response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
+      // Direct API call without using hooks or context
+      const response = await axios.post('/api/auth/login', { 
+        username, 
+        password 
       });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        // If we can't parse JSON, try the direct login server
-        console.log('Main login failed, trying direct server');
+      
+      if (response.status === 200 && response.data) {
+        // Save auth directly to localStorage
+        localStorage.setItem('auth', JSON.stringify({
+          user: response.data,
+          timestamp: Date.now()
+        }));
         
-        response = await fetch('http://localhost:5001/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, password }),
-          credentials: 'include'
-        });
-        
-        data = await response.json();
-      }
-
-      if (response.ok && data) {
         setMessage('Login successful! Redirecting...');
         
         // Direct navigation to dashboard
@@ -94,11 +41,11 @@ const DirectLogin: React.FC = () => {
           window.location.href = '/dashboard';
         }, 500);
       } else {
-        setError(data.message || 'Login failed. Please check your credentials.');
+        setError('Invalid response from server');
         setLoading(false);
       }
     } catch (err: any) {
-      setError('Network error. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       setLoading(false);
     }
   };
@@ -123,20 +70,8 @@ const DirectLogin: React.FC = () => {
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
       }}>
         <h1 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center'}}>
-          MentorMe Direct Login
+          MentorMe Login
         </h1>
-        
-        <div style={{
-          padding: '0.75rem',
-          backgroundColor: '#dbeafe',
-          color: '#1d4ed8',
-          borderRadius: '0.25rem',
-          marginBottom: '1rem',
-          fontSize: '0.875rem',
-          textAlign: 'center'
-        }}>
-          Auto-login with demo credentials: jlcookie20 / password
-        </div>
         
         {error && (
           <div style={{

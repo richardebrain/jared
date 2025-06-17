@@ -12,7 +12,6 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
-import DirectLogin from "@/pages/direct-login";
 import Register from "@/pages/register";
 import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
@@ -147,9 +146,6 @@ function AuthenticatedRouter() {
         <Route path="/login">
           <Login />
         </Route>
-        <Route path="/direct-login">
-          <DirectLogin />
-        </Route>
         <Route path="/register">
           <Register />
         </Route>
@@ -180,10 +176,6 @@ function Router(props: {
       {/* Public routes */}
       <Route path="/login">
         {isAuthenticated ? <Dashboard /> : <Login />}
-      </Route>
-
-      <Route path="/direct-login">
-        <DirectLogin />
       </Route>
 
       <Route path="/register">
