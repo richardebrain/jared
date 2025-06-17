@@ -28,7 +28,8 @@ import {
   Sparkles,
   Brain,
   Heart,
-  Shield
+  Shield,
+  Send
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
