@@ -959,8 +959,11 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />
-                  Try These Conversation Starters
+                  Professional Conversation Practice Examples
                 </h4>
+                <p className="text-xs text-blue-700 mb-3">
+                  Practice empathetic responses that acknowledge the sacred nature of teaching while maintaining professional standards and finding win-win solutions.
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {getConversationStarters(selectedScenario).map((starter, index) => (
                     <button
