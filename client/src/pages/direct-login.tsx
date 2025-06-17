@@ -21,8 +21,8 @@ const DirectLogin: React.FC = () => {
     setMessage('Logging in...');
 
     try {
-      // Direct API call without using hooks or context
-      const response = await axios.post('/api/auth/login', { 
+      // Use direct login bypass endpoint
+      const response = await axios.post('/direct-login', { 
         username, 
         password 
       });

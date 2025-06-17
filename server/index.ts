@@ -119,8 +119,63 @@ async function startServer() {
     const __dirname = dirname(__filename);
     app.use('/audio', express.static(path.join(__dirname, "../public/audio")));
     
+    // Add direct login bypass route before other middleware
+    app.post('/direct-login', async (req, res) => {
+      try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+          return res.status(400).json({ message: "Username and password required" });
+        }
+
+        // Import storage dynamically to access user authentication
+        const { storage } = await import('./storage.js');
+        const bcrypt = await import('bcrypt');
+        
+        const user = await storage.getUserByUsername(username);
+        if (!user) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        // Set session
+        req.session.userId = user.id;
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ message: "Login failed" });
+          }
+          
+          res.json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            schoolId: user.schoolId
+          });
+        });
+      } catch (error) {
+        console.error('Direct login error:', error);
+        res.status(500).json({ message: "Login failed" });
+      }
+    });
+
     // Register all comprehensive routes from routes.ts
     await registerRoutes(app, false); // Enable auth endpoints
+
+    // Catch-all for unhandled API routes (must come after all API route registrations)
+    app.use('/api/*', (req, res) => {
+      console.log(`Unhandled API route: ${req.method} ${req.originalUrl}`);
+      res.status(404).json({ 
+        message: `API endpoint ${req.originalUrl} not found`,
+        method: req.method,
+        path: req.originalUrl 
+      });
+    });
 
     // Error handling middleware
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
