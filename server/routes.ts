@@ -1356,10 +1356,8 @@ Continue for all 5 questions...
 
         // Clean up session if user is already logged in to prevent login loops
         if (req.session.userId) {
-          console.log(`Clearing previous session for user ID: ${req.session.userId}`);
-          // Just clear the userId, don't destroy the entire session
-          delete req.session.userId;
-          delete req.session.loginTime;
+          console.log(`User already logged in as ID: ${req.session.userId}, proceeding with login`);
+          // Don't clear the session - just log and continue
         }
 
         // Debug logging for authentication
