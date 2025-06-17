@@ -24,6 +24,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   const [sectionImages, setSectionImages] = useState<Array<{url: string, description: string}>>([]);
 
   useEffect(() => {
+    console.log(content,'new content')
     // Initialize content only once when component mounts or when content changes
     let newContent = '';
     let images = [];
@@ -54,6 +55,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
         preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
       }]
     };
+    console.log(updatedContent,'updated in text editor')
     onContentChange(updatedContent);
     onEditToggle();
   };

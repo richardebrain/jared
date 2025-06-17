@@ -454,7 +454,7 @@ export default function NewModuleAI() {
     }
   };
 
-  console.log(sectionContents,'section contents to make quiz generate questioms')
+
 
   const generateSectionContent = async (sectionIndex: number, customGuidance?: string) => {
     if (!selectedTemplate || generatingSection === sectionIndex) return;
@@ -711,7 +711,6 @@ export default function NewModuleAI() {
         body: JSON.stringify(publishData),
       });
 
-      console.log('Response status:', response.status);
       const responseData = await response.json();
       console.log('Response data:', responseData);
 
