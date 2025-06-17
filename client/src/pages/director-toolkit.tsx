@@ -65,26 +65,6 @@ const directorTools: ToolkitTool[] = [
   
   // Content Creation
   {
-    id: 'module-maker-easy',
-    title: 'Module Maker (Easy Mode)',
-    description: 'Quick module creation with guided templates and pre-built components',
-    icon: BookOpen,
-    route: '/admin/module-maker',
-    badge: 'Popular',
-    badgeVariant: 'secondary',
-    category: 'content'
-  },
-  {
-    id: 'module-ai-wizard',
-    title: 'AI Module Wizard (Advanced)',
-    description: 'Advanced AI-powered module creation with custom content generation',
-    icon: Wand2,
-    route: '/module-wizard',
-    badge: 'AI-Powered',
-    badgeVariant: 'outline',
-    category: 'content'
-  },
-  {
     id: 'video-library-admin',
     title: 'Video Library Manager',
     description: 'Manage video resources, add custom content, and organize collections',

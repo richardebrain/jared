@@ -375,37 +375,6 @@ export default function NewModuleCreator() {
         </div>
       </div>
 
-      {/* Available Templates */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Available Module Templates</h2>
-        <p className="text-gray-600 mb-6">
-          All templates are available with AI assistance, manual building, or PowerPoint import
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {moduleTemplates.map((template) => {
-            const IconComponent = template.icon;
-            return (
-              <Card key={template.id} className="bg-gray-50 border-gray-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <IconComponent className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <CardTitle className="text-base">{template.title}</CardTitle>
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        {template.duration}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm text-gray-600">{template.description}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Quick Start Guide */}
       <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
