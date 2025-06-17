@@ -5953,6 +5953,55 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
     }
   });
 
+  // AI suggestion endpoint for Perfect Manager and other tools
+  app.post("/api/ai-suggestion", requireAuth, async (req, res) => {
+    try {
+      const { prompt, type, context } = req.body;
+
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      console.log("AI suggestion request:", { type, prompt: prompt.substring(0, 100) + "..." });
+
+      // Use OpenAI for AI suggestions
+      const openai = (await import("openai")).default;
+      const client = new openai({ apiKey: process.env.OPENAI_API_KEY });
+
+      const response = await client.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert AI assistant specializing in early childhood education management and professional development. Provide comprehensive, actionable advice in the exact JSON format requested."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000
+      });
+
+      const content = response.choices[0].message.content;
+      
+      res.json({
+        success: true,
+        content: content,
+        type: type || 'general'
+      });
+
+    } catch (error) {
+      console.error("AI suggestion error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate AI suggestion",
+        error: error.message
+      });
+    }
+  });
+
   // Register AI suggestion routes under specific paths to avoid conflicts
   app.use("/api/flashcards", aiSuggestionRoutes);
 

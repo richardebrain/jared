@@ -760,6 +760,12 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/admin-perfect-manager">
+        <ProtectedRoute adminOnly={true}>
+          <PerfectManager />
+        </ProtectedRoute>
+      </Route>
+
       {/* <Route path="/module-creator">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
