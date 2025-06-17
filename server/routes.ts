@@ -1972,62 +1972,66 @@ Continue for all 5 questions...
       // Delete all related data first to handle foreign key constraints
       try {
         // Delete assessment responses for this user's assessments
-        await db.execute(`
+        await db.execute(sql`
           DELETE FROM assessment_responses 
-          WHERE assessment_id IN (SELECT id FROM assessments WHERE user_id = $1)
-        `, [targetUserId]);
+          WHERE assessment_id IN (SELECT id FROM assessments WHERE user_id = ${targetUserId})
+        `);
         
         // Delete assessments
-        await db.execute(`DELETE FROM assessments WHERE user_id = $1`, [targetUserId]);
+        await db.execute(sql`DELETE FROM assessments WHERE user_id = ${targetUserId}`);
         
         // Delete voice narration usage (if table exists)
         try {
-          await db.execute(`DELETE FROM voice_narration_usage WHERE user_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM voice_narration_usage WHERE user_id = ${targetUserId}`);
         } catch (e) {
           console.log("voice_narration_usage table not found, skipping...");
         }
         
         // Delete user progress
-        await db.execute(`DELETE FROM user_progress WHERE user_id = $1`, [targetUserId]);
+        await db.execute(sql`DELETE FROM user_progress WHERE user_id = ${targetUserId}`);
         
         // Delete user messages (try both possible table names)
         try {
-          await db.execute(`DELETE FROM teacher_messages WHERE recipient_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM teacher_messages WHERE recipient_id = ${targetUserId}`);
         } catch (e) {
           console.log("teacher_messages table not found, skipping...");
         }
         
-        // Delete core value nominations
+        // Delete core value nominations - check both table names
         try {
-          await db.execute(`DELETE FROM core_value_shoutouts WHERE nominator_id = $1 OR nominee_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
         } catch (e) {
-          console.log("core_value_shoutouts table not found, skipping...");
+          try {
+            await db.execute(sql`DELETE FROM core_values_shout_outs WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+          } catch (e2) {
+            console.log("core value tables not found, skipping...");
+          }
         }
         
         // Delete ECE hours
         try {
-          await db.execute(`DELETE FROM ece_hours WHERE user_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM ece_hours WHERE user_id = ${targetUserId}`);
         } catch (e) {
           console.log("ece_hours table not found, skipping...");
         }
         
         // Delete streak rewards
         try {
-          await db.execute(`DELETE FROM streak_rewards WHERE user_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM streak_rewards WHERE user_id = ${targetUserId}`);
         } catch (e) {
           console.log("streak_rewards table not found, skipping...");
         }
         
         // Delete user items
         try {
-          await db.execute(`DELETE FROM user_items WHERE user_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM user_items WHERE user_id = ${targetUserId}`);
         } catch (e) {
           console.log("user_items table not found, skipping...");
         }
         
         // Delete module ratings
         try {
-          await db.execute(`DELETE FROM module_ratings WHERE user_id = $1`, [targetUserId]);
+          await db.execute(sql`DELETE FROM module_ratings WHERE user_id = ${targetUserId}`);
         } catch (e) {
           console.log("module_ratings table not found, skipping...");
         }
