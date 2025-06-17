@@ -255,85 +255,67 @@ Respond in JSON format with the structure:
 
       const data = await response.json();
       
+      console.log("Raw AI response:", data.content.substring(0, 500) + "...");
+      
       let advice: ManagementAdvice;
       try {
+        // Try to parse the JSON response
         const parsedAdvice = JSON.parse(data.content);
-        // Ensure conversationScript exists with default structure
+        console.log("Successfully parsed AI advice:", parsedAdvice.scenario);
+        
+        // Ensure conversationScript exists with minimal default structure
         advice = {
           ...parsedAdvice,
           conversationScript: parsedAdvice.conversationScript || {
-            openingLines: ["I wanted to talk with you about something important. How are you feeling about things lately?"],
+            openingLines: ["I wanted to talk with you about something important."],
             listeningPrompts: ["Can you tell me more about that?"],
             responseScenarios: [{
-              teacherResponse: "I'm doing fine, just busy.",
-              directorReply: "I understand you're busy. I'm here to support you.",
-              followUpQuestion: "Is there anything specific that's been challenging?"
+              teacherResponse: "I'm doing fine.",
+              directorReply: "I'm here to support you.",
+              followUpQuestion: "How can I help?"
             }],
             closingStatements: ["Thank you for sharing with me."]
           }
         };
       } catch (e) {
-        // Fallback parsing if JSON is malformed
-        advice = {
-          scenario: scenarioLabel,
-          rootCauses: ["Emotional exhaustion from caring for young children", "Inadequate compensation vs. responsibility", "Lack of professional recognition", "Difficult parent relationships"],
-          immediateActions: ["Schedule a caring one-on-one conversation", "Acknowledge their important work with children", "Provide immediate classroom support", "Offer flexible scheduling options"],
-          longTermStrategies: ["Implement peer mentorship program", "Create professional development pathways", "Establish parent communication protocols", "Build recognition and appreciation systems"],
-          resources: [
-            { title: "NAEYC Self-Care for Early Childhood Educators", type: "article", description: "Professional guidance on preventing burnout", priority: "high" },
-            { title: "Classroom Management for Preschool Teachers", type: "training", description: "Behavior strategies and environmental design", priority: "high" },
-            { title: "Parent Communication Templates", type: "template", description: "Ready-to-use communication frameworks", priority: "medium" }
-          ],
-          goals: [
-            { title: "Restore Work-Life Balance", description: "Establish boundaries and self-care practices", timeframe: "60 days", measurable: true, actionSteps: ["Define work hours clearly", "Schedule regular breaks", "Create support network"] }
-          ],
-          motivationTechniques: ["Celebrate impact on child development", "Share success stories from families", "Connect work to passion for children", "Provide growth opportunities", "Create peer support systems"],
-          followUpPlan: ["Weekly caring check-ins for first month", "Bi-weekly support meetings", "Monthly progress reviews"],
-          preventionStrategies: ["Regular staff wellness programs", "Clear communication channels", "Workload management systems", "Professional development support"],
-          successMetrics: ["Job satisfaction surveys", "Student engagement levels", "Teacher retention rates", "Work-life balance assessments"],
-          coreValuesConnection: ["Nurturing growth in both children and teachers", "Building supportive relationships", "Creating safe emotional spaces", "Supporting families through teacher well-being"],
-          conversationScript: {
-            openingLines: [
-              "I wanted to talk with you about something important. How are you feeling about things lately?", 
-              "Your energy and passion matter so much to our children. How can I support you?", 
-              "I see your dedication every day. Let's talk about how we can help you thrive."
-            ],
-            listeningPrompts: [
-              "Can you tell me more about that?", 
-              "How has this been affecting you?", 
-              "What would be most helpful right now?", 
-              "Help me understand your perspective"
-            ],
-            responseScenarios: [
-              {
-                teacherResponse: "I'm doing fine, just busy with everything.",
-                directorReply: "I understand you're managing a lot. Remember, we get to write chapter one with these children every day - that's such a privilege! Your energy and passion make all the difference.",
-                followUpQuestion: "What would help you bring your best self to the children each day?"
-              },
-              {
-                teacherResponse: "I feel overwhelmed and don't know if I'm making a difference.",
-                directorReply: "Your feelings are completely valid. Let's pause and breathe together for a moment. The children absolutely feel your love and care - they will love what you love when you bring your authentic energy.",
-                followUpQuestion: "What brings you joy about working with the children? Let's focus on that spark."
-              },
-              {
-                teacherResponse: "I'm stressed and exhausted all the time.",
-                directorReply: "Your well-being matters deeply. Let's talk about mindful mornings - taking just 5 minutes to breathe and center yourself before the day begins. Self-care isn't selfish; it's essential for the children.",
-                followUpQuestion: "What would a perfect morning routine look like for you? How can we make space for that?"
-              },
-              {
-                teacherResponse: "I don't think I'm good at this job.",
-                directorReply: "Stop right there. You chose this work because you have something special to offer these children. We get to write chapter one of their educational story - what an incredible privilege! Have fun with it, be playful, be yourself.",
-                followUpQuestion: "What made you fall in love with working with children originally? Let's reconnect with that passion."
-              }
-            ],
-            closingStatements: [
-              "Remember, we get to write chapter one with these children. What a privilege! Bring your best energy and they'll love what you love.",
-              "Take time for mindful mornings and self-care. You can't pour from an empty cup, and these children need your full, joyful presence.",
-              "Have fun with this work! Be playful, be authentic. The children feel your energy and they'll love what you love when you're genuinely excited.",
-              "You matter to our children and our team. Let's work together to help you thrive and remember why this calling chose you."
-            ]
+        console.error("JSON parsing failed:", e);
+        console.error("Raw content that failed to parse:", data.content);
+        
+        // If parsing fails, try to extract content between JSON markers
+        let jsonContent = data.content;
+        if (jsonContent.includes('```json')) {
+          const start = jsonContent.indexOf('```json') + 7;
+          const end = jsonContent.lastIndexOf('```');
+          if (end > start) {
+            jsonContent = jsonContent.substring(start, end).trim();
           }
-        };
+        }
+        
+        try {
+          const parsedAdvice = JSON.parse(jsonContent);
+          console.log("Successfully parsed cleaned JSON:", parsedAdvice.scenario);
+          advice = {
+            ...parsedAdvice,
+            conversationScript: parsedAdvice.conversationScript || {
+              openingLines: ["I wanted to talk with you about something important."],
+              listeningPrompts: ["Can you tell me more about that?"],
+              responseScenarios: [{
+                teacherResponse: "I'm doing fine.",
+                directorReply: "I'm here to support you.",
+                followUpQuestion: "How can I help?"
+              }],
+              closingStatements: ["Thank you for sharing with me."]
+            }
+          };
+        } catch (e2) {
+          console.error("All JSON parsing attempts failed");
+          toast({
+            title: "Parsing Error",
+            description: "Failed to parse AI response. Please try again.",
+            variant: "destructive"
+          });
+          throw new Error("Failed to parse AI response");
+        }
       }
 
       clearInterval(progressInterval);
