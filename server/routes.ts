@@ -1923,6 +1923,65 @@ Continue for all 5 questions...
     }
   });
 
+  // Delete user (Admin only)
+  app.delete("/api/users/:id", requireAuth, async (req, res) => {
+    try {
+      const currentUserId = req.session.userId;
+      const targetUserId = parseInt(req.params.id);
+
+      // Get current user to verify permissions
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Only owners and admins can delete users
+      if (!currentUser.isOwner && !currentUser.isAdmin && !currentUser.isSchoolAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. Admin privileges required to delete users." 
+        });
+      }
+
+      // Get target user
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "Target user not found" });
+      }
+
+      // School admins can only delete users in their school
+      if (!currentUser.isOwner && currentUser.schoolId !== targetUser.schoolId) {
+        return res.status(403).json({ 
+          message: "Access denied. You can only delete users in your school." 
+        });
+      }
+
+      // Prevent deleting owners
+      if (targetUser.isOwner) {
+        return res.status(403).json({ 
+          message: "Cannot delete platform owners." 
+        });
+      }
+
+      // Prevent users from deleting themselves
+      if (currentUserId === targetUserId) {
+        return res.status(403).json({ 
+          message: "You cannot delete your own account." 
+        });
+      }
+
+      // Delete user from database
+      await db.delete(users).where(eq(users.id, targetUserId));
+
+      res.json({ 
+        message: "User deleted successfully"
+      });
+
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {

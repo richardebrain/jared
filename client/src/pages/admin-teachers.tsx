@@ -7,6 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { TeacherAssessmentSummary } from '@/components/ui/teacher-assessment-summary';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { 
@@ -21,7 +32,8 @@ import {
   ArrowLeft,
   Filter,
   Shield,
-  ShieldCheck
+  ShieldCheck,
+  Trash2
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
@@ -40,6 +52,7 @@ interface Teacher {
   createdAt: string;
   isAdmin: boolean;
   isSchoolAdmin: boolean;
+  isOwner: boolean;
   schoolId: number;
   bearBucks: number;
   completedModulesCount?: number;
@@ -91,6 +104,30 @@ export default function AdminTeachersPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to update user role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest(`/api/users/${userId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "User Deleted",
+        description: data.message || "User has been deleted successfully",
+      });
+      // Refresh the teachers list
+      queryClient.invalidateQueries({ queryKey: ['/api/users?includeAssessments=true'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     },
@@ -457,6 +494,42 @@ export default function AdminTeachersPage() {
                     </Link>
                   </div>
                 )}
+
+                {/* Delete User Button */}
+                <div className="pt-2 border-t">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        className="w-full"
+                        disabled={teacher.isOwner}
+                      >
+                        <Trash2 className="h-3 w-3 mr-2" />
+                        Delete User
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete <strong>{teacher.firstName} {teacher.lastName}</strong>'s account? 
+                          This action cannot be undone and will permanently remove all their data, progress, and content.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteUserMutation.mutate(teacher.id)}
+                          disabled={deleteUserMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           ))}
