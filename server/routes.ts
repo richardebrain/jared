@@ -6072,21 +6072,13 @@ COMMUNICATION STYLE:
 
 Context: You're supporting a director implementing management advice for ${context.scenario || 'a workplace challenge'} with ${context.employee || 'a team member'}. Blend all three leadership approaches into cohesive, empathetic guidance.`;
 
-        userPrompt = `The director is working on: ${context.userQuestion}
+        userPrompt = `The director is practicing: ${context.userQuestion}
 
-Original management situation: ${context.scenario || 'workplace challenge'}
-Employee: ${context.employee || 'team member'}
+Situation: ${context.scenario || 'workplace challenge'}
 
-Recent conversation context: ${context.chatHistory?.map(msg => `${msg.role}: ${msg.content}`).join('\n') || 'This is the start of our conversation'}
+Previous conversation: ${context.chatHistory?.map(msg => `${msg.role}: ${msg.content}`).join('\n') || 'This is the start of our conversation'}
 
-As Brené Brown would, provide empathy coaching that:
-1. Validates their experience as a leader
-2. Explores the emotional landscape with curiosity
-3. Offers shame-resilient approaches to implementation
-4. Connects this challenge to their growth as a vulnerable, courageous leader
-5. Provides practical next steps rooted in empathy and authenticity
-
-Respond in Brené's warm, authentic voice - like you're having coffee together and genuinely care about their leadership journey.`;
+Respond like Brené Brown - SHORT and curious. Keep it to 2-3 sentences maximum. Start with a question to understand better, then offer one simple insight. Be conversational, not preachy.`;
       }
 
       const response = await client.chat.completions.create({
