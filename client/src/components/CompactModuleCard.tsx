@@ -16,6 +16,13 @@ export function CompactModuleCard({ module, progress, onClick }: CompactModuleCa
   const progressPercentage = progress?.progress || 0;
   const isCompleted = progress?.completed || false;
   
+  // Check if module is ready (has content or is properly configured)
+  const isModuleReady = Boolean(
+    module.content && 
+    ((typeof module.content === 'string' && module.content.trim().length > 0) ||
+     (typeof module.content === 'object' && module.content !== null))
+  );
+  
   // Background gradient based on module category
   const getCategoryColor = (category?: string) => {
     switch(category?.toLowerCase()) {
@@ -73,10 +80,15 @@ export function CompactModuleCard({ module, progress, onClick }: CompactModuleCa
       </div>
       
       <Button 
-        className={`w-full text-xs h-8 bg-gradient-to-r ${getCategoryColor(module.category)}`}
-        onClick={() => onClick(module.id)}
+        className={`w-full text-xs h-8 ${isModuleReady ? `bg-gradient-to-r ${getCategoryColor(module.category)}` : 'bg-gray-400 cursor-not-allowed'}`}
+        onClick={() => isModuleReady && onClick(module.id)}
+        disabled={!isModuleReady}
       >
-        {isCompleted ? (
+        {!isModuleReady ? (
+          <>
+            Coming Soon
+          </>
+        ) : isCompleted ? (
           <>
             <BookOpen className="mr-1 h-3 w-3" />
             Review
