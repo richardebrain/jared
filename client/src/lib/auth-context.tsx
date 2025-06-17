@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnMount: false, // Disable refetch on mount to prevent loops
     staleTime: 300000, // 5 minutes
     gcTime: 600000, // 10 minutes
-    enabled: !isOnPublicPage() && !authFailed, // Only fetch if not on public page and auth hasn't failed
+    enabled: false, // Temporarily disable to fix loading issue
   });
 
   // Apply data normalization to all users
