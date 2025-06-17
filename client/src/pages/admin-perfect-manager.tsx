@@ -44,6 +44,7 @@ interface ManagementAdvice {
   followUpPlan: string[];
   preventionStrategies: string[];
   successMetrics: string[];
+  coreValuesConnection: string[];
 }
 
 interface Resource {
@@ -141,25 +142,37 @@ export default function PerfectManager() {
       const scenario = selectedScenario || customScenario;
       const scenarioLabel = COMMON_SCENARIOS.find(s => s.id === scenario)?.label || customScenario;
 
-      const prompt = `As a Perfect Manager AI advisor, provide comprehensive management guidance for this workplace scenario:
+      const prompt = `As a Perfect Manager AI advisor specializing in early childhood education, provide comprehensive management guidance for this preschool workplace scenario:
 
 **Scenario**: ${scenarioLabel}
-**Employee**: ${employeeName || 'Team Member'} (${employeeRole || 'Staff Member'})
+**Employee**: ${employeeName || 'Team Member'} (${employeeRole || 'Preschool Teacher'})
 **Situation Details**: ${scenarioDetails}
+
+IMPORTANT: Focus specifically on the unique challenges of preschool education. Remember that "they don't care until they know you care" - relationship-building is fundamental. Address ECE-specific stressors like emotional labor, parent communication, classroom management with young children, and professional development needs.
 
 Please provide a detailed management plan that includes:
 
-1. **Root Cause Analysis**: Identify 3-5 potential underlying causes
-2. **Immediate Actions**: 3-4 steps to take right away
-3. **Long-term Strategies**: 4-6 sustainable solutions
-4. **Resources**: 5-8 specific resources (articles, templates, training materials)
-5. **SMART Goals**: 2-3 specific, measurable goals for the employee
-6. **Motivation Techniques**: 4-5 ways to inspire and motivate
-7. **Follow-up Plan**: Timeline and checkpoints for monitoring progress
-8. **Prevention Strategies**: How to prevent similar issues in the future
-9. **Success Metrics**: How to measure improvement
+1. **Root Cause Analysis**: Identify 4-6 ECE-specific underlying causes (consider: emotional exhaustion from caring for young children, inadequate compensation vs. responsibility, lack of professional recognition, difficult parent relationships, challenging behaviors, insufficient classroom support, work-life balance with emotionally demanding work)
 
-Focus on practical, actionable advice that a busy director can implement immediately. Include specific examples and maintain a supportive, professional tone.
+2. **Immediate Actions**: 4-5 steps focusing on showing care and support first, then addressing practical needs
+
+3. **Long-term Strategies**: 5-7 sustainable solutions that honor the calling of ECE work while addressing systemic issues
+
+4. **Resources**: 6-10 ECE-specific resources (NAEYC materials, classroom management strategies, self-care for teachers, parent communication guides, behavior intervention resources)
+
+5. **SMART Goals**: 2-3 goals that balance professional growth with well-being and job satisfaction
+
+6. **Motivation Techniques**: 5-7 ways to inspire that connect to the teacher's passion for children and the importance of their role in child development
+
+7. **Follow-up Plan**: Relationship-focused check-ins that show genuine care and support
+
+8. **Prevention Strategies**: Systemic changes to support ECE professionals long-term
+
+9. **Success Metrics**: Measures that include job satisfaction, student outcomes, and personal well-being
+
+10. **Core Values Connection**: How this situation connects to fundamental ECE values like nurturing growth, building relationships, creating safe spaces, and supporting families
+
+Include industry insights about why ECE professionals face unique challenges and how their work impacts child development. Reference the emotional labor involved in caring for young children and the need for leaders to model the care they want teachers to show children.
 
 Respond in JSON format with the structure:
 {
@@ -172,7 +185,8 @@ Respond in JSON format with the structure:
   "motivationTechniques": ["technique1", "technique2", ...],
   "followUpPlan": ["step1", "step2", ...],
   "preventionStrategies": ["strategy1", "strategy2", ...],
-  "successMetrics": ["metric1", "metric2", ...]
+  "successMetrics": ["metric1", "metric2", ...],
+  "coreValuesConnection": ["value1", "value2", ...]
 }`;
 
       const response = await fetch('/api/ai-suggestion', {
@@ -205,20 +219,22 @@ Respond in JSON format with the structure:
         // Fallback parsing if JSON is malformed
         advice = {
           scenario: scenarioLabel,
-          rootCauses: ["Communication breakdown", "Unclear expectations", "Personal challenges"],
-          immediateActions: ["Schedule private meeting", "Document concerns", "Provide clear expectations"],
-          longTermStrategies: ["Regular check-ins", "Professional development plan", "Mentorship program"],
+          rootCauses: ["Emotional exhaustion from caring for young children", "Inadequate compensation vs. responsibility", "Lack of professional recognition", "Difficult parent relationships"],
+          immediateActions: ["Schedule a caring one-on-one conversation", "Acknowledge their important work with children", "Provide immediate classroom support", "Offer flexible scheduling options"],
+          longTermStrategies: ["Implement peer mentorship program", "Create professional development pathways", "Establish parent communication protocols", "Build recognition and appreciation systems"],
           resources: [
-            { title: "Effective Employee Conversations", type: "article", description: "Guide for difficult conversations", priority: "high" },
-            { title: "Performance Improvement Template", type: "template", description: "Structured improvement plan", priority: "high" }
+            { title: "NAEYC Self-Care for Early Childhood Educators", type: "article", description: "Professional guidance on preventing burnout", priority: "high" },
+            { title: "Classroom Management for Preschool Teachers", type: "training", description: "Behavior strategies and environmental design", priority: "high" },
+            { title: "Parent Communication Templates", type: "template", description: "Ready-to-use communication frameworks", priority: "medium" }
           ],
           goals: [
-            { title: "Improve Performance", description: "Meet all job requirements", timeframe: "30 days", measurable: true, actionSteps: ["Define clear metrics", "Weekly check-ins"] }
+            { title: "Restore Work-Life Balance", description: "Establish boundaries and self-care practices", timeframe: "60 days", measurable: true, actionSteps: ["Define work hours clearly", "Schedule regular breaks", "Create support network"] }
           ],
-          motivationTechniques: ["Recognition program", "Professional development opportunities", "Clear career path"],
-          followUpPlan: ["Weekly meetings for first month", "Bi-weekly check-ins thereafter"],
-          preventionStrategies: ["Regular team meetings", "Clear communication protocols"],
-          successMetrics: ["Performance metrics", "Attendance improvement", "Team feedback"]
+          motivationTechniques: ["Celebrate impact on child development", "Share success stories from families", "Connect work to passion for children", "Provide growth opportunities", "Create peer support systems"],
+          followUpPlan: ["Weekly caring check-ins for first month", "Bi-weekly support meetings", "Monthly progress reviews"],
+          preventionStrategies: ["Regular staff wellness programs", "Clear communication channels", "Workload management systems", "Professional development support"],
+          successMetrics: ["Job satisfaction surveys", "Student engagement levels", "Teacher retention rates", "Work-life balance assessments"],
+          coreValuesConnection: ["Nurturing growth in both children and teachers", "Building supportive relationships", "Creating safe emotional spaces", "Supporting families through teacher well-being"]
         };
       }
 
@@ -295,6 +311,10 @@ ${generatedAdvice.preventionStrategies.map((strategy, i) => `${i + 1}. ${strateg
 SUCCESS METRICS
 ---------------
 ${generatedAdvice.successMetrics.map((metric, i) => `${i + 1}. ${metric}`).join('\n')}
+
+CORE VALUES CONNECTION
+---------------------
+${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).join('\n') || 'Not specified'}
     `;
 
     const blob = new Blob([content], { type: 'text/plain' });
@@ -799,6 +819,26 @@ ${generatedAdvice.successMetrics.map((metric, i) => `${i + 1}. ${metric}`).join(
                         <li key={index} className="flex items-start gap-2">
                           <Shield className="h-4 w-4 text-green-500 mt-0.5" />
                           <span className="text-sm">{strategy}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-pink-500" />
+                      Core Values Connection
+                    </CardTitle>
+                    <CardDescription>How this situation connects to fundamental ECE values</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {generatedAdvice.coreValuesConnection?.map((value, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <Heart className="h-4 w-4 text-pink-500 mt-0.5" />
+                          <span className="text-sm">{value}</span>
                         </li>
                       ))}
                     </ul>
