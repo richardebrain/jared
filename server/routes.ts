@@ -2037,6 +2037,13 @@ Continue for all 5 questions...
           console.log("module_ratings table not found, skipping...");
         }
         
+        // Delete daily logins
+        try {
+          await db.execute(sql`DELETE FROM daily_logins WHERE user_id = ${targetUserId}`);
+        } catch (e) {
+          console.log("daily_logins table not found, skipping...");
+        }
+        
         // Finally delete the user
         await db.delete(users).where(eq(users.id, targetUserId));
         
