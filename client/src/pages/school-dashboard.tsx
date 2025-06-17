@@ -84,13 +84,7 @@ export default function SchoolDashboard() {
     isLoading: teachersLoading,
     refetch: refetchTeachers
   } = useQuery({
-    queryKey: ["/api/schools", schoolId, "teachers"],
-    queryFn: async () => {
-      console.log(`Frontend: Requesting teachers for school ${schoolId}`);
-      const data = await apiRequest("GET", `/api/schools/${schoolId}/teachers`);
-      console.log(`Frontend: Teachers data received:`, data);
-      return data;
-    },
+    queryKey: [`/api/schools/${schoolId}/teachers`],
     enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
@@ -101,11 +95,7 @@ export default function SchoolDashboard() {
     isLoading: progressLoading,
     refetch: refetchProgress
   } = useQuery({
-    queryKey: ["/api/schools", schoolId, "progress"],
-    queryFn: async () => {
-      const data = await apiRequest("GET", `/api/schools/${schoolId}/teacher-progress`);
-      return data;
-    },
+    queryKey: [`/api/schools/${schoolId}/progress`],
     enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
@@ -116,11 +106,7 @@ export default function SchoolDashboard() {
     isLoading: eosLoading,
     refetch: refetchEOS 
   } = useQuery({
-    queryKey: ["/api/schools", schoolId, "eos"],
-    queryFn: async () => {
-      const data = await apiRequest("GET", `/api/schools/${schoolId}/eos`);
-      return data;
-    },
+    queryKey: [`/api/schools/${schoolId}/eos`],
     enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
