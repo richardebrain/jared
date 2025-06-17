@@ -42,6 +42,7 @@ import ChapterOnePage from "@/pages/chapter-one";
 import VideoResourcesPage from "@/pages/video-resources";
 import ToolsPage from "@/pages/tools";
 import DataSourcesPage from "@/pages/settings/data-sources";
+import ContentPage from "@/pages/settings/content";
 import OwnerDashboardPage from "@/pages/settings/owner-dashboard";
 import OwnerDashboardStandalone from "@/pages/owner-dashboard-standalone";
 import PlatformIntegrationsPage from "@/pages/platform-integrations";
@@ -569,6 +570,18 @@ function Router(props: {
           </div>
         ) : (
           <DataSourcesPage />
+        )}
+      </Route>
+
+      <Route path="/settings/content">
+        {!isAuthenticated && !isLoading ? (
+          <Redirect to="/login" />
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <ContentPage />
         )}
       </Route>
 
