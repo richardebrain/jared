@@ -209,7 +209,7 @@ export default function NewModuleImport() {
             </h1>
             <p className="text-gray-600 mt-2">Transform your existing presentations into interactive modules</p>
           </div>
-          <Button variant="outline" onClick={() => setLocation('/new-module')}>
+          <Button variant="outline" onClick={() => setLocation('/new-module-creator')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Creator
           </Button>

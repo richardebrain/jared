@@ -380,7 +380,7 @@ export default function NewModuleManual() {
               {isEditMode ? 'Update your module with full control over content' : 'Build your module step-by-step with full control over content'}
             </p>
           </div>
-          <Button variant="outline" onClick={() => setLocation('/new-module')}>
+          <Button variant="outline" onClick={() => setLocation('/new-module-creator')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Creator
           </Button>
