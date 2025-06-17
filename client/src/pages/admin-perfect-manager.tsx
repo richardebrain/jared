@@ -29,7 +29,8 @@ import {
   Brain,
   Heart,
   Shield,
-  Send
+  Send,
+  MessageCircle
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -84,6 +85,67 @@ const COMMON_SCENARIOS = [
   { id: 'motivation', label: 'Low Motivation', icon: Star, color: 'text-pink-500' },
   { id: 'training', label: 'Training Needs', icon: BookOpen, color: 'text-indigo-500' }
 ];
+
+// Conversation starter prompts for different scenarios
+const getConversationStarters = (scenario: string): string[] => {
+  const starters = {
+    'Chronic Tardiness': [
+      "I keep getting to work late and I know it's affecting the classroom",
+      "Traffic has been terrible lately, that's why I'm always running behind",
+      "I'm sorry I was late again today, I'll try to do better",
+      "My childcare situation makes it hard to get here on time"
+    ],
+    'Staff Burnout': [
+      "I'm not happy here, all the teachers are lazy",
+      "I feel exhausted all the time and don't enjoy teaching anymore",
+      "This job is way harder than I expected when I started",
+      "I don't think I'm cut out for working with young children"
+    ],
+    'Poor Performance': [
+      "I don't understand why my lesson plans keep getting rejected",
+      "The kids just won't listen to me no matter what I try",
+      "I feel like I'm failing as a teacher",
+      "Other teachers seem to have it all figured out, but I don't"
+    ],
+    'Communication Issues': [
+      "Parents keep complaining about things that aren't my fault",
+      "I don't know how to talk to some of these difficult parents",
+      "My teammates never include me in their conversations",
+      "I feel like nobody listens to my ideas during meetings"
+    ],
+    'Lack of Motivation': [
+      "I used to love this job but now it feels like just going through the motions",
+      "I don't see the point in all these activities and lesson plans",
+      "The kids are happy enough just playing, why do we need so much structure?",
+      "I'm thinking about looking for a different career"
+    ],
+    'Team Conflicts': [
+      "Sarah never helps with cleanup and it's not fair",
+      "I feel like I'm doing all the work while others slack off",
+      "The other teachers talk about me behind my back",
+      "We can't agree on anything as a team"
+    ],
+    'Attendance Problems': [
+      "I called in sick because I just couldn't face coming in today",
+      "My family emergencies keep coming up and I have to miss work",
+      "I know I've been absent a lot but things at home are complicated",
+      "I don't feel appreciated here so sometimes I just don't come"
+    ],
+    'Training Needs': [
+      "I never learned how to handle behavior problems in my training",
+      "I feel lost when it comes to lesson planning for different age groups",
+      "Nobody taught me how to work with children with special needs",
+      "I wish I knew more about child development theories"
+    ]
+  };
+  
+  return starters[scenario] || [
+    "I'm having some challenges in my role",
+    "I wanted to talk to you about something that's been bothering me",
+    "I'm not sure how to handle this situation",
+    "I feel like I need some guidance"
+  ];
+};
 
 export default function PerfectManager() {
   const [selectedScenario, setSelectedScenario] = useState<string>('');
@@ -890,6 +952,32 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                       and get coached responses that blend Tony Robbins' inspirational energy, Simon Sinek's intellectual clarity, and Brené Brown's vulnerable authenticity.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Conversation Starter Prompts */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  Try These Conversation Starters
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {getConversationStarters(selectedScenario).map((starter, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setChatInput(starter);
+                        // Focus the chat input
+                        setTimeout(() => {
+                          const chatInput = document.querySelector('textarea[placeholder*="Share what you think"]');
+                          if (chatInput) chatInput.focus();
+                        }, 100);
+                      }}
+                      className="text-left p-3 bg-white border border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm text-blue-800"
+                    >
+                      "{starter}"
+                    </button>
+                  ))}
                 </div>
               </div>
 
