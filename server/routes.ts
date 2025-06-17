@@ -3306,6 +3306,221 @@ Continue for all 5 questions...
     }
   });
 
+  // School Dashboard API endpoints
+  app.get("/api/schools/:schoolId/teachers", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const userId = req.session.userId as number;
+      
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Check if user has access to this school data
+      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        return res.status(403).json({ message: "Access denied to this school's data" });
+      }
+      
+      // Get all teachers for the school
+      const teachers = await db.select().from(users).where(eq(users.schoolId, schoolId));
+      
+      res.json({
+        count: teachers.length,
+        teachers: teachers.map(teacher => ({
+          id: teacher.id,
+          username: teacher.username,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          email: teacher.email,
+          level: teacher.level,
+          points: teacher.points,
+          bearBucks: teacher.bearBucks,
+          streak: teacher.streak,
+          lastActive: teacher.lastActive,
+          profilePicture: teacher.profilePicture,
+          isAdmin: teacher.isAdmin,
+          isSchoolAdmin: teacher.isSchoolAdmin
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching school teachers:", error);
+      res.status(500).json({ message: "Failed to fetch teachers" });
+    }
+  });
+  
+  app.get("/api/schools/:schoolId/teacher-progress", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const userId = req.session.userId as number;
+      
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Check if user has access to this school data
+      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        return res.status(403).json({ message: "Access denied to this school's data" });
+      }
+      
+      // Get all teachers for the school
+      const teachers = await db.select().from(users).where(eq(users.schoolId, schoolId));
+      
+      // Get progress data for each teacher
+      const progressData = await Promise.all(teachers.map(async (teacher) => {
+        // Get total modules count
+        const totalModulesResult = await db.execute(sql`SELECT COUNT(*) as count FROM learning_modules WHERE is_visible = true`);
+        const totalModules = totalModulesResult.rows[0]?.count || 0;
+        
+        // Get completed modules for this teacher
+        const completedModulesResult = await db.execute(sql`
+          SELECT COUNT(*) as count FROM user_progress 
+          WHERE user_id = ${teacher.id} AND completed = true AND passed = true
+        `);
+        const modulesCompleted = completedModulesResult.rows[0]?.count || 0;
+        
+        // Get last assessment
+        const lastAssessmentResult = await db.execute(sql`
+          SELECT created_at FROM user_assessments 
+          WHERE user_id = ${teacher.id} 
+          ORDER BY created_at DESC LIMIT 1
+        `);
+        const lastAssessment = lastAssessmentResult.rows[0] || null;
+        
+        const completionPercentage = totalModules > 0 ? Math.round((modulesCompleted / totalModules) * 100) : 0;
+        
+        return {
+          userId: teacher.id,
+          fullName: `${teacher.firstName} ${teacher.lastName}`,
+          completionPercentage,
+          modulesCompleted,
+          totalModules,
+          lastAssessment,
+          lastActive: teacher.lastActive
+        };
+      }));
+      
+      res.json({ progressData });
+    } catch (error) {
+      console.error("Error fetching teacher progress:", error);
+      res.status(500).json({ message: "Failed to fetch progress data" });
+    }
+  });
+  
+  app.get("/api/schools/:schoolId/eos", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const userId = req.session.userId as number;
+      
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Check if user has access to this school data
+      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        return res.status(403).json({ message: "Access denied to this school's data" });
+      }
+      
+      // Get core value shout outs for this school
+      try {
+        const shoutOutsResult = await db.execute(sql`
+          SELECT cvs.*, 
+                 n.first_name as nominator_first_name, n.last_name as nominator_last_name,
+                 nom.first_name as nominee_first_name, nom.last_name as nominee_last_name
+          FROM core_values_shout_outs cvs
+          LEFT JOIN users n ON cvs.nominator_id = n.id
+          LEFT JOIN users nom ON cvs.nominee_id = nom.id
+          WHERE n.school_id = ${schoolId} OR nom.school_id = ${schoolId}
+          ORDER BY cvs.created_at DESC
+        `);
+        
+        const shoutOuts = shoutOutsResult.rows.map(row => ({
+          id: row.id,
+          coreValue: row.core_value,
+          message: row.message,
+          createdAt: row.created_at,
+          nominator: {
+            fullName: `${row.nominator_first_name} ${row.nominator_last_name}`
+          },
+          nominee: {
+            fullName: `${row.nominee_first_name} ${row.nominee_last_name}`
+          }
+        }));
+        
+        res.json({ shoutOuts });
+      } catch (tableError) {
+        // Try alternate table name if first doesn't exist
+        try {
+          const shoutOutsResult = await db.execute(sql`
+            SELECT cvs.*, 
+                   n.first_name as nominator_first_name, n.last_name as nominator_last_name,
+                   nom.first_name as nominee_first_name, nom.last_name as nominee_last_name
+            FROM core_value_shoutouts cvs
+            LEFT JOIN users n ON cvs.nominator_id = n.id
+            LEFT JOIN users nom ON cvs.nominee_id = nom.id
+            WHERE n.school_id = ${schoolId} OR nom.school_id = ${schoolId}
+            ORDER BY cvs.created_at DESC
+          `);
+          
+          const shoutOuts = shoutOutsResult.rows.map(row => ({
+            id: row.id,
+            coreValue: row.core_value,
+            message: row.message,
+            createdAt: row.created_at,
+            nominator: {
+              fullName: `${row.nominator_first_name} ${row.nominator_last_name}`
+            },
+            nominee: {
+              fullName: `${row.nominee_first_name} ${row.nominee_last_name}`
+            }
+          }));
+          
+          res.json({ shoutOuts });
+        } catch (error2) {
+          console.log("No core values table found, returning empty data");
+          res.json({ shoutOuts: [] });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching EOS data:", error);
+      res.status(500).json({ message: "Failed to fetch EOS data" });
+    }
+  });
+  
+  app.get("/api/schools/:schoolId", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const userId = req.session.userId as number;
+      
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Check if user has access to this school data
+      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        return res.status(403).json({ message: "Access denied to this school's data" });
+      }
+      
+      // Get school information
+      const school = await storage.getSchool(schoolId);
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      res.json({ school });
+    } catch (error) {
+      console.error("Error fetching school data:", error);
+      res.status(500).json({ message: "Failed to fetch school data" });
+    }
+  });
+
   // Get list of all owners
   app.get("/api/owner/list", requireOwner, async (req, res) => {
     try {

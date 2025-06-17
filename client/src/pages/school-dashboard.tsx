@@ -61,12 +61,10 @@ export default function SchoolDashboard() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [adminKey, setAdminKey] = useState("");
-  const [showAdminAuth, setShowAdminAuth] = useState(true);
   const [addTeacherOpen, setAddTeacherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
-  // Get school data with admin key
+  // Get school data
   const { 
     data: schoolData, 
     isLoading: schoolLoading,
@@ -74,17 +72,14 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET", 
-        `/api/schools/${schoolId}?adminKey=${encodeURIComponent(adminKey)}`
-      );
+      const res = await apiRequest("GET", `/api/schools/${schoolId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch school data");
       }
       return res.json();
     },
-    enabled: !!schoolId && !!adminKey && isAuthenticated,
+    enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
   
@@ -96,17 +91,14 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId, "teachers"],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET", 
-        `/api/schools/${schoolId}/teachers?adminKey=${encodeURIComponent(adminKey)}`
-      );
+      const res = await apiRequest("GET", `/api/schools/${schoolId}/teachers`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch teachers");
       }
       return res.json();
     },
-    enabled: !!schoolId && !!adminKey && isAuthenticated && !showAdminAuth,
+    enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
   
@@ -118,17 +110,14 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId, "progress"],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET", 
-        `/api/schools/${schoolId}/teacher-progress?adminKey=${encodeURIComponent(adminKey)}`
-      );
+      const res = await apiRequest("GET", `/api/schools/${schoolId}/teacher-progress`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch progress data");
       }
       return res.json();
     },
-    enabled: !!schoolId && !!adminKey && isAuthenticated && !showAdminAuth,
+    enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
   
@@ -140,25 +129,15 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId, "eos"],
     queryFn: async () => {
-      const res = await apiRequest(
-        "GET", 
-        `/api/schools/${schoolId}/eos?adminKey=${encodeURIComponent(adminKey)}`
-      );
+      const res = await apiRequest("GET", `/api/schools/${schoolId}/eos`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch EOS data");
       }
       return res.json();
     },
-    enabled: !!schoolId && !!adminKey && isAuthenticated && !showAdminAuth,
+    enabled: !!schoolId && isAuthenticated,
     retry: false,
-  });
-  
-  // Form for admin authentication
-  const adminForm = useForm({
-    defaultValues: {
-      adminKey: ""
-    }
   });
   
   // Teacher registration form
@@ -217,18 +196,12 @@ export default function SchoolDashboard() {
     }
   }, [schoolData, settingsForm]);
   
-  // Handle submitting admin key
-  const handleAdminSubmit = (data) => {
-    setAdminKey(data.adminKey);
-    setShowAdminAuth(false);
-  };
-  
   // Handle adding a new teacher
-  const handleAddTeacher = async (data) => {
+  const handleAddTeacher = async (data: any) => {
     try {
       const res = await apiRequest(
         "POST", 
-        `/api/schools/${schoolId}/teachers?adminKey=${encodeURIComponent(adminKey)}`,
+        `/api/schools/${schoolId}/teachers`,
         data
       );
       
@@ -259,11 +232,11 @@ export default function SchoolDashboard() {
   };
   
   // Handle updating school settings
-  const handleUpdateSettings = async (data) => {
+  const handleUpdateSettings = async (data: any) => {
     try {
       const res = await apiRequest(
         "PATCH", 
-        `/api/schools/${schoolId}/settings?adminKey=${encodeURIComponent(adminKey)}`,
+        `/api/schools/${schoolId}/settings`,
         data
       );
       
@@ -271,8 +244,6 @@ export default function SchoolDashboard() {
         const error = await res.json();
         throw new Error(error.message || "Failed to update settings");
       }
-      
-      const result = await res.json();
       
       toast({
         title: "Settings Updated",
@@ -282,12 +253,7 @@ export default function SchoolDashboard() {
       // Close dialog and refetch school data
       setSettingsOpen(false);
       refetchSchool();
-      
-      // Update admin key if it was changed
-      if (data.adminPassword) {
-        setAdminKey(data.adminPassword);
-      }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
