@@ -293,21 +293,45 @@ Respond in JSON format with the structure:
           successMetrics: ["Job satisfaction surveys", "Student engagement levels", "Teacher retention rates", "Work-life balance assessments"],
           coreValuesConnection: ["Nurturing growth in both children and teachers", "Building supportive relationships", "Creating safe emotional spaces", "Supporting families through teacher well-being"],
           conversationScript: {
-            openingLines: ["I wanted to talk with you about something important. How are you feeling about things lately?", "I've noticed some changes and want to support you. Can we chat?", "Your well-being matters to me and our children. How can I help?"],
-            listeningPrompts: ["Can you tell me more about that?", "How has this been affecting you?", "What would be most helpful right now?", "Help me understand your perspective"],
+            openingLines: [
+              "I wanted to talk with you about something important. How are you feeling about things lately?", 
+              "Your energy and passion matter so much to our children. How can I support you?", 
+              "I see your dedication every day. Let's talk about how we can help you thrive."
+            ],
+            listeningPrompts: [
+              "Can you tell me more about that?", 
+              "How has this been affecting you?", 
+              "What would be most helpful right now?", 
+              "Help me understand your perspective"
+            ],
             responseScenarios: [
               {
                 teacherResponse: "I'm doing fine, just busy with everything.",
-                directorReply: "I understand you're managing a lot. Your dedication to the children is clear, and I want to make sure you're supported.",
-                followUpQuestion: "What's taking up most of your energy right now?"
+                directorReply: "I understand you're managing a lot. Remember, we get to write chapter one with these children every day - that's such a privilege! Your energy and passion make all the difference.",
+                followUpQuestion: "What would help you bring your best self to the children each day?"
               },
               {
                 teacherResponse: "I feel overwhelmed and don't know if I'm making a difference.",
-                directorReply: "Your feelings are completely valid. Working with young children is emotionally demanding, and it's natural to feel this way sometimes.",
-                followUpQuestion: "Can you help me understand what specific situations are feeling most challenging?"
+                directorReply: "Your feelings are completely valid. Let's pause and breathe together for a moment. The children absolutely feel your love and care - they will love what you love when you bring your authentic energy.",
+                followUpQuestion: "What brings you joy about working with the children? Let's focus on that spark."
+              },
+              {
+                teacherResponse: "I'm stressed and exhausted all the time.",
+                directorReply: "Your well-being matters deeply. Let's talk about mindful mornings - taking just 5 minutes to breathe and center yourself before the day begins. Self-care isn't selfish; it's essential for the children.",
+                followUpQuestion: "What would a perfect morning routine look like for you? How can we make space for that?"
+              },
+              {
+                teacherResponse: "I don't think I'm good at this job.",
+                directorReply: "Stop right there. You chose this work because you have something special to offer these children. We get to write chapter one of their educational story - what an incredible privilege! Have fun with it, be playful, be yourself.",
+                followUpQuestion: "What made you fall in love with working with children originally? Let's reconnect with that passion."
               }
             ],
-            closingStatements: ["Thank you for being honest with me. Let's work together on this.", "I'm here to support you because you matter to our children and our team.", "Your dedication to early childhood education makes a real difference, and I want to help you thrive."]
+            closingStatements: [
+              "Remember, we get to write chapter one with these children. What a privilege! Bring your best energy and they'll love what you love.",
+              "Take time for mindful mornings and self-care. You can't pour from an empty cup, and these children need your full, joyful presence.",
+              "Have fun with this work! Be playful, be authentic. The children feel your energy and they'll love what you love when you're genuinely excited.",
+              "You matter to our children and our team. Let's work together to help you thrive and remember why this calling chose you."
+            ]
           }
         };
       }
@@ -685,11 +709,12 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="actions">Actions</TabsTrigger>
               <TabsTrigger value="goals">Goals</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
+              <TabsTrigger value="script">Conversation Script</TabsTrigger>
               <TabsTrigger value="followup">Follow-up</TabsTrigger>
             </TabsList>
 
@@ -854,6 +879,86 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="script" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-purple-500" />
+                      Conversation Script Guide
+                    </CardTitle>
+                    <CardDescription>Suggested talking points to inspire action and positive change</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    
+                    {/* Opening Lines */}
+                    <div>
+                      <h4 className="font-semibold mb-3 text-purple-600">Opening Lines - Set a Caring Tone</h4>
+                      <div className="space-y-2">
+                        {generatedAdvice.conversationScript?.openingLines?.map((line, index) => (
+                          <div key={index} className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-200">
+                            <p className="text-sm italic">"{line}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Listening Prompts */}
+                    <div>
+                      <h4 className="font-semibold mb-3 text-blue-600">Listening Prompts - Encourage Sharing</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {generatedAdvice.conversationScript?.listeningPrompts?.map((prompt, index) => (
+                          <div key={index} className="p-3 bg-blue-50 rounded-lg">
+                            <p className="text-sm">• {prompt}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Response Scenarios */}
+                    <div>
+                      <h4 className="font-semibold mb-3 text-green-600">Response Scenarios - Inspire & Guide</h4>
+                      <div className="space-y-4">
+                        {generatedAdvice.conversationScript?.responseScenarios?.map((scenario, index) => (
+                          <Card key={index} className="border-green-200">
+                            <CardContent className="p-4">
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-500 mb-1">IF TEACHER SAYS:</p>
+                                  <p className="text-sm bg-gray-100 p-2 rounded italic">"{scenario.teacherResponse}"</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-green-600 mb-1">YOUR INSPIRING REPLY:</p>
+                                  <p className="text-sm bg-green-50 p-3 rounded border-l-4 border-green-300">"{scenario.directorReply}"</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-blue-600 mb-1">FOLLOW-UP QUESTION:</p>
+                                  <p className="text-sm bg-blue-50 p-2 rounded">"{scenario.followUpQuestion}"</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Closing Statements */}
+                    <div>
+                      <h4 className="font-semibold mb-3 text-orange-600">Inspiring Closing Statements</h4>
+                      <div className="space-y-2">
+                        {generatedAdvice.conversationScript?.closingStatements?.map((statement, index) => (
+                          <div key={index} className="p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border-l-4 border-orange-300">
+                            <p className="text-sm font-medium">"{statement}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
