@@ -58,11 +58,42 @@ interface Teacher {
 export default function AdminTeachersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch teachers data with assessment results
   const { data: teachers = [], isLoading } = useQuery<Teacher[]>({
     queryKey: ['/api/users?includeAssessments=true'],
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Role update mutation
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, isAdmin, isSchoolAdmin }: { 
+      userId: number; 
+      isAdmin: boolean; 
+      isSchoolAdmin: boolean; 
+    }) => {
+      return apiRequest(`/api/users/${userId}/role`, {
+        method: 'PATCH',
+        data: { isAdmin, isSchoolAdmin }
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Role Updated",
+        description: data.message || "User role has been updated successfully",
+      });
+      // Refresh the teachers list
+      queryClient.invalidateQueries({ queryKey: ['/api/users?includeAssessments=true'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user role",
+        variant: "destructive",
+      });
+    },
   });
 
   // Filter teachers based on search and level
@@ -333,10 +364,85 @@ export default function AdminTeachersPage() {
                   <span className="font-medium">{formatLastActive(teacher.lastActive)}</span>
                 </div>
                 
+                {/* Role Status and Management */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Role:</span>
+                    {teacher.isAdmin ? (
+                      <Badge variant="default" className="bg-red-100 text-red-800">
+                        <ShieldCheck className="h-3 w-3 mr-1" />
+                        Platform Admin
+                      </Badge>
+                    ) : teacher.isSchoolAdmin ? (
+                      <Badge variant="default" className="bg-blue-100 text-blue-800">
+                        <Shield className="h-3 w-3 mr-1" />
+                        School Admin
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-gray-50 text-gray-700">
+                        Teacher
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {/* Role Management Buttons */}
+                  <div className="flex gap-2">
+                    {!teacher.isSchoolAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateRoleMutation.mutate({
+                          userId: teacher.id,
+                          isAdmin: false,
+                          isSchoolAdmin: true
+                        })}
+                        disabled={updateRoleMutation.isPending}
+                        className="flex-1"
+                      >
+                        <Shield className="h-3 w-3 mr-1" />
+                        Make School Admin
+                      </Button>
+                    )}
+                    
+                    {!teacher.isAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateRoleMutation.mutate({
+                          userId: teacher.id,
+                          isAdmin: true,
+                          isSchoolAdmin: false
+                        })}
+                        disabled={updateRoleMutation.isPending}
+                        className="flex-1"
+                      >
+                        <ShieldCheck className="h-3 w-3 mr-1" />
+                        Make Platform Admin
+                      </Button>
+                    )}
+                    
+                    {(teacher.isAdmin || teacher.isSchoolAdmin) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateRoleMutation.mutate({
+                          userId: teacher.id,
+                          isAdmin: false,
+                          isSchoolAdmin: false
+                        })}
+                        disabled={updateRoleMutation.isPending}
+                        className="flex-1"
+                      >
+                        Remove Admin Role
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
                 {/* Assessment Results Summary */}
                 <TeacherAssessmentSummary assessmentResults={teacher.assessmentResults} />
                 
-                {/* View Assessment Results Button - replaces Message and Schedule buttons */}
+                {/* View Assessment Results Button */}
                 {teacher.assessmentResults?.completed && (
                   <div className="pt-2">
                     <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
