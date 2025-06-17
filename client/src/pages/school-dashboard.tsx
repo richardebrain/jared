@@ -75,12 +75,8 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/schools/${schoolId}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to fetch school data");
-      }
-      return res.json();
+      const data = await apiRequest("GET", `/api/schools/${schoolId}`);
+      return data;
     },
     enabled: !!schoolId && isAuthenticated,
     retry: false,
@@ -95,14 +91,7 @@ export default function SchoolDashboard() {
     queryKey: ["/api/schools", schoolId, "teachers"],
     queryFn: async () => {
       console.log(`Frontend: Requesting teachers for school ${schoolId}`);
-      const res = await apiRequest("GET", `/api/schools/${schoolId}/teachers`);
-      console.log(`Frontend: Teachers API response status: ${res.status}`);
-      if (!res.ok) {
-        const error = await res.json();
-        console.log(`Frontend: Teachers API error:`, error);
-        throw new Error(error.message || "Failed to fetch teachers");
-      }
-      const data = await res.json();
+      const data = await apiRequest("GET", `/api/schools/${schoolId}/teachers`);
       console.log(`Frontend: Teachers data received:`, data);
       return data;
     },
@@ -118,12 +107,8 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId, "progress"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/schools/${schoolId}/teacher-progress`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to fetch progress data");
-      }
-      return res.json();
+      const data = await apiRequest("GET", `/api/schools/${schoolId}/teacher-progress`);
+      return data;
     },
     enabled: !!schoolId && isAuthenticated,
     retry: false,
@@ -137,12 +122,8 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId, "eos"],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/schools/${schoolId}/eos`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to fetch EOS data");
-      }
-      return res.json();
+      const data = await apiRequest("GET", `/api/schools/${schoolId}/eos`);
+      return data;
     },
     enabled: !!schoolId && isAuthenticated,
     retry: false,
