@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { TeacherAssessmentSummary } from '@/components/ui/teacher-assessment-summary';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Users, 
   Search, 
@@ -17,7 +19,9 @@ import {
   TrendingUp,
   Clock,
   ArrowLeft,
-  Filter
+  Filter,
+  Shield,
+  ShieldCheck
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 

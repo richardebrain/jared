@@ -1869,6 +1869,60 @@ Continue for all 5 questions...
     }
   });
 
+  // Update user role (Admin only)
+  app.patch("/api/users/:id/role", requireAuth, async (req, res) => {
+    try {
+      const currentUserId = req.session.userId;
+      const targetUserId = parseInt(req.params.id);
+      const { isAdmin, isSchoolAdmin } = req.body;
+
+      // Get current user to verify permissions
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Only owners and admins can change roles
+      if (!currentUser.isOwner && !currentUser.isAdmin && !currentUser.isSchoolAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. Admin privileges required to change user roles." 
+        });
+      }
+
+      // Get target user
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "Target user not found" });
+      }
+
+      // School admins can only manage users in their school
+      if (!currentUser.isOwner && currentUser.schoolId !== targetUser.schoolId) {
+        return res.status(403).json({ 
+          message: "Access denied. You can only manage users in your school." 
+        });
+      }
+
+      // Update user role in database
+      await db.update(users)
+        .set({
+          isAdmin: isAdmin || false,
+          isSchoolAdmin: isSchoolAdmin || false,
+        })
+        .where(eq(users.id, targetUserId));
+
+      // Return updated user data
+      const updatedUser = await storage.getUser(targetUserId);
+      res.json({ 
+        message: "User role updated successfully",
+        user: updatedUser 
+      });
+
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
   // Get all users (for leaderboard)
   app.get("/api/users", async (req, res) => {
     try {
@@ -6053,41 +6107,39 @@ From Brené Brown:
 - Boundaries are essential for wholehearted leadership
 - Courage over comfort in difficult conversations
 
-YOUR PROFESSIONAL COACHING APPROACH:
-- Show genuine empathy and professional concern first
-- Acknowledge their challenges with compassion
-- Connect their work to the sacred mission of teaching - building "chapter one" in children's lives
-- Balance holding standards with finding win-win solutions
-- Guide toward practical steps while maintaining inspiration
-- Help them feel appreciated and motivated to be their best
-- Remind them that teaching is the most important job in the world
+YOU ARE A WISE, EXPERIENCED EDUCATIONAL COACH:
+- Think deeply before responding - consider the human being behind this situation
+- Understand that directors are balancing empathy with accountability 
+- Remember that teachers chose the sacred work of nurturing children's first experiences
+- Recognize the emotional complexity of maintaining standards while supporting growth
+- Speak naturally and conversationally, like a trusted mentor over coffee
+- Draw from your deep understanding of both educational leadership and human psychology
 
-COMMUNICATION FLOW:
-1. EXPRESS EMPATHY: Show genuine care and understanding for their situation
-2. ACKNOWLEDGE THE SACRED: Remind them of the honor and sacred duty of teaching
-3. HOLD STANDARDS WITH LOVE: Explain why standards matter for children's success
-4. FIND WIN-WIN SOLUTIONS: Guide toward practical steps that help everyone succeed
-5. SET INSPIRING GOALS: Help them see a path forward that makes them feel valued
-6. END WITH MOTIVATION: Reinforce their importance and potential for greatness
+THOUGHTFUL RESPONSE APPROACH:
+- First, pause and consider what this person is really experiencing emotionally
+- Think about the teacher they're working with as a whole person with dreams and struggles
+- Consider how this challenge connects to the deeper purpose of education
+- Reflect on what practical wisdom would be most helpful right now
+- Respond with the depth and nuance of someone who truly understands educational leadership
 
-Keep responses 3-4 sentences maximum. Be warm, professional, and inspirational while staying practical.
+Be conversational and authentic. Avoid buzzwords or scripted language. Speak from wisdom and experience.
 
 Context: You're supporting a director implementing management advice for ${context.scenario || 'a workplace challenge'} with ${context.employee || 'a team member'}. Blend all three leadership approaches into cohesive, empathetic guidance.`;
 
-        userPrompt = `The director is practicing: ${context.userQuestion}
+        userPrompt = `You're coaching a school director who is practicing a difficult conversation. They just said: "${context.userQuestion}"
 
-Situation: ${context.scenario || 'workplace challenge'}
+The situation involves: ${context.scenario || 'a workplace challenge'}
 
-Previous conversation: ${context.chatHistory?.map(msg => `${msg.role}: ${msg.content}`).join('\n') || 'This is the start of our conversation'}
+Previous conversation context: ${context.chatHistory?.map(msg => `${msg.role}: ${msg.content}`).join('\n') || 'This is the beginning of our coaching session'}
 
-Coach this director professionally with empathy and inspiration. Follow this flow:
-1. Show genuine care and concern for their situation
-2. Acknowledge that teaching is the most important job in the world - building "chapter one" in children's lives is a sacred honor
-3. Gently remind that we must hold standards while finding win-win solutions that help everyone succeed
-4. Guide toward practical next steps that make the teacher feel valued and motivated
-5. End with inspiration about their potential to be an amazing teacher
+Take a moment to deeply consider this director's situation. They're trying to balance being empathetic while maintaining professional standards. Think about:
+- What they might be feeling right now (nervous, concerned, wanting to help)
+- The teacher they're working with (a human being with their own struggles and dreams)
+- The sacred nature of teaching - these are people who chose to build "chapter one" in children's lives
+- How to maintain standards while creating win-win solutions
+- What this director needs to hear right now to feel confident and compassionate
 
-Keep to 3-4 sentences maximum. Be warm, professional, and inspirational while staying practical.`;
+Respond as a wise, experienced coach who understands both the challenges of management and the heart of education. Be conversational and natural - like you're having coffee with a colleague who needs genuine support. Keep it to 2-3 sentences that feel human and thoughtful, not scripted.`;
       }
 
       const response = await client.chat.completions.create({
