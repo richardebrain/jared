@@ -3312,19 +3312,26 @@ Continue for all 5 questions...
       const schoolId = parseInt(req.params.schoolId);
       const userId = req.session.userId as number;
       
+      console.log(`GET /api/schools/${schoolId}/teachers - User ID: ${userId}`);
+      
       // Get current user to check permissions
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
+        console.log(`User ${userId} not found in database`);
         return res.status(401).json({ message: "User not found" });
       }
       
+      console.log(`Current user: ${currentUser.username} (school: ${currentUser.schoolId}, isAdmin: ${currentUser.isAdmin}, isSchoolAdmin: ${currentUser.isSchoolAdmin})`);
+      
       // Check if user has access to this school data
       if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        console.log(`Access denied: User ${userId} cannot access school ${schoolId} data`);
         return res.status(403).json({ message: "Access denied to this school's data" });
       }
       
       // Get all teachers for the school
       const teachers = await db.select().from(users).where(eq(users.schoolId, schoolId));
+      console.log(`Found ${teachers.length} teachers for school ${schoolId}`);
       
       res.json({
         count: teachers.length,
@@ -3355,19 +3362,26 @@ Continue for all 5 questions...
       const schoolId = parseInt(req.params.schoolId);
       const userId = req.session.userId as number;
       
+      console.log(`GET /api/schools/${schoolId}/teacher-progress - User ID: ${userId}`);
+      
       // Get current user to check permissions
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
+        console.log(`User ${userId} not found in database`);
         return res.status(401).json({ message: "User not found" });
       }
       
+      console.log(`Current user: ${currentUser.username} (school: ${currentUser.schoolId})`);
+      
       // Check if user has access to this school data
       if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        console.log(`Access denied: User ${userId} cannot access school ${schoolId} data`);
         return res.status(403).json({ message: "Access denied to this school's data" });
       }
       
       // Get all teachers for the school
       const teachers = await db.select().from(users).where(eq(users.schoolId, schoolId));
+      console.log(`Found ${teachers.length} teachers for progress data`);
       
       // Get progress data for each teacher
       const progressData = await Promise.all(teachers.map(async (teacher) => {

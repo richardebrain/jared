@@ -94,12 +94,17 @@ export default function SchoolDashboard() {
   } = useQuery({
     queryKey: ["/api/schools", schoolId, "teachers"],
     queryFn: async () => {
+      console.log(`Frontend: Requesting teachers for school ${schoolId}`);
       const res = await apiRequest("GET", `/api/schools/${schoolId}/teachers`);
+      console.log(`Frontend: Teachers API response status: ${res.status}`);
       if (!res.ok) {
         const error = await res.json();
+        console.log(`Frontend: Teachers API error:`, error);
         throw new Error(error.message || "Failed to fetch teachers");
       }
-      return res.json();
+      const data = await res.json();
+      console.log(`Frontend: Teachers data received:`, data);
+      return data;
     },
     enabled: !!schoolId && isAuthenticated,
     retry: false,
