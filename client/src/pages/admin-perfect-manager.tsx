@@ -93,6 +93,9 @@ export default function PerfectManager() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAdvice, setGeneratedAdvice] = useState<ManagementAdvice | null>(null);
   const [progress, setProgress] = useState(0);
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -113,6 +116,53 @@ export default function PerfectManager() {
     };
     
     setScenarioDetails(scenarioPrompts[scenarioId as keyof typeof scenarioPrompts] || '');
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !generatedAdvice) return;
+    
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsChatLoading(true);
+
+    try {
+      const response = await fetch('/api/ai-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'empathy-coaching',
+          context: {
+            scenario: selectedScenario || customScenario,
+            employee: employeeName,
+            originalAdvice: generatedAdvice,
+            userQuestion: userMessage,
+            chatHistory: chatMessages.slice(-4) // Last 4 messages for context
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to get coaching response');
+      
+      const data = await response.json();
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+    } catch (error) {
+      toast({
+        title: "Chat Error",
+        description: "Failed to get empathy coaching response. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
+  const initializeChat = () => {
+    if (generatedAdvice && chatMessages.length === 0) {
+      const scenarioName = COMMON_SCENARIOS.find(s => s.id === selectedScenario)?.label || customScenario;
+      const welcomeMessage = `I'm here to help you implement the management plan for ${employeeName || 'your team member'}'s ${scenarioName.toLowerCase()} situation. I can provide empathy coaching, help you practice difficult conversations, or answer questions about applying the legendary leadership principles. What would you like to explore first?`;
+      setChatMessages([{ role: 'assistant', content: welcomeMessage }]);
+    }
   };
 
   const generateAdvice = async () => {
@@ -810,13 +860,18 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
             </Button>
           </div>
 
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+          <Tabs defaultValue="overview" className="w-full" onValueChange={(value) => {
+            if (value === "coaching") {
+              initializeChat();
+            }
+          }}>
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="actions">Actions</TabsTrigger>
               <TabsTrigger value="goals">Goals</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
               <TabsTrigger value="script">Conversation Script</TabsTrigger>
+              <TabsTrigger value="coaching">Empathy Coach</TabsTrigger>
               <TabsTrigger value="followup">Follow-up</TabsTrigger>
             </TabsList>
 
@@ -1062,6 +1117,89 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="coaching" className="space-y-4">
+              <Card className="h-[600px] flex flex-col">
+                <CardHeader className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-purple-50 border-b">
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-pink-500" />
+                    AI-Powered Empathy Coach
+                  </CardTitle>
+                  <CardDescription>
+                    Ongoing support programmed with Brené Brown's wisdom on vulnerability, courage, and authentic leadership
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col p-0">
+                  {/* Chat Messages */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {chatMessages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`flex ${
+                          message.role === 'user' ? 'justify-end' : 'justify-start'
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-lg p-3 ${
+                            message.role === 'user'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-pink-50 text-slate-800 border border-pink-100'
+                          }`}
+                        >
+                          {message.role === 'assistant' && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <Heart className="h-4 w-4 text-pink-500" />
+                              <span className="text-xs font-medium text-pink-600">Empathy Coach</span>
+                            </div>
+                          )}
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {isChatLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-pink-50 border border-pink-100 rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <Heart className="h-4 w-4 text-pink-500 animate-pulse" />
+                            <span className="text-sm text-pink-600">Reflecting with empathy...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Chat Input */}
+                  <div className="flex-shrink-0 border-t p-4">
+                    <div className="flex gap-2">
+                      <Input
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder="Share your thoughts, concerns, or questions about implementing this plan..."
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendChatMessage();
+                          }
+                        }}
+                        disabled={isChatLoading}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={sendChatMessage}
+                        disabled={!chatInput.trim() || isChatLoading}
+                        size="sm"
+                        className="bg-pink-500 hover:bg-pink-600"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      This coach embodies Brené Brown's approach to vulnerability-based leadership and empathetic communication
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="followup" className="space-y-6">
