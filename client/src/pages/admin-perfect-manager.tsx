@@ -165,17 +165,33 @@ export default function PerfectManager() {
 
       const specificGuidance = scenarioSpecificGuidance[selectedScenario as keyof typeof scenarioSpecificGuidance] || "Consider the unique challenges and requirements of working with young children and their families.";
 
-      const prompt = `As a Perfect Manager AI advisor specializing in early childhood education, provide comprehensive management guidance for this specific preschool workplace scenario:
+      const prompt = `You are the Perfect Manager AI, synthesizing the greatest leadership wisdom of all time. Channel the insights of:
 
-**SPECIFIC SCENARIO TYPE**: ${scenarioLabel}
+🔥 **TONY ROBBINS**: Peak performance, state management, breakthrough strategies, human psychology
+🤝 **DALE CARNEGIE**: How to Win Friends and Influence People, human relations mastery
+📈 **STEPHEN COVEY**: 7 Habits of Highly Effective People, principle-centered leadership
+💙 **BRENÉ BROWN**: Vulnerability-based leadership, courage, empathy, trust-building
+🎯 **SIMON SINEK**: Start With Why, purpose-driven leadership, authentic communication
+⚡ **ZIG ZIGLAR**: Motivation, positive thinking, goal achievement, helping others succeed
+
+Apply these timeless principles to this specific early childhood education scenario:
+
+**SCENARIO TYPE**: ${scenarioLabel}
 **Employee**: ${employeeName || 'Team Member'} (${employeeRole || 'Preschool Teacher'})
-**Detailed Situation**: ${scenarioDetails}
+**Situation**: ${scenarioDetails}
+**ECE Context**: ${specificGuidance}
 
-**SCENARIO-SPECIFIC CONTEXT**: ${specificGuidance}
+**LEADERSHIP PRINCIPLES TO APPLY**:
+- Carnegie's "Begin with praise and honest appreciation"
+- Covey's "Seek first to understand, then to be understood"
+- Brown's vulnerability and empathy-first approach
+- Robbins' state management and breakthrough questioning
+- Sinek's purpose connection and "Start with Why"
+- Ziglar's "You can have everything in life you want if you help others get what they want"
 
-CRITICAL: This is a ${scenarioLabel.toLowerCase()} situation. Tailor ALL advice specifically to this scenario type. Do NOT provide generic management advice. Remember that "they don't care until they know you care" - relationship-building is fundamental in ECE. Address the emotional labor, family communication challenges, and unique stressors of working with young children.
+Transform this ${scenarioLabel.toLowerCase()} challenge into a breakthrough moment using proven leadership strategies. Create solutions that inspire, empower, and create lasting positive change.
 
-Provide a detailed management plan specifically for ${scenarioLabel.toLowerCase()} that includes:
+Provide a comprehensive leadership plan for ${scenarioLabel.toLowerCase()} that synthesizes these expert approaches:
 
 1. **Root Cause Analysis for ${scenarioLabel}**: Identify 4-6 specific underlying causes directly related to ${scenarioLabel.toLowerCase()} in ECE settings. Be specific to this scenario type - do not use generic causes.
 
@@ -308,13 +324,117 @@ Respond in JSON format with the structure:
             }
           };
         } catch (e2) {
-          console.error("All JSON parsing attempts failed");
-          toast({
-            title: "Parsing Error",
-            description: "Failed to parse AI response. Please try again.",
-            variant: "destructive"
-          });
-          throw new Error("Failed to parse AI response");
+          console.error("All JSON parsing attempts failed - trying partial recovery");
+          
+          // Attempt to build a minimal response from the raw content
+          const scenarioLabel = COMMON_SCENARIOS.find(s => s.id === selectedScenario)?.label || customScenario;
+          
+          // Extract any visible content from the truncated response
+          let extractedContent = data.content;
+          if (extractedContent.includes('rootCauses')) {
+            try {
+              // Try to extract just the root causes if they're visible
+              const rootCausesMatch = extractedContent.match(/"rootCauses":\s*\[(.*?)\]/s);
+              const rootCauses = rootCausesMatch ? 
+                rootCausesMatch[1].split('",').map(cause => cause.replace(/"/g, '').trim()).filter(c => c) :
+                [`Understanding the root causes of ${scenarioLabel.toLowerCase()} requires careful assessment and empathetic listening.`];
+              
+              advice = {
+                scenario: scenarioLabel,
+                rootCauses: rootCauses.slice(0, 4), // Take first 4 if we found them
+                immediateActions: [
+                  "Schedule a caring one-on-one conversation to understand their perspective",
+                  "Apply Dale Carnegie's principle: Begin with praise and honest appreciation",
+                  "Use Stephen Covey's approach: Seek first to understand, then to be understood",
+                  "Show genuine care and empathy as Brené Brown teaches"
+                ],
+                longTermStrategies: [
+                  "Implement Tony Robbins' breakthrough questioning to uncover core issues",
+                  "Apply Simon Sinek's 'Start with Why' to reconnect with purpose",
+                  "Use Zig Ziglar's approach: Help them achieve what they want",
+                  "Create systematic support following Covey's effectiveness principles"
+                ],
+                resources: [
+                  { title: "Leadership Conversation Guide", type: "template", description: "Based on Carnegie and Covey principles", priority: "high" },
+                  { title: "Empathy-Based Feedback Framework", type: "training", description: "Brené Brown's vulnerable leadership approach", priority: "high" }
+                ],
+                goals: [
+                  { title: "Restore Performance Excellence", description: "Using proven leadership principles", timeframe: "30-60 days", measurable: true, actionSteps: ["Apply breakthrough questioning", "Create support systems", "Monitor progress"] }
+                ],
+                motivationTechniques: [
+                  "Connect work to higher purpose (Sinek's Why)",
+                  "Celebrate small wins (Robbins' state management)",
+                  "Show genuine appreciation (Carnegie's principles)",
+                  "Build on strengths (Covey's effectiveness)"
+                ],
+                followUpPlan: [
+                  "Weekly check-ins using empathetic listening",
+                  "Apply continuous improvement principles",
+                  "Monitor breakthrough moments"
+                ],
+                preventionStrategies: [
+                  "Regular purpose connection conversations",
+                  "Systematic appreciation practices",
+                  "Proactive support systems"
+                ],
+                successMetrics: [
+                  "Improved work quality indicators",
+                  "Increased engagement and enthusiasm",
+                  "Positive feedback from colleagues"
+                ],
+                coreValuesConnection: [
+                  "Excellence in serving children through personal growth",
+                  "Building relationships that matter",
+                  "Creating positive impact through leadership"
+                ],
+                conversationScript: {
+                  openingLines: [
+                    "I want to start by recognizing all the wonderful things you bring to our children every day.",
+                    "Your passion for early childhood education is something I truly value about you.",
+                    "I'd love to understand how you're feeling about things and how I can better support you."
+                  ],
+                  listeningPrompts: [
+                    "Help me understand your perspective on this.",
+                    "What's been the most challenging part for you?",
+                    "What would make the biggest difference in your day?",
+                    "How can I better support you in your role?"
+                  ],
+                  responseScenarios: [
+                    {
+                      teacherResponse: "I'm struggling with classroom management lately.",
+                      directorReply: "Thank you for sharing that with me. Classroom management is one of the most challenging skills, and it takes time to master. Let's work together to find strategies that feel authentic to you.",
+                      followUpQuestion: "What specific situations feel most overwhelming to you?"
+                    },
+                    {
+                      teacherResponse: "I feel like I'm not making a difference.",
+                      directorReply: "I understand that feeling, and it takes courage to share that. Let me remind you why this work matters - we get to write chapter one of these children's educational stories. That's an incredible privilege.",
+                      followUpQuestion: "What originally drew you to working with young children?"
+                    }
+                  ],
+                  closingStatements: [
+                    "Remember, we get to write chapter one with these children. What a privilege! Your authentic energy and passion make all the difference.",
+                    "Take time for mindful mornings and self-care. You can't pour from an empty cup, and these children need your best self.",
+                    "Kids will love what you love when you bring genuine enthusiasm. Let's work together to help you rediscover that spark."
+                  ]
+                }
+              };
+            } catch (extractError) {
+              console.error("Content extraction also failed");
+              toast({
+                title: "Response Processing Error",
+                description: "Unable to process AI response. Please try again with a shorter request.",
+                variant: "destructive"
+              });
+              throw new Error("Failed to process AI response");
+            }
+          } else {
+            toast({
+              title: "Incomplete Response",
+              description: "AI response was incomplete. Please try again.",
+              variant: "destructive"
+            });
+            throw new Error("Incomplete AI response");
+          }
         }
       }
 
