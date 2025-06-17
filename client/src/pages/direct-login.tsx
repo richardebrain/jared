@@ -21,8 +21,8 @@ const DirectLogin: React.FC = () => {
     setMessage('Logging in...');
 
     try {
-      // Use direct login bypass endpoint
-      const response = await axios.post('/direct-login', { 
+      // Use separate login server to bypass Vite middleware issues
+      const response = await axios.post('http://localhost:5001/login', { 
         username, 
         password 
       });

@@ -119,8 +119,36 @@ async function startServer() {
     const __dirname = dirname(__filename);
     app.use('/audio', express.static(path.join(__dirname, "../public/audio")));
     
-    // Add direct login bypass route before other middleware
-    app.post('/direct-login', async (req, res) => {
+    // Create a separate mini-server for direct login to bypass Vite issues
+    const loginApp = express();
+    loginApp.use(express.json());
+    
+    // Use same session configuration as main app
+    loginApp.use(session({
+      secret: process.env.SESSION_SECRET || "mentor-me-secret-dev-only",
+      resave: false,
+      saveUninitialized: false,
+      rolling: true,
+      name: 'mentorme.sid',
+      cookie: { 
+        secure: false,
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        sameSite: "lax",
+        path: '/'
+      },
+      store: new PgSession({
+        conString: process.env.DATABASE_URL,
+        tableName: 'sessions',
+        createTableIfMissing: true,
+        pruneSessionInterval: 24 * 60 * 60,
+        errorLog: (error) => {
+          console.error('Login server session store error:', error);
+        }
+      })
+    }));
+    
+    loginApp.post('/login', async (req, res) => {
       try {
         const { username, password } = req.body;
         
@@ -162,6 +190,10 @@ async function startServer() {
         console.error('Direct login error:', error);
         res.status(500).json({ message: "Login failed" });
       }
+    });
+
+    const loginServer = loginApp.listen(5001, "0.0.0.0", () => {
+      console.log("Direct login server running on port 5001");
     });
 
     // Register all comprehensive routes from routes.ts
