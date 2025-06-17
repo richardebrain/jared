@@ -1028,6 +1028,12 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/school-dashboard">
+        <ProtectedRoute>
+          <SchoolDashboard />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/profile">
         <ProtectedRoute>
           <ProfilePage />

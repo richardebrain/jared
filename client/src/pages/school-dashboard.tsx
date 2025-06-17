@@ -277,37 +277,7 @@ export default function SchoolDashboard() {
     );
   }
   
-  // If we need admin authentication
-  if (showAdminAuth) {
-    return (
-      <div className="container max-w-md py-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>School Admin Access</CardTitle>
-            <CardDescription>
-              Enter the administrator password for this school to access the dashboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={adminForm.handleSubmit(handleAdminSubmit)}>
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="adminKey">Admin Password</label>
-                  <Input 
-                    id="adminKey" 
-                    type="password" 
-                    placeholder="Enter admin password" 
-                    {...adminForm.register("adminKey")}
-                  />
-                </div>
-                <Button type="submit">Access Dashboard</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
   
   return (
     <div className="container py-6">
