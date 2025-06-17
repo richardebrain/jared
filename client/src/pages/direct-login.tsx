@@ -21,11 +21,24 @@ const DirectLogin: React.FC = () => {
     setMessage('Logging in...');
 
     try {
-      // Use separate login server to bypass Vite middleware issues
-      const response = await axios.post('http://localhost:5001/login', { 
-        username, 
-        password 
-      });
+      // Try multiple login endpoints to bypass routing issues
+      let response;
+      
+      // First try the main login route (may work if Vite routing is fixed)
+      try {
+        response = await axios.post('/api/auth/login', { 
+          username, 
+          password 
+        });
+      } catch (mainError) {
+        console.log('Main login failed, trying direct server:', mainError.message);
+        
+        // Fallback to direct login server
+        response = await axios.post('http://localhost:5001/login', { 
+          username, 
+          password 
+        });
+      }
       
       if (response.status === 200 && response.data) {
         // Save auth directly to localStorage

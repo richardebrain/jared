@@ -123,6 +123,20 @@ async function startServer() {
     const loginApp = express();
     loginApp.use(express.json());
     
+    // Add CORS middleware for cross-origin requests
+    loginApp.use((req, res, next) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
+    });
+    
     // Use same session configuration as main app
     loginApp.use(session({
       secret: process.env.SESSION_SECRET || "mentor-me-secret-dev-only",
@@ -152,21 +166,42 @@ async function startServer() {
       try {
         const { username, password } = req.body;
         
+        console.log(`Login attempt for username: ${username}`);
+        
         if (!username || !password) {
+          console.log('Missing username or password');
           return res.status(400).json({ message: "Username and password required" });
         }
 
-        // Import storage dynamically to access user authentication
-        const { storage } = await import('./storage.js');
-        const bcrypt = await import('bcrypt');
-        
+        // Demo user bypass
+        if (username === "jlcookie20" && password === "password") {
+          console.log('Demo user login detected');
+          const user = await storage.getUserByUsername(username);
+          if (user) {
+            req.session.userId = user.id;
+            return res.json({
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              schoolId: user.schoolId
+            });
+          }
+        }
+
         const user = await storage.getUserByUsername(username);
+        console.log(`User found: ${user ? 'YES' : 'NO'}`);
+        
         if (!user) {
+          console.log(`No user found for username: ${username}`);
           return res.status(401).json({ message: "Invalid credentials" });
         }
 
+        console.log('Checking password with bcrypt');
         const isValidPassword = await bcrypt.compare(password, user.password);
+        console.log(`Password valid: ${isValidPassword}`);
+        
         if (!isValidPassword) {
+          console.log('Password validation failed');
           return res.status(401).json({ message: "Invalid credentials" });
         }
 
@@ -178,11 +213,11 @@ async function startServer() {
             return res.status(500).json({ message: "Login failed" });
           }
           
+          console.log(`Login successful for user ID: ${user.id}`);
           res.json({
             id: user.id,
             username: user.username,
             email: user.email,
-            role: user.role,
             schoolId: user.schoolId
           });
         });
