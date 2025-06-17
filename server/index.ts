@@ -232,7 +232,7 @@ async function startServer() {
     });
 
     // Register all comprehensive routes from routes.ts
-    await registerRoutes(app, false); // Enable auth endpoints
+    await registerRoutes(app);
 
     // Catch-all for unhandled API routes (must come after all API route registrations)
     app.use('/api/*', (req, res) => {
