@@ -2001,6 +2001,7 @@ Continue for all 5 questions...
         try {
           await db.execute(sql`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
         } catch (e) {
+          console.log("core_value_shoutouts not found, trying alternate name...");
           try {
             await db.execute(sql`DELETE FROM core_values_shout_outs WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
           } catch (e2) {
