@@ -5962,28 +5962,87 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      console.log("AI suggestion request:", { type, prompt: prompt.substring(0, 100) + "..." });
+      console.log("AI suggestion request:", { type, context });
 
       // Use OpenAI for AI suggestions
       const openai = (await import("openai")).default;
       const client = new openai({ apiKey: process.env.OPENAI_API_KEY });
+
+      let systemPrompt = "You are an expert AI assistant specializing in early childhood education management and professional development.";
+      let userPrompt = prompt;
+
+      // Enhanced scenario-specific prompting for management advice
+      if (type === 'management-advice' && context) {
+        const scenarioSpecificPrompts = {
+          'tardiness': {
+            system: "You are an expert early childhood education director specializing in TARDINESS and PUNCTUALITY issues. Focus exclusively on time management, attendance policies, and creating accountability systems. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on time management challenges, morning routines, transportation issues, and personal scheduling conflicts. Avoid mentioning burnout, motivation, or unrelated topics."
+          },
+          'burnout': {
+            system: "You are an expert early childhood education director specializing in STAFF BURNOUT and EMOTIONAL EXHAUSTION. Focus exclusively on workload management, emotional labor, and preventing educator fatigue. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on emotional exhaustion, overwhelming caseloads, inadequate breaks, and lack of support systems. Avoid mentioning tardiness, punctuality, or attendance issues."
+          },
+          'performance': {
+            system: "You are an expert early childhood education director specializing in PERFORMANCE IMPROVEMENT and SKILL DEVELOPMENT. Focus exclusively on teaching effectiveness, professional growth, and classroom management skills. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on skill gaps, training needs, classroom management challenges, and professional development deficits. Avoid mentioning attendance or emotional issues."
+          },
+          'communication': {
+            system: "You are an expert early childhood education director specializing in COMMUNICATION PROBLEMS and INTERPERSONAL CONFLICTS. Focus exclusively on communication styles, feedback delivery, and relationship building. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on communication barriers, feedback delivery issues, conflict resolution needs, and interpersonal skill gaps. Avoid mentioning performance or attendance."
+          },
+          'motivation': {
+            system: "You are an expert early childhood education director specializing in LOW MOTIVATION and ENGAGEMENT issues. Focus exclusively on job satisfaction, recognition systems, and reigniting passion for ECE work. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on lack of recognition, feeling undervalued, disconnection from purpose, and career stagnation. Avoid mentioning tardiness or performance issues."
+          },
+          'teamwork': {
+            system: "You are an expert early childhood education director specializing in TEAM CONFLICTS and COLLABORATION issues. Focus exclusively on team dynamics, conflict resolution, and building cooperative relationships. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on personality conflicts, role confusion, competition between staff, and lack of team cohesion. Avoid mentioning individual performance or attendance."
+          },
+          'attendance': {
+            system: "You are an expert early childhood education director specializing in ATTENDANCE PROBLEMS and RELIABILITY issues. Focus exclusively on attendance policies, reliability concerns, and commitment challenges. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on chronic absences, last-minute call-outs, medical issues, and personal responsibilities affecting attendance. Avoid mentioning tardiness or motivation."
+          },
+          'training': {
+            system: "You are an expert early childhood education director specializing in TRAINING NEEDS and PROFESSIONAL DEVELOPMENT gaps. Focus exclusively on skill building, certification requirements, and educational advancement. Do NOT provide generic management advice.",
+            constraints: "Root causes must focus on outdated knowledge, certification gaps, new regulation requirements, and professional growth needs. Avoid mentioning interpersonal or attendance issues."
+          }
+        };
+
+        const scenarioKey = context.scenario?.toLowerCase().replace(/\s+/g, '');
+        const scenarioConfig = scenarioSpecificPrompts[scenarioKey];
+        
+        if (scenarioConfig) {
+          systemPrompt = scenarioConfig.system;
+          userPrompt = `${prompt}
+
+CRITICAL CONSTRAINTS FOR ${context.scenario?.toUpperCase()}:
+${scenarioConfig.constraints}
+
+Employee Context:
+- Name: ${context.employee || 'Staff Member'}
+- Role: ${context.role || 'Teacher'}
+- Specific Details: ${context.details || 'General situation'}
+
+Generate advice that is COMPLETELY UNIQUE to ${context.scenario} scenarios. Your response must be distinctly different from advice for other workplace challenges.`;
+        }
+      }
 
       const response = await client.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
             role: "system",
-            content: "You are an expert AI assistant specializing in early childhood education management and professional development. Each scenario requires completely different advice. Never provide generic management advice. Focus specifically on the scenario type mentioned and provide targeted, specific guidance for that exact situation. Vary your responses significantly based on the specific scenario described."
+            content: systemPrompt
           },
           {
             role: "user",
-            content: prompt
+            content: userPrompt
           }
         ],
         temperature: 0.9,
         max_tokens: 4000,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.2
+        frequency_penalty: 0.5,
+        presence_penalty: 0.4
       });
 
       const content = response.choices[0].message.content;
