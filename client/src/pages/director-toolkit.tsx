@@ -155,6 +155,16 @@ const directorTools: ToolkitTool[] = [
     category: 'staff'
   },
   {
+    id: 'perfect-manager',
+    title: 'Perfect Manager',
+    description: 'AI-powered management advisor providing strategies, resources, and solutions for staff challenges',
+    icon: Zap,
+    route: '/admin/perfect-manager',
+    badge: 'New',
+    badgeVariant: 'destructive',
+    category: 'staff'
+  },
+  {
     id: 'school-settings',
     title: 'School Settings',
     description: 'Configure school information, contact details, branding, and core values',
