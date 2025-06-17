@@ -73,11 +73,7 @@ export default function SchoolDashboard() {
     isLoading: schoolLoading,
     refetch: refetchSchool
   } = useQuery({
-    queryKey: ["/api/schools", schoolId],
-    queryFn: async () => {
-      const data = await apiRequest("GET", `/api/schools/${schoolId}`);
-      return data;
-    },
+    queryKey: [`/api/schools/${schoolId}`],
     enabled: !!schoolId && isAuthenticated,
     retry: false,
   });
@@ -280,6 +276,12 @@ export default function SchoolDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/dashboard">
+            <Button variant="outline">
+              <School className="w-4 h-4 mr-2" />
+              Return to Dashboard
+            </Button>
+          </Link>
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">

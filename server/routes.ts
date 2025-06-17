@@ -3307,6 +3307,42 @@ Continue for all 5 questions...
   });
 
   // School Dashboard API endpoints
+  // Get school data
+  app.get("/api/schools/:schoolId", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const userId = req.session.userId as number;
+      
+      console.log(`GET /api/schools/${schoolId} - User ID: ${userId}`);
+      
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        console.log(`User ${userId} not found in database`);
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      console.log(`Current user: ${currentUser.username} (school: ${currentUser.schoolId})`);
+      
+      // Check if user has access to this school data
+      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
+        console.log(`Access denied: User ${userId} cannot access school ${schoolId} data`);
+        return res.status(403).json({ message: "Access denied to this school's data" });
+      }
+      
+      // Get school data from database
+      const school = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
+      console.log(`Found school:`, school[0] || 'Not found');
+      
+      res.json({
+        school: school[0] || null
+      });
+    } catch (error) {
+      console.error("Error fetching school data:", error);
+      res.status(500).json({ message: "Failed to fetch school data" });
+    }
+  });
+
   app.get("/api/schools/:schoolId/teachers", requireAuth, async (req, res) => {
     try {
       const schoolId = parseInt(req.params.schoolId);
