@@ -91,6 +91,7 @@ import PersonalizedStories from "@/pages/personalized-stories";
 import ModuleFlowTest from "@/pages/module-flow-test";
 import PodcastGenerator from "@/pages/podcast-generator";
 import MusicMaker from "@/pages/music-maker";
+import PerfectManager from "@/pages/admin-perfect-manager";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -750,6 +751,12 @@ function Router(props: {
       <Route path="/newsletter-manager">
         <ProtectedRoute adminOnly={true}>
           <NewsletterManager />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/perfect-manager">
+        <ProtectedRoute adminOnly={true}>
+          <PerfectManager />
         </ProtectedRoute>
       </Route>
 

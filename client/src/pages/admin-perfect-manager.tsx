@@ -339,9 +339,8 @@ ${generatedAdvice.successMetrics.map((metric, i) => `${i + 1}. ${metric}`).join(
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-12 max-w-7xl">
-
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        <div className="container mx-auto px-6 py-12 max-w-7xl">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Main Input Section */}
           <div className="xl:col-span-3 space-y-8">
             <Card className="border-0 shadow-lg bg-white">
@@ -810,6 +809,7 @@ ${generatedAdvice.successMetrics.map((metric, i) => `${i + 1}. ${metric}`).join(
           </Tabs>
         </div>
       )}
+      </div>
     </div>
   );
 }
