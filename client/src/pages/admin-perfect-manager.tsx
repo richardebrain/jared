@@ -862,20 +862,203 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
             </Button>
           </div>
 
-          <Tabs defaultValue="overview" className="w-full" onValueChange={(value) => {
-            if (value === "coaching") {
+          <Tabs defaultValue="practice" className="w-full" onValueChange={(value) => {
+            if (value === "practice") {
               initializeChat();
             }
           }}>
             <TabsList className="grid w-full grid-cols-7">
+              <TabsTrigger value="practice">Practice Conversation</TabsTrigger>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="actions">Actions</TabsTrigger>
               <TabsTrigger value="goals">Goals</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
               <TabsTrigger value="script">Conversation Script</TabsTrigger>
-              <TabsTrigger value="coaching">Empathy Coach</TabsTrigger>
               <TabsTrigger value="followup">Follow-up</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="practice" className="space-y-6">
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <h3 className="text-xl font-bold text-slate-900">Practice Your Conversation with {employeeName || 'Your Employee'}</h3>
+                    <p className="text-slate-700 leading-relaxed">
+                      Practice the upcoming conversation by role-playing both perspectives. Share what you think {employeeName || 'the employee'} might say or how they might react, 
+                      and get coached responses that blend Tony Robbins' inspirational energy, Simon Sinek's intellectual clarity, and Brené Brown's vulnerable authenticity.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                        Role-Playing Practice Session
+                      </CardTitle>
+                      <CardDescription>
+                        Practice your conversation by sharing what you think {employeeName || 'the employee'} might say or how you're feeling about this situation
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="h-96 border border-slate-200 rounded-lg p-4 overflow-y-auto bg-white">
+                          {chatMessages.length === 0 ? (
+                            <div className="h-full flex items-center justify-center">
+                              <div className="text-center space-y-3">
+                                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                                  <Heart className="h-8 w-8 text-purple-600" />
+                                </div>
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-slate-900">Ready to Practice?</h4>
+                                  <p className="text-sm text-slate-600 max-w-md">
+                                    Share what you think {employeeName || 'the employee'} might say, or express your own concerns about this conversation. 
+                                    Get guidance using Brené Brown's empathetic approach combined with wisdom from all legendary leaders.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {chatMessages.map((message, index) => (
+                                <div
+                                  key={index}
+                                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                >
+                                  <div
+                                    className={`max-w-[80%] p-3 rounded-lg ${
+                                      message.role === 'user'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-purple-50 text-slate-800 border border-purple-100'
+                                    }`}
+                                  >
+                                    <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                                  </div>
+                                </div>
+                              ))}
+                              {isChatLoading && (
+                                <div className="flex justify-start">
+                                  <div className="bg-purple-50 border border-purple-100 p-3 rounded-lg">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                      <span className="text-sm text-purple-600 ml-2">Coaching you...</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Input
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            placeholder="Share what you think they might say, or express your concerns..."
+                            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendChatMessage()}
+                            disabled={isChatLoading}
+                            className="flex-1"
+                          />
+                          <Button 
+                            onClick={sendChatMessage} 
+                            disabled={!chatInput.trim() || isChatLoading}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Practice Tips</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                            <span className="text-xs font-semibold text-blue-600">1</span>
+                          </div>
+                          <div className="space-y-1">
+                            <h5 className="font-medium text-sm">Play the Employee</h5>
+                            <p className="text-xs text-slate-600">Share what you think {employeeName || 'they'} might say or how they might react</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mt-0.5">
+                            <span className="text-xs font-semibold text-purple-600">2</span>
+                          </div>
+                          <div className="space-y-1">
+                            <h5 className="font-medium text-sm">Express Your Concerns</h5>
+                            <p className="text-xs text-slate-600">Share your worries about the conversation</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                            <span className="text-xs font-semibold text-green-600">3</span>
+                          </div>
+                          <div className="space-y-1">
+                            <h5 className="font-medium text-sm">Get Coached Responses</h5>
+                            <p className="text-xs text-slate-600">Receive authentic guidance using legendary leadership wisdom</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="space-y-3">
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Heart className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <div className="space-y-2">
+                          <h5 className="font-semibold text-amber-900 text-sm">Brené Brown's Approach</h5>
+                          <p className="text-xs text-amber-800 leading-relaxed">
+                            "Vulnerability is not winning or losing; it's having the courage to show up when you can't control the outcome."
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Zap className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="space-y-2">
+                          <h5 className="font-semibold text-blue-900 text-sm">Tony Robbins' Energy</h5>
+                          <p className="text-xs text-blue-800 leading-relaxed">
+                            "Progress equals happiness. The quality of your life is the quality of your relationships."
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-50 border border-slate-100 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Target className="h-5 w-5 text-slate-600 mt-0.5" />
+                        <div className="space-y-2">
+                          <h5 className="font-semibold text-slate-900 text-sm">Simon Sinek's Clarity</h5>
+                          <p className="text-xs text-slate-800 leading-relaxed">
+                            "Leadership is not about being in charge. It's about taking care of those in your charge."
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
 
             <TabsContent value="overview" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
