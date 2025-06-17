@@ -142,35 +142,50 @@ export default function PerfectManager() {
       const scenario = selectedScenario || customScenario;
       const scenarioLabel = COMMON_SCENARIOS.find(s => s.id === scenario)?.label || customScenario;
 
-      const prompt = `As a Perfect Manager AI advisor specializing in early childhood education, provide comprehensive management guidance for this preschool workplace scenario:
+      const scenarioSpecificGuidance = {
+        tardiness: "Focus on understanding root causes like transportation issues, childcare challenges, or work-life balance struggles that ECE professionals often face due to demanding schedules and low pay.",
+        burnout: "Address the emotional exhaustion unique to caring for young children all day, inadequate compensation for the level of responsibility, and the lack of recognition for the professional skills required in ECE.",
+        performance: "Consider that performance issues in ECE often stem from lack of training in child development, classroom management challenges with young children, or overwhelming workloads.",
+        communication: "ECE communication issues often involve difficult conversations with parents about child development, behavior concerns, or family dynamics that require specialized skills.",
+        teamwork: "Team conflicts in preschools often arise from different philosophies about child-rearing, classroom management approaches, or stress from working in emotionally demanding environments.",
+        attendance: "Attendance issues in ECE may be related to low wages forcing second jobs, own childcare challenges, or health issues from exposure to illnesses in the classroom.",
+        motivation: "Low motivation in ECE often stems from feeling undervalued despite the importance of early childhood development, lack of career advancement opportunities, or emotional burnout.",
+        training: "Training needs in ECE are often related to child development milestones, behavior guidance techniques, family engagement strategies, or documentation requirements."
+      };
 
-**Scenario**: ${scenarioLabel}
+      const specificGuidance = scenarioSpecificGuidance[selectedScenario as keyof typeof scenarioSpecificGuidance] || "Consider the unique challenges and requirements of working with young children and their families.";
+
+      const prompt = `As a Perfect Manager AI advisor specializing in early childhood education, provide comprehensive management guidance for this specific preschool workplace scenario:
+
+**SPECIFIC SCENARIO TYPE**: ${scenarioLabel}
 **Employee**: ${employeeName || 'Team Member'} (${employeeRole || 'Preschool Teacher'})
-**Situation Details**: ${scenarioDetails}
+**Detailed Situation**: ${scenarioDetails}
 
-IMPORTANT: Focus specifically on the unique challenges of preschool education. Remember that "they don't care until they know you care" - relationship-building is fundamental. Address ECE-specific stressors like emotional labor, parent communication, classroom management with young children, and professional development needs.
+**SCENARIO-SPECIFIC CONTEXT**: ${specificGuidance}
 
-Please provide a detailed management plan that includes:
+CRITICAL: This is a ${scenarioLabel.toLowerCase()} situation. Tailor ALL advice specifically to this scenario type. Do NOT provide generic management advice. Remember that "they don't care until they know you care" - relationship-building is fundamental in ECE. Address the emotional labor, family communication challenges, and unique stressors of working with young children.
 
-1. **Root Cause Analysis**: Identify 4-6 ECE-specific underlying causes (consider: emotional exhaustion from caring for young children, inadequate compensation vs. responsibility, lack of professional recognition, difficult parent relationships, challenging behaviors, insufficient classroom support, work-life balance with emotionally demanding work)
+Provide a detailed management plan specifically for ${scenarioLabel.toLowerCase()} that includes:
 
-2. **Immediate Actions**: 4-5 steps focusing on showing care and support first, then addressing practical needs
+1. **Root Cause Analysis for ${scenarioLabel}**: Identify 4-6 specific underlying causes directly related to ${scenarioLabel.toLowerCase()} in ECE settings. Be specific to this scenario type - do not use generic causes.
 
-3. **Long-term Strategies**: 5-7 sustainable solutions that honor the calling of ECE work while addressing systemic issues
+2. **Immediate Actions for ${scenarioLabel}**: 4-5 concrete steps specifically designed to address ${scenarioLabel.toLowerCase()}. First action must demonstrate care and understanding.
 
-4. **Resources**: 6-10 ECE-specific resources (NAEYC materials, classroom management strategies, self-care for teachers, parent communication guides, behavior intervention resources)
+3. **Long-term Strategies for ${scenarioLabel}**: 5-7 sustainable solutions specifically targeting ${scenarioLabel.toLowerCase()} prevention and resolution in preschool environments.
 
-5. **SMART Goals**: 2-3 goals that balance professional growth with well-being and job satisfaction
+4. **ECE-Specific Resources for ${scenarioLabel}**: 6-10 targeted resources specifically helpful for ${scenarioLabel.toLowerCase()} (include NAEYC materials, specialized training, tools, templates, or support systems).
 
-6. **Motivation Techniques**: 5-7 ways to inspire that connect to the teacher's passion for children and the importance of their role in child development
+5. **SMART Goals for ${scenarioLabel} Improvement**: 2-3 measurable goals specifically focused on resolving ${scenarioLabel.toLowerCase()} while supporting teacher well-being.
 
-7. **Follow-up Plan**: Relationship-focused check-ins that show genuine care and support
+6. **Motivation Techniques for ${scenarioLabel}**: 5-7 specific ways to inspire and motivate during ${scenarioLabel.toLowerCase()} situations, connecting to ECE passion and child development impact.
 
-8. **Prevention Strategies**: Systemic changes to support ECE professionals long-term
+7. **Follow-up Plan for ${scenarioLabel}**: Specific timeline and check-in strategy designed for monitoring ${scenarioLabel.toLowerCase()} improvement.
 
-9. **Success Metrics**: Measures that include job satisfaction, student outcomes, and personal well-being
+8. **Prevention Strategies for ${scenarioLabel}**: Proactive measures specifically designed to prevent future ${scenarioLabel.toLowerCase()} incidents in ECE settings.
 
-10. **Core Values Connection**: How this situation connects to fundamental ECE values like nurturing growth, building relationships, creating safe spaces, and supporting families
+9. **Success Metrics for ${scenarioLabel}**: Specific, measurable indicators that ${scenarioLabel.toLowerCase()} is improving, including both professional and personal well-being measures.
+
+10. **Core Values Connection for ${scenarioLabel}**: How addressing ${scenarioLabel.toLowerCase()} connects to fundamental ECE values and the teacher's calling to nurture children.
 
 Include industry insights about why ECE professionals face unique challenges and how their work impacts child development. Reference the emotional labor involved in caring for young children and the need for leaders to model the care they want teachers to show children.
 

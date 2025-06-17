@@ -5973,15 +5973,17 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
         messages: [
           {
             role: "system",
-            content: "You are an expert AI assistant specializing in early childhood education management and professional development. Provide comprehensive, actionable advice in the exact JSON format requested."
+            content: "You are an expert AI assistant specializing in early childhood education management and professional development. Each scenario requires completely different advice. Never provide generic management advice. Focus specifically on the scenario type mentioned and provide targeted, specific guidance for that exact situation. Vary your responses significantly based on the specific scenario described."
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        temperature: 0.7,
-        max_tokens: 3000
+        temperature: 0.9,
+        max_tokens: 4000,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.2
       });
 
       const content = response.choices[0].message.content;
