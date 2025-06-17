@@ -45,6 +45,16 @@ interface ManagementAdvice {
   preventionStrategies: string[];
   successMetrics: string[];
   coreValuesConnection: string[];
+  conversationScript: {
+    openingLines: string[];
+    listeningPrompts: string[];
+    responseScenarios: Array<{
+      teacherResponse: string;
+      directorReply: string;
+      followUpQuestion: string;
+    }>;
+    closingStatements: string[];
+  };
 }
 
 interface Resource {
@@ -187,6 +197,12 @@ Provide a detailed management plan specifically for ${scenarioLabel.toLowerCase(
 
 10. **Core Values Connection for ${scenarioLabel}**: How addressing ${scenarioLabel.toLowerCase()} connects to fundamental ECE values and the teacher's calling to nurture children.
 
+11. **Conversation Script for ${scenarioLabel}**: Provide a detailed conversation guide including:
+    - 3-4 caring opening lines that show empathy and set a supportive tone
+    - 4-5 listening prompts to encourage the teacher to share their perspective
+    - 5-6 response scenarios with common teacher reactions and suggested director replies that inspire action and change
+    - 3-4 positive closing statements that remind them "we get to write chapter one," it's a privilege to work with children, encourage mindful mornings, breathing, self-care, bringing their best energy, and that kids will love what they love
+
 Include industry insights about why ECE professionals face unique challenges and how their work impacts child development. Reference the emotional labor involved in caring for young children and the need for leaders to model the care they want teachers to show children.
 
 Respond in JSON format with the structure:
@@ -201,7 +217,19 @@ Respond in JSON format with the structure:
   "followUpPlan": ["step1", "step2", ...],
   "preventionStrategies": ["strategy1", "strategy2", ...],
   "successMetrics": ["metric1", "metric2", ...],
-  "coreValuesConnection": ["value1", "value2", ...]
+  "coreValuesConnection": ["value1", "value2", ...],
+  "conversationScript": {
+    "openingLines": ["opening1", "opening2", ...],
+    "listeningPrompts": ["prompt1", "prompt2", ...],
+    "responseScenarios": [
+      {
+        "teacherResponse": "Teacher might say this...",
+        "directorReply": "Director should respond with...",
+        "followUpQuestion": "Then ask..."
+      }
+    ],
+    "closingStatements": ["closing1", "closing2", ...]
+  }
 }`;
 
       const response = await fetch('/api/ai-suggestion', {
@@ -229,7 +257,21 @@ Respond in JSON format with the structure:
       
       let advice: ManagementAdvice;
       try {
-        advice = JSON.parse(data.content);
+        const parsedAdvice = JSON.parse(data.content);
+        // Ensure conversationScript exists with default structure
+        advice = {
+          ...parsedAdvice,
+          conversationScript: parsedAdvice.conversationScript || {
+            openingLines: ["I wanted to talk with you about something important. How are you feeling about things lately?"],
+            listeningPrompts: ["Can you tell me more about that?"],
+            responseScenarios: [{
+              teacherResponse: "I'm doing fine, just busy.",
+              directorReply: "I understand you're busy. I'm here to support you.",
+              followUpQuestion: "Is there anything specific that's been challenging?"
+            }],
+            closingStatements: ["Thank you for sharing with me."]
+          }
+        };
       } catch (e) {
         // Fallback parsing if JSON is malformed
         advice = {
@@ -249,7 +291,24 @@ Respond in JSON format with the structure:
           followUpPlan: ["Weekly caring check-ins for first month", "Bi-weekly support meetings", "Monthly progress reviews"],
           preventionStrategies: ["Regular staff wellness programs", "Clear communication channels", "Workload management systems", "Professional development support"],
           successMetrics: ["Job satisfaction surveys", "Student engagement levels", "Teacher retention rates", "Work-life balance assessments"],
-          coreValuesConnection: ["Nurturing growth in both children and teachers", "Building supportive relationships", "Creating safe emotional spaces", "Supporting families through teacher well-being"]
+          coreValuesConnection: ["Nurturing growth in both children and teachers", "Building supportive relationships", "Creating safe emotional spaces", "Supporting families through teacher well-being"],
+          conversationScript: {
+            openingLines: ["I wanted to talk with you about something important. How are you feeling about things lately?", "I've noticed some changes and want to support you. Can we chat?", "Your well-being matters to me and our children. How can I help?"],
+            listeningPrompts: ["Can you tell me more about that?", "How has this been affecting you?", "What would be most helpful right now?", "Help me understand your perspective"],
+            responseScenarios: [
+              {
+                teacherResponse: "I'm doing fine, just busy with everything.",
+                directorReply: "I understand you're managing a lot. Your dedication to the children is clear, and I want to make sure you're supported.",
+                followUpQuestion: "What's taking up most of your energy right now?"
+              },
+              {
+                teacherResponse: "I feel overwhelmed and don't know if I'm making a difference.",
+                directorReply: "Your feelings are completely valid. Working with young children is emotionally demanding, and it's natural to feel this way sometimes.",
+                followUpQuestion: "Can you help me understand what specific situations are feeling most challenging?"
+              }
+            ],
+            closingStatements: ["Thank you for being honest with me. Let's work together on this.", "I'm here to support you because you matter to our children and our team.", "Your dedication to early childhood education makes a real difference, and I want to help you thrive."]
+          }
         };
       }
 
