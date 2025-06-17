@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 /**
  * Direct Login Page
@@ -21,32 +20,36 @@ const DirectLogin: React.FC = () => {
     setMessage('Logging in...');
 
     try {
-      // Try multiple login endpoints to bypass routing issues
-      let response;
-      
-      // First try the main login route (may work if Vite routing is fixed)
+      // Try main login route first
+      let response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+
+      let data;
       try {
-        response = await axios.post('/api/auth/login', { 
-          username, 
-          password 
-        });
-      } catch (mainError) {
-        console.log('Main login failed, trying direct server:', mainError.message);
+        data = await response.json();
+      } catch {
+        // If we can't parse JSON, try the direct login server
+        console.log('Main login failed, trying direct server');
         
-        // Fallback to direct login server
-        response = await axios.post('http://localhost:5001/login', { 
-          username, 
-          password 
+        response = await fetch('http://localhost:5001/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+          credentials: 'include'
         });
+        
+        data = await response.json();
       }
-      
-      if (response.status === 200 && response.data) {
-        // Save auth directly to localStorage
-        localStorage.setItem('auth', JSON.stringify({
-          user: response.data,
-          timestamp: Date.now()
-        }));
-        
+
+      if (response.ok && data) {
         setMessage('Login successful! Redirecting...');
         
         // Direct navigation to dashboard
@@ -54,11 +57,11 @@ const DirectLogin: React.FC = () => {
           window.location.href = '/dashboard';
         }, 500);
       } else {
-        setError('Invalid response from server');
+        setError(data.message || 'Login failed. Please check your credentials.');
         setLoading(false);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError('Network error. Please try again.');
       setLoading(false);
     }
   };
