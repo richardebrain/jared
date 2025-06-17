@@ -101,6 +101,77 @@ async function checkModuleSystem() {
       return false;
     }
     
+    // Test module content parsing for deployed modules
+    if (modulesResult.statusCode === 200 && modulesResult.data) {
+      const modules = Array.isArray(modulesResult.data) ? modulesResult.data : [];
+      const testModule = modules.find(m => m.content && m.title);
+      
+      if (testModule) {
+        try {
+          const moduleContent = JSON.parse(testModule.content);
+          const sections = moduleContent.sections || [];
+          
+          // Test scenario-match parsing
+          const scenarioSection = sections.find(s => s.type === 'scenario-match');
+          if (scenarioSection) {
+            const hasValidScenarios = scenarioSection.content && 
+                                     scenarioSection.content.blocks && 
+                                     scenarioSection.content.blocks[0] && 
+                                     Array.isArray(scenarioSection.content.blocks[0].content);
+            if (hasValidScenarios) {
+              console.log('✅ Scenario-match content parsing works');
+            } else {
+              console.log('⚠️ Scenario-match content structure needs attention');
+            }
+          }
+          
+          // Test quiz parsing with double-encoded JSON
+          const quizSection = sections.find(s => s.type === 'quiz');
+          if (quizSection && quizSection.content && quizSection.content.blocks && quizSection.content.blocks[0]) {
+            let hasValidQuestions = false;
+            try {
+              const quizContent = quizSection.content.blocks[0].content;
+              if (typeof quizContent === 'string') {
+                const parsedQuestions = JSON.parse(quizContent);
+                hasValidQuestions = Array.isArray(parsedQuestions) && parsedQuestions.length > 0;
+              } else if (Array.isArray(quizContent)) {
+                hasValidQuestions = quizContent.length > 0;
+              }
+            } catch (parseError) {
+              hasValidQuestions = false;
+            }
+            
+            if (hasValidQuestions) {
+              console.log('✅ Quiz content parsing with double-encoded JSON works');
+            } else {
+              console.log('⚠️ Quiz content parsing needs attention');
+            }
+          }
+          
+          // Test matching activity parsing
+          const matchingSection = sections.find(s => s.type === 'matching');
+          if (matchingSection) {
+            const hasValidMatching = matchingSection.content && 
+                                    matchingSection.content.blocks && 
+                                    matchingSection.content.blocks[0] && 
+                                    Array.isArray(matchingSection.content.blocks[0].content);
+            if (hasValidMatching) {
+              console.log('✅ Matching activity content parsing works');
+            } else {
+              console.log('⚠️ Matching activity content structure needs attention');
+            }
+          }
+          
+          console.log('✅ Module content structure validation complete');
+        } catch (parseError) {
+          console.log('❌ Module content JSON parsing failed:', parseError.message);
+          return false;
+        }
+      } else {
+        console.log('⚠️ No modules with content found for testing');
+      }
+    }
+    
     return true;
   } catch (error) {
     console.log('❌ Module system error:', error.message);

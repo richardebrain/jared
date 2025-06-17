@@ -1356,23 +1356,10 @@ Continue for all 5 questions...
 
         // Clean up session if user is already logged in to prevent login loops
         if (req.session.userId) {
-          // Clear any existing session first
-          await new Promise<void>((resolve) => {
-            req.session.destroy((err) => {
-              if (err)
-                console.error(
-                  "Error destroying existing session for user:",
-                  err,
-                );
-              resolve();
-            });
-          });
-
-          // Need to manually clear the cookie since destroy doesn't do it automatically
-          res.clearCookie("connect.sid");
-
-          // Initialize a new session object since we destroyed the previous one
-          req.session = req.session || {};
+          console.log(`Clearing previous session for user ID: ${req.session.userId}`);
+          // Just clear the userId, don't destroy the entire session
+          delete req.session.userId;
+          delete req.session.loginTime;
         }
 
         // Debug logging for authentication
