@@ -1997,15 +1997,18 @@ Continue for all 5 questions...
           console.log("teacher_messages table not found, skipping...");
         }
         
-        // Delete core value nominations - check both table names
+        // Delete core value nominations - handle both table names robustly
         try {
-          await db.execute(sql`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+          // Try the underscore version first (based on error message)
+          await db.execute(sql`DELETE FROM core_values_shout_outs WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+          console.log("Deleted from core_values_shout_outs");
         } catch (e) {
-          console.log("core_value_shoutouts not found, trying alternate name...");
+          console.log("core_values_shout_outs not found, trying alternate name...");
           try {
-            await db.execute(sql`DELETE FROM core_values_shout_outs WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+            await db.execute(sql`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+            console.log("Deleted from core_value_shoutouts");
           } catch (e2) {
-            console.log("core value tables not found, skipping...");
+            console.log("Neither core value table found, skipping...");
           }
         }
         
