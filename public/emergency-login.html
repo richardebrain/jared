@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorMe Emergency Login</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        button:disabled {
+            background: #a0a0a0;
+            cursor: not-allowed;
+        }
+        .message {
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
+        }
+        .success {
+            background: #d1fae5;
+            color: #047857;
+            border: 1px solid #34d399;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border: 1px solid #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="title">MentorMe Emergency Login</h1>
+        
+        <div id="messageArea"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" id="loginBtn">Log In</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <small style="color: #666;">
+                Direct access bypass for development issues
+            </small>
+        </div>
+    </div>
+
+    <script>
+        const messageArea = document.getElementById('messageArea');
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        
+        function showMessage(message, type) {
+            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
+        }
+        
+        function clearMessage() {
+            messageArea.innerHTML = '';
+        }
+        
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            clearMessage();
+            
+            try {
+                // Try main login route first
+                let response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch {
+                    // If main route fails, try direct login server
+                    showMessage('Main login failed, trying backup server...', 'info');
+                    
+                    response = await fetch('http://localhost:5001/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, password }),
+                        credentials: 'include'
+                    });
+                    
+                    data = await response.json();
+                }
+                
+                if (response.ok && data) {
+                    showMessage('Login successful! Redirecting to dashboard...', 'success');
+                    
+                    // Clear any old auth data
+                    localStorage.removeItem('auth');
+                    sessionStorage.removeItem('laura_login_success');
+                    
+                    // Set new auth flag
+                    localStorage.setItem('emergencyLogin', 'true');
+                    localStorage.setItem('emergencyUser', JSON.stringify(data));
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1000);
+                } else {
+                    showMessage(data.message || 'Invalid credentials. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('Network error. Please check your connection and try again.', 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+            }
+        });
+    </script>
+</body>
+</html>
