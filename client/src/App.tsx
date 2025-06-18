@@ -988,7 +988,9 @@ function Router(props: {
       </Route>
 
       <Route path="/ece-hours-tracker">
-        <EceHoursTracker />
+        <ProtectedRoute adminOnly={true}>
+          <EceHoursTracker />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/email-demo">
@@ -1090,6 +1092,10 @@ function Router(props: {
 
       <Route path="/direct/register">
         <Register />
+      </Route>
+
+      <Route path="/test-page">
+        <TestPage />
       </Route>
 
       {/* Fallback route */}
