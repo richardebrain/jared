@@ -283,110 +283,109 @@ export default function EceHoursTracker() {
           </TabsList>
 
           <TabsContent value="hours" className="space-y-6 mt-6">
-
-        {/* School-Wide Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Employees</p>
-                  <p className="text-2xl font-bold">{schoolStats.totalEmployees}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Compliant</p>
-                  <p className="text-2xl font-bold text-green-600">{schoolStats.compliantEmployees}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-8 w-8 text-orange-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Non-Compliant</p>
-                  <p className="text-2xl font-bold text-orange-600">{schoolStats.nonCompliantEmployees}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-purple-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Compliance Rate</p>
-                  <p className="text-2xl font-bold text-purple-600">{schoolStats.complianceRate}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <GraduationCap className="h-8 w-8 text-indigo-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Average Hours</p>
-                  <p className="text-2xl font-bold text-indigo-600">{schoolStats.averageHours}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Employee ECE Hours Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              Employee ECE Hours Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {employees.map((employee) => (
-                <div key={employee.employeeId} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                    {/* Employee Info */}
-                    <div className="lg:col-span-3">
-                      <h3 className="font-semibold text-gray-900">{employee.employeeName}</h3>
-                      <p className="text-sm text-gray-600">{employee.jobTitle}</p>
-                      <p className="text-xs text-gray-500">{employee.email}</p>
+            {/* School-Wide Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-8 w-8 text-blue-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Total Employees</p>
+                      <p className="text-2xl font-bold">{schoolStats.totalEmployees}</p>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                    {/* Hours Progress */}
-                    <div className="lg:col-span-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-medium">
-                          {employee.totalHours} / {employee.requiredHours} hours
-                        </span>
-                        {employee.isCompliant ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                      </div>
-                      <Progress 
-                        value={employee.progressPercentage} 
-                        className="w-full h-2"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        {employee.progressPercentage}% complete
-                      </p>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Compliant</p>
+                      <p className="text-2xl font-bold text-green-600">{schoolStats.compliantEmployees}</p>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-8 w-8 text-orange-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Non-Compliant</p>
+                      <p className="text-2xl font-bold text-orange-600">{schoolStats.nonCompliantEmployees}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="h-8 w-8 text-purple-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Compliance Rate</p>
+                      <p className="text-2xl font-bold text-purple-600">{schoolStats.complianceRate}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <GraduationCap className="h-8 w-8 text-indigo-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Average Hours</p>
+                      <p className="text-2xl font-bold text-indigo-600">{schoolStats.averageHours}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Employee ECE Hours Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  Employee ECE Hours Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {employees.map((employee) => (
+                    <div key={employee.employeeId} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+                        {/* Employee Info */}
+                        <div className="lg:col-span-3">
+                          <h3 className="font-semibold text-gray-900">{employee.employeeName}</h3>
+                          <p className="text-sm text-gray-600">{employee.jobTitle}</p>
+                          <p className="text-xs text-gray-500">{employee.email}</p>
+                        </div>
+
+                        {/* Hours Progress */}
+                        <div className="lg:col-span-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-medium">
+                              {employee.totalHours} / {employee.requiredHours} hours
+                            </span>
+                            {employee.isCompliant ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            )}
+                          </div>
+                          <Progress 
+                            value={employee.progressPercentage} 
+                            className="w-full h-2"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            {employee.progressPercentage}% complete
+                          </p>
+                        </div>
 
                     {/* Status Badge */}
                     <div className="lg:col-span-2">
