@@ -3393,6 +3393,61 @@ Continue for all 5 questions...
     }
   });
   
+  // Get ECE hours for a specific teacher (for admin/school admin use)
+  app.get("/api/teachers/:teacherId/ece-hours", requireAuth, async (req, res) => {
+    try {
+      const teacherId = parseInt(req.params.teacherId);
+      const userId = req.session.userId as number;
+      
+      // Get current user to check permissions
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      // Get target teacher
+      const teacher = await storage.getUser(teacherId);
+      if (!teacher) {
+        return res.status(404).json({ message: "Teacher not found" });
+      }
+      
+      // Check permissions - only allow if user is admin, school admin of same school, or viewing own data
+      if (teacherId !== userId && 
+          !currentUser.isOwner && 
+          !currentUser.isAdmin && 
+          (!currentUser.isSchoolAdmin || currentUser.schoolId !== teacher.schoolId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get ECE hours for the teacher
+      const hours = await db.select().from(eceHours)
+        .where(eq(eceHours.userId, teacherId))
+        .orderBy(desc(eceHours.completedAt));
+      
+      // Calculate totals by category
+      const hoursByCategory = hours.reduce((acc, hour) => {
+        const category = hour.category;
+        const durationHours = hour.duration / 60; // Convert minutes to hours
+        acc[category] = (acc[category] || 0) + durationHours;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const totalHours = hours.reduce((sum, h) => sum + (h.duration / 60), 0);
+      
+      res.json({
+        teacherId,
+        teacherName: `${teacher.firstName} ${teacher.lastName}`,
+        hours,
+        totalHours,
+        hoursByCategory,
+        categories: Object.keys(hoursByCategory)
+      });
+    } catch (error) {
+      console.error("Error fetching teacher ECE hours:", error);
+      res.status(500).json({ message: "Failed to fetch ECE hours" });
+    }
+  });
+
   app.get("/api/schools/:schoolId/teacher-progress", requireAuth, async (req, res) => {
     try {
       const schoolId = parseInt(req.params.schoolId);

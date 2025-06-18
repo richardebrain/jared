@@ -93,6 +93,7 @@ import ModuleFlowTest from "@/pages/module-flow-test";
 import PodcastGenerator from "@/pages/podcast-generator";
 import MusicMaker from "@/pages/music-maker";
 import PerfectManager from "@/pages/admin-perfect-manager";
+import SchoolECETracking from "@/pages/school-ece-tracking";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
