@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
@@ -294,6 +294,20 @@ export default function AllModules() {
             <div className="bg-gray-50 p-3 rounded-lg mb-4">
               <p className="text-sm text-gray-600">
                 <strong>Shared by:</strong> {module.school_name || module.schoolName}
+              </p>
+            </div>
+          )}
+          
+          {/* Recent Comments Section */}
+          {ratingCount > 0 && (
+            <div className="bg-blue-50 p-3 rounded-lg mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">Community Feedback</span>
+              </div>
+              <p className="text-xs text-blue-700">
+                {ratingCount} educator{ratingCount !== 1 ? 's have' : ' has'} rated this module. 
+                Comments are saved and help improve our community content.
               </p>
             </div>
           )}
