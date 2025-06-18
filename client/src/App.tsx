@@ -95,6 +95,7 @@ import MusicMaker from "@/pages/music-maker";
 import PerfectManager from "@/pages/admin-perfect-manager";
 import SchoolECETracking from "@/pages/school-ece-tracking";
 import EceHoursTracker from "@/pages/ece-hours-tracker";
+import TestPage from "@/pages/test-page";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
