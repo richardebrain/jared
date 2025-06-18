@@ -166,9 +166,35 @@ export default function PerfectManager() {
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [audioType, setAudioType] = useState<'voice-boost' | 'reset' | null>(null);
   const [activeOption, setActiveOption] = useState<'situation' | 'boost' | 'tools' | null>(null);
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Audio control functions
+  const stopCurrentAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setCurrentAudio(null);
+      setIsAudioPlaying(false);
+      setAudioType(null);
+    }
+  };
+
+  const toggleAudioPlayback = () => {
+    if (currentAudio) {
+      if (isAudioPlaying) {
+        currentAudio.pause();
+        setIsAudioPlaying(false);
+      } else {
+        currentAudio.play();
+        setIsAudioPlaying(true);
+      }
+    }
+  };
 
 
 
@@ -1164,6 +1190,15 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                     e.stopPropagation();
                     console.log('Start Reset button clicked!');
                     
+                    // If audio is already playing, toggle playback
+                    if (currentAudio && audioType === 'reset') {
+                      toggleAudioPlayback();
+                      return;
+                    }
+                    
+                    // Stop any currently playing audio
+                    stopCurrentAudio();
+                    
                     try {
                       // Generate guided breathing exercise
                       const breathingScript = `Welcome to your mindful reset. Find a comfortable position and close your eyes if you feel comfortable doing so. 
@@ -1197,10 +1232,22 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                         const audioBlob = await response.blob();
                         const audioUrl = URL.createObjectURL(audioBlob);
                         const audio = new Audio(audioUrl);
+                        
+                        // Set up audio event listeners
+                        audio.addEventListener('play', () => setIsAudioPlaying(true));
+                        audio.addEventListener('pause', () => setIsAudioPlaying(false));
+                        audio.addEventListener('ended', () => {
+                          setCurrentAudio(null);
+                          setIsAudioPlaying(false);
+                          setAudioType(null);
+                        });
+                        
+                        setCurrentAudio(audio);
+                        setAudioType('reset');
                         await audio.play();
                         
                         // Show visual guidance as well
-                        alert('Starting 3-minute mindful reset. Follow along with the voice guidance for best results.');
+                        alert('Starting 3-minute mindful reset. You can pause and resume using the button.');
                       } else {
                         alert('Mindful reset temporarily unavailable. Please try again later.');
                       }
@@ -1211,8 +1258,24 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                   }}
                   className="w-full bg-blue-500 hover:bg-blue-600"
                 >
-                  <Pause className="h-4 w-4 mr-2" />
-                  Start Reset
+                  {currentAudio && audioType === 'reset' ? (
+                    isAudioPlaying ? (
+                      <>
+                        <Pause className="h-4 w-4 mr-2" />
+                        Pause Reset
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Resume Reset
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Start Reset
+                    </>
+                  )}
                 </Button>
               </Card>
             </div>
