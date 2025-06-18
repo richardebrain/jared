@@ -221,7 +221,7 @@ export default function AllModules() {
     };
     
     return (
-      <Card key={module.id} className="h-full flex flex-col hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+      <Card key={moduleId} className="h-full flex flex-col hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start mb-3">
             <CardTitle className="text-xl font-bold leading-tight text-gray-900">{module.title}</CardTitle>
@@ -232,12 +232,10 @@ export default function AllModules() {
                   Completed
                 </Badge>
               )}
-              {module.eceHours && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-                  <GraduationCap className="w-3 h-3 mr-1" />
-                  {module.eceHours}h ECE
-                </Badge>
-              )}
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                <Star className="w-3 h-3 mr-1" />
+                Community
+              </Badge>
             </div>
           </div>
           
@@ -264,7 +262,7 @@ export default function AllModules() {
             </Badge>
             <div className="flex items-center">
               <Award className="w-4 h-4 mr-1" />
-              {module.pointValue} pts
+              {module.point_value || module.pointValue} pts
             </div>
           </div>
         </CardHeader>
@@ -291,6 +289,15 @@ export default function AllModules() {
             )}
           </div>
           
+          {/* School Information */}
+          {(module.school_name || module.schoolName) && (
+            <div className="bg-gray-50 p-3 rounded-lg mb-4">
+              <p className="text-sm text-gray-600">
+                <strong>Shared by:</strong> {module.school_name || module.schoolName}
+              </p>
+            </div>
+          )}
+          
           {/* Progress Bar if in progress */}
           {progress && progress.progress > 0 && !isCompleted && (
             <div className="mb-4">
@@ -308,7 +315,7 @@ export default function AllModules() {
             asChild 
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
-            <Link href={`/module/${module.id}`}>
+            <Link href={`/module/${moduleId}`}>
               {progress && progress.progress > 0 && !isCompleted ? (
                 <>
                   <Bookmark className="mr-2 h-4 w-4" /> Continue Learning
