@@ -83,7 +83,7 @@ export default function EceHoursTracker() {
   });
 
   // Email settings queries and mutations
-  const { data: reportingSettings } = useQuery({
+  const { data: reportingSettings } = useQuery<{ settings: any; hasSettings: boolean }>({
     queryKey: ['/api/school/ece-reporting-settings'],
   });
 
@@ -200,7 +200,7 @@ export default function EceHoursTracker() {
 
   // Initialize email settings from API data
   React.useEffect(() => {
-    if (reportingSettings && reportingSettings.settings) {
+    if (reportingSettings?.settings) {
       setEmailSettings({
         reportingEmails: reportingSettings.settings.reportingEmails || [''],
         frequency: reportingSettings.settings.frequency || 'monthly',
