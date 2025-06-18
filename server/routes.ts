@@ -2557,7 +2557,8 @@ Continue for all 5 questions...
                image_url as "imageUrl", featured, difficulty, category, content, 
                quiz, is_visible as "isVisible", created_at as "createdAt",
                average_rating as "averageRating", rating_count as "ratingCount",
-               is_shared_to_community as "isSharedToCommunity", school_id as "schoolId"
+               is_shared_to_community as "isSharedToCommunity", school_id as "schoolId",
+               ece_hours as "eceHours", ece_category as "eceCategory"
         FROM learning_modules
         ORDER BY created_at DESC
       `);
