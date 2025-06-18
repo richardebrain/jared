@@ -155,6 +155,12 @@ function AuthenticatedRouter() {
         <Route path="/business-signup">
           <BusinessSignup />
         </Route>
+        <Route path="/test-page">
+          <TestPage />
+        </Route>
+        <Route path="/ece-hours-tracker">
+          <EceHoursTracker />
+        </Route>
         <Route path="/">
           <Redirect to="/login" />
         </Route>
