@@ -708,7 +708,7 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Option A: Handle a Situation */}
-          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
+          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
             <CardContent className="relative p-8 text-center space-y-6">
               <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
@@ -754,7 +754,7 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
           </Card>
 
           {/* Option B: Boost Me */}
-          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
+          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 group-hover:from-orange-500/10 group-hover:to-red-500/10 transition-all duration-500"></div>
             <CardContent className="relative p-8 text-center space-y-6">
               <div className="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
@@ -800,7 +800,7 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
           </Card>
 
           {/* Option C: Tools & Training */}
-          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
+          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 group-hover:from-purple-500/10 group-hover:to-indigo-500/10 transition-all duration-500"></div>
             <CardContent className="relative p-8 text-center space-y-6">
               <div className="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500 to-indigo-500 rounded-3xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
