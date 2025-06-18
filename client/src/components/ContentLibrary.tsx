@@ -173,9 +173,17 @@ function ModuleCard({ module }: { module: LearningModule }) {
       
       <div className="p-5 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-3">
-          <Badge variant="outline" className={categoryData.color}>
-            {categoryData.label}
-          </Badge>
+          <div className="flex gap-1 flex-wrap">
+            <Badge variant="outline" className={categoryData.color}>
+              {categoryData.label}
+            </Badge>
+            {module.eceHours && module.eceHours > 0 && (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <GraduationCap className="w-3 h-3 mr-1" />
+                {module.eceHours}h ECE
+              </Badge>
+            )}
+          </div>
           <span className="text-xs text-neutral-500">{module.duration} min</span>
         </div>
         

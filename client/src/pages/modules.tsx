@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
@@ -146,6 +146,12 @@ export default function AllModules() {
                 <Zap className="w-3 h-3 mr-1" /> Recommended
               </Badge>
             }
+            {module.eceHours && module.eceHours > 0 && (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <GraduationCap className="w-3 h-3 mr-1" />
+                {module.eceHours}h ECE
+              </Badge>
+            )}
           </div>
         </CardContent>
         <CardFooter className="pt-2">
