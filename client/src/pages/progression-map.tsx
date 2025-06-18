@@ -165,21 +165,33 @@ export default function ProgressionMap() {
     queryKey: ["/api/modules"],
     enabled: !!user,
   });
+
+  // Query to get ECE hours
+  const { data: eceHours } = useQuery({
+    queryKey: ["/api/ece-hours"],
+    enabled: !!user,
+  });
   
   // Calculate current level and progress
   const currentLevel = React.useMemo(() => {
     if (!user) return "assistant";
     
     const userPoints = userData?.points || user.points || 0;
+    const userECEHours = eceHours?.totalHours || 0;
     const levels = Object.keys(teacherLevels).reverse(); // Start from highest level
     
     for (const level of levels) {
-      if (userPoints >= teacherLevels[level].points) {
+      const requirements = teacherLevels[level];
+      const pointsRequirement = userPoints >= requirements.points;
+      const hoursRequirement = !requirements.hoursRequired || userECEHours >= requirements.hoursRequired;
+      
+      // Must meet BOTH points and hours requirements
+      if (pointsRequirement && hoursRequirement) {
         return level;
       }
     }
     return "assistant";
-  }, [user, userData, teacherLevels]);
+  }, [user, userData, teacherLevels, eceHours]);
   
   const nextLevel = React.useMemo(() => {
     const levels = Object.keys(teacherLevels);
@@ -502,8 +514,33 @@ export default function ProgressionMap() {
                           }`}>
                             {level.charAt(0).toUpperCase() + level.slice(1)}
                           </div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            {requirements.points} pts
+                          <div className="text-xs text-gray-600 mt-1 space-y-1">
+                            <div className="flex items-center gap-1">
+                              <span>{requirements.points} pts</span>
+                              {(() => {
+                                const userPoints = userData?.points || user?.points || 0;
+                                const pointsComplete = userPoints >= requirements.points;
+                                return pointsComplete ? (
+                                  <CheckCircle className="h-3 w-3 text-green-500" />
+                                ) : (
+                                  <span className="text-xs text-red-500">✗</span>
+                                );
+                              })()}
+                            </div>
+                            {requirements.hoursRequired && (
+                              <div className="flex items-center gap-1">
+                                <span>{requirements.hoursRequired}h ECE</span>
+                                {(() => {
+                                  const userECEHours = eceHours?.totalHours || 0;
+                                  const hoursComplete = userECEHours >= requirements.hoursRequired;
+                                  return hoursComplete ? (
+                                    <CheckCircle className="h-3 w-3 text-green-500" />
+                                  ) : (
+                                    <span className="text-xs text-red-500">✗</span>
+                                  );
+                                })()}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
