@@ -86,7 +86,7 @@ export default function ProgressionMap() {
     "associate": {
       points: 100,
       assessmentScore: 60,
-      hoursRequired: 10,
+      hoursRequired: 30,
       icon: Star,
       color: "bg-yellow-500",
       description: "Developing teacher who can lead certain activities under supervision and is building core competencies.",
@@ -100,7 +100,7 @@ export default function ProgressionMap() {
     "lead": {
       points: 250,
       assessmentScore: 70,
-      hoursRequired: 20,
+      hoursRequired: 100,
       experienceRequired: "6 months",
       directorApproval: true,
       modules: ["classroom-management", "child-development-basics", "curriculum-planning"],
@@ -118,7 +118,7 @@ export default function ProgressionMap() {
     "senior": {
       points: 500,
       assessmentScore: 80,
-      hoursRequired: 40,
+      hoursRequired: 200,
       experienceRequired: "6 months",
       directorApproval: true,
       modules: ["advanced-curriculum", "parent-relations", "behavioral-management"],
@@ -136,7 +136,7 @@ export default function ProgressionMap() {
     "master": {
       points: 1000,
       assessmentScore: 90,
-      hoursRequired: 60,
+      hoursRequired: 300,
       experienceRequired: "6 months",
       directorApproval: true,
       inPersonAssessment: true,
