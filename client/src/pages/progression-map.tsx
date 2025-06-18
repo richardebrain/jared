@@ -411,17 +411,49 @@ export default function ProgressionMap() {
             </CardHeader>
             <CardContent className="relative z-10">
               <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between text-white/90 mb-3">
-                    <span className="font-medium">🚀 Progress to next level</span>
-                    <span className="font-bold text-yellow-300 text-lg">{Math.round(progress)}%</span>
+                <div className="space-y-4">
+                  {/* Points Progress */}
+                  <div>
+                    <div className="flex items-center justify-between text-white/90 mb-3">
+                      <span className="font-medium">🎯 Points Progress</span>
+                      <span className="font-bold text-yellow-300 text-lg">{Math.round(progress)}%</span>
+                    </div>
+                    <div className="bg-white/20 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-yellow-300 to-orange-400 h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="bg-white/20 rounded-full h-4 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-yellow-300 to-orange-400 h-full rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+                  
+                  {/* ECE Hours Progress */}
+                  {nextLevel && teacherLevels[nextLevel]?.hoursRequired && (
+                    <div>
+                      {(() => {
+                        const userECEHours = eceHours?.totalHours || 0;
+                        const requiredHours = teacherLevels[nextLevel].hoursRequired;
+                        const eceProgress = Math.min((userECEHours / requiredHours) * 100, 100);
+                        
+                        return (
+                          <>
+                            <div className="flex items-center justify-between text-white/90 mb-3">
+                              <span className="font-medium">🎓 ECE Hours Progress</span>
+                              <span className="font-bold text-purple-300 text-lg">{Math.round(eceProgress)}%</span>
+                            </div>
+                            <div className="bg-white/20 rounded-full h-3 overflow-hidden">
+                              <div 
+                                className="bg-gradient-to-r from-purple-300 to-blue-400 h-full rounded-full transition-all duration-1000 ease-out"
+                                style={{ width: `${eceProgress}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-purple-200 mt-1 text-center">
+                              {userECEHours} of {requiredHours} hours completed
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 text-center">
