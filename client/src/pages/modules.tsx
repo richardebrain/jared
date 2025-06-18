@@ -14,6 +14,11 @@ import { useState, useEffect } from "react";
 export default function AllModules() {
   const [, setLocation] = useLocation();
   const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
+  
+  // Get URL parameters to determine initial tab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'all');
 
   // Fetch all modules
   const { data: modules = [], error: modulesError } = useQuery<LearningModule[]>({
@@ -361,7 +366,7 @@ export default function AllModules() {
         mini modules can be completed in 5-15 minutes, standard modules take 15-45 minutes, and large modules are more comprehensive learning experiences.
       </p>
 
-      <Tabs defaultValue="all" className="mb-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all">All Modules ({modules.length})</TabsTrigger>
           <TabsTrigger value="micro">Micro ({microModules.length})</TabsTrigger>

@@ -346,9 +346,9 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
           <Button
             variant="default"
             className="w-full mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-            onClick={toggleView}
+            onClick={() => setLocation('/modules?tab=community')}
           >
-            {viewAll ? "Show Featured Modules" : "View All Community Modules"}
+            View All Community Modules
             <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         )}
