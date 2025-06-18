@@ -282,7 +282,7 @@ export default function DirectorToolkit() {
                     'bg-orange-500'
                   }`}></div>
                   {categoryLabel}
-                  <Badge variant="outline" className="ml-2">
+                  <Badge variant="outline" className="ml-2 bg-white/20 text-white border-white/50">
                     {toolsByCategory[categoryKey]?.length || 0} tools
                   </Badge>
                 </h2>
@@ -342,7 +342,7 @@ function ToolCard({ tool }: { tool: ToolkitTool }) {
         {tool.badge && (
           <Badge 
             variant={tool.badgeVariant} 
-            className="mb-2"
+            className="mb-2 text-xs px-2 py-1"
           >
             {tool.badge}
           </Badge>
