@@ -170,6 +170,9 @@ export default function PerfectManager() {
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
 
+  // Debug logging for activeOption state
+  console.log('Perfect Manager - Current activeOption:', activeOption);
+
   const handleScenarioSelect = (scenarioId: string) => {
     setSelectedScenario(scenarioId);
     setCustomScenario('');
@@ -772,7 +775,10 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               </div>
               
               <Button 
-                onClick={() => setActiveOption('boost')}
+                onClick={() => {
+                  console.log('Setting active option to boost');
+                  setActiveOption('boost');
+                }}
                 className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Boost My Energy
@@ -811,7 +817,10 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               </div>
               
               <Button 
-                onClick={() => setActiveOption('tools')}
+                onClick={() => {
+                  console.log('Setting active option to tools');
+                  setActiveOption('tools');
+                }}
                 className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Browse Resources
