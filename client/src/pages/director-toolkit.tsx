@@ -274,7 +274,7 @@ export default function DirectorToolkit() {
           <div className="space-y-8">
             {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => (
               <div key={categoryKey}>
-                <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b border-gray-200 pb-2 flex items-center gap-2">
+                <h2 className="text-xl font-semibold mb-4 text-white border-b border-white/30 pb-2 flex items-center gap-2">
                   <div className={`w-1 h-6 rounded-full ${
                     categoryKey === 'staff' ? 'bg-blue-500' :
                     categoryKey === 'content' ? 'bg-green-500' :
