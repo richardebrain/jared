@@ -5934,12 +5934,12 @@ Continue for all 5 questions...
   }
 
   // Perfect Manager AI Leadership Advice Endpoint
-  app.post("/api/perfect-manager/generate-advice", requireAuth, async (req, res) => {
+  app.post("/api/perfect-manager/advice", requireAuth, async (req, res) => {
     try {
-      const { scenario, details, employeeName, employeeRole } = req.body;
+      const { situation, teacherName, context, scenario } = req.body;
       
-      if (!scenario || !details) {
-        return res.status(400).json({ error: "Scenario and details are required" });
+      if (!situation && !scenario) {
+        return res.status(400).json({ error: "Situation or scenario is required" });
       }
 
       const systemPrompt = `You are the Perfect Manager AI advisor, synthesizing wisdom from legendary leadership minds: Tony Robbins (peak performance), Dale Carnegie (influence), Stephen Covey (principles), Brené Brown (vulnerability), Simon Sinek (purpose), and Zig Ziglar (motivation).
@@ -5987,9 +5987,10 @@ Respond in JSON format matching this structure exactly:
   }
 }`;
 
-      const userPrompt = `Management Scenario: ${scenario}
-Employee: ${employeeName || 'Team Member'} (${employeeRole || 'Staff Member'})
-Situation Details: ${details}
+      const userPrompt = `Management Scenario: ${scenario || 'General Situation'}
+Employee: ${teacherName || 'Team Member'}
+Situation Details: ${situation}
+Additional Context: ${context || 'None provided'}
 
 Please analyze this early childhood education management situation and provide comprehensive guidance that combines legendary leadership principles with practical ECE-specific strategies.`;
 
@@ -6023,7 +6024,7 @@ Please analyze this early childhood education management situation and provide c
       } catch (parseError) {
         // Fallback response based on leadership principles if parsing fails
         advice = {
-          scenario: scenario,
+          scenario: scenario || situation,
           rootCauses: [
             "Possible misalignment between expectations and current performance",
             "Potential lack of clarity in role responsibilities or goals",
