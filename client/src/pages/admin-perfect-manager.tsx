@@ -1096,7 +1096,57 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                 </div>
                 <h3 className="text-xl font-semibold mb-4">Voice Boost</h3>
                 <p className="text-slate-600 mb-6">60-second motivational message tailored to your leadership journey</p>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                <Button 
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Get Voice Boost button clicked!');
+                    
+                    try {
+                      // Generate motivational voice message
+                      const motivationalMessages = [
+                        "You are making a profound difference in children's lives every single day. Your leadership creates the foundation for their future success.",
+                        "Remember, you're not just managing a classroom - you're nurturing the next generation. Your energy and passion directly impact their growth.",
+                        "Every challenge you face today is shaping you into a stronger leader. Children need your authentic energy and caring presence.",
+                        "You have the power to turn any difficult situation into a learning opportunity. Trust your instincts and lead with your heart.",
+                        "Your work matters more than you know. The love and structure you provide creates lasting impact in young lives."
+                      ];
+                      
+                      const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+                      
+                      const response = await fetch('/api/voice/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          text: randomMessage,
+                          voiceType: 'friendly-female',
+                          settings: {
+                            stability: 0.8,
+                            similarityBoost: 0.9,
+                            style: 0.2,
+                            useSpeakerBoost: true
+                          }
+                        })
+                      });
+                      
+                      if (response.ok) {
+                        const audioBlob = await response.blob();
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+                        await audio.play();
+                        
+                        // Show the message text as well
+                        alert(`Voice Boost: "${randomMessage}"`);
+                      } else {
+                        alert('Voice boost temporarily unavailable. Please try again later.');
+                      }
+                    } catch (error) {
+                      console.error('Voice boost error:', error);
+                      alert('Voice boost temporarily unavailable. Please try again later.');
+                    }
+                  }}
+                  className="w-full bg-orange-500 hover:bg-orange-600"
+                >
                   <Play className="h-4 w-4 mr-2" />
                   Get Voice Boost
                 </Button>
@@ -1108,7 +1158,59 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                 </div>
                 <h3 className="text-xl font-semibold mb-4">Mindful Reset</h3>
                 <p className="text-slate-600 mb-6">3-minute breathing exercise to center your leadership presence</p>
-                <Button className="w-full bg-blue-500 hover:bg-blue-600">
+                <Button 
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Start Reset button clicked!');
+                    
+                    try {
+                      // Generate guided breathing exercise
+                      const breathingScript = `Welcome to your mindful reset. Find a comfortable position and close your eyes if you feel comfortable doing so. 
+                      
+                      We'll do three deep breaths together. 
+                      
+                      First breath: Breathe in slowly for four counts... one, two, three, four. Hold for two... one, two. Now breathe out slowly for six counts... one, two, three, four, five, six.
+                      
+                      Second breath: In for four... one, two, three, four. Hold... one, two. Out for six... one, two, three, four, five, six.
+                      
+                      Final breath: In for four... one, two, three, four. Hold... one, two. Out for six... one, two, three, four, five, six.
+                      
+                      Take a moment to notice how you feel. You are centered, grounded, and ready to lead with clarity and compassion. When you're ready, open your eyes.`;
+                      
+                      const response = await fetch('/api/voice/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          text: breathingScript,
+                          voiceType: 'friendly-female',
+                          settings: {
+                            stability: 0.9,
+                            similarityBoost: 0.8,
+                            style: 0.1,
+                            useSpeakerBoost: true
+                          }
+                        })
+                      });
+                      
+                      if (response.ok) {
+                        const audioBlob = await response.blob();
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+                        await audio.play();
+                        
+                        // Show visual guidance as well
+                        alert('Starting 3-minute mindful reset. Follow along with the voice guidance for best results.');
+                      } else {
+                        alert('Mindful reset temporarily unavailable. Please try again later.');
+                      }
+                    } catch (error) {
+                      console.error('Mindful reset error:', error);
+                      alert('Mindful reset temporarily unavailable. Please try again later.');
+                    }
+                  }}
+                  className="w-full bg-blue-500 hover:bg-blue-600"
+                >
                   <Pause className="h-4 w-4 mr-2" />
                   Start Reset
                 </Button>
