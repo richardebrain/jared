@@ -5933,6 +5933,224 @@ Continue for all 5 questions...
     `;
   }
 
+  // Perfect Manager AI Leadership Advice Endpoint
+  app.post("/api/perfect-manager/generate-advice", requireAuth, async (req, res) => {
+    try {
+      const { scenario, details, employeeName, employeeRole } = req.body;
+      
+      if (!scenario || !details) {
+        return res.status(400).json({ error: "Scenario and details are required" });
+      }
+
+      const systemPrompt = `You are the Perfect Manager AI advisor, synthesizing wisdom from legendary leadership minds: Tony Robbins (peak performance), Dale Carnegie (influence), Stephen Covey (principles), Brené Brown (vulnerability), Simon Sinek (purpose), and Zig Ziglar (motivation).
+
+You specialize in early childhood education leadership and understand the unique challenges of managing preschool staff. Provide practical, empathetic guidance that honors the sacred work of "writing chapter one" in children's lives.
+
+Generate a comprehensive management action plan with:
+1. Root cause analysis (3-4 potential underlying issues)
+2. Immediate actions (3-4 specific steps to take today)
+3. Long-term strategies (3-4 sustainable approaches)
+4. Recommended resources (3-4 practical tools/materials)
+5. SMART goals (2-3 measurable objectives)
+6. Motivation techniques (3-4 ways to inspire and engage)
+7. Follow-up plan (3-4 check-in actions)
+8. Prevention strategies (3-4 ways to avoid future issues)
+9. Success metrics (3-4 ways to measure progress)
+10. Core values connection (how this relates to caring for children)
+11. Conversation script with opening lines, listening prompts, response scenarios, and closing statements
+
+Respond in JSON format matching this structure exactly:
+{
+  "scenario": "Brief description of the situation",
+  "rootCauses": ["cause 1", "cause 2", "cause 3"],
+  "immediateActions": ["action 1", "action 2", "action 3"],
+  "longTermStrategies": ["strategy 1", "strategy 2", "strategy 3"],
+  "resources": [
+    {"title": "Resource Title", "type": "article", "description": "Brief description", "priority": "high"},
+    {"title": "Resource Title", "type": "template", "description": "Brief description", "priority": "medium"}
+  ],
+  "goals": [
+    {"title": "Goal Title", "description": "Goal description", "timeframe": "30 days", "measurable": true, "actionSteps": ["step 1", "step 2"]}
+  ],
+  "motivationTechniques": ["technique 1", "technique 2", "technique 3"],
+  "followUpPlan": ["follow-up 1", "follow-up 2", "follow-up 3"],
+  "preventionStrategies": ["prevention 1", "prevention 2", "prevention 3"],
+  "successMetrics": ["metric 1", "metric 2", "metric 3"],
+  "coreValuesConnection": ["connection 1", "connection 2", "connection 3"],
+  "conversationScript": {
+    "openingLines": ["line 1", "line 2"],
+    "listeningPrompts": ["prompt 1", "prompt 2"],
+    "responseScenarios": [
+      {"teacherResponse": "response", "directorReply": "reply", "followUpQuestion": "question"}
+    ],
+    "closingStatements": ["statement 1", "statement 2"]
+  }
+}`;
+
+      const userPrompt = `Management Scenario: ${scenario}
+Employee: ${employeeName || 'Team Member'} (${employeeRole || 'Staff Member'})
+Situation Details: ${details}
+
+Please analyze this early childhood education management situation and provide comprehensive guidance that combines legendary leadership principles with practical ECE-specific strategies.`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 6000,
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      let advice;
+      
+      try {
+        advice = JSON.parse(data.choices[0].message.content);
+      } catch (parseError) {
+        // Fallback response based on leadership principles if parsing fails
+        advice = {
+          scenario: scenario,
+          rootCauses: [
+            "Possible misalignment between expectations and current performance",
+            "Potential lack of clarity in role responsibilities or goals",
+            "May need additional support, training, or resources"
+          ],
+          immediateActions: [
+            "Schedule a private, empathetic conversation within 24 hours",
+            "Listen actively to understand their perspective and challenges",
+            "Clearly communicate your observations and expectations"
+          ],
+          longTermStrategies: [
+            "Implement regular check-ins and feedback sessions",
+            "Develop a professional growth plan together",
+            "Create supportive team environment and peer mentoring"
+          ],
+          resources: [
+            {"title": "Difficult Conversations Guide", "type": "template", "description": "Step-by-step framework for constructive discussions", "priority": "high"},
+            {"title": "Performance Improvement Plan Template", "type": "template", "description": "Structured approach to goal setting and progress tracking", "priority": "medium"}
+          ],
+          goals: [
+            {"title": "Improve Communication", "description": "Establish clear, consistent communication patterns", "timeframe": "30 days", "measurable": true, "actionSteps": ["Weekly one-on-ones", "Written goal documentation"]}
+          ],
+          motivationTechniques: [
+            "Acknowledge their passion for working with children",
+            "Connect their role to the bigger mission of nurturing young minds",
+            "Celebrate small wins and progress along the way"
+          ],
+          followUpPlan: [
+            "Schedule follow-up meeting in one week",
+            "Monitor progress through observation and feedback",
+            "Adjust support strategies based on their response"
+          ],
+          preventionStrategies: [
+            "Establish clear expectations from the start",
+            "Provide regular feedback and recognition",
+            "Create open communication channels"
+          ],
+          successMetrics: [
+            "Observable improvement in specific behaviors",
+            "Positive feedback from colleagues and families",
+            "Increased engagement and job satisfaction"
+          ],
+          coreValuesConnection: [
+            "Remember that we're writing chapter one in children's lives",
+            "Your leadership directly impacts the quality of care children receive",
+            "Supporting staff growth means better outcomes for families"
+          ],
+          conversationScript: {
+            openingLines: [
+              "I wanted to talk with you because I care about your success here",
+              "Your work with our children is so important, and I want to support you"
+            ],
+            listeningPrompts: [
+              "Help me understand your perspective on this",
+              "What challenges are you facing that I might not be aware of?"
+            ],
+            responseScenarios: [
+              {"teacherResponse": "I'm doing my best", "directorReply": "I can see that you care deeply about the children. Let's work together to make sure you have everything you need to succeed.", "followUpQuestion": "What specific support would be most helpful right now?"}
+            ],
+            closingStatements: [
+              "I believe in your potential and I'm here to support your growth",
+              "Thank you for your dedication to our children and families"
+            ]
+          }
+        };
+      }
+
+      res.json(advice);
+    } catch (error) {
+      console.error('Perfect Manager API error:', error);
+      res.status(500).json({ error: 'Failed to generate management advice' });
+    }
+  });
+
+  // Perfect Manager empathy coaching endpoint
+  app.post("/api/perfect-manager/empathy-coaching", requireAuth, async (req, res) => {
+    try {
+      const { scenario, employee, originalAdvice, userQuestion, chatHistory } = req.body;
+      
+      const systemPrompt = `You are an empathy coaching assistant for the Perfect Manager AI system. Help directors practice implementing management advice with emotional intelligence and care.
+
+Provide supportive, practical guidance that helps the director:
+- Approach conversations with genuine empathy
+- Use active listening techniques
+- Navigate emotional responses professionally
+- Apply legendary leadership principles in real scenarios
+- Remember the sacred nature of working with children
+
+Keep responses conversational, warm, and actionable. Focus on building confidence and emotional skills.`;
+
+      const userPrompt = `Scenario: ${scenario}
+Employee: ${employee}
+Original Advice: ${JSON.stringify(originalAdvice)}
+Director's Question: ${userQuestion}
+Recent Conversation: ${JSON.stringify(chatHistory)}
+
+Please provide empathy coaching guidance to help this director implement the management advice effectively.`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 1000,
+          temperature: 0.8
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      res.json({ content: data.choices[0].message.content });
+    } catch (error) {
+      console.error('Empathy coaching API error:', error);
+      res.status(500).json({ error: 'Failed to get empathy coaching response' });
+    }
+  });
+
   // Newsletter admin endpoints
   app.post(
     "/api/admin/newsletters/:id/publish",
