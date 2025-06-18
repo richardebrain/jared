@@ -1065,7 +1065,7 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
 
   const renderSectionContent = () => {
     if (!currentSection) return null;
-
+console.log('Rendering section content:', currentSection)
     switch (currentSection.type) {
       case 'text':
         return (
