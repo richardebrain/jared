@@ -94,6 +94,7 @@ import PodcastGenerator from "@/pages/podcast-generator";
 import MusicMaker from "@/pages/music-maker";
 import PerfectManager from "@/pages/admin-perfect-manager";
 import SchoolECETracking from "@/pages/school-ece-tracking";
+import EceHoursTracker from "@/pages/ece-hours-tracker";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -978,6 +979,12 @@ function Router(props: {
       <Route path="/admin/modules">
         <ProtectedRoute adminOnly={true}>
           <AdminModulesPage />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/ece-hours-tracker">
+        <ProtectedRoute adminOnly={true}>
+          <EceHoursTracker />
         </ProtectedRoute>
       </Route>
 
