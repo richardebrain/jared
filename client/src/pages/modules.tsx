@@ -39,6 +39,11 @@ export default function AllModules() {
     queryKey: ["/api/progress"],
   });
 
+  // Fetch community modules
+  const { data: communityModules = [] } = useQuery<any[]>({
+    queryKey: ["/api/community-modules"],
+  });
+
   // Group modules by size (duration in minutes)
   const microModules = modules.filter(module => module.duration <= 5);
   const miniModules = modules.filter(module => module.duration > 5 && module.duration <= 15);
@@ -185,6 +190,141 @@ export default function AllModules() {
     );
   };
 
+  // Render enhanced community module card with full description and ratings
+  const renderCommunityModuleCard = (module: any) => {
+    // Community modules come from a different API with different field names
+    const moduleId = module.module_id || module.id;
+    const progress = getModuleProgress(moduleId);
+    const isCompleted = isModuleCompleted(moduleId);
+    const difficultyStyle = getDifficultyBadgeStyle(module.difficulty);
+    
+    // Parse average rating (community modules use different field names)
+    const avgRating = module.average_rating ? parseFloat(module.average_rating) : 0;
+    const ratingCount = module.rating_count || 0;
+    
+    // Render star rating display
+    const renderStars = (rating: number) => {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(
+          <Star
+            key={i}
+            className={`w-4 h-4 ${
+              i <= rating 
+                ? 'fill-yellow-400 text-yellow-400' 
+                : 'text-gray-300'
+            }`}
+          />
+        );
+      }
+      return stars;
+    };
+    
+    return (
+      <Card key={module.id} className="h-full flex flex-col hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start mb-3">
+            <CardTitle className="text-xl font-bold leading-tight text-gray-900">{module.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              {isCompleted && (
+                <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Completed
+                </Badge>
+              )}
+              {module.eceHours && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                  <GraduationCap className="w-3 h-3 mr-1" />
+                  {module.eceHours}h ECE
+                </Badge>
+              )}
+            </div>
+          </div>
+          
+          {/* Rating Display */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center">
+              {renderStars(avgRating)}
+            </div>
+            <span className="text-sm text-gray-600">
+              {avgRating > 0 ? avgRating.toFixed(1) : 'No ratings'} 
+              {ratingCount > 0 && ` (${ratingCount} review${ratingCount !== 1 ? 's' : ''})`}
+            </span>
+          </div>
+          
+          {/* Module Details */}
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 mr-1" />
+              {module.duration} min
+            </div>
+            <Badge className={`${difficultyStyle.bg} ${difficultyStyle.text} ${difficultyStyle.border}`}>
+              {difficultyStyle.icon}
+              {module.difficulty}
+            </Badge>
+            <div className="flex items-center">
+              <Award className="w-4 h-4 mr-1" />
+              {module.pointValue} pts
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="flex-1">
+          {/* Full Description */}
+          <div className="mb-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Description</h4>
+            <p className="text-gray-700 leading-relaxed">
+              {module.description || "This community module provides valuable professional development content for early childhood educators."}
+            </p>
+          </div>
+          
+          {/* Category and Featured Info */}
+          <div className="flex items-center gap-2 mb-4">
+            <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+              {module.category || 'Professional Development'}
+            </Badge>
+            {module.featured && (
+              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                <Star className="w-3 h-3 mr-1" />
+                Featured
+              </Badge>
+            )}
+          </div>
+          
+          {/* Progress Bar if in progress */}
+          {progress && progress.progress > 0 && !isCompleted && (
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">Progress</span>
+                <span className="text-sm text-gray-600">{Math.round(progress.progress)}%</span>
+              </div>
+              <Progress value={progress.progress} className="h-2" />
+            </div>
+          )}
+        </CardContent>
+        
+        <CardFooter className="pt-4">
+          <Button 
+            asChild 
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            <Link href={`/module/${module.id}`}>
+              {progress && progress.progress > 0 && !isCompleted ? (
+                <>
+                  <Bookmark className="mr-2 h-4 w-4" /> Continue Learning
+                </>
+              ) : (
+                <>
+                  <BookOpen className="mr-2 h-4 w-4" /> Start Module
+                </>
+              )}
+            </Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="mb-6 flex items-center">
@@ -201,12 +341,13 @@ export default function AllModules() {
       </p>
 
       <Tabs defaultValue="all" className="mb-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all">All Modules ({modules.length})</TabsTrigger>
           <TabsTrigger value="micro">Micro ({microModules.length})</TabsTrigger>
           <TabsTrigger value="mini">Mini ({miniModules.length})</TabsTrigger>
           <TabsTrigger value="standard">Standard ({standardModules.length})</TabsTrigger>
           <TabsTrigger value="large">Large ({largeModules.length})</TabsTrigger>
+          <TabsTrigger value="community">Community ({communityModules.length})</TabsTrigger>
         </TabsList>
         
         <TabsContent value="all" className="mt-6">
@@ -272,6 +413,12 @@ export default function AllModules() {
         <TabsContent value="large" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {largeModules.map(renderModuleCard)}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="community" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {communityModules.map(renderCommunityModuleCard)}
           </div>
         </TabsContent>
       </Tabs>
