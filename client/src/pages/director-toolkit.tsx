@@ -161,7 +161,7 @@ const directorTools: ToolkitTool[] = [
     category: 'analytics'
   },
   {
-    id: 'school-settings',
+    id: 'admin-settings',
     title: 'School Settings',
     description: 'Configure school-wide policies, requirements, and customizations',
     icon: Settings,
@@ -339,14 +339,6 @@ function ToolCard({ tool }: { tool: ToolkitTool }) {
           <IconComponent className="h-10 w-10 text-white" />
         </div>
         <CardTitle className="text-2xl font-bold text-gray-800 mb-2">{tool.title}</CardTitle>
-        {tool.badge && (
-          <Badge 
-            variant={tool.badgeVariant} 
-            className="mb-2 text-xs px-2 py-1"
-          >
-            {tool.badge}
-          </Badge>
-        )}
         <CardDescription className="text-gray-600 leading-relaxed">
           {tool.description}
         </CardDescription>
