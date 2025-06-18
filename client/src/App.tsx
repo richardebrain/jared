@@ -988,9 +988,7 @@ function Router(props: {
       </Route>
 
       <Route path="/ece-hours-tracker">
-        <ProtectedRoute adminOnly={true}>
-          <EceHoursTracker />
-        </ProtectedRoute>
+        <EceHoursTracker />
       </Route>
 
       <Route path="/email-demo">
