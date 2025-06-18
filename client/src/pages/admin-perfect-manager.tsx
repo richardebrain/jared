@@ -33,7 +33,11 @@ import {
   Pause,
   Shield,
   Send,
-  MessageCircle
+  MessageCircle,
+  Sun,
+  Wind,
+  Trophy,
+  CheckSquare
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -1821,6 +1825,405 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               </div>
             </TabsContent>
           </Tabs>
+        </div>
+      )}
+
+      {/* Boost Me Content */}
+      {activeOption === 'boost' && (
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 py-16">
+          <div className="container mx-auto px-6 max-w-6xl">
+            <Card className="border-0 shadow-2xl bg-white">
+              <CardHeader className="pb-6 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-red-50">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-lg">
+                    <Zap className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-3xl font-bold text-slate-900">Instant Energy Boost</CardTitle>
+                    <CardDescription className="text-lg text-slate-600 mt-2">
+                      Quick motivation and energy recharge for directors
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-8">
+                <Tabs defaultValue="motivation" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="motivation">Daily Motivation</TabsTrigger>
+                    <TabsTrigger value="affirmations">Affirmations</TabsTrigger>
+                    <TabsTrigger value="breathwork">Breathwork</TabsTrigger>
+                    <TabsTrigger value="quick-wins">Quick Wins</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="motivation" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-blue-800">
+                            <Star className="h-5 w-5" />
+                            Today's Leadership Wisdom
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <blockquote className="text-lg italic text-blue-700 mb-4">
+                            "You get to write chapter one in children's lives. That's not just a job - that's a sacred calling... and yes, chapter one includes explaining why someone put Play-Doh in the fish tank."
+                          </blockquote>
+                          <p className="text-sm text-blue-600">
+                            Every challenge you face as a director is shaping the foundation of young minds. Your leadership creates ripples that extend far beyond the classroom (and hopefully don't involve actual water ripples from mysterious spills).
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-green-800">
+                            <Heart className="h-5 w-5" />
+                            Your Why Reminder
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="text-sm">You're building tomorrow's leaders (even if today's leader refuses to share the blocks)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="text-sm">Families trust you with their most precious gifts (and their most creative excuses for being late)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="text-sm">Your staff look to you for guidance and inspiration (and someone to fix the printer)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="text-sm">Every day you create positive change (despite the glitter explosions)</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+                      <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                          <h3 className="text-2xl font-bold text-purple-800">Your Leadership Superpower</h3>
+                          <p className="text-lg text-purple-700">
+                            Remember: Children will love what you love. When your team sees your passion for their growth, 
+                            they'll bring that same energy to the children. Your enthusiasm is contagious!
+                          </p>
+                          <Button 
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3"
+                            onClick={() => {
+                              // Add motivational sound effect or celebration animation
+                              window.navigator?.vibrate?.(100);
+                            }}
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            I'm Ready to Lead with Heart!
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="affirmations" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        "I am exactly where I need to be to make a difference (even if that's ankle-deep in art supplies)",
+                        "My leadership creates a foundation of love and learning (and occasionally, controlled chaos)",
+                        "I have the strength to guide my team through any challenge (including mysterious sticky substances)",
+                        "Every difficult conversation is an opportunity for growth (and practice in diplomatic language)",
+                        "I trust my experience and wisdom to make good decisions (especially about snack time emergencies)",
+                        "My care for children and families drives everything I do (except maybe coffee consumption - that's pure survival)"
+                      ].map((affirmation, index) => (
+                        <Card key={index} className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="pt-4">
+                            <div className="text-center space-y-2">
+                              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center mx-auto">
+                                <Sun className="h-4 w-4 text-yellow-800" />
+                              </div>
+                              <p className="font-medium text-yellow-800">"{affirmation}"</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="breathwork" className="space-y-6">
+                    <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-teal-800">
+                          <Wind className="h-5 w-5" />
+                          Mindful Breathing for Directors
+                        </CardTitle>
+                        <CardDescription className="text-teal-600">
+                          Take 2 minutes to center yourself before your next meeting or difficult conversation
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="bg-white rounded-lg p-4 border border-teal-100">
+                          <h4 className="font-semibold text-teal-800 mb-2">4-7-8 Breathing Technique</h4>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-teal-700">
+                            <li>Inhale through your nose for 4 counts</li>
+                            <li>Hold your breath for 7 counts</li>
+                            <li>Exhale through your mouth for 8 counts</li>
+                            <li>Repeat 3-4 cycles</li>
+                          </ol>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg p-4 border border-teal-100">
+                          <h4 className="font-semibold text-teal-800 mb-2">Heart-Centered Breathing</h4>
+                          <p className="text-sm text-teal-700">
+                            Place one hand on your heart. As you breathe, think: "I lead with love and wisdom. 
+                            My calm presence helps others find their calm."
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="quick-wins" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        { title: "Send a Appreciation Text", description: "Text one staff member something you noticed them doing well today", icon: MessageCircle, color: "blue" },
+                        { title: "Walk Through Classrooms", description: "Take a 5-minute walk to connect with children and observe the magic happening", icon: Users, color: "green" },
+                        { title: "Update Your Vision Board", description: "Add one image or quote that reminds you why you chose this work", icon: Target, color: "purple" },
+                        { title: "Share a Success Story", description: "Tell someone about a recent win at your school - celebrate progress!", icon: Trophy, color: "yellow" },
+                        { title: "Practice Gratitude", description: "Write down 3 things that went well today, no matter how small", icon: Heart, color: "pink" },
+                        { title: "Plan Something Fun", description: "Schedule one enjoyable activity for your team this week", icon: Calendar, color: "indigo" }
+                      ].map((win, index) => (
+                        <Card key={index} className={`bg-gradient-to-br from-${win.color}-50 to-${win.color}-100 border-${win.color}-200 hover:shadow-lg transition-all duration-300`}>
+                          <CardContent className="pt-4">
+                            <div className="text-center space-y-3">
+                              <div className={`w-12 h-12 bg-${win.color}-400 rounded-full flex items-center justify-center mx-auto`}>
+                                <win.icon className={`h-6 w-6 text-${win.color}-800`} />
+                              </div>
+                              <h4 className={`font-semibold text-${win.color}-800`}>{win.title}</h4>
+                              <p className={`text-xs text-${win.color}-700`}>{win.description}</p>
+                              <Button 
+                                size="sm" 
+                                className={`bg-${win.color}-500 hover:bg-${win.color}-600 text-white`}
+                                onClick={() => {
+                                  // Mark as completed
+                                  window.navigator?.vibrate?.(50);
+                                }}
+                              >
+                                Do This Now
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Tools & Training Content */}
+      {activeOption === 'tools' && (
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 py-16">
+          <div className="container mx-auto px-6 max-w-6xl">
+            <Card className="border-0 shadow-2xl bg-white">
+              <CardHeader className="pb-6 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-3xl flex items-center justify-center shadow-lg">
+                    <BookOpen className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-3xl font-bold text-slate-900">Tools & Training</CardTitle>
+                    <CardDescription className="text-lg text-slate-600 mt-2">
+                      Downloadable resources and micro-training for leadership excellence
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-8">
+                <Tabs defaultValue="templates" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="templates">One-Page Tools</TabsTrigger>
+                    <TabsTrigger value="scripts">Conversation Scripts</TabsTrigger>
+                    <TabsTrigger value="checklists">Observation Tools</TabsTrigger>
+                    <TabsTrigger value="training">Micro-Training</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="templates" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        { title: "Difficult Conversation Framework", description: "Step-by-step guide for challenging discussions", pages: "1 page", color: "blue" },
+                        { title: "Performance Improvement Plan", description: "Template for supporting struggling staff", pages: "2 pages", color: "green" },
+                        { title: "New Employee Onboarding", description: "Welcome checklist and first-week guide", pages: "1 page", color: "purple" },
+                        { title: "Parent Communication Scripts", description: "Professional responses for common situations", pages: "2 pages", color: "indigo" },
+                        { title: "Team Meeting Agenda Builder", description: "Engaging formats for productive meetings", pages: "1 page", color: "pink" },
+                        { title: "Crisis Management Checklist", description: "Emergency response and communication", pages: "1 page", color: "red" }
+                      ].map((tool, index) => (
+                        <Card key={index} className="hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-purple-200">
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between">
+                                <FileText className="h-8 w-8 text-purple-500" />
+                                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">{tool.pages}</span>
+                              </div>
+                              <h4 className="font-semibold text-gray-800">{tool.title}</h4>
+                              <p className="text-sm text-gray-600">{tool.description}</p>
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                                onClick={() => {
+                                  // Download functionality would go here
+                                  alert(`Downloading: ${tool.title}`);
+                                }}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download PDF
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="scripts" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-blue-800">
+                            <MessageCircle className="h-5 w-5" />
+                            Conflict Resolution Scripts
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="bg-white rounded-lg p-4 border border-blue-100">
+                            <h5 className="font-semibold text-blue-800 mb-2">Opening Lines</h5>
+                            <ul className="text-sm text-blue-700 space-y-1">
+                              <li>"I value your perspective and want to understand..."</li>
+                              <li>"Help me see this from your point of view..."</li>
+                              <li>"I care about finding a solution that works for everyone..."</li>
+                            </ul>
+                          </div>
+                          <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Full Script Set
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-green-800">
+                            <Users className="h-5 w-5" />
+                            Feedback & Coaching Scripts
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="bg-white rounded-lg p-4 border border-green-100">
+                            <h5 className="font-semibold text-green-800 mb-2">Growth-Focused Phrases</h5>
+                            <ul className="text-sm text-green-700 space-y-1">
+                              <li>"I've noticed your strength in... and I'm wondering..."</li>
+                              <li>"What would success look like for you in this area?"</li>
+                              <li>"How can I better support your professional growth?"</li>
+                            </ul>
+                          </div>
+                          <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Coaching Scripts
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="checklists" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        {
+                          title: "Classroom Observation Checklist",
+                          description: "Comprehensive tool for meaningful classroom visits",
+                          items: ["Environment & Safety", "Teacher-Child Interactions", "Learning Activities", "Behavior Management"],
+                          color: "purple"
+                        },
+                        {
+                          title: "New Teacher Evaluation",
+                          description: "90-day assessment framework for new hires",
+                          items: ["Week 1-30: Basics", "Week 31-60: Growth", "Week 61-90: Mastery", "Goal Setting"],
+                          color: "indigo"
+                        }
+                      ].map((checklist, index) => (
+                        <Card key={index} className={`bg-gradient-to-br from-${checklist.color}-50 to-${checklist.color}-100 border-${checklist.color}-200`}>
+                          <CardHeader>
+                            <CardTitle className={`flex items-center gap-2 text-${checklist.color}-800`}>
+                              <CheckSquare className="h-5 w-5" />
+                              {checklist.title}
+                            </CardTitle>
+                            <CardDescription className={`text-${checklist.color}-600`}>
+                              {checklist.description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              {checklist.items.map((item, itemIndex) => (
+                                <div key={itemIndex} className="flex items-center gap-2">
+                                  <CheckCircle className={`h-4 w-4 text-${checklist.color}-500`} />
+                                  <span className={`text-sm text-${checklist.color}-700`}>{item}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <Button className={`w-full bg-${checklist.color}-500 hover:bg-${checklist.color}-600 text-white`}>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download Checklist
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="training" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        { title: "Emotional Intelligence for Leaders", duration: "5 min", description: "Quick EQ assessment and tips", icon: Heart },
+                        { title: "Conflict Resolution Basics", duration: "7 min", description: "De-escalation techniques that work", icon: Shield },
+                        { title: "Giving Effective Feedback", duration: "6 min", description: "The sandwich method and beyond", icon: MessageSquare },
+                        { title: "Building Team Culture", duration: "8 min", description: "Creating belonging and engagement", icon: Users },
+                        { title: "Stress Management for Directors", duration: "5 min", description: "Self-care isn't selfish", icon: Zap },
+                        { title: "Leading Through Change", duration: "7 min", description: "Guiding teams through transitions", icon: Target }
+                      ].map((training, index) => (
+                        <Card key={index} className="hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-indigo-200">
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between">
+                                <training.icon className="h-8 w-8 text-indigo-500" />
+                                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">{training.duration}</span>
+                              </div>
+                              <h4 className="font-semibold text-gray-800">{training.title}</h4>
+                              <p className="text-sm text-gray-600">{training.description}</p>
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white"
+                                onClick={() => {
+                                  // Launch micro-training module
+                                  alert(`Starting: ${training.title}`);
+                                }}
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Start Training
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
     </div>
