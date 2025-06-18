@@ -226,6 +226,7 @@ export const learningModules = pgTable("learning_modules", {
   
   // ECE Training Hours fields
   eceHoursEligible: boolean("ece_hours_eligible").default(false),
+  eceHours: integer("ece_hours"), // actual ECE hours awarded for this module
   eceCategory: text("ece_category"), // e.g., "social-emotional", "cognitive-development"
   trainingDuration: integer("training_duration"), // minutes - actual training time
   approvedTrainerId: integer("approved_trainer_id").references(() => users.id), // trainer who created this
