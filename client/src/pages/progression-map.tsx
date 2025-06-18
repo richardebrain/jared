@@ -278,20 +278,35 @@ export default function ProgressionMap() {
   };
   
   // Helper functions
-  function pointsToNextLevel() {
-    if (!user || !nextLevel) return "0";
-    const pointsEarned = user.points || 0;
-    const nextLevelPoints = teacherLevels[nextLevel].points;
-    return nextLevelPoints - pointsEarned;
+  function getNextLevelRequirements() {
+    if (!user || !nextLevel) return null;
+    
+    const userPoints = user.points || 0;
+    const userECEHours = eceHours?.totalHours || 0;
+    const nextLevelReq = teacherLevels[nextLevel];
+    
+    const pointsNeeded = Math.max(0, nextLevelReq.points - userPoints);
+    const hoursNeeded = nextLevelReq.hoursRequired ? Math.max(0, nextLevelReq.hoursRequired - userECEHours) : 0;
+    
+    return {
+      pointsNeeded,
+      hoursNeeded,
+      hasHourRequirement: !!nextLevelReq.hoursRequired
+    };
   }
   
   function getCompletionStatus(level: string) {
     if (!user) return "locked";
     
     const userPoints = user.points || 0;
-    const levelPoints = teacherLevels[level].points;
+    const userECEHours = eceHours?.totalHours || 0;
+    const levelReq = teacherLevels[level];
     
-    if (userPoints >= levelPoints) {
+    const pointsComplete = userPoints >= levelReq.points;
+    const hoursComplete = !levelReq.hoursRequired || userECEHours >= levelReq.hoursRequired;
+    
+    // Level is completed only if BOTH requirements are met
+    if (pointsComplete && hoursComplete) {
       if (level === currentLevel) return "active";
       return "completed";
     }
@@ -367,7 +382,31 @@ export default function ProgressionMap() {
                 </Badge>
               </div>
               <CardDescription className="text-blue-100 text-lg">
-                🎯 {pointsToNextLevel()} points until {nextLevel ? `${nextLevel} Teacher` : "🏆 Maximum level reached!"}
+                {(() => {
+                  if (!nextLevel) return "🏆 Maximum level reached!";
+                  const requirements = getNextLevelRequirements();
+                  if (!requirements) return "🎯 Keep up the great work!";
+                  
+                  const { pointsNeeded, hoursNeeded, hasHourRequirement } = requirements;
+                  
+                  if (pointsNeeded === 0 && hoursNeeded === 0) {
+                    return `🎉 Ready to advance to ${nextLevel} Teacher!`;
+                  }
+                  
+                  if (pointsNeeded === 0 && hasHourRequirement) {
+                    return `🎯 ${hoursNeeded} more ECE hours needed for ${nextLevel} Teacher`;
+                  }
+                  
+                  if (hoursNeeded === 0 && hasHourRequirement) {
+                    return `🎯 ${pointsNeeded} more points needed for ${nextLevel} Teacher`;
+                  }
+                  
+                  if (hasHourRequirement) {
+                    return `🎯 Need ${pointsNeeded} points and ${hoursNeeded} ECE hours for ${nextLevel} Teacher`;
+                  }
+                  
+                  return `🎯 ${pointsNeeded} points until ${nextLevel} Teacher`;
+                })()}
               </CardDescription>
             </CardHeader>
             <CardContent className="relative z-10">
@@ -579,7 +618,30 @@ export default function ProgressionMap() {
                   </p>
                   {nextLevel && (
                     <p className="text-sm text-gray-600 mt-2">
-                      {pointsToNextLevel()} more points needed to reach {nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level
+                      {(() => {
+                        const requirements = getNextLevelRequirements();
+                        if (!requirements) return "Keep up the great work!";
+                        
+                        const { pointsNeeded, hoursNeeded, hasHourRequirement } = requirements;
+                        
+                        if (pointsNeeded === 0 && hoursNeeded === 0) {
+                          return `Ready to advance to ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level!`;
+                        }
+                        
+                        if (pointsNeeded === 0 && hasHourRequirement) {
+                          return `${hoursNeeded} more ECE hours needed to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
+                        }
+                        
+                        if (hoursNeeded === 0 && hasHourRequirement) {
+                          return `${pointsNeeded} more points needed to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
+                        }
+                        
+                        if (hasHourRequirement) {
+                          return `Need ${pointsNeeded} points and ${hoursNeeded} ECE hours to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
+                        }
+                        
+                        return `${pointsNeeded} more points needed to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
+                      })()}
                     </p>
                   )}
                 </div>
