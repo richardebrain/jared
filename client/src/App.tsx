@@ -1029,6 +1029,12 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/schools/:schoolId/ece-tracking">
+        <ProtectedRoute>
+          <SchoolECETracking />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/school-dashboard">
         <ProtectedRoute>
           <SchoolDashboard />

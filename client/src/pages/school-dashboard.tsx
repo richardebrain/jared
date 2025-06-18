@@ -26,7 +26,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Users, Settings, Award, BarChart3, User, School, UserPlus } from "lucide-react";
+import { Users, Settings, Award, BarChart3, User, School, UserPlus, GraduationCap } from "lucide-react";
 
 // Teacher form schema
 const teacherFormSchema = z.object({
@@ -615,6 +615,10 @@ export default function SchoolDashboard() {
           <TabsTrigger value="progress">
             <BarChart3 className="h-4 w-4 mr-2" />
             Progress
+          </TabsTrigger>
+          <TabsTrigger value="ece">
+            <GraduationCap className="h-4 w-4 mr-2" />
+            ECE Hours
           </TabsTrigger>
           <TabsTrigger value="eos">
             <Award className="h-4 w-4 mr-2" />
