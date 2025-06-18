@@ -616,6 +616,177 @@ Respond in JSON format with the structure:
     }
   };
 
+  const downloadPDF = () => {
+    if (!generatedAdvice) return;
+
+    const content = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Leadership Action Plan</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
+        .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #2563eb; margin: 0; font-size: 28px; }
+        .header p { color: #666; margin: 5px 0; }
+        .section { margin-bottom: 30px; page-break-inside: avoid; }
+        .section h2 { color: #1e40af; border-left: 4px solid #2563eb; padding-left: 15px; margin-bottom: 15px; }
+        .checkbox-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
+        .checkbox { width: 18px; height: 18px; border: 2px solid #2563eb; margin-right: 10px; flex-shrink: 0; margin-top: 2px; }
+        .item-text { flex: 1; }
+        .goal-box { border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #f0fdf4; }
+        .goal-title { font-weight: bold; color: #047857; margin-bottom: 10px; }
+        .notes-section { border: 1px solid #d1d5db; padding: 20px; margin-top: 20px; min-height: 100px; }
+        .notes-title { font-weight: bold; margin-bottom: 10px; color: #374151; }
+        .signature-line { border-bottom: 1px solid #000; width: 200px; margin-top: 30px; }
+        .date-line { border-bottom: 1px solid #000; width: 150px; margin-top: 10px; }
+        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
+        @media print { .section { page-break-inside: avoid; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LEADERSHIP ACTION PLAN</h1>
+        <p><strong>Employee:</strong> ${employeeName || 'Team Member'} | <strong>Role:</strong> ${employeeRole || 'Staff Member'}</p>
+        <p><strong>Plan Generated:</strong> ${new Date().toLocaleDateString()} | <strong>Review Date:</strong> ________________</p>
+    </div>
+
+    <div class="section">
+        <h2>SITUATION OVERVIEW</h2>
+        <p>${generatedAdvice.scenario}</p>
+    </div>
+
+    <div class="section">
+        <h2>ROOT CAUSES IDENTIFIED</h2>
+        ${generatedAdvice.rootCauses.map(cause => `
+            <div class="checkbox-item">
+                <div class="checkbox"></div>
+                <div class="item-text">${cause}</div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>IMMEDIATE ACTION ITEMS</h2>
+        <p><em>Complete within the next 1-2 weeks:</em></p>
+        ${generatedAdvice.immediateActions.map(action => `
+            <div class="checkbox-item">
+                <div class="checkbox"></div>
+                <div class="item-text">${action}</div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>LONG-TERM STRATEGIES</h2>
+        <p><em>Implement over the next 30-90 days:</em></p>
+        ${generatedAdvice.longTermStrategies.map(strategy => `
+            <div class="checkbox-item">
+                <div class="checkbox"></div>
+                <div class="item-text">${strategy}</div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>SMART GOALS PLANNING</h2>
+        ${generatedAdvice.goals.map(goal => `
+            <div class="goal-box">
+                <div class="goal-title">${goal.title} (Timeline: ${goal.timeframe})</div>
+                <p><strong>Description:</strong> ${goal.description}</p>
+                <p><strong>Action Steps:</strong></p>
+                ${goal.actionSteps.map(step => `
+                    <div class="checkbox-item">
+                        <div class="checkbox"></div>
+                        <div class="item-text">${step}</div>
+                    </div>
+                `).join('')}
+                <div style="margin-top: 15px;">
+                    <strong>Success Metrics:</strong> _________________________________________________
+                </div>
+                <div style="margin-top: 10px;">
+                    <strong>Target Completion Date:</strong> _________________________________________________
+                </div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>RECOMMENDED RESOURCES</h2>
+        ${generatedAdvice.resources.map(resource => `
+            <div class="checkbox-item">
+                <div class="checkbox"></div>
+                <div class="item-text"><strong>${resource.title}</strong> (${resource.type}) - ${resource.description}</div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>FOLLOW-UP SCHEDULE</h2>
+        ${generatedAdvice.followUpPlan.map(item => `
+            <div class="checkbox-item">
+                <div class="checkbox"></div>
+                <div class="item-text">${item}</div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>PERSONAL REFLECTION & NOTES</h2>
+        <div class="notes-section">
+            <div class="notes-title">What are my biggest concerns about implementing this plan?</div>
+            <div style="height: 50px;"></div>
+        </div>
+        <div class="notes-section">
+            <div class="notes-title">What support do I need to succeed?</div>
+            <div style="height: 50px;"></div>
+        </div>
+        <div class="notes-section">
+            <div class="notes-title">How will I celebrate progress milestones?</div>
+            <div style="height: 50px;"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>COMMITMENT & SIGNATURES</h2>
+        <p>I commit to implementing this action plan and supporting my team member's growth.</p>
+        <div style="margin-top: 30px;">
+            <strong>Director Signature:</strong> 
+            <div class="signature-line"></div>
+            <div style="margin-top: 5px;">Date: <span class="date-line"></span></div>
+        </div>
+        <div style="margin-top: 30px;">
+            <strong>Employee Signature:</strong> 
+            <div class="signature-line"></div>
+            <div style="margin-top: 5px;">Date: <span class="date-line"></span></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated by Perfect Manager Leadership Tool | ${new Date().toLocaleDateString()}</p>
+        <p>Review this plan regularly and adjust as needed based on progress and changing circumstances.</p>
+    </div>
+</body>
+</html>`;
+
+    // Create blob and download
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Leadership-Action-Plan-${employeeName || 'Team-Member'}-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Action Plan Downloaded",
+      description: "Your professional action plan has been saved. Open the file and print to PDF for best results.",
+    });
+  };
+
   const downloadAdvice = () => {
     if (!generatedAdvice) return;
 
@@ -1382,10 +1553,16 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
         <div ref={resultsRef} className="mt-8 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Management Action Plan</h2>
-            <Button onClick={downloadAdvice} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download Report
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={downloadPDF} className="bg-green-600 hover:bg-green-700 text-white">
+                <Download className="h-4 w-4 mr-2" />
+                Download Action Plan PDF
+              </Button>
+              <Button onClick={downloadAdvice} variant="outline" size="sm">
+                <FileText className="h-4 w-4 mr-2" />
+                Text Report
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="practice" className="w-full" onValueChange={(value) => {
@@ -1755,7 +1932,7 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               ))}
             </TabsContent>
 
-            <TabsContent value="resources" className="space-y-4">
+            <TabsContent value="resources" className="space-y-4 pb-24">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {generatedAdvice.resources.map((resource, index) => (
                   <Card key={index}>
@@ -1777,6 +1954,7 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                   </Card>
                 ))}
               </div>
+              <div className="h-24"></div>
             </TabsContent>
 
             <TabsContent value="script" className="space-y-6">
