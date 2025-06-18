@@ -616,7 +616,7 @@ Respond in JSON format with the structure:
     }
   };
 
-  const downloadPDF = () => {
+  const downloadDirectorGuide = () => {
     if (!generatedAdvice) return;
 
     const content = `
@@ -624,7 +624,7 @@ Respond in JSON format with the structure:
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Leadership Action Plan</title>
+    <title>Director's Leadership Guide</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
         .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
@@ -635,41 +635,55 @@ Respond in JSON format with the structure:
         .checkbox-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
         .checkbox { width: 18px; height: 18px; border: 2px solid #2563eb; margin-right: 10px; flex-shrink: 0; margin-top: 2px; }
         .item-text { flex: 1; }
-        .goal-box { border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #f0fdf4; }
-        .goal-title { font-weight: bold; color: #047857; margin-bottom: 10px; }
-        .notes-section { border: 1px solid #d1d5db; padding: 20px; margin-top: 20px; min-height: 100px; }
-        .notes-title { font-weight: bold; margin-bottom: 10px; color: #374151; }
-        .signature-line { border-bottom: 1px solid #000; width: 200px; margin-top: 30px; }
-        .date-line { border-bottom: 1px solid #000; width: 150px; margin-top: 10px; }
+        .approach-box { border: 2px solid #7c3aed; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #faf5ff; }
+        .approach-title { font-weight: bold; color: #6b21a8; margin-bottom: 10px; font-size: 16px; }
+        .practical-action { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 15px; margin: 10px 0; }
+        .script-box { background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 20px; margin: 15px 0; }
+        .script-title { font-weight: bold; color: #0369a1; margin-bottom: 10px; }
         .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
         @media print { .section { page-break-inside: avoid; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>LEADERSHIP ACTION PLAN</h1>
+        <h1>DIRECTOR'S LEADERSHIP GUIDE</h1>
+        <p><strong>Situation:</strong> ${generatedAdvice.scenario}</p>
         <p><strong>Employee:</strong> ${employeeName || 'Team Member'} | <strong>Role:</strong> ${employeeRole || 'Staff Member'}</p>
-        <p><strong>Plan Generated:</strong> ${new Date().toLocaleDateString()} | <strong>Review Date:</strong> ________________</p>
+        <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
     </div>
 
     <div class="section">
-        <h2>SITUATION OVERVIEW</h2>
-        <p>${generatedAdvice.scenario}</p>
+        <h2>LEADERSHIP APPROACH BREAKDOWN</h2>
+        ${generatedAdvice.motivationTechniques.map(technique => {
+          // Extract the approach type and practical application
+          const parts = technique.split(':');
+          const approachType = parts[0] || 'Leadership Principle';
+          const description = parts[1] || technique;
+          
+          return `
+            <div class="approach-box">
+                <div class="approach-title">${approachType.trim()}</div>
+                <div class="practical-action">
+                    <strong>How to Apply:</strong> ${description.trim()}
+                </div>
+            </div>
+          `;
+        }).join('')}
     </div>
 
     <div class="section">
-        <h2>ROOT CAUSES IDENTIFIED</h2>
-        ${generatedAdvice.rootCauses.map(cause => `
-            <div class="checkbox-item">
-                <div class="checkbox"></div>
-                <div class="item-text">${cause}</div>
+        <h2>ROOT CAUSE ANALYSIS</h2>
+        <p><em>Understanding the deeper issues behind the surface behavior:</em></p>
+        ${generatedAdvice.rootCauses.map((cause, index) => `
+            <div class="practical-action">
+                <strong>${index + 1}.</strong> ${cause}
             </div>
         `).join('')}
     </div>
 
     <div class="section">
-        <h2>IMMEDIATE ACTION ITEMS</h2>
-        <p><em>Complete within the next 1-2 weeks:</em></p>
+        <h2>IMMEDIATE ACTIONABLE STEPS</h2>
+        <p><em>What to do in the next 1-2 weeks:</em></p>
         ${generatedAdvice.immediateActions.map(action => `
             <div class="checkbox-item">
                 <div class="checkbox"></div>
@@ -679,8 +693,8 @@ Respond in JSON format with the structure:
     </div>
 
     <div class="section">
-        <h2>LONG-TERM STRATEGIES</h2>
-        <p><em>Implement over the next 30-90 days:</em></p>
+        <h2>LONG-TERM DEVELOPMENT STRATEGY</h2>
+        <p><em>Building sustainable change over 30-90 days:</em></p>
         ${generatedAdvice.longTermStrategies.map(strategy => `
             <div class="checkbox-item">
                 <div class="checkbox"></div>
@@ -690,40 +704,34 @@ Respond in JSON format with the structure:
     </div>
 
     <div class="section">
-        <h2>SMART GOALS PLANNING</h2>
-        ${generatedAdvice.goals.map(goal => `
-            <div class="goal-box">
-                <div class="goal-title">${goal.title} (Timeline: ${goal.timeframe})</div>
-                <p><strong>Description:</strong> ${goal.description}</p>
-                <p><strong>Action Steps:</strong></p>
-                ${goal.actionSteps.map(step => `
-                    <div class="checkbox-item">
-                        <div class="checkbox"></div>
-                        <div class="item-text">${step}</div>
-                    </div>
-                `).join('')}
-                <div style="margin-top: 15px;">
-                    <strong>Success Metrics:</strong> _________________________________________________
-                </div>
-                <div style="margin-top: 10px;">
-                    <strong>Target Completion Date:</strong> _________________________________________________
-                </div>
-            </div>
-        `).join('')}
+        <h2>CONVERSATION SCRIPTS & TALKING POINTS</h2>
+        <div class="script-box">
+            <div class="script-title">Opening the Conversation</div>
+            <p>"${employeeName || 'Team member'}, I wanted to talk with you because I care about your success and the impact you have on our children. I've noticed some patterns around ${generatedAdvice.scenario.toLowerCase()}, and I want to understand how I can better support you."</p>
+        </div>
+        
+        <div class="script-box">
+            <div class="script-title">Active Listening Prompts</div>
+            <ul>
+                <li>"Help me understand what's been happening from your perspective..."</li>
+                <li>"What challenges are you facing that I might not be aware of?"</li>
+                <li>"What would make the biggest difference in helping you succeed?"</li>
+            </ul>
+        </div>
+
+        <div class="script-box">
+            <div class="script-title">Setting Expectations with Empathy</div>
+            <p>"I believe in your potential and your calling to shape young minds. The work we do matters - we're writing chapter one in these children's lives. I need to see some changes in ${generatedAdvice.scenario.toLowerCase()}, and I want to work together to make that happen."</p>
+        </div>
+
+        <div class="script-box">
+            <div class="script-title">Closing with Support</div>
+            <p>"Remember, kids will love what you love. When you're at your best, they feel it. I'm committed to helping you get there. What questions do you have about moving forward?"</p>
+        </div>
     </div>
 
     <div class="section">
-        <h2>RECOMMENDED RESOURCES</h2>
-        ${generatedAdvice.resources.map(resource => `
-            <div class="checkbox-item">
-                <div class="checkbox"></div>
-                <div class="item-text"><strong>${resource.title}</strong> (${resource.type}) - ${resource.description}</div>
-            </div>
-        `).join('')}
-    </div>
-
-    <div class="section">
-        <h2>FOLLOW-UP SCHEDULE</h2>
+        <h2>FOLLOW-UP ACCOUNTABILITY</h2>
         ${generatedAdvice.followUpPlan.map(item => `
             <div class="checkbox-item">
                 <div class="checkbox"></div>
@@ -733,39 +741,18 @@ Respond in JSON format with the structure:
     </div>
 
     <div class="section">
-        <h2>PERSONAL REFLECTION & NOTES</h2>
-        <div class="notes-section">
-            <div class="notes-title">What are my biggest concerns about implementing this plan?</div>
-            <div style="height: 50px;"></div>
-        </div>
-        <div class="notes-section">
-            <div class="notes-title">What support do I need to succeed?</div>
-            <div style="height: 50px;"></div>
-        </div>
-        <div class="notes-section">
-            <div class="notes-title">How will I celebrate progress milestones?</div>
-            <div style="height: 50px;"></div>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>COMMITMENT & SIGNATURES</h2>
-        <p>I commit to implementing this action plan and supporting my team member's growth.</p>
-        <div style="margin-top: 30px;">
-            <strong>Director Signature:</strong> 
-            <div class="signature-line"></div>
-            <div style="margin-top: 5px;">Date: <span class="date-line"></span></div>
-        </div>
-        <div style="margin-top: 30px;">
-            <strong>Employee Signature:</strong> 
-            <div class="signature-line"></div>
-            <div style="margin-top: 5px;">Date: <span class="date-line"></span></div>
-        </div>
+        <h2>RECOMMENDED RESOURCES</h2>
+        ${generatedAdvice.resources.map(resource => `
+            <div style="margin-bottom: 15px; padding: 10px; border-left: 3px solid #10b981;">
+                <strong>${resource.title}</strong> (${resource.type}) - Priority: ${resource.priority.toUpperCase()}<br>
+                <em>${resource.description}</em>
+            </div>
+        `).join('')}
     </div>
 
     <div class="footer">
         <p>Generated by Perfect Manager Leadership Tool | ${new Date().toLocaleDateString()}</p>
-        <p>Review this plan regularly and adjust as needed based on progress and changing circumstances.</p>
+        <p><strong>CONFIDENTIAL:</strong> For director use only - leadership guidance and coaching notes</p>
     </div>
 </body>
 </html>`;
@@ -775,15 +762,178 @@ Respond in JSON format with the structure:
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Leadership-Action-Plan-${employeeName || 'Team-Member'}-${new Date().toISOString().split('T')[0]}.html`;
+    link.download = `Director-Guide-${employeeName || 'Team-Member'}-${new Date().toISOString().split('T')[0]}.html`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Action Plan Downloaded",
-      description: "Your professional action plan has been saved. Open the file and print to PDF for best results.",
+      title: "Director's Guide Downloaded",
+      description: "Your detailed leadership guide has been saved. This contains your coaching strategies and conversation scripts.",
+    });
+  };
+
+  const downloadEmployeeChallenge = () => {
+    if (!generatedAdvice) return;
+
+    const scenarioTypes = {
+      'Chronic Tardiness': 'Punctuality & Reliability',
+      'Staff Burnout': 'Energy & Wellness',
+      'Poor Performance': 'Professional Excellence',
+      'Communication Issues': 'Communication & Teamwork',
+      'Lack of Motivation': 'Passion & Purpose',
+      'Team Conflicts': 'Collaboration & Harmony',
+      'Attendance Problems': 'Commitment & Consistency',
+      'Training Needs': 'Growth & Development'
+    };
+
+    const challengeTitle = scenarioTypes[selectedScenario] || 'Professional Growth';
+
+    const content = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Challenge for ${employeeName || 'Team Member'}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.8; margin: 40px; color: #333; }
+        .header { text-align: center; border-bottom: 3px solid #10b981; padding-bottom: 20px; margin-bottom: 40px; }
+        .header h1 { color: #10b981; margin: 0; font-size: 32px; }
+        .header h2 { color: #047857; margin: 10px 0; font-size: 24px; }
+        .section { margin-bottom: 40px; page-break-inside: avoid; }
+        .section h2 { color: #047857; border-left: 4px solid #10b981; padding-left: 15px; margin-bottom: 20px; font-size: 20px; }
+        .goal-box { border: 2px solid #10b981; border-radius: 12px; padding: 25px; margin-bottom: 25px; background: #f0fdf4; }
+        .goal-title { font-weight: bold; color: #047857; margin-bottom: 15px; font-size: 18px; }
+        .reflection-box { border: 1px solid #d1d5db; border-radius: 8px; padding: 25px; margin: 20px 0; min-height: 120px; background: #fafafa; }
+        .reflection-title { font-weight: bold; margin-bottom: 15px; color: #374151; font-size: 16px; }
+        .challenge-item { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 20px; margin: 15px 0; border-radius: 6px; }
+        .signature-area { margin-top: 50px; }
+        .signature-line { border-bottom: 2px solid #000; width: 300px; margin-top: 30px; }
+        .date-line { border-bottom: 2px solid #000; width: 200px; margin-top: 15px; }
+        .footer { margin-top: 50px; text-align: center; color: #666; font-size: 14px; }
+        .inspiration { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }
+        .inspiration p { font-style: italic; color: #92400e; margin: 0; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Challenge for ${employeeName || 'Team Member'}</h1>
+        <h2>${challengeTitle}</h2>
+        <p style="color: #666; font-size: 16px;">Personal Growth & Professional Development Plan</p>
+        <p style="color: #666;">Date: ${new Date().toLocaleDateString()}</p>
+    </div>
+
+    <div class="inspiration">
+        <p>"We get to write chapter one in these children's lives. That's not just a job - that's a sacred calling. You have the power to plant seeds that will grow for a lifetime."</p>
+    </div>
+
+    <div class="section">
+        <h2>MY GROWTH CHALLENGES</h2>
+        <p style="margin-bottom: 25px; font-size: 16px;"><em>These challenges are designed to help me become the teacher I'm meant to be:</em></p>
+        ${generatedAdvice.goals.map(goal => `
+            <div class="goal-box">
+                <div class="goal-title">${goal.title}</div>
+                <p><strong>What this means for me:</strong> ${goal.description}</p>
+                <p><strong>My action steps:</strong></p>
+                <ul>
+                    ${goal.actionSteps.map(step => `<li>${step}</li>`).join('')}
+                </ul>
+                <div style="margin-top: 20px;">
+                    <strong>How I'll measure my success:</strong><br>
+                    <div style="border-bottom: 1px solid #ccc; margin-top: 10px; height: 30px;"></div>
+                    <div style="border-bottom: 1px solid #ccc; margin-top: 10px; height: 30px;"></div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <strong>Target completion date:</strong>
+                    <div style="border-bottom: 1px solid #ccc; width: 200px; margin-top: 10px; height: 30px; display: inline-block;"></div>
+                </div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>SELF-REFLECTION</h2>
+        <div class="reflection-box">
+            <div class="reflection-title">What strengths do I bring to my classroom every day?</div>
+            <div style="height: 80px;"></div>
+        </div>
+        <div class="reflection-box">
+            <div class="reflection-title">What challenges have been holding me back from being my best?</div>
+            <div style="height: 80px;"></div>
+        </div>
+        <div class="reflection-box">
+            <div class="reflection-title">How will achieving these goals impact the children I teach?</div>
+            <div style="height: 80px;"></div>
+        </div>
+        <div class="reflection-box">
+            <div class="reflection-title">What support do I need from my director and team to succeed?</div>
+            <div style="height: 80px;"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>MY PERSONAL MOTIVATION</h2>
+        <div class="reflection-box">
+            <div class="reflection-title">Why did I choose to work with children? What brings me joy in teaching?</div>
+            <div style="height: 100px;"></div>
+        </div>
+        <div class="reflection-box">
+            <div class="reflection-title">How do I want to be remembered by the children and families I serve?</div>
+            <div style="height: 100px;"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>MY COMMITMENT TO GROWTH</h2>
+        <div class="challenge-item">
+            <p style="margin: 0; font-size: 16px;"><strong>I understand that:</strong> Growth requires stepping outside my comfort zone, and I'm ready to embrace these challenges with an open heart and mind.</p>
+        </div>
+        <div class="challenge-item">
+            <p style="margin: 0; font-size: 16px;"><strong>I commit to:</strong> Taking ownership of my professional development and actively working toward these goals with dedication and persistence.</p>
+        </div>
+        <div class="challenge-item">
+            <p style="margin: 0; font-size: 16px;"><strong>I believe that:</strong> Every child deserves my very best, and by growing as a professional, I'm honoring their potential and my calling as an educator.</p>
+        </div>
+    </div>
+
+    <div class="signature-area">
+        <p style="font-size: 16px; margin-bottom: 30px;">By signing below, I acknowledge that I have read and understand these growth challenges and commit to working toward these goals.</p>
+        
+        <div style="margin-top: 40px;">
+            <strong>Employee Signature:</strong> 
+            <div class="signature-line"></div>
+            <div style="margin-top: 10px;">Date: <span class="date-line"></span></div>
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <strong>Director Signature:</strong> 
+            <div class="signature-line"></div>
+            <div style="margin-top: 10px;">Date: <span class="date-line"></span></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>Remember:</strong> "Kids will love what you love. When you bring your authentic passion and energy, they feel it and flourish."</p>
+        <p>Generated by Perfect Manager Leadership Tool | ${new Date().toLocaleDateString()}</p>
+    </div>
+</body>
+</html>`;
+
+    // Create blob and download
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Challenge-for-${employeeName || 'Team-Member'}-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Employee Challenge Downloaded",
+      description: "The personalized challenge document for your team member has been saved.",
     });
   };
 
@@ -1550,19 +1700,81 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
 
       {/* Results Section */}
       {generatedAdvice && (
-        <div ref={resultsRef} className="mt-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Management Action Plan</h2>
-            <div className="flex gap-2">
-              <Button onClick={downloadPDF} className="bg-green-600 hover:bg-green-700 text-white">
-                <Download className="h-4 w-4 mr-2" />
-                Download Action Plan PDF
-              </Button>
-              <Button onClick={downloadAdvice} variant="outline" size="sm">
+        <div ref={resultsRef} className="mt-8 space-y-8">
+          {/* Prominent Download Section */}
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-xl p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">🎯 Your Action Plan is Ready!</h2>
+              <p className="text-lg text-gray-600">Download your complete leadership toolkit with two specialized documents:</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <Card className="border-2 border-blue-300 bg-white shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="text-center pb-4">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <CardTitle className="text-xl text-blue-700">Director's Leadership Guide</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Detailed coaching strategies, conversation scripts, and actionable leadership approaches
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Button 
+                    onClick={downloadDirectorGuide} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 text-lg font-semibold"
+                    size="lg"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Download Director's Guide
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-2">For your leadership preparation and coaching notes</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-green-300 bg-white shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="text-center pb-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Target className="h-8 w-8 text-green-600" />
+                  </div>
+                  <CardTitle className="text-xl text-green-700">Challenge for {employeeName || 'Employee'}</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Professional growth document with self-reflection spaces and goal-setting framework
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Button 
+                    onClick={downloadEmployeeChallenge} 
+                    className="bg-green-600 hover:bg-green-700 text-white w-full py-3 text-lg font-semibold"
+                    size="lg"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Download Employee Challenge
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-2">For your one-on-one meeting and goal setting</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center">
+              <p className="text-gray-700 mb-4">
+                <strong>Next Steps:</strong> Use the Director's Guide to prepare for your conversation, then share the Challenge document with your team member during your meeting.
+              </p>
+              <Button onClick={downloadAdvice} variant="outline" className="text-gray-600 border-gray-300">
                 <FileText className="h-4 w-4 mr-2" />
-                Text Report
+                Also Download Text Summary
               </Button>
             </div>
+          </div>
+
+          {/* Explore Deeper Section */}
+          <div className="border-t pt-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              📚 Explore Deeper Pieces of Your Plan
+            </h3>
+            <p className="text-gray-600 text-center mb-6">
+              Practice your conversation skills and get additional insights with these interactive tools:
+            </p>
           </div>
 
           <Tabs defaultValue="practice" className="w-full" onValueChange={(value) => {
