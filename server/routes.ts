@@ -1050,7 +1050,7 @@ Continue for all 5 questions...
 
   // SKIP AUTH ENDPOINTS - they are already defined in server/index.ts
   // Registering them here would override the working versions
-  const skipAuthEndpoints = true;
+  const skipAuthEndpoints = false;
 
   if (!skipAuthEndpoints) {
     app.post("/api/auth/reset-session", async (req, res) => {
