@@ -18,23 +18,32 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Basic logging middleware
+// Basic logging middleware with error handling
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   
   res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
+    try {
+      const duration = Date.now() - start;
+      if (path.startsWith("/api")) {
+        log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
+      }
+    } catch (error) {
+      console.error('Logging error:', error);
     }
   });
   
   next();
 });
 
-// Create HTTP server
+// Create HTTP server with stability settings
 const server = createServer(app);
+
+// Add server stability settings
+server.timeout = 120000; // 2 minutes
+server.keepAliveTimeout = 65000; // 65 seconds
+server.headersTimeout = 66000; // 66 seconds
 
 // Setup session middleware
 const PgSession = connectPgSimple(session);
@@ -122,22 +131,46 @@ async function startServer() {
     // Register all comprehensive routes from routes.ts
     await registerRoutes(app, false); // Enable auth endpoints
 
-    // Error handling middleware
+    // Enhanced error handling middleware
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      console.error('Server error:', {
+        error: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+        url: req.url,
+        method: req.method
+      });
+      
       const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
+      const message = process.env.NODE_ENV === 'development' 
+        ? err.message || "Internal Server Error"
+        : "Internal Server Error";
+      
       res.status(status).json({ message });
     });
 
-    // Setup Vite for development
+    // Setup Vite for development with error handling
     if (process.env.NODE_ENV === "development") {
-      setupVite(app, server);
+      try {
+        setupVite(app, server);
+      } catch (viteError) {
+        console.error('Vite setup failed:', viteError);
+        // Continue without Vite if it fails
+      }
     } else {
       serveStatic(app);
     }
 
-    // Start server
+    // Start server with enhanced error handling
     const port = parseInt(process.env.PORT || "5000", 10);
+    
+    server.on('error', (error: any) => {
+      console.error('Server error:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${port} is already in use`);
+        process.exit(1);
+      }
+    });
+
     server.listen(port, "0.0.0.0", () => {
       log(`Educational game server running on port ${port}`);
     });
@@ -146,6 +179,33 @@ async function startServer() {
     process.exit(1);
   }
 }
+
+// Add graceful shutdown handlers
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
 // Start the server
 startServer();

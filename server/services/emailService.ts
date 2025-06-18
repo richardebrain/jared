@@ -71,7 +71,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
  */
 export async function sendWelcomeEmail(email: string, firstName: string, schoolName: string): Promise<boolean> {
   const template = createWelcomeEmailTemplate(firstName, schoolName);
-  
+
   return sendEmail({
     to: email,
     subject: template.subject,
@@ -90,7 +90,7 @@ export async function sendTeacherInvitation(
   inviterName?: string
 ): Promise<boolean> {
   const template = createInvitationEmailTemplate(schoolName, inviteUrl, inviterName);
-  
+
   return sendEmail({
     to: email,
     subject: template.subject,
@@ -115,7 +115,7 @@ export async function sendCredentialExpirationEmail(
     expirationDate,
     daysUntilExpiration
   );
-  
+
   return sendEmail({
     to: email,
     subject: template.subject,
@@ -133,7 +133,7 @@ export async function sendPasswordResetEmail(
   resetUrl: string
 ): Promise<boolean> {
   const template = createPasswordResetTemplate(firstName, resetUrl);
-  
+
   return sendEmail({
     to: email,
     subject: template.subject,
@@ -153,7 +153,7 @@ export async function sendModuleCompletionEmail(
   certificateUrl?: string
 ): Promise<boolean> {
   const template = createModuleCompletionTemplate(firstName, moduleName, pointsEarned, certificateUrl);
-  
+
   return sendEmail({
     to: email,
     subject: template.subject,
@@ -172,7 +172,7 @@ export async function sendBulkEmail(
   textContent?: string
 ): Promise<{ success: string[]; failed: string[] }> {
   const results = { success: [], failed: [] };
-  
+
   for (const email of recipients) {
     const success = await sendEmail({
       to: email,
@@ -180,14 +180,14 @@ export async function sendBulkEmail(
       html: htmlContent,
       text: textContent,
     });
-    
+
     if (success) {
       results.success.push(email);
     } else {
       results.failed.push(email);
     }
   }
-  
+
   logger.info(`Bulk email complete: ${results.success.length} sent, ${results.failed.length} failed`);
   return results;
 }
@@ -196,7 +196,7 @@ export async function sendBulkEmail(
 
 function createWelcomeEmailTemplate(firstName: string, schoolName: string): EmailTemplate {
   const subject = `Welcome to ${schoolName}'s Professional Development Platform!`;
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center;">
@@ -222,9 +222,9 @@ function createWelcomeEmailTemplate(firstName: string, schoolName: string): Emai
       </div>
     </div>
   `;
-  
+
   const text = `Welcome to ${schoolName}'s Professional Development Platform!
-  
+
 Hi ${firstName},
 
 Welcome to ${schoolName}'s professional development platform! We're excited to support your growth as an early childhood educator.
@@ -241,7 +241,7 @@ The MentorMe Team`;
 
 function createInvitationEmailTemplate(schoolName: string, inviteUrl: string, inviterName?: string): EmailTemplate {
   const subject = `Join ${schoolName} on MentorMe - Professional Development Platform`;
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center;">
@@ -264,7 +264,7 @@ function createInvitationEmailTemplate(schoolName: string, inviteUrl: string, in
       </div>
     </div>
   `;
-  
+
   const text = `You're Invited to Join ${schoolName} on MentorMe!
 
 ${inviterName ? `${inviterName} has invited you to join` : 'You have been invited to join'} ${schoolName} on MentorMe.
@@ -288,7 +288,7 @@ function createCredentialExpirationTemplate(
     month: 'long',
     day: 'numeric'
   });
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 30px; border-radius: 10px;">
@@ -315,7 +315,7 @@ function createCredentialExpirationTemplate(
       </div>
     </div>
   `;
-  
+
   const text = `Credential Expiration Notice
 
 Hi ${firstName},
@@ -335,7 +335,7 @@ The MentorMe Team`;
 
 function createPasswordResetTemplate(firstName: string, resetUrl: string): EmailTemplate {
   const subject = "Reset Your MentorMe Password";
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center;">
@@ -360,7 +360,7 @@ function createPasswordResetTemplate(firstName: string, resetUrl: string): Email
       </div>
     </div>
   `;
-  
+
   const text = `Password Reset Request
 
 Hi ${firstName},
@@ -383,7 +383,7 @@ function createModuleCompletionTemplate(
   certificateUrl?: string
 ): EmailTemplate {
   const subject = `🎉 Congratulations! You completed "${moduleName}"`;
-  
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 30px; border-radius: 10px; text-align: center;">
@@ -414,7 +414,7 @@ function createModuleCompletionTemplate(
       </div>
     </div>
   `;
-  
+
   const text = `Module Completed!
 
 Congratulations, ${firstName}!
