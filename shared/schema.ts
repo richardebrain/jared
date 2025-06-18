@@ -83,6 +83,8 @@ export const users = pgTable("users", {
   hasUnreadMessages: boolean("has_unread_messages").default(false), // Flag for unread welcome messages
   // OAuth integration fields
   googleId: text("google_id").unique(), // Google OAuth ID for SSO
+  // ECE Hours renewal tracking
+  eceHoursRenewalDate: date("ece_hours_renewal_date"), // Annual ECE hours renewal date, defaults to first login if not set
   // Song generation tracking fields for MusicMakerPrek
   songRequestsThisWeek: integer("song_requests_this_week").default(0),
   lastSongWeek: text("last_song_week"), // Format: "YYYY-WW"

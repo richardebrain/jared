@@ -2813,6 +2813,164 @@ Continue for all 5 questions...
 
   // ECE Hours Tracking API Routes
   
+  // Get school-wide ECE hours tracking for directors (ECE Hour Tracker tool)
+  app.get("/api/school/ece-hours-tracker", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user is a school admin/director
+      if (!user.isSchoolAdmin && !user.isAdmin) {
+        return res.status(403).json({ message: "Director access required" });
+      }
+
+      // Get all employees in the director's school
+      const employees = await db.select().from(users)
+        .where(eq(users.schoolId, user.schoolId || 1))
+        .orderBy(users.lastName, users.firstName);
+
+      // Calculate ECE hours for each employee
+      const employeeEceData = await Promise.all(employees.map(async (employee) => {
+        // Get employee's ECE renewal date or default to first login/created date
+        const renewalDate = employee.eceHoursRenewalDate || employee.lastActive || employee.createdAt;
+        const currentDate = new Date();
+        const renewalYear = new Date(renewalDate);
+        
+        // Calculate the current ECE year period (from renewal date to one year later)
+        let periodStart = new Date(renewalYear);
+        let periodEnd = new Date(renewalYear);
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        
+        // If we're past the renewal date, move to current cycle
+        while (periodEnd < currentDate) {
+          periodStart.setFullYear(periodStart.getFullYear() + 1);
+          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        }
+
+        // Get ECE hours for current period
+        const eceHoursQuery = await db.select()
+          .from(eceHours)
+          .where(
+            and(
+              eq(eceHours.userId, employee.id),
+              sql`${eceHours.completedAt} >= ${periodStart.toISOString()}`,
+              sql`${eceHours.completedAt} <= ${periodEnd.toISOString()}`
+            )
+          )
+          .orderBy(desc(eceHours.completedAt));
+
+        // Calculate total hours and by category
+        const totalHours = eceHoursQuery.reduce((sum, h) => sum + (h.duration / 60), 0);
+        const hoursByCategory = eceHoursQuery.reduce((acc, hour) => {
+          const category = hour.category;
+          const durationHours = hour.duration / 60;
+          acc[category] = (acc[category] || 0) + durationHours;
+          return acc;
+        }, {} as Record<string, number>);
+
+        // Calculate progress percentage
+        const requiredHours = 30; // Annual requirement
+        const progressPercentage = Math.min((totalHours / requiredHours) * 100, 100);
+        
+        // Calculate days until renewal
+        const daysUntilRenewal = Math.ceil((periodEnd.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        return {
+          employeeId: employee.id,
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          jobTitle: employee.jobTitle || 'Teacher',
+          email: employee.email,
+          renewalDate: periodEnd.toISOString().split('T')[0],
+          periodStart: periodStart.toISOString().split('T')[0],
+          periodEnd: periodEnd.toISOString().split('T')[0],
+          totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal
+          requiredHours,
+          progressPercentage: Math.round(progressPercentage),
+          hoursRemaining: Math.max(0, requiredHours - totalHours),
+          daysUntilRenewal,
+          isCompliant: totalHours >= requiredHours,
+          hoursByCategory,
+          recentTrainings: eceHoursQuery.slice(0, 3).map(h => ({
+            title: h.trainingTitle,
+            category: h.category,
+            hours: Math.round((h.duration / 60) * 10) / 10,
+            completedAt: h.completedAt?.toISOString().split('T')[0]
+          }))
+        };
+      }));
+
+      // Calculate school-wide statistics
+      const totalEmployees = employeeEceData.length;
+      const compliantEmployees = employeeEceData.filter(emp => emp.isCompliant).length;
+      const schoolComplianceRate = totalEmployees > 0 ? Math.round((compliantEmployees / totalEmployees) * 100) : 0;
+      const averageHours = totalEmployees > 0 ? 
+        Math.round((employeeEceData.reduce((sum, emp) => sum + emp.totalHours, 0) / totalEmployees) * 10) / 10 : 0;
+
+      res.json({
+        schoolStats: {
+          totalEmployees,
+          compliantEmployees,
+          nonCompliantEmployees: totalEmployees - compliantEmployees,
+          complianceRate: schoolComplianceRate,
+          averageHours
+        },
+        employees: employeeEceData
+      });
+    } catch (error) {
+      console.error("Error fetching school ECE hours:", error);
+      res.status(500).json({ message: "Failed to fetch ECE hours data" });
+    }
+  });
+
+  // Update employee's ECE renewal date
+  app.put("/api/employee/:employeeId/ece-renewal-date", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { employeeId } = req.params;
+      const { renewalDate } = req.body;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user is a school admin/director
+      if (!user.isSchoolAdmin && !user.isAdmin) {
+        return res.status(403).json({ message: "Director access required" });
+      }
+
+      // Get the employee to update
+      const employee = await storage.getUser(parseInt(employeeId));
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      // Verify employee is in the same school
+      if (employee.schoolId !== user.schoolId) {
+        return res.status(403).json({ message: "Access denied: Employee not in your school" });
+      }
+
+      // Update the renewal date
+      await storage.updateUser(employee.id, {
+        eceHoursRenewalDate: renewalDate
+      });
+
+      res.json({ 
+        success: true, 
+        message: "ECE renewal date updated successfully",
+        employeeId: employee.id,
+        renewalDate 
+      });
+    } catch (error) {
+      console.error("Error updating ECE renewal date:", error);
+      res.status(500).json({ message: "Failed to update renewal date" });
+    }
+  });
+
   // Get ECE hours for a user
   app.get("/api/ece-hours", requireAuth, requirePaidAccess, async (req, res) => {
     try {

@@ -62,6 +62,16 @@ const directorTools: ToolkitTool[] = [
     route: '/admin/analytics',
     category: 'analytics'
   },
+  {
+    id: 'ece-hour-tracker',
+    title: 'ECE Hour Tracker',
+    description: 'Monitor all employees\' year-to-date ECE training hours vs required 30/year with customizable renewal dates',
+    icon: Clock,
+    route: '/admin/ece-hours-tracker',
+    badge: 'Compliance',
+    badgeVariant: 'outline',
+    category: 'staff'
+  },
   
   // Content Creation
   {
