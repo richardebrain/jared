@@ -48,6 +48,7 @@ import personalizedModuleRoutes from "./api/personalizedModuleRoutes";
 import assessmentQuestionRoutes from "./routes/assessment-questions";
 import aiSuggestionRoutes from "./api/aiSuggestionRoutes";
 import newAiSuggestionRoutes from "./api/newAiSuggestionRoutes";
+import { setupGoogleAuth } from "./googleAuth";
 import powerpointRoutes from "./api/powerpointRoutes";
 import moduleRatingsRoutes from "./api/moduleRatingsRoutes";
 import communityModulesRoutes from "./api/communityModulesRoutes";
@@ -255,6 +256,9 @@ async function ensureDefaultSchoolExists() {
 }
 
 export async function registerRoutes(app: Express): Promise<void> {
+  // Setup Google authentication
+  setupGoogleAuth(app);
+
   // Generate single quiz question for module builder
   app.post("/api/ai/generate-single-quiz-question", async (req, res) => {
     try {

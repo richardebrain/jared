@@ -266,6 +266,11 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+    return user || undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -281,6 +286,58 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async updateDailyStreak(userId: number): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Insert today's login record (if not already exists)
+      await db.execute(sql`
+        INSERT INTO daily_logins (user_id, login_date) 
+        VALUES (${userId}, ${today})
+        ON CONFLICT (user_id, login_date) DO NOTHING
+      `);
+
+      // Calculate current streak using the same logic as the main routes
+      const streakResult = await db.execute(sql`
+        WITH RECURSIVE consecutive_days AS (
+          SELECT login_date, 1 as day_count
+          FROM daily_logins
+          WHERE user_id = ${userId} AND login_date = ${today}
+          
+          UNION ALL
+          
+          SELECT dl.login_date, cd.day_count + 1
+          FROM daily_logins dl
+          JOIN consecutive_days cd ON dl.login_date = cd.login_date - INTERVAL '1 day'
+          WHERE dl.user_id = ${userId}
+        )
+        SELECT MAX(day_count) as current_streak
+        FROM consecutive_days
+      `);
+
+      const currentStreak = Math.max(1, Number(streakResult.rows[0]?.current_streak || 1));
+
+      // Update user's streak and last active time
+      await this.updateUser(userId, {
+        streak: currentStreak,
+        lastActive: new Date()
+      });
+
+      // Award streak milestone points
+      if (currentStreak === 7) {
+        await this.addUserPoints(userId, 25);
+      } else if (currentStreak === 30) {
+        await this.addUserPoints(userId, 100);
+      } else if (currentStreak % 5 === 0) {
+        await this.addUserPoints(userId, 15);
+      } else {
+        await this.addUserPoints(userId, 5);
+      }
+    } catch (error) {
+      console.error('Error updating daily streak:', error);
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
