@@ -28,6 +28,9 @@ import {
   Sparkles,
   Brain,
   Heart,
+  Mic,
+  Play,
+  Pause,
   Shield,
   Send,
   MessageCircle
@@ -159,6 +162,7 @@ export default function PerfectManager() {
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [activeOption, setActiveOption] = useState<'situation' | 'boost' | 'tools' | null>(null);
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -648,35 +652,172 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-6 py-6 max-w-7xl">
-          <div className="flex items-center gap-4 mb-6">
+      <div className="relative">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-400 rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-purple-400 rounded-full opacity-10 blur-3xl"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-6 py-8">
+          <div className="flex items-center gap-4 mb-8">
             <Link href="/director-toolkit">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2 text-slate-600 hover:text-slate-900">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Toolkit
               </Button>
             </Link>
           </div>
           
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-              <Zap className="h-8 w-8 text-white" />
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl mb-8 shadow-2xl">
+              <Heart className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Perfect Manager</h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Professional AI advisor providing expert strategies and solutions for workplace challenges
+            <h1 className="text-5xl font-bold text-white mb-6">Good morning, Leader</h1>
+            <p className="text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed mb-12">
+              What challenge can we help you lead through today?
             </p>
+            
+            {/* Director's Creed */}
+            <div className="max-w-4xl mx-auto p-8 bg-white/10 backdrop-blur-sm rounded-3xl border border-white/20">
+              <p className="text-blue-100 italic text-lg leading-relaxed">
+                "You are not just managing a center. You are shaping lives.<br/>
+                You are not just handling staff—you are cultivating potential.<br/>
+                You are a coach, a builder, a mentor, and a mirror."
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-        <div className="container mx-auto px-6 py-12 max-w-7xl">
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Main Input Section */}
-          <div className="xl:col-span-3 space-y-8">
+      {/* Three Main Options */}
+      <div className="container mx-auto px-6 py-16 max-w-6xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Option A: Handle a Situation */}
+          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
+            <CardContent className="relative p-8 text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <MessageSquare className="h-10 w-10 text-white" />
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Handle a Situation</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Get AI-powered leadership coaching for real workplace challenges
+                </p>
+              </div>
+              
+              <div className="space-y-2 text-sm text-slate-500">
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Quick 2-3 sentence diagnosis</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>3 coaching steps with scripts</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Goal setting & follow-up</span>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => setActiveOption('situation')}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Start Situational Coaching
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Option B: Boost Me */}
+          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 group-hover:from-orange-500/10 group-hover:to-red-500/10 transition-all duration-500"></div>
+            <CardContent className="relative p-8 text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <Zap className="h-10 w-10 text-white" />
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Boost Me</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Quick motivation and energy reset for your leadership mindset
+                </p>
+              </div>
+              
+              <div className="space-y-2 text-sm text-slate-500">
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>30-60 second voice clips</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Breathing exercises</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Daily mantras</span>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => setActiveOption('boost')}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Boost My Energy
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Option C: Tools & Training */}
+          <Card className="group border-0 shadow-2xl bg-white hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 group-hover:from-purple-500/10 group-hover:to-indigo-500/10 transition-all duration-500"></div>
+            <CardContent className="relative p-8 text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500 to-indigo-500 rounded-3xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <BookOpen className="h-10 w-10 text-white" />
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="text-2xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">Tools & Training</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Printable resources and micro-training for leadership skills
+                </p>
+              </div>
+              
+              <div className="space-y-2 text-sm text-slate-500">
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>One-page strategies</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Conversation scripts</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Observation checklists</span>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => setActiveOption('tools')}
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Browse Resources
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Conditional Content Based on Active Option */}
+      {activeOption === 'situation' && (
+        <div className="bg-white py-16">
+          <div className="container mx-auto px-6 max-w-4xl">
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="pb-6 border-b border-slate-100">
                 <div className="flex items-center gap-3">
@@ -684,9 +825,9 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                     <Brain className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl text-slate-900">Management Scenario</CardTitle>
+                    <CardTitle className="text-xl text-slate-900">Situation Library</CardTitle>
                     <CardDescription className="text-slate-600">
-                      Describe the workplace challenge for expert guidance
+                      Select a common management scenario for expert guidance
                     </CardDescription>
                   </div>
                 </div>
@@ -912,6 +1053,139 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
             </div>
           </div>
         </div>
+      )}
+
+      {/* Boost Me Content */}
+      {activeOption === 'boost' && (
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 py-16">
+          <div className="container mx-auto px-6 max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Instant Leadership Boost</h2>
+              <p className="text-lg text-slate-600">Quick energy reset and motivation for today's challenges</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="p-8 text-center hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-6">
+                  <Mic className="h-8 w-8 text-orange-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Voice Boost</h3>
+                <p className="text-slate-600 mb-6">60-second motivational message tailored to your leadership journey</p>
+                <Button className="w-full bg-orange-500 hover:bg-orange-600">
+                  <Play className="h-4 w-4 mr-2" />
+                  Get Voice Boost
+                </Button>
+              </Card>
+              
+              <Card className="p-8 text-center hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                  <Heart className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Mindful Reset</h3>
+                <p className="text-slate-600 mb-6">3-minute breathing exercise to center your leadership presence</p>
+                <Button className="w-full bg-blue-500 hover:bg-blue-600">
+                  <Pause className="h-4 w-4 mr-2" />
+                  Start Reset
+                </Button>
+              </Card>
+            </div>
+            
+            <div className="mt-12 p-8 bg-white rounded-2xl shadow-lg">
+              <h3 className="text-xl font-semibold text-center mb-6">Today's Leadership Mantra</h3>
+              <blockquote className="text-center text-2xl font-medium text-slate-700 italic">
+                "Calm is contagious. Your presence shapes the room."
+              </blockquote>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tools & Training Content */}
+      {activeOption === 'tools' && (
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 py-16">
+          <div className="container mx-auto px-6 max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Leadership Tools & Resources</h2>
+              <p className="text-lg text-slate-600">Practical, printable resources for effective childcare leadership</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* One-Page Strategies */}
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                  <FileText className="h-6 w-6 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3">Giving Feedback</h3>
+                <p className="text-slate-600 text-sm mb-4">One-page guide for constructive conversations with staff</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </Card>
+              
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3">Leading Meetings</h3>
+                <p className="text-slate-600 text-sm mb-4">5-minute staff huddle template and agenda builder</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </Card>
+              
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                  <MessageSquare className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3">Conflict Scripts</h3>
+                <p className="text-slate-600 text-sm mb-4">Ready-to-use phrases for difficult conversations</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </Card>
+              
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+                  <Star className="h-6 w-6 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3">Daily Affirmations</h3>
+                <p className="text-slate-600 text-sm mb-4">30 leadership affirmations for confidence building</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </Card>
+              
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                  <Heart className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3">Stress Regulation</h3>
+                <p className="text-slate-600 text-sm mb-4">Quick techniques for managing leadership pressure</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </Card>
+              
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-indigo-600" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3">Burnout Prevention</h3>
+                <p className="text-slate-600 text-sm mb-4">Mini break rituals and self-care strategies</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Results Section */}
       {generatedAdvice && (
@@ -1544,7 +1818,6 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
           </Tabs>
         </div>
       )}
-      </div>
     </div>
   );
 }
