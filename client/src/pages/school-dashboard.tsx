@@ -751,6 +751,89 @@ export default function SchoolDashboard() {
           )}
         </TabsContent>
         
+        <TabsContent value="ece" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium">ECE Hours Tracking</h3>
+              <p className="text-sm text-muted-foreground">
+                Monitor professional development hours for ECE compliance
+              </p>
+            </div>
+            <Link href="/school-ece-tracking">
+              <Button>
+                <GraduationCap className="w-4 h-4 mr-2" />
+                View Full ECE Dashboard
+              </Button>
+            </Link>
+          </div>
+          
+          {teachersLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : teachersData?.teachers?.length > 0 ? (
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {teachersData.teachers.slice(0, 6).map((teacher) => (
+                <Card key={teacher.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">
+                        {teacher.firstName} {teacher.lastName}
+                      </CardTitle>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <GraduationCap className="w-3 h-3 mr-1" />
+                        ECE
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Total Hours:</span>
+                      <span className="font-medium">0h</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">This Month:</span>
+                      <span className="font-medium">0h</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant="outline" className="text-xs">
+                        In Progress
+                      </Badge>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Link href={`/teacher-ece-profile/${teacher.id}`} className="w-full">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        View ECE Profile
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium">No ECE Data Available</h3>
+              <p className="text-muted-foreground mt-1">
+                Teachers need to complete ECE modules to show tracking data
+              </p>
+            </div>
+          )}
+          
+          {teachersData?.teachers?.length > 6 && (
+            <div className="text-center pt-4">
+              <Link href="/school-ece-tracking">
+                <Button variant="outline">
+                  View All {teachersData.teachers.length} Teachers
+                </Button>
+              </Link>
+            </div>
+          )}
+        </TabsContent>
+        
         <TabsContent value="eos" className="space-y-4">
           {eosLoading ? (
             <div className="flex justify-center py-8">
