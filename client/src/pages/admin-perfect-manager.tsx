@@ -1987,12 +1987,12 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
                   <TabsContent value="quick-wins" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
-                        { title: "Send a Appreciation Text", description: "Text one staff member something you noticed them doing well today", icon: MessageCircle, color: "blue" },
-                        { title: "Walk Through Classrooms", description: "Take a 5-minute walk to connect with children and observe the magic happening", icon: Users, color: "green" },
-                        { title: "Update Your Vision Board", description: "Add one image or quote that reminds you why you chose this work", icon: Target, color: "purple" },
-                        { title: "Share a Success Story", description: "Tell someone about a recent win at your school - celebrate progress!", icon: Trophy, color: "yellow" },
-                        { title: "Practice Gratitude", description: "Write down 3 things that went well today, no matter how small", icon: Heart, color: "pink" },
-                        { title: "Plan Something Fun", description: "Schedule one enjoyable activity for your team this week", icon: Calendar, color: "indigo" }
+                        { title: "Send an Appreciation Text", description: "Text one staff member something you noticed them doing well today (beyond just surviving snack time)", icon: MessageCircle, color: "blue" },
+                        { title: "Walk Through Classrooms", description: "Take a 5-minute walk to connect with children and observe the magic happening (and possibly solve the case of the missing scissors)", icon: Users, color: "green" },
+                        { title: "Update Your Vision Board", description: "Add one image or quote that reminds you why you chose this work (coffee quotes count)", icon: Target, color: "purple" },
+                        { title: "Share a Success Story", description: "Tell someone about a recent win at your school - celebrate progress! (Even if it's just making it through Monday)", icon: Trophy, color: "yellow" },
+                        { title: "Practice Gratitude", description: "Write down 3 things that went well today, no matter how small (including functional toilets)", icon: Heart, color: "pink" },
+                        { title: "Plan Something Fun", description: "Schedule one enjoyable activity for your team this week (pizza delivery counts as team building)", icon: Calendar, color: "indigo" }
                       ].map((win, index) => (
                         <Card key={index} className={`bg-gradient-to-br from-${win.color}-50 to-${win.color}-100 border-${win.color}-200 hover:shadow-lg transition-all duration-300`}>
                           <CardContent className="pt-4">
