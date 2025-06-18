@@ -387,37 +387,37 @@ export default function EceHoursTracker() {
                           </p>
                         </div>
 
-                    {/* Status Badge */}
-                    <div className="lg:col-span-2">
-                      <Badge 
-                        variant={employee.isCompliant ? "default" : "destructive"}
-                        className="w-full justify-center"
-                      >
-                        {employee.isCompliant ? "Compliant" : `${employee.hoursRemaining.toFixed(1)}h needed`}
-                      </Badge>
-                    </div>
+                        {/* Status Badge */}
+                        <div className="lg:col-span-2">
+                          <Badge 
+                            variant={employee.isCompliant ? "default" : "destructive"}
+                            className="w-full justify-center"
+                          >
+                            {employee.isCompliant ? "Compliant" : `${employee.hoursRemaining.toFixed(1)}h needed`}
+                          </Badge>
+                        </div>
 
-                    {/* Renewal Date */}
-                    <div className="lg:col-span-2">
-                      <div className="text-center">
-                        <p className="text-sm font-medium">Renewal Date</p>
-                        <p className="text-xs text-gray-600">{employee.renewalDate}</p>
-                        <p className="text-xs text-gray-500">
-                          {employee.daysUntilRenewal} days left
-                        </p>
-                      </div>
-                    </div>
+                        {/* Renewal Date */}
+                        <div className="lg:col-span-2">
+                          <div className="text-center">
+                            <p className="text-sm font-medium">Renewal Date</p>
+                            <p className="text-xs text-gray-600">{employee.renewalDate}</p>
+                            <p className="text-xs text-gray-500">
+                              {employee.daysUntilRenewal} days left
+                            </p>
+                          </div>
+                        </div>
 
-                    {/* Actions */}
-                    <div className="lg:col-span-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="w-full"
-                            onClick={() => {
-                              setSelectedEmployee(employee);
+                        {/* Actions */}
+                        <div className="lg:col-span-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="w-full"
+                                onClick={() => {
+                                  setSelectedEmployee(employee);
                               setNewRenewalDate(employee.renewalDate);
                             }}
                           >
