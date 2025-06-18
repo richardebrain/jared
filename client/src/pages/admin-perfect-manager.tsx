@@ -170,13 +170,9 @@ export default function PerfectManager() {
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Debug logging for activeOption state
-  console.log('Perfect Manager - Current activeOption:', activeOption);
 
-  // Effect to log state changes
-  React.useEffect(() => {
-    console.log('ActiveOption state changed to:', activeOption);
-  }, [activeOption]);
+
+
 
   const handleScenarioSelect = (scenarioId: string) => {
     setSelectedScenario(scenarioId);
@@ -738,13 +734,9 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               </div>
               
               <Button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={() => {
                   console.log('Situational Coaching button clicked!');
-                  console.log('Current activeOption before:', activeOption);
                   setActiveOption('situation');
-                  console.log('setActiveOption called with situation');
                 }}
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
@@ -784,14 +776,7 @@ ${generatedAdvice.coreValuesConnection?.map((value, i) => `${i + 1}. ${value}`).
               </div>
               
               <Button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Boost button clicked!');
-                  console.log('Current activeOption before:', activeOption);
-                  setActiveOption('boost');
-                  console.log('setActiveOption called with boost');
-                }}
+                onClick={() => setActiveOption('boost')}
                 className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Boost My Energy
