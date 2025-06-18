@@ -27,6 +27,7 @@ interface ParsedSlide {
   content: string;
   notes: string;
   slideNumber: number;
+  videoLinks?: string[];
 }
 
 export default function NewModuleImport() {
@@ -172,11 +173,12 @@ export default function NewModuleImport() {
           sections: selectedSlidesData.map((slide, index) => ({
             title: slide.title || `Slide ${slide.slideNumber}`,
             content: slide.content,
-            type: 'slide',
+            type: slide.videoLinks && slide.videoLinks.length > 0 ? 'video' : 'slide',
             duration: Math.ceil(parseInt(moduleConfig.estimatedTime) / selectedSlidesData.length),
-            videoUrl: '',
+            videoUrl: slide.videoLinks && slide.videoLinks.length > 0 ? slide.videoLinks[0] : '',
             imageUrl: '',
-            activities: []
+            activities: [],
+            notes: slide.notes || ''
           }))
         })
       });
@@ -391,6 +393,13 @@ export default function NewModuleImport() {
                       <p className="text-sm text-gray-600 line-clamp-3">
                         {slide.content || 'No content extracted'}
                       </p>
+                      {slide.videoLinks && slide.videoLinks.length > 0 && (
+                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                          <strong>📹 Video Content:</strong> {slide.videoLinks.length} video link{slide.videoLinks.length > 1 ? 's' : ''} found
+                          <br />
+                          <span className="text-blue-600">{slide.videoLinks[0].substring(0, 50)}...</span>
+                        </div>
+                      )}
                       {slide.notes && (
                         <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
                           <strong>Notes:</strong> {slide.notes.substring(0, 100)}...

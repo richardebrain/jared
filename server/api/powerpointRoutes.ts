@@ -25,13 +25,25 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage,
   fileFilter: (req, file, cb) => {
+    console.log('Uploaded file details:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size
+    });
+    
     const allowedTypes = [
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation'
     ];
-    if (allowedTypes.includes(file.mimetype)) {
+    
+    // Also check file extension as backup
+    const allowedExtensions = ['.ppt', '.pptx'];
+    const fileExtension = file.originalname.toLowerCase().substr(file.originalname.lastIndexOf('.'));
+    
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
       cb(null, true);
     } else {
+      console.log('File rejected:', { mimetype: file.mimetype, extension: fileExtension });
       cb(new Error('Invalid file type. Only PowerPoint files are allowed.'));
     }
   },
