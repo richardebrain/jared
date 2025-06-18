@@ -17,7 +17,12 @@ import {
   Edit, 
   ArrowLeft,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
+  Mail,
+  Settings,
+  Send,
+  Plus,
+  X as XIcon
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';

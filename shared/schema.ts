@@ -1836,6 +1836,27 @@ export const insertEceHoursSchema = createInsertSchema(eceHours).omit({
   completedAt: true,
 });
 
+// ECE Monthly Reporting Settings schema
+export const eceReportingSettings = pgTable("ece_reporting_settings", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  reportingEmails: json("reporting_emails").$type<string[]>().notNull(), // Array of email addresses
+  frequency: text("frequency").notNull().default("monthly"), // monthly, quarterly, annually
+  isActive: boolean("is_active").default(true),
+  lastReportSent: timestamp("last_report_sent"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  // One setting per school
+  schoolSettingsIdx: index("ece_reporting_school_idx").on(table.schoolId),
+}));
+
+export const insertEceReportingSettingsSchema = createInsertSchema(eceReportingSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const eceHoursRelations = relations(eceHours, ({ one }) => ({
   user: one(users, {
     fields: [eceHours.userId],
