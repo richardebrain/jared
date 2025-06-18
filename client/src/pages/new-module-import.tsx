@@ -165,16 +165,16 @@ export default function NewModuleImport() {
         body: JSON.stringify({
           title: moduleConfig.title,
           description: moduleConfig.description,
-          category: moduleConfig.category,
-          difficulty: moduleConfig.difficulty,
-          estimatedTime: moduleConfig.estimatedTime,
-          customPoints: moduleConfig.customPoints,
-          shareWithCommunity: moduleConfig.shareWithCommunity,
+          category: moduleConfig.category || 'professional-development',
+          difficulty: moduleConfig.difficulty || 'medium',
+          estimatedTime: moduleConfig.estimatedTime || '15',
+          customPoints: moduleConfig.customPoints || '',
+          shareWithCommunity: moduleConfig.shareWithCommunity || false,
           sections: selectedSlidesData.map((slide, index) => ({
             title: slide.title || `Slide ${slide.slideNumber}`,
-            content: slide.content,
-            type: slide.videoLinks && slide.videoLinks.length > 0 ? 'video' : 'slide',
-            duration: Math.ceil(parseInt(moduleConfig.estimatedTime) / selectedSlidesData.length),
+            content: slide.content || '',
+            type: slide.videoLinks && slide.videoLinks.length > 0 ? 'video' : 'text',
+            duration: Math.ceil(parseInt(moduleConfig.estimatedTime || '15') / selectedSlidesData.length),
             videoUrl: slide.videoLinks && slide.videoLinks.length > 0 ? slide.videoLinks[0] : '',
             imageUrl: '',
             activities: [],
@@ -183,7 +183,14 @@ export default function NewModuleImport() {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to save module');
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Module creation error:', response.status, errorData);
+        throw new Error(`Failed to save module: ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log('Module created successfully:', result);
 
       toast({
         title: "Module Saved!",
