@@ -983,7 +983,7 @@ function Router(props: {
       </Route>
 
       <Route path="/ece-hours-tracker">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute>
           <EceHoursTracker />
         </ProtectedRoute>
       </Route>
