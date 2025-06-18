@@ -200,46 +200,44 @@ export default function DirectorToolkit() {
   }, {} as Record<string, ToolkitTool[]>);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header with Back Button */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
+      {/* Header */}
+      <div className="relative">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-400 rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-purple-400 rounded-full opacity-10 blur-3xl"></div>
+        </div>
+        
+        <div className="relative z-10 container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-6">
             <Link href="/dashboard">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
+              <Button variant="ghost" className="text-white hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
             </Link>
           </div>
           
-          {/* Enhanced Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <div className="p-3 bg-white rounded-xl shadow-md">
-                <Settings className="h-8 w-8 text-blue-600" />
-              </div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                Director Toolkit
-              </h1>
-            </div>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto bg-white/70 backdrop-blur-sm px-6 py-3 rounded-lg shadow-sm">
+          <div className="text-center text-white mb-8">
+            <h1 className="text-4xl font-bold mb-4">Director Toolkit</h1>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Your administrative dashboard for managing staff, content, and professional development
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-6 pb-16">
+        <div className="max-w-7xl mx-auto">
 
         {/* Category Filter */}
         <div className="mb-8">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl font-semibold text-white mb-2">
               Filter Tools by Category
             </h2>
-            <p className="text-gray-600">
+            <p className="text-blue-100">
               Select a category to find the tools you need
             </p>
           </div>
@@ -248,34 +246,25 @@ export default function DirectorToolkit() {
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="default"
+              className={selectedCategory === 'all' ? 'bg-white text-blue-600 hover:bg-gray-100' : 'border-white/30 text-white hover:bg-white/10'}
               onClick={() => setSelectedCategory('all')}
-              className={selectedCategory === 'all' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-white hover:bg-gray-50'}
             >
               All Tools
               <Badge variant="secondary" className="ml-2">{directorTools.length}</Badge>
             </Button>
             
-            {Object.entries(categoryLabels).map(([key, label]) => {
-              const categoryColors = {
-                staff: selectedCategory === key ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white hover:bg-blue-50 border-blue-200',
-                content: selectedCategory === key ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-white hover:bg-green-50 border-green-200',
-                communication: selectedCategory === key ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-white hover:bg-purple-50 border-purple-200',
-                analytics: selectedCategory === key ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-white hover:bg-orange-50 border-orange-200'
-              };
-              
-              return (
-                <Button
-                  key={key}
-                  variant="outline"
-                  size="default"
-                  onClick={() => setSelectedCategory(key)}
-                  className={categoryColors[key as keyof typeof categoryColors]}
-                >
-                  {label}
-                  <Badge variant="secondary" className="ml-2">{toolsByCategory[key]?.length || 0}</Badge>
-                </Button>
-              );
-            })}
+            {Object.entries(categoryLabels).map(([key, label]) => (
+              <Button
+                key={key}
+                variant={selectedCategory === key ? 'default' : 'outline'}
+                size="default"
+                onClick={() => setSelectedCategory(key)}
+                className={selectedCategory === key ? 'bg-white text-blue-600 hover:bg-gray-100' : 'border-white/30 text-white hover:bg-white/10'}
+              >
+                {label}
+                <Badge variant="secondary" className="ml-2">{toolsByCategory[key]?.length || 0}</Badge>
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -323,64 +312,47 @@ function ToolCard({ tool }: { tool: ToolkitTool }) {
   
   const categoryStyles = {
     staff: {
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      buttonColor: 'bg-blue-600 hover:bg-blue-700'
+      iconGradient: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+      buttonGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
     },
     content: {
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-      buttonColor: 'bg-green-600 hover:bg-green-700'
+      iconGradient: 'bg-gradient-to-br from-green-500 to-emerald-600',
+      buttonGradient: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
     },
     communication: {
-      iconBg: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      buttonColor: 'bg-purple-600 hover:bg-purple-700'
+      iconGradient: 'bg-gradient-to-br from-purple-500 to-pink-600',
+      buttonGradient: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
     },
     analytics: {
-      iconBg: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-      buttonColor: 'bg-orange-600 hover:bg-orange-700'
+      iconGradient: 'bg-gradient-to-br from-orange-500 to-red-600',
+      buttonGradient: 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700'
     }
   };
   
   const style = categoryStyles[tool.category];
   
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 bg-white border border-gray-200 hover:border-gray-300">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className={`p-3 rounded-lg ${style.iconBg}`}>
-              <IconComponent className={`h-5 w-5 ${style.iconColor}`} />
-            </div>
-            <div className="flex-1">
-              <CardTitle className="text-base font-semibold text-gray-900">
-                {tool.title}
-              </CardTitle>
-              {tool.badge && (
-                <Badge 
-                  variant={tool.badgeVariant} 
-                  className="mt-1"
-                >
-                  {tool.badge}
-                </Badge>
-              )}
-            </div>
-          </div>
+    <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group">
+      <CardHeader className="text-center pb-6">
+        <div className={`w-20 h-20 ${style.iconGradient} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+          <IconComponent className="h-10 w-10 text-white" />
         </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <CardDescription className="text-sm mb-4 text-gray-600">
+        <CardTitle className="text-2xl font-bold text-gray-800 mb-2">{tool.title}</CardTitle>
+        {tool.badge && (
+          <Badge 
+            variant={tool.badgeVariant} 
+            className="mb-2"
+          >
+            {tool.badge}
+          </Badge>
+        )}
+        <CardDescription className="text-gray-600 leading-relaxed">
           {tool.description}
         </CardDescription>
-        
+      </CardHeader>
+      <CardContent className="text-center">
         <Link href={tool.route}>
-          <Button 
-            className={`w-full text-white ${style.buttonColor}`}
-            size="sm"
-          >
+          <Button className={`${style.buttonGradient} text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300`}>
             Launch Tool
           </Button>
         </Link>
