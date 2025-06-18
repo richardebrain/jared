@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Mic, Play, Download, Loader2, FileAudio, Sparkles, Clock, Volume2, FileText, MessageSquare, ChevronRight } from 'lucide-react';
+import { Mic, Play, Download, Loader2, FileAudio, Sparkles, Clock, Volume2, FileText, MessageSquare, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Link } from 'wouter';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -207,6 +208,15 @@ export default function PodcastGenerator() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="flex items-center justify-between mb-8">
+        <Link href="/director-toolkit">
+          <Button variant="outline" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Return to Director Toolkit
+          </Button>
+        </Link>
+      </div>
+      
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
           <Mic className="h-10 w-10 text-blue-600" />
