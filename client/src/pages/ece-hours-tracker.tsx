@@ -200,11 +200,11 @@ export default function EceHoursTracker() {
 
   // Initialize email settings from API data
   React.useEffect(() => {
-    if (reportingSettings) {
+    if (reportingSettings && reportingSettings.settings) {
       setEmailSettings({
-        reportingEmails: reportingSettings.reportingEmails || [''],
-        frequency: reportingSettings.frequency || 'monthly',
-        isActive: reportingSettings.isActive !== false
+        reportingEmails: reportingSettings.settings.reportingEmails || [''],
+        frequency: reportingSettings.settings.frequency || 'monthly',
+        isActive: reportingSettings.settings.isActive !== false
       });
     }
   }, [reportingSettings]);
