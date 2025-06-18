@@ -246,7 +246,7 @@ export default function DirectorToolkit() {
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="default"
-              className={selectedCategory === 'all' ? 'bg-white text-blue-600 hover:bg-gray-100' : 'border-white/30 text-white hover:bg-white/10'}
+              className={selectedCategory === 'all' ? 'bg-white text-blue-800 hover:bg-gray-100 font-semibold shadow-lg' : 'border-2 border-white bg-blue-800/20 text-white hover:bg-white hover:text-blue-800 font-semibold transition-all duration-300'}
               onClick={() => setSelectedCategory('all')}
             >
               All Tools
@@ -259,7 +259,7 @@ export default function DirectorToolkit() {
                 variant={selectedCategory === key ? 'default' : 'outline'}
                 size="default"
                 onClick={() => setSelectedCategory(key)}
-                className={selectedCategory === key ? 'bg-white text-blue-600 hover:bg-gray-100' : 'border-white/30 text-white hover:bg-white/10'}
+                className={selectedCategory === key ? 'bg-white text-blue-800 hover:bg-gray-100 font-semibold shadow-lg' : 'border-2 border-white bg-blue-800/20 text-white hover:bg-white hover:text-blue-800 font-semibold transition-all duration-300'}
               >
                 {label}
                 <Badge variant="secondary" className="ml-2">{toolsByCategory[key]?.length || 0}</Badge>
