@@ -81,6 +81,8 @@ export const users = pgTable("users", {
   jobTitle: text("job_title"), // Teacher, Lead Teacher, Director, etc.
   designations: json("designations").$type<string[]>(), // Special qualifications or designations
   hasUnreadMessages: boolean("has_unread_messages").default(false), // Flag for unread welcome messages
+  // OAuth integration fields
+  googleId: text("google_id").unique(), // Google OAuth ID for SSO
   // Song generation tracking fields for MusicMakerPrek
   songRequestsThisWeek: integer("song_requests_this_week").default(0),
   lastSongWeek: text("last_song_week"), // Format: "YYYY-WW"
