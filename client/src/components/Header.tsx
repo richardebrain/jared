@@ -78,18 +78,20 @@ export default function Header() {
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
 
-  // Fetch unread messages count for notification badge
+  // Fetch unread messages count for notification badge - reduced frequency
   const { data: unreadMessages } = useQuery({
     queryKey: ["/api/director-messages"],
-    enabled: !!user,
-    refetchInterval: 30000, // Check for new messages every 30 seconds
+    enabled: !!user && (isAdmin || isSchoolAdmin || isOwner),
+    refetchInterval: 2 * 60 * 1000, // Check every 2 minutes instead of 30 seconds
+    staleTime: 90 * 1000, // Cache for 90 seconds
   });
 
-  // Fetch credential expiration notifications
+  // Fetch credential expiration notifications - reduced frequency
   const { data: credentialAlerts } = useQuery({
     queryKey: ["/api/credential-alerts"],
-    enabled: !!user,
-    refetchInterval: 60000, // Check for credential alerts every minute
+    enabled: !!user && (isAdmin || isSchoolAdmin || isOwner),
+    refetchInterval: 5 * 60 * 1000, // Check every 5 minutes instead of 1 minute
+    staleTime: 3 * 60 * 1000, // Cache for 3 minutes
   });
 
   const messageCount = Array.isArray(unreadMessages) 

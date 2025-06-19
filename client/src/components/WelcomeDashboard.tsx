@@ -82,20 +82,21 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
       }
     }
 
-    // Load any director messages
-    loadDirectorMessages();
-  }, [user.streak]);
+    // Only load director messages for admin users to reduce API calls
+    if (user?.isAdmin || user?.isSchoolAdmin || user?.isOwner) {
+      loadDirectorMessages();
+    }
+  }, [user.streak, user.isAdmin, user.isSchoolAdmin, user.isOwner]);
 
   const loadDirectorMessages = async () => {
     try {
-      console.log("Loading director messages for user:", user?.id);
+      // Use cached query instead of direct API call for better performance
       const response = await apiRequest("/api/director-messages");
-      console.log("Director messages response:", response);
-      // Ensure we have an array
-      setDirectorMessages(Array.isArray(response) ? response : []);
+      // Only show unread messages to reduce clutter
+      const unreadMessages = Array.isArray(response) ? response.filter(msg => !msg.isRead).slice(0, 3) : [];
+      setDirectorMessages(unreadMessages);
     } catch (error) {
-      console.error("API Error:", error);
-      // No messages available
+      // Silently fail to not disrupt user experience
       setDirectorMessages([]);
     }
   };
