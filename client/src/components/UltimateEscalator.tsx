@@ -101,20 +101,34 @@ export function UltimateEscalator() {
       recognitionInstance.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setUserInput(prev => prev + (prev ? ' ' : '') + transcript);
+        // Stop recognition after getting result
+        try {
+          recognitionInstance.stop();
+        } catch (error) {
+          console.log('Error stopping recognition after result:', error);
+        }
         setIsListening(false);
       };
       
-      recognitionInstance.onerror = () => {
+      recognitionInstance.onerror = (event: any) => {
+        console.log('Speech recognition error:', event.error);
         setIsListening(false);
-        toast({
-          title: "Voice input error",
-          description: "Could not recognize speech. Please try again.",
-          variant: "destructive"
-        });
+        // Only show error toast for actual errors, not for expected stops
+        if (event.error !== 'aborted' && event.error !== 'no-speech') {
+          toast({
+            title: "Voice input error",
+            description: "Could not recognize speech. Please try again.",
+            variant: "destructive"
+          });
+        }
       };
       
       recognitionInstance.onend = () => {
         setIsListening(false);
+      };
+      
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
       };
       
       setRecognition(recognitionInstance);
@@ -124,14 +138,29 @@ export function UltimateEscalator() {
   // Voice input functions
   const startListening = () => {
     if (recognition && !isListening) {
-      setIsListening(true);
-      recognition.start();
+      try {
+        setIsListening(true);
+        recognition.start();
+      } catch (error) {
+        console.log('Speech recognition start error:', error);
+        setIsListening(false);
+        toast({
+          title: "Voice input error",
+          description: "Could not start voice recognition. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
   const stopListening = () => {
-    if (recognition && isListening) {
-      recognition.stop();
+    if (recognition) {
+      try {
+        recognition.stop();
+        recognition.abort(); // Force stop if needed
+      } catch (error) {
+        console.log('Speech recognition stop error:', error);
+      }
       setIsListening(false);
     }
   };
