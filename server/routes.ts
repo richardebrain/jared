@@ -1295,7 +1295,7 @@ Continue for all 5 questions...
     app.post("/api/auth/register", async (req, res) => {
       try {
         // Extract and trim all input fields for consistency
-        const username = req.body.username?.trim();
+        // Use email as username for new registration system
         const password = req.body.password?.trim();
         const firstName = req.body.firstName?.trim();
         const lastName = req.body.lastName?.trim();
@@ -1303,20 +1303,22 @@ Continue for all 5 questions...
         const language = req.body.language?.trim() || "English";
         const nativeLanguage = req.body.nativeLanguage?.trim() || "English";
         const timeZone = req.body.timeZone?.trim() || "UTC-05:00";
+        
+        // Use email as username for all new registrations
+        const username = email;
 
         console.log(`=== REGISTRATION ATTEMPT ===`);
-        console.log(`Username: "${username}"`);
-        console.log(`Email: "${email}"`);
+        console.log(`Email (used as username): "${email}"`);
+        console.log(`Username variable: "${username}"`);
         console.log(`First Name: "${firstName}"`);
         console.log(`Last Name: "${lastName}"`);
         console.log(`School ID: ${req.body.schoolId}`);
         console.log(`User Agent: ${req.get('User-Agent')}`);
         console.log(`IP Address: ${req.ip}`);
 
-        if (!username || !password || !firstName || !lastName || !email) {
+        if (!password || !firstName || !lastName || !email) {
           // Log which fields are missing for debugging
           const missingFields = {
-            hasUsername: !!username,
             hasPassword: !!password,
             hasFirstName: !!firstName,
             hasLastName: !!lastName,
@@ -1330,7 +1332,6 @@ Continue for all 5 questions...
 
           // Create a more specific error message about which fields are missing
           const missingFieldNames = [];
-          if (!username) missingFieldNames.push("username");
           if (!password) missingFieldNames.push("password");
           if (!firstName) missingFieldNames.push("first name");
           if (!lastName) missingFieldNames.push("last name");
@@ -1345,16 +1346,18 @@ Continue for all 5 questions...
           });
         }
 
-        // Check if user with this username already exists
-        const existingUser = await storage.getUserByUsername(username);
-        if (existingUser) {
+        // Check if user with this email already exists (checking both username and email fields)
+        const existingUserByEmail = await storage.getUserByEmail(email);
+        const existingUserByUsername = await storage.getUserByUsername(email);
+        
+        if (existingUserByEmail || existingUserByUsername) {
           console.log(
-            `Registration failed: Username "${username}" already exists`,
+            `Registration failed: Email "${email}" already exists`,
           );
           return res.status(400).json({
-            message: "Username already exists",
+            message: "Email already exists",
             details:
-              "This username is already taken. Please choose a different username for your account.",
+              "An account with this email address already exists. Please use a different email or try logging in.",
           });
         }
 
