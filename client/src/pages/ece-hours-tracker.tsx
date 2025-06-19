@@ -137,6 +137,10 @@ export default function EceHoursTracker() {
         errorMessage = "Email reports are disabled. Please enable them in settings.";
       } else if (error.message?.includes("No email recipients")) {
         errorMessage = "Please add at least one email address before sending test reports.";
+      } else if (error.message?.includes("EMAIL_SEND_FAILED")) {
+        errorMessage = "Email service temporarily unavailable. Please try again in a few minutes.";
+      } else if (error.message?.includes("check your email configuration")) {
+        errorMessage = "Email configuration issue detected. Please contact support if this persists.";
       } else if (error.message) {
         errorMessage = error.message;
       }

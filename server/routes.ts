@@ -37,16 +37,39 @@ async function sendEceMonthlyReport(
 
     const htmlContent = generateEceReportHTML(schoolName, reportPeriod, trainingData, isTestEmail);
 
+    console.log(`Sending ECE report to ${recipients.length} recipients...`);
+    
     for (const recipient of recipients) {
-      await mailService.send({
-        to: recipient,
-        from: 'noreply@mentorme.edu', // Configure this to match your verified domain
-        subject,
-        html: htmlContent,
-      });
+      console.log(`Sending email to: ${recipient}`);
+      
+      try {
+        await mailService.send({
+          to: recipient,
+          from: 'noreply@mentorme.edu',
+          subject,
+          html: htmlContent,
+        });
+        console.log(`✓ Email sent successfully to ${recipient}`);
+      } catch (emailError: any) {
+        console.error(`✗ Failed to send email to ${recipient}:`, {
+          code: emailError.code,
+          message: emailError.message,
+          statusCode: emailError.response?.statusCode,
+          body: emailError.response?.body
+        });
+        
+        // If SendGrid authentication fails, don't continue with other recipients
+        if (emailError.code === 403) {
+          console.error("SendGrid authentication failed - check API key");
+          return false;
+        }
+        
+        // For other errors, continue trying other recipients
+        continue;
+      }
     }
 
-    console.log(`ECE report sent to ${recipients.length} recipients`);
+    console.log(`ECE report sending completed`);
     return true;
   } catch (error) {
     console.error('Error sending ECE report:', error);
@@ -3219,13 +3242,20 @@ Continue for all 5 questions...
         .where(eq(schools.id, user.schoolId || 1));
 
       // Send test email
-      await sendEceMonthlyReport(
+      const emailSent = await sendEceMonthlyReport(
         settings.reportingEmails,
         school?.name || 'Your School',
         currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
         [], // Empty training data for test
         true // isTestEmail flag
       );
+
+      if (!emailSent) {
+        return res.status(500).json({ 
+          message: "Failed to send test email. Please check your email configuration or try again later.",
+          errorType: "EMAIL_SEND_FAILED"
+        });
+      }
 
       res.json({ 
         success: true, 
