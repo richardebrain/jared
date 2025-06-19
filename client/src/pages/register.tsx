@@ -24,11 +24,8 @@ import { useQuery } from "@tanstack/react-query";
 import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 
-// Form schema for registration - simplified for ease of use
+// Form schema for registration - email is used as username
 const registerSchema = z.object({
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters.",
-  }),
   password: z.string().min(6, {
     message: "Password must be at least 6 characters.",
   }),
@@ -61,11 +58,10 @@ export default function Register() {
     enabled: false, // Temporarily disable to fix the issue
   });
 
-  // Create form with simplified fields
+  // Create form with simplified fields - email is used as username
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
       password: "",
       firstName: "",
       lastName: "",
@@ -82,10 +78,10 @@ export default function Register() {
   const { mutate: register, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof registerSchema>) => {
       try {
-        // Make sure all form data is clean and trimmed
+        // Make sure all form data is clean and trimmed - use email as username
         const cleanData = {
           ...data,
-          username: data.username.trim(),
+          username: data.email.trim(), // Use email as username
           password: data.password.trim(),
           firstName: data.firstName.trim(),
           lastName: data.lastName.trim(),
@@ -149,11 +145,9 @@ export default function Register() {
 
   // Form submission handler
   function onSubmit(values: z.infer<typeof registerSchema>) {
-    // Trim values at submission time rather than during typing
-    // This allows password managers to work correctly
+    // Trim values at submission time and use email as username
     const trimmedValues = {
       ...values,
-      username: values.username.trim(),
       password: values.password.trim(),
       firstName: values.firstName.trim(),
       lastName: values.lastName.trim(),
@@ -230,24 +224,7 @@ export default function Register() {
                 />
               </div>
               
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Choose a username" 
-                        {...field}
-                        // Allow the field to work with password managers
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
+
               <FormField
                 control={form.control}
                 name="email"

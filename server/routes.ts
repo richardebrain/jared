@@ -1541,16 +1541,22 @@ Continue for all 5 questions...
         // Demo user for testing purposes
         const isDemoUser = username === "jlcookie20" && password === "password";
 
-        const user = await storage.getUserByUsername(username);
+        // Try to find user by username first, then by email for dual login support
+        let user = await storage.getUserByUsername(username);
+        
+        // If not found by username, try finding by email (for new email-based accounts)
+        if (!user) {
+          user = await storage.getUserByEmail(username);
+        }
 
         if (!user) {
           console.log(
-            `Login failed: User not found for username: "${username}"`,
+            `Login failed: User not found for username/email: "${username}"`,
           );
           return res.status(401).json({
             message: "Invalid username or password",
             details:
-              "No account found with this username. Please check your spelling or register for an account.",
+              "No account found with this username or email. Please check your spelling or register for an account.",
           });
         }
 
