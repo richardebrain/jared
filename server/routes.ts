@@ -3410,6 +3410,7 @@ Continue for all 5 questions...
         notes,
         trainingType: trainingType || 'online',
         trainingLocation: trainingLocation || null,
+        isManualEntry: targetUserId ? true : false,
         addedBy: targetUserId ? userId : null // Track who manually added the hours
       };
 
@@ -3459,6 +3460,7 @@ Continue for all 5 questions...
         notes,
         trainingType: trainingType || 'in_person',
         trainingLocation: trainingLocation || null,
+        isManualEntry: true,
         addedBy: userId
       }));
 

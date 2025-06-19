@@ -23,6 +23,12 @@ export async function addManualTrainingFields() {
       ADD COLUMN IF NOT EXISTS added_by INTEGER REFERENCES users(id)
     `);
     
+    // Add isManualEntry field to distinguish manually added vs system-generated hours
+    await db.execute(sql`
+      ALTER TABLE ece_hours 
+      ADD COLUMN IF NOT EXISTS is_manual_entry BOOLEAN DEFAULT FALSE
+    `);
+    
     console.log("✓ Manual training fields added successfully");
   } catch (error) {
     console.error("Error adding manual training fields:", error);
