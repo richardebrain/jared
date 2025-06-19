@@ -1468,26 +1468,36 @@ Continue for all 5 questions...
         // Don't return password in response
         const { password: _, ...userWithoutPassword } = newUser;
 
-        // Automatically log in the user
+        // Automatically log in the user after registration
         req.session.userId = newUser.id;
 
         // Add registration timestamp for tracking
         const registrationTime = new Date();
         req.session.registeredAt = registrationTime.toISOString();
+        req.session.loginTime = registrationTime.toISOString();
 
-        // Force session save to ensure it's properly saved
+        console.log(`Setting session for new user: ${newUser.id} (${username})`);
+        console.log(`Session ID: ${req.sessionID}`);
+
+        // Force session save to ensure it's properly saved before responding
         req.session.save((err) => {
           if (err) {
             console.error("Session save error during registration:", err);
+            return res.status(500).json({ 
+              message: "Registration successful but login failed", 
+              details: "Please try logging in manually with your new credentials." 
+            });
           } else {
             console.log(
               "Session saved successfully during registration for userId:",
               newUser.id,
             );
+            console.log(`Session cookie: ${JSON.stringify(req.session.cookie)}`);
+            
+            // Respond with user data after successful session save
+            res.status(201).json(userWithoutPassword);
           }
         });
-
-        res.status(201).json(userWithoutPassword);
       } catch (error) {
         console.error("Registration error:", error);
         res.status(500).json({ message: "Internal server error" });
