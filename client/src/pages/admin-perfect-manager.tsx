@@ -25,7 +25,10 @@ import {
   Volume2,
   VolumeX,
   Lightbulb,
-  CheckSquare
+  CheckSquare,
+  ExternalLink,
+  BookOpen,
+  ClipboardCheck
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -1436,9 +1439,9 @@ ${generatedAdvice.followUpPlan?.map((item: string, i: number) => `${i + 1}. ${it
 
         {/* Tools Content */}
         {activeOption === 'tools' && (
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-4xl font-bold text-white">Leadership Resources</h2>
+              <h2 className="text-4xl font-bold text-white">ECE Leadership Resources</h2>
               <Button 
                 variant="ghost" 
                 onClick={() => setActiveOption(null)}
@@ -1449,37 +1452,563 @@ ${generatedAdvice.followUpPlan?.map((item: string, i: number) => `${i + 1}. ${it
               </Button>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
-                <CardHeader>
-                  <CardTitle>Policy Templates</CardTitle>
-                  <CardDescription>Ready-to-use policies for your center</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">Access professional policy templates covering staff conduct, safety procedures, and operational guidelines.</p>
-                </CardContent>
-              </Card>
+            <Tabs defaultValue="websites" className="w-full">
+              <TabsList className="grid w-full grid-cols-5 mb-8">
+                <TabsTrigger value="websites">Professional Websites</TabsTrigger>
+                <TabsTrigger value="videos">Training Videos</TabsTrigger>
+                <TabsTrigger value="templates">Policy Templates</TabsTrigger>
+                <TabsTrigger value="books">Leadership Books</TabsTrigger>
+                <TabsTrigger value="assessment">Assessment Tools</TabsTrigger>
+              </TabsList>
 
-              <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
-                <CardHeader>
-                  <CardTitle>Training Materials</CardTitle>
-                  <CardDescription>Professional development resources</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">Comprehensive training modules for staff development, leadership skills, and early childhood best practices.</p>
-                </CardContent>
-              </Card>
+              <TabsContent value="websites" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2 text-blue-600" />
+                        National Association for the Education of Young Children
+                      </CardTitle>
+                      <CardDescription>NAEYC - The premier professional organization for ECE</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Comprehensive resources for early childhood professionals including standards, position statements, and leadership guidance.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.naeyc.org/', '_blank')}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                      >
+                        Visit NAEYC.org
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-              <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
-                <CardHeader>
-                  <CardTitle>Assessment Tools</CardTitle>
-                  <CardDescription>Staff evaluation and performance tracking</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">Structured assessment forms and performance review templates for effective staff evaluation.</p>
-                </CardContent>
-              </Card>
-            </div>
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2 text-green-600" />
+                        Child Care Aware of America
+                      </CardTitle>
+                      <CardDescription>National advocacy and resource organization</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Leadership tools, quality improvement resources, and policy advocacy for child care directors and administrators.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.childcareaware.org/', '_blank')}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        Visit ChildCareAware.org
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2 text-purple-600" />
+                        Zero to Three
+                      </CardTitle>
+                      <CardDescription>Infant and toddler development expertise</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Research-based resources for supporting infants, toddlers, and families. Essential for directors overseeing infant/toddler programs.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.zerotothree.org/', '_blank')}
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                      >
+                        Visit ZeroToThree.org
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2 text-orange-600" />
+                        McCormick Center for Early Childhood Leadership
+                      </CardTitle>
+                      <CardDescription>Leadership development and research</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Research-based leadership development programs, tools, and resources specifically designed for ECE administrators.</p>
+                      <Button 
+                        onClick={() => window.open('https://mccormickcenter.nl.edu/', '_blank')}
+                        className="w-full bg-orange-600 hover:bg-orange-700"
+                      >
+                        Visit McCormick Center
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2 text-red-600" />
+                        Exchange Magazine
+                      </CardTitle>
+                      <CardDescription>Child care business and leadership magazine</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Business management, staff development, and leadership articles specifically for child care center directors and owners.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.childcareexchange.com/', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        Visit Exchange
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ExternalLink className="h-5 w-5 mr-2 text-indigo-600" />
+                        Head Start ECLKC
+                      </CardTitle>
+                      <CardDescription>Early Childhood Learning & Knowledge Center</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Comprehensive resources for program management, staff development, and quality improvement from the Office of Head Start.</p>
+                      <Button 
+                        onClick={() => window.open('https://eclkc.ohs.acf.hhs.gov/', '_blank')}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        Visit ECLKC
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="videos" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Play className="h-5 w-5 mr-2 text-red-600" />
+                        Leading Change in Early Childhood Programs
+                      </CardTitle>
+                      <CardDescription>McCormick Center Leadership Series</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">A comprehensive video series on transformational leadership, change management, and building strong early childhood teams.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.youtube.com/watch?v=K4T8x6SrZbc', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch on YouTube
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Play className="h-5 w-5 mr-2 text-red-600" />
+                        Brené Brown: Daring Leadership
+                      </CardTitle>
+                      <CardDescription>Vulnerability and courage in leadership</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Essential viewing for ECE leaders on building trust, having difficult conversations, and leading with authenticity in early childhood settings.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.youtube.com/watch?v=ltw7w5ZZkZE', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch on YouTube
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Play className="h-5 w-5 mr-2 text-red-600" />
+                        Building Positive Workplace Culture in ECE
+                      </CardTitle>
+                      <CardDescription>NAEYC Professional Development</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Strategies for creating supportive work environments, reducing teacher turnover, and building strong professional learning communities.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.youtube.com/watch?v=dQE0nBrDyoU', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch on YouTube
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Play className="h-5 w-5 mr-2 text-red-600" />
+                        Reflective Supervision in Early Childhood
+                      </CardTitle>
+                      <CardDescription>Georgetown University Training</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Learn reflective supervision techniques to support staff growth, build emotional intelligence, and create supportive professional relationships.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.youtube.com/watch?v=SrQFQgFEQps', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch on YouTube
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Play className="h-5 w-5 mr-2 text-red-600" />
+                        Simon Sinek: Start With Why
+                      </CardTitle>
+                      <CardDescription>Purpose-driven leadership</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Discover how to inspire your team by connecting daily work to the deeper purpose of nurturing young children and supporting families.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.youtube.com/watch?v=u4ZoJKF_VuA', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch on YouTube
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Play className="h-5 w-5 mr-2 text-red-600" />
+                        Managing Difficult Conversations
+                      </CardTitle>
+                      <CardDescription>Harvard Business Review</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Essential skills for ECE directors: how to have tough conversations with staff, parents, and stakeholders while maintaining relationships.</p>
+                      <Button 
+                        onClick={() => window.open('https://www.youtube.com/watch?v=yXchAhE5a_0', '_blank')}
+                        className="w-full bg-red-600 hover:bg-red-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch on YouTube
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="templates" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                        Staff Handbook Template
+                      </CardTitle>
+                      <CardDescription>Comprehensive employee handbook</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Complete staff handbook template covering policies, procedures, expectations, and professional development requirements for ECE centers.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500">Includes: Code of conduct, safety procedures, curriculum expectations, communication protocols</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-green-600" />
+                        Performance Review Templates
+                      </CardTitle>
+                      <CardDescription>Annual and quarterly evaluation forms</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Structured performance evaluation templates with ECE-specific competencies, goal-setting frameworks, and growth planning tools.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500">Includes: Self-assessment forms, supervisor evaluations, professional development plans</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-purple-600" />
+                        Emergency Response Procedures
+                      </CardTitle>
+                      <CardDescription>Safety and emergency protocols</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Comprehensive emergency response plans including evacuation procedures, medical emergencies, severe weather, and lockdown protocols.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500">Includes: Emergency contact forms, drill documentation, incident reporting procedures</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-orange-600" />
+                        Professional Development Plans
+                      </CardTitle>
+                      <CardDescription>Career growth and training frameworks</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Individual professional development plan templates with ECE competency tracking, training goals, and career pathway planning.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500">Includes: Training logs, competency checklists, mentoring agreements</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-red-600" />
+                        Parent Communication Templates
+                      </CardTitle>
+                      <CardDescription>Family engagement and communication</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Professional communication templates for newsletters, incident reports, developmental updates, and difficult conversation scripts with families.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500">Includes: Newsletter templates, conference forms, behavior plan discussions</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-indigo-600" />
+                        Quality Improvement Tools
+                      </CardTitle>
+                      <CardDescription>Program assessment and enhancement</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Quality assessment tools, classroom observation forms, and program improvement planning templates aligned with state standards.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500">Includes: Environment rating scales, teaching practice rubrics, family satisfaction surveys</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="books" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
+                        "Dare to Lead" by Brené Brown
+                      </CardTitle>
+                      <CardDescription>Courage, vulnerability, and authentic leadership</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Essential reading for ECE leaders on building trust, having difficult conversations, and creating psychologically safe work environments.</p>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p><strong>Key concepts:</strong> Rumbling with vulnerability, clear communication, building trust</p>
+                        <p><strong>ECE Application:</strong> Staff development, parent conversations, team building</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2 text-green-600" />
+                        "The 7 Habits of Highly Effective People" by Stephen Covey
+                      </CardTitle>
+                      <CardDescription>Principle-centered leadership</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Timeless principles for effective leadership that translate directly to early childhood program management and staff development.</p>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p><strong>Key concepts:</strong> Begin with the end in mind, seek first to understand, synergy</p>
+                        <p><strong>ECE Application:</strong> Strategic planning, conflict resolution, team collaboration</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2 text-purple-600" />
+                        "Crucial Conversations" by Kerry Patterson
+                      </CardTitle>
+                      <CardDescription>Tools for talking when stakes are high</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Master the art of dialogue for performance issues, parent concerns, and staff conflicts in early childhood settings.</p>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p><strong>Key concepts:</strong> Creating safety, mastering stories, exploring others' paths</p>
+                        <p><strong>ECE Application:</strong> Performance reviews, parent complaints, team conflicts</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2 text-orange-600" />
+                        "Leadership in Early Childhood" by Jorde Bloom
+                      </CardTitle>
+                      <CardDescription>ECE-specific leadership strategies</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">The definitive guide to leadership specifically for early childhood administrators, covering all aspects of program management.</p>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p><strong>Key concepts:</strong> Organizational climate, staff development, change management</p>
+                        <p><strong>ECE Application:</strong> Center operations, staff retention, quality improvement</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2 text-red-600" />
+                        "Start With Why" by Simon Sinek
+                      </CardTitle>
+                      <CardDescription>How great leaders inspire action</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Discover how to inspire your team by connecting their daily work to the greater purpose of early childhood education.</p>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p><strong>Key concepts:</strong> The golden circle, purpose-driven leadership, inspiring action</p>
+                        <p><strong>ECE Application:</strong> Mission alignment, staff motivation, program vision</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2 text-indigo-600" />
+                        "The Circle of Security" by Powell, Cooper, Hoffman & Marvin
+                      </CardTitle>
+                      <CardDescription>Attachment-informed leadership and relationships</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Apply attachment theory to create secure, supportive relationships with staff, children, and families in your program.</p>
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <p><strong>Key concepts:</strong> Secure base, safe haven, attunement, rupture and repair</p>
+                        <p><strong>ECE Application:</strong> Staff support, child behavior, parent partnerships</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="assessment" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ClipboardCheck className="h-5 w-5 mr-2 text-blue-600" />
+                        Classroom Observation Tools
+                      </CardTitle>
+                      <CardDescription>Evidence-based assessment instruments</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Comprehensive observation tools including CLASS, ECERS-R, and custom rubrics for evaluating teaching practices and environment quality.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500"><strong>Includes:</strong> Observation forms, scoring guides, action planning templates</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ClipboardCheck className="h-5 w-5 mr-2 text-green-600" />
+                        Staff Competency Assessments
+                      </CardTitle>
+                      <CardDescription>Professional skill evaluation tools</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Self-assessment and supervisor evaluation tools aligned with state competencies and professional development standards.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500"><strong>Includes:</strong> Knowledge assessments, skill demonstrations, portfolio reviews</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ClipboardCheck className="h-5 w-5 mr-2 text-purple-600" />
+                        Program Quality Indicators
+                      </CardTitle>
+                      <CardDescription>Comprehensive program evaluation</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Multi-dimensional assessment tools for evaluating overall program quality, including environment, curriculum, and family engagement.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500"><strong>Includes:</strong> Quality rating scales, improvement planning guides, stakeholder surveys</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ClipboardCheck className="h-5 w-5 mr-2 text-orange-600" />
+                        Leadership Assessment Tools
+                      </CardTitle>
+                      <CardDescription>Director and administrator evaluation</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Self-reflection and 360-degree feedback tools specifically designed for early childhood administrators and leaders.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500"><strong>Includes:</strong> Leadership style assessments, communication evaluations, vision alignment tools</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ClipboardCheck className="h-5 w-5 mr-2 text-red-600" />
+                        Family Satisfaction Surveys
+                      </CardTitle>
+                      <CardDescription>Parent and family feedback collection</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Comprehensive survey tools to gather feedback from families about program quality, communication, and satisfaction levels.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500"><strong>Includes:</strong> Annual surveys, exit interviews, focus group guides</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white/95 backdrop-blur-sm shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <ClipboardCheck className="h-5 w-5 mr-2 text-indigo-600" />
+                        Child Outcome Tracking
+                      </CardTitle>
+                      <CardDescription>Developmental progress monitoring</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-gray-600">Tools for tracking children's developmental progress and program effectiveness in supporting child outcomes.</p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-500"><strong>Includes:</strong> Developmental checklists, portfolio guides, progress tracking systems</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
