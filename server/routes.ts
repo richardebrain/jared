@@ -1523,6 +1523,17 @@ Continue for all 5 questions...
       console.log("=== LOGIN ROUTE HIT ===");
       console.log("Request body:", req.body);
 
+      // Set timeout for login operations
+      const loginTimeout = setTimeout(() => {
+        console.error("Login timeout - operation took too long");
+        if (!res.headersSent) {
+          res.status(408).json({ 
+            message: "Login timeout", 
+            details: "The login operation took too long. Please try again." 
+          });
+        }
+      }, 15000); // 15 second timeout
+
       try {
         // Extract and trim credentials for consistency
         const username = req.body.username?.trim();
@@ -1539,6 +1550,7 @@ Continue for all 5 questions...
             hasUsername: !!username,
             hasPassword: !!password,
           });
+          clearTimeout(loginTimeout);
           return res
             .status(400)
             .json({ message: "Username and password are required" });
@@ -1548,17 +1560,43 @@ Continue for all 5 questions...
         const isDemoUser = username === "jlcookie20" && password === "password";
 
         // Try to find user by username first, then by email for dual login support
-        let user = await storage.getUserByUsername(username);
+        console.log("Starting database lookup for user...");
+        const dbStartTime = Date.now();
         
-        // If not found by username, try finding by email (for new email-based accounts)
-        if (!user) {
-          user = await storage.getUserByEmail(username);
+        let user;
+        try {
+          user = await Promise.race([
+            storage.getUserByUsername(username),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Database timeout')), 10000)
+            )
+          ]);
+          
+          // If not found by username, try finding by email (for new email-based accounts)
+          if (!user) {
+            user = await Promise.race([
+              storage.getUserByEmail(username),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Database timeout')), 10000)
+              )
+            ]);
+          }
+          
+          console.log(`Database lookup completed in ${Date.now() - dbStartTime}ms`);
+        } catch (error) {
+          console.error("Database lookup error:", error);
+          clearTimeout(loginTimeout);
+          return res.status(503).json({
+            message: "Database connection error",
+            details: "Unable to connect to database. Please try again in a moment."
+          });
         }
 
         if (!user) {
           console.log(
             `Login failed: User not found for username/email: "${username}"`,
           );
+          clearTimeout(loginTimeout);
           return res.status(401).json({
             message: "Invalid username or password",
             details:
@@ -1568,17 +1606,27 @@ Continue for all 5 questions...
 
         // Clean up session if user is already logged in to prevent login loops
         if (req.session.userId) {
-          // Clear any existing session first
-          await new Promise<void>((resolve) => {
-            req.session.destroy((err) => {
-              if (err)
-                console.error(
-                  "Error destroying existing session for user:",
-                  err,
-                );
-              resolve();
-            });
-          });
+          // Clear any existing session first with timeout
+          try {
+            await Promise.race([
+              new Promise<void>((resolve) => {
+                req.session.destroy((err) => {
+                  if (err)
+                    console.error(
+                      "Error destroying existing session for user:",
+                      err,
+                    );
+                  resolve();
+                });
+              }),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Session destroy timeout')), 5000)
+              )
+            ]);
+          } catch (error) {
+            console.error("Session destroy timeout:", error);
+            // Continue anyway, we'll create a new session
+          }
 
           // Need to manually clear the cookie since destroy doesn't do it automatically
           res.clearCookie("connect.sid");
@@ -1596,16 +1644,30 @@ Continue for all 5 questions...
 
         // Check password - either demo user or normal validation with bcrypt
         let passwordValid = false;
+        console.log("Starting password verification...");
+        const passwordStartTime = Date.now();
 
         if (isDemoUser) {
           passwordValid = true;
           console.log(`Demo user authentication: SUCCESS`);
         } else {
           try {
-            passwordValid = await bcrypt.compare(password, user.password);
-            console.log(`Bcrypt comparison result: ${passwordValid}`);
+            passwordValid = await Promise.race([
+              bcrypt.compare(password, user.password),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Password verification timeout')), 5000)
+              )
+            ]);
+            console.log(`Bcrypt comparison result: ${passwordValid} (${Date.now() - passwordStartTime}ms)`);
           } catch (error) {
             console.error(`Bcrypt comparison error:`, error);
+            if (error.message === 'Password verification timeout') {
+              clearTimeout(loginTimeout);
+              return res.status(408).json({
+                message: "Login timeout",
+                details: "Password verification took too long. Please try again."
+              });
+            }
             passwordValid = false;
           }
         }
@@ -1614,6 +1676,7 @@ Continue for all 5 questions...
           console.log(
             `Login failed: Password mismatch for user: "${username}"`,
           );
+          clearTimeout(loginTimeout);
           return res.status(401).json({
             message: "Invalid username or password",
             details:
@@ -1764,20 +1827,35 @@ Continue for all 5 questions...
         }
 
         // Force session save to ensure it's properly written to the database
+        console.log("Starting session save...");
+        const sessionStartTime = Date.now();
+        
         try {
-          await new Promise<void>((resolve, reject) => {
-            req.session.save((err) => {
-              if (err) {
-                console.error("Session save error:", err);
-                reject(err);
-              } else {
-                console.log("Session saved successfully with userId:", user.id);
-                resolve();
-              }
-            });
-          });
+          await Promise.race([
+            new Promise<void>((resolve, reject) => {
+              req.session.save((err) => {
+                if (err) {
+                  console.error("Session save error:", err);
+                  reject(err);
+                } else {
+                  console.log(`Session saved successfully with userId: ${user.id} (${Date.now() - sessionStartTime}ms)`);
+                  resolve();
+                }
+              });
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Session save timeout')), 5000)
+            )
+          ]);
         } catch (saveErr) {
           console.error("Failed to save session:", saveErr);
+          clearTimeout(loginTimeout);
+          if (saveErr.message === 'Session save timeout') {
+            return res.status(408).json({
+              message: "Login timeout",
+              details: "Session creation took too long. Please try again."
+            });
+          }
           return res.status(500).json({
             message: "Authentication succeeded but failed to create session",
           });
@@ -1789,17 +1867,23 @@ Continue for all 5 questions...
         console.log(`Session ID: ${req.session.id}`);
         console.log(`Session data:`, req.session);
 
+        // Clear the timeout since login completed successfully
+        clearTimeout(loginTimeout);
+
         // Do not return password in response
         const { password: _, ...userWithoutPassword } = user;
 
         res.status(200).json(userWithoutPassword);
       } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({
-          message: "Internal server error",
-          details:
-            "There was a problem with the login process. Please try again.",
-        });
+        clearTimeout(loginTimeout);
+        if (!res.headersSent) {
+          res.status(500).json({
+            message: "Internal server error",
+            details:
+              "There was a problem with the login process. Please try again.",
+          });
+        }
       }
     });
   }
