@@ -204,128 +204,372 @@ export default function PerfectManager() {
     }
   };
 
-  const downloadDirectorGuide = () => {
+  const downloadDirectorGuide = async () => {
     if (!generatedAdvice) return;
 
-    const content = `
-DIRECTOR'S LEADERSHIP GUIDE
-${generatedAdvice.scenario ? `Scenario: ${generatedAdvice.scenario}` : ''}
-${employeeName ? `Employee: ${employeeName}` : ''}
+    try {
+      // Dynamic import of jsPDF
+      const { jsPDF } = await import('jspdf');
+      
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxLineWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
 
-UNDERSTANDING THE SITUATION
-${generatedAdvice.rootCauses?.map((cause: string) => `• ${cause}`).join('\n') || ''}
+      // Helper function to add text with word wrapping
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+        pdf.setFontSize(fontSize);
+        pdf.setTextColor(color[0], color[1], color[2]);
+        if (isBold) {
+          pdf.setFont(undefined, 'bold');
+        } else {
+          pdf.setFont(undefined, 'normal');
+        }
+        
+        const lines = pdf.splitTextToSize(text, maxLineWidth);
+        lines.forEach((line: string) => {
+          if (yPosition > pdf.internal.pageSize.getHeight() - margin) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin, yPosition);
+          yPosition += fontSize * 0.8;
+        });
+        yPosition += 5; // Extra spacing after sections
+      };
 
-IMMEDIATE LEADERSHIP ACTIONS
-${generatedAdvice.immediateActions?.map((action: string) => `• ${action}`).join('\n') || ''}
+      // Add separator line
+      const addSeparator = () => {
+        pdf.setDrawColor(70, 130, 180); // Steel blue
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 10;
+      };
 
-LONG-TERM COACHING STRATEGIES
-${generatedAdvice.longTermStrategies?.map((strategy: string) => `• ${strategy}`).join('\n') || ''}
+      // Header with branding
+      pdf.setFillColor(70, 130, 180); // Steel blue background
+      pdf.rect(0, 0, pageWidth, 30, 'F');
+      pdf.setTextColor(255, 255, 255); // White text
+      pdf.setFontSize(20);
+      pdf.setFont(undefined, 'bold');
+      pdf.text("DIRECTOR'S LEADERSHIP GUIDE", margin, 20);
+      
+      yPosition = 40;
+      pdf.setTextColor(0, 0, 0); // Reset to black
 
-CONVERSATION FRAMEWORK
-Opening Lines:
-${generatedAdvice.conversationScript?.openingLines?.map((line: string) => `• ${line}`).join('\n') || ''}
+      // Situation Overview
+      addText(`Early Childhood Education Leadership Strategy`, 14, true, [70, 130, 180]);
+      addText(`Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 10);
+      
+      if (generatedAdvice.scenario) {
+        addText(`Scenario Type: ${generatedAdvice.scenario}`, 12, true);
+      }
+      if (employeeName) {
+        addText(`Team Member: ${employeeName}`, 12, true);
+      }
+      if (situation) {
+        addText(`Specific Situation: ${situation}`, 11);
+      }
+      
+      addSeparator();
 
-Listening Prompts:
-${generatedAdvice.conversationScript?.listeningPrompts?.map((prompt: string) => `• ${prompt}`).join('\n') || ''}
+      // Executive Leadership Summary
+      addText("EXECUTIVE LEADERSHIP SUMMARY", 14, true, [70, 130, 180]);
+      const summaryText = `This comprehensive leadership guide provides targeted strategies for addressing the specific situation described above. As an early childhood education director, you are stewarding both the professional growth of your staff and the sacred trust of families who rely on your leadership. This guide synthesizes proven leadership principles with ECE-specific expertise to help you navigate this challenge with wisdom, empathy, and effectiveness.`;
+      addText(summaryText, 10);
 
-Closing Statements:
-${generatedAdvice.conversationScript?.closingStatements?.map((statement: string) => `• ${statement}`).join('\n') || ''}
+      // Understanding the Root Causes
+      addText("UNDERSTANDING THE ROOT CAUSES", 14, true, [70, 130, 180]);
+      addText("Dig deeper than surface behaviors to address underlying factors:", 10);
+      generatedAdvice.rootCauses?.forEach((cause: string, index: number) => {
+        addText(`${index + 1}. ${cause}`, 10);
+      });
 
-FOLLOW-UP PLAN
-${generatedAdvice.followUpPlan?.map((item: string) => `• ${item}`).join('\n') || ''}
+      // Immediate Leadership Actions (Next 48-72 Hours)
+      addText("IMMEDIATE LEADERSHIP ACTIONS", 14, true, [70, 130, 180]);
+      addText("Priority steps to take within the next 48-72 hours:", 10);
+      generatedAdvice.immediateActions?.forEach((action: string, index: number) => {
+        addText(`□ ${action}`, 10);
+      });
 
-PREVENTION STRATEGIES
-${generatedAdvice.preventionStrategies?.map((strategy: string) => `• ${strategy}`).join('\n') || ''}
+      // Conversation Framework
+      addText("CONVERSATION FRAMEWORK", 14, true, [70, 130, 180]);
+      addText("Structure your discussion with empathy and clear expectations:", 10);
+      
+      if (generatedAdvice.conversationScript?.openingLines) {
+        addText("Opening Lines (Set caring, supportive tone):", 12, true);
+        generatedAdvice.conversationScript.openingLines.forEach((line: string) => {
+          addText(`• "${line}"`, 10);
+        });
+      }
 
-SUCCESS METRICS
-${generatedAdvice.successMetrics?.map((metric: string) => `• ${metric}`).join('\n') || ''}
-    `.trim();
+      if (generatedAdvice.conversationScript?.listeningPrompts) {
+        addText("Active Listening Prompts:", 12, true);
+        generatedAdvice.conversationScript.listeningPrompts.forEach((prompt: string) => {
+          addText(`• "${prompt}"`, 10);
+        });
+      }
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Director-Guide-${employeeName || 'Employee'}-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      if (generatedAdvice.conversationScript?.closingStatements) {
+        addText("Inspirational Closing Statements:", 12, true);
+        generatedAdvice.conversationScript.closingStatements.forEach((statement: string) => {
+          addText(`• "${statement}"`, 10);
+        });
+      }
 
-    toast({
-      title: "Director's Guide Downloaded",
-      description: "Your leadership preparation document is saved.",
-    });
+      // Long-term Coaching Strategies
+      addText("LONG-TERM COACHING STRATEGIES", 14, true, [70, 130, 180]);
+      addText("Sustainable approaches for lasting professional growth:", 10);
+      generatedAdvice.longTermStrategies?.forEach((strategy: string, index: number) => {
+        addText(`${index + 1}. ${strategy}`, 10);
+      });
+
+      // Prevention & Proactive Measures
+      if (generatedAdvice.preventionStrategies && generatedAdvice.preventionStrategies.length > 0) {
+        addText("PREVENTION & PROACTIVE MEASURES", 14, true, [70, 130, 180]);
+        addText("Systemic changes to prevent similar situations:", 10);
+        generatedAdvice.preventionStrategies.forEach((strategy: string, index: number) => {
+          addText(`${index + 1}. ${strategy}`, 10);
+        });
+      }
+
+      // Follow-up and Accountability Plan
+      addText("FOLLOW-UP & ACCOUNTABILITY PLAN", 14, true, [70, 130, 180]);
+      addText("Structured timeline to ensure lasting change:", 10);
+      generatedAdvice.followUpPlan?.forEach((item: string, index: number) => {
+        const timeframe = index === 0 ? "Week 1" : index === 1 ? "Week 2" : index === 2 ? "Month 1" : `Follow-up ${index + 1}`;
+        addText(`${timeframe}: ${item}`, 10);
+      });
+
+      // Success Metrics & Measurement
+      if (generatedAdvice.successMetrics && generatedAdvice.successMetrics.length > 0) {
+        addText("SUCCESS METRICS & MEASUREMENT", 14, true, [70, 130, 180]);
+        addText("How to measure progress and success:", 10);
+        generatedAdvice.successMetrics.forEach((metric: string, index: number) => {
+          addText(`${index + 1}. ${metric}`, 10);
+        });
+      }
+
+      // Leadership Reflection Questions
+      addText("LEADERSHIP REFLECTION QUESTIONS", 14, true, [70, 130, 180]);
+      addText("Questions to guide your approach and decision-making:", 10);
+      const reflectionQuestions = [
+        "How can I model the values and behaviors I want to see?",
+        "What support does this team member need to succeed?",
+        "How does this situation impact our children and families?",
+        "What can I learn from this to improve my leadership?",
+        "How can I turn this challenge into a growth opportunity?"
+      ];
+      reflectionQuestions.forEach((question, index) => {
+        addText(`${index + 1}. ${question}`, 10);
+      });
+
+      // Inspirational Closing
+      addText("REMEMBER YOUR SACRED MISSION", 14, true, [70, 130, 180]);
+      const inspirationalText = `Leading in early childhood education means you're not just managing staff - you're nurturing the professionals who write "chapter one" in children's lives. Every difficult conversation, every coaching moment, every challenge you address ripples out to impact the children in your care. Approach this situation with the wisdom that your leadership matters, your empathy heals, and your commitment to excellence creates environments where both children and adults thrive. You have the privilege of leading in the most important work in the world.`;
+      addText(inspirationalText, 10);
+
+      // Generate specific filename
+      const scenarioName = selectedScenario || 'leadership-situation';
+      const employeeNameClean = employeeName ? employeeName.replace(/[^a-zA-Z0-9]/g, '') : 'TeamMember';
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = `Directors-Guide-${scenarioName.replace(/\s+/g, '-')}-${employeeNameClean}-${dateStr}.pdf`;
+      
+      pdf.save(filename);
+
+      toast({
+        title: "Director's Leadership Guide Downloaded",
+        description: "Your comprehensive PDF leadership guide has been saved with situation-specific strategies.",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "Unable to generate PDF guide. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const downloadEmployeeChallenge = () => {
+  const downloadEmployeeChallenge = async () => {
     if (!generatedAdvice) return;
 
-    const content = `
-CHALLENGE FOR ${employeeName?.toUpperCase() || 'EMPLOYEE'}
+    try {
+      const { jsPDF } = await import('jspdf');
+      
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxLineWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
 
-Professional Growth & Development Plan
-Date: ${new Date().toLocaleDateString()}
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+        pdf.setFontSize(fontSize);
+        pdf.setTextColor(color[0], color[1], color[2]);
+        if (isBold) {
+          pdf.setFont(undefined, 'bold');
+        } else {
+          pdf.setFont(undefined, 'normal');
+        }
+        
+        const lines = pdf.splitTextToSize(text, maxLineWidth);
+        lines.forEach((line: string) => {
+          if (yPosition > pdf.internal.pageSize.getHeight() - margin) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin, yPosition);
+          yPosition += fontSize * 0.8;
+        });
+        yPosition += 5;
+      };
 
-GROWTH OPPORTUNITY OVERVIEW
-${generatedAdvice.scenario ? `Focus Area: ${generatedAdvice.scenario}` : ''}
+      const addReflectionBox = (height: number = 30) => {
+        pdf.setDrawColor(200, 200, 200);
+        pdf.rect(margin, yPosition, maxLineWidth, height);
+        yPosition += height + 10;
+      };
 
-REFLECTION QUESTIONS
-• What specific behaviors or situations would you like to improve?
-• What challenges are you currently facing in your role?
-• How do you think these changes could benefit the children in your care?
+      // Header with inspirational design
+      pdf.setFillColor(46, 125, 50);
+      pdf.rect(0, 0, pageWidth, 35, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(20);
+      pdf.setFont(undefined, 'bold');
+      pdf.text("PROFESSIONAL GROWTH JOURNEY", margin, 20);
+      pdf.setFontSize(12);
+      pdf.text(`For ${employeeName || 'Team Member'}`, margin, 30);
+      
+      yPosition = 45;
+      pdf.setTextColor(0, 0, 0);
 
-GOALS FOR DEVELOPMENT
-${generatedAdvice.goals?.map((goal: Goal) => `
-Goal: ${goal.title}
-Description: ${goal.description}
-Timeline: ${goal.timeframe}
-Action Steps:
-${goal.actionSteps?.map((step: string) => `  • ${step}`).join('\n') || ''}
-`).join('\n') || ''}
+      // Personal Welcome Message
+      addText(`Dear ${employeeName || 'Team Member'},`, 12, true, [46, 125, 50]);
+      const welcomeText = `This personalized growth plan has been created specifically for your professional development journey. As an early childhood educator, you have the privilege of writing "chapter one" in children's lives every single day. This plan is designed to support your growth while honoring the sacred work you do.`;
+      addText(welcomeText, 10);
 
-MOTIVATION & CORE VALUES
-Remember: Teaching is the most important job in the world. You get to write "chapter one" in children's lives.
+      // Growth Opportunity Overview
+      addText("YOUR GROWTH OPPORTUNITY", 14, true, [46, 125, 50]);
+      if (generatedAdvice.scenario) {
+        addText(`Focus Area: ${generatedAdvice.scenario}`, 12, true);
+      }
+      if (situation) {
+        addText(`Specific Situation: ${situation}`, 11);
+      }
+      addText(`Development Plan Created: ${new Date().toLocaleDateString()}`, 10);
 
-${generatedAdvice.coreValuesConnection?.map((connection: string) => `• ${connection}`).join('\n') || ''}
+      // Why This Matters
+      addText("WHY THIS GROWTH MATTERS", 14, true, [46, 125, 50]);
+      const whyText = `Every step you take in your professional growth directly impacts the children and families you serve. When you grow, they grow. When you improve, their experience improves. This isn't just about meeting expectations - it's about becoming the educator children deserve and families trust.`;
+      addText(whyText, 10);
 
-SELF-REFLECTION SPACE
-What are your thoughts on this growth opportunity?
-_________________________________________________
-_________________________________________________
-_________________________________________________
+      // Self-Reflection Questions
+      addText("REFLECTION QUESTIONS FOR YOU", 14, true, [46, 125, 50]);
+      addText("Take time to thoughtfully consider these questions:", 10);
+      
+      const reflectionQuestions = [
+        "What specific behaviors or situations would you like to improve in your role?",
+        "What challenges are you currently facing that this growth plan could address?",
+        "How do you think these changes could benefit the children in your care?",
+        "What strengths do you already have that you can build upon?",
+        "What kind of support would help you succeed in this growth journey?"
+      ];
 
-What support do you need to succeed?
-_________________________________________________
-_________________________________________________
-_________________________________________________
+      reflectionQuestions.forEach((question, index) => {
+        addText(`${index + 1}. ${question}`, 10);
+        addReflectionBox(20);
+      });
 
-How will you measure your progress?
-_________________________________________________
-_________________________________________________
-_________________________________________________
+      // Your Development Goals
+      if (generatedAdvice.goals && generatedAdvice.goals.length > 0) {
+        addText("YOUR PERSONALIZED DEVELOPMENT GOALS", 14, true, [46, 125, 50]);
+        addText("These goals have been crafted specifically for your growth:", 10);
+        
+        generatedAdvice.goals.forEach((goal: Goal, index: number) => {
+          addText(`Goal ${index + 1}: ${goal.title}`, 12, true);
+          addText(`Timeline: ${goal.timeframe}`, 10);
+          addText(`What this means: ${goal.description}`, 10);
+          
+          if (goal.actionSteps && goal.actionSteps.length > 0) {
+            addText("Your action steps:", 10, true);
+            goal.actionSteps.forEach((step: string) => {
+              addText(`□ ${step}`, 10);
+            });
+          }
+          yPosition += 5;
+        });
+      }
 
-COMMITMENT
-I commit to working on these areas for professional growth and the benefit of the children in my care.
+      // Core Values Connection
+      if (generatedAdvice.coreValuesConnection && generatedAdvice.coreValuesConnection.length > 0) {
+        addText("CONNECTING TO YOUR CORE VALUES", 14, true, [46, 125, 50]);
+        addText("Remember what drives your passion for early childhood education:", 10);
+        generatedAdvice.coreValuesConnection.forEach((connection: string) => {
+          addText(`• ${connection}`, 10);
+        });
+      }
 
-Employee Signature: _________________________ Date: _________
+      // Success Strategies
+      addText("STRATEGIES FOR YOUR SUCCESS", 14, true, [46, 125, 50]);
+      const successStrategies = [
+        "Start small: Focus on one improvement at a time",
+        "Celebrate progress: Acknowledge every step forward",
+        "Ask for help: Your director wants to support your growth",
+        "Reflect daily: End each day by noting one thing that went well",
+        "Stay connected to your 'why': Remember the children who depend on you"
+      ];
+      successStrategies.forEach((strategy, index) => {
+        addText(`${index + 1}. ${strategy}`, 10);
+      });
 
-Director Signature: _________________________ Date: _________
-    `.trim();
+      // Personal Commitment Section
+      addText("YOUR PERSONAL COMMITMENT", 14, true, [46, 125, 50]);
+      addText("What are your thoughts on this growth opportunity?", 11, true);
+      addReflectionBox(25);
+      
+      addText("What specific support do you need to succeed?", 11, true);
+      addReflectionBox(25);
+      
+      addText("How will you measure your progress?", 11, true);
+      addReflectionBox(25);
+      
+      addText("What is one thing you commit to doing differently starting tomorrow?", 11, true);
+      addReflectionBox(25);
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Challenge-${employeeName || 'Employee'}-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      // Inspirational Closing
+      addText("REMEMBER: YOU ARE MAKING A DIFFERENCE", 14, true, [46, 125, 50]);
+      const inspirationalText = `Every child who enters your classroom is forever changed by your care, your dedication, and your commitment to growth. You are not just an employee - you are a life-changer, a future-shaper, and a hope-builder. This growth plan is simply one more way to honor the incredible privilege you have of nurturing young minds and hearts. Thank you for choosing this sacred profession.`;
+      addText(inspirationalText, 10);
 
-    toast({
-      title: "Employee Challenge Downloaded",
-      description: "Professional development document ready for your meeting.",
-    });
+      // Signature section
+      yPosition += 10;
+      addText("COMMITMENT:", 12, true);
+      addText("I commit to working on these areas for professional growth and the benefit of the children in my care.", 10);
+      yPosition += 15;
+      addText("Teacher Signature: _________________________ Date: _____________", 10);
+      yPosition += 10;
+      addText("Director Signature: _________________________ Date: _____________", 10);
+
+      // Generate specific filename
+      const scenarioName = selectedScenario || 'professional-growth';
+      const employeeNameClean = employeeName ? employeeName.replace(/[^a-zA-Z0-9]/g, '') : 'TeamMember';
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = `Growth-Plan-${scenarioName.replace(/\s+/g, '-')}-${employeeNameClean}-${dateStr}.pdf`;
+      
+      pdf.save(filename);
+
+      toast({
+        title: "Professional Growth Plan Downloaded",
+        description: "A personalized PDF development plan has been created for your team member.",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "Unable to generate PDF growth plan. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const downloadAdvice = () => {
