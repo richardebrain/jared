@@ -25,7 +25,10 @@ import {
   Settings,
   Send,
   Plus,
-  X as XIcon
+  X as XIcon,
+  FileText,
+  Download,
+  Award
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -127,6 +130,55 @@ export default function EceHoursTracker() {
       toast({
         title: "Error",
         description: error.message || "Failed to update email settings",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const generateCertificateMutation = useMutation({
+    mutationFn: async (employeeId: number) => {
+      const response = await fetch('/api/ece-certificate/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ employeeId })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to generate certificate');
+      }
+      
+      // Handle PDF download
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename="')[1]?.split('"')[0] 
+        : 'ECE_Certificate.pdf';
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      return { success: true, filename };
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Certificate Generated",
+        description: `Professional development certificate downloaded successfully: ${data.filename}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Certificate Generation Failed",
+        description: error.message || "Failed to generate professional development certificate",
         variant: "destructive",
       });
     },
@@ -723,6 +775,25 @@ export default function EceHoursTracker() {
                           <Badge variant={employee.isCompliant ? "default" : "destructive"}>
                             {employee.isCompliant ? "Compliant" : "Non-Compliant"}
                           </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => generateCertificateMutation.mutate(employee.employeeId)}
+                            disabled={generateCertificateMutation.isPending}
+                            className="flex items-center space-x-1"
+                          >
+                            {generateCertificateMutation.isPending ? (
+                              <>
+                                <Download className="h-4 w-4 animate-spin" />
+                                <span>Generating...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Award className="h-4 w-4" />
+                                <span>Certificate</span>
+                              </>
+                            )}
+                          </Button>
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button

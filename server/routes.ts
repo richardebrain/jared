@@ -3541,6 +3541,171 @@ Continue for all 5 questions...
     }
   });
 
+  // Generate professional development certificate PDF
+  app.post("/api/ece-certificate/generate", requireAuth, requirePaidAccess, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { employeeId } = req.body;
+      
+      // Get employee data if generating for someone else (admin only)
+      let targetEmployee = user;
+      if (employeeId && employeeId !== userId) {
+        if (!user.isAdmin && !user.isSchoolAdmin) {
+          return res.status(403).json({ message: "Only administrators can generate certificates for other employees" });
+        }
+        
+        targetEmployee = await storage.getUser(employeeId);
+        if (!targetEmployee) {
+          return res.status(404).json({ message: "Employee not found" });
+        }
+        
+        // Ensure employee is in the same school
+        if (targetEmployee.schoolId !== user.schoolId) {
+          return res.status(403).json({ message: "Can only generate certificates for employees in your school" });
+        }
+      }
+
+      // Get ECE hours data for the employee
+      const eceHoursData = await db.select({
+        totalHours: sql<number>`sum(${eceHours.duration})`,
+        category: eceHours.category,
+        categoryHours: sql<number>`sum(${eceHours.duration})`
+      })
+      .from(eceHours)
+      .where(eq(eceHours.userId, targetEmployee.id))
+      .groupBy(eceHours.category);
+
+      const totalMinutes = eceHoursData.reduce((sum, item) => sum + item.totalHours, 0);
+      const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+
+      // Determine current level based on total hours and points
+      const getCurrentLevel = (points: number, eceHours: number) => {
+        if (eceHours >= 300 && points >= 400) return { level: 5, title: "Master Teacher" };
+        if (eceHours >= 200 && points >= 300) return { level: 4, title: "Senior Teacher" };
+        if (eceHours >= 100 && points >= 200) return { level: 3, title: "Lead Teacher" };
+        if (eceHours >= 30 && points >= 100) return { level: 2, title: "Associate Teacher" };
+        return { level: 1, title: "Assistant Teacher" };
+      };
+
+      const currentLevel = getCurrentLevel(targetEmployee.points || 0, totalHours);
+
+      // Generate certificate data
+      const certificateData = {
+        employeeName: `${targetEmployee.firstName || targetEmployee.username} ${targetEmployee.lastName || ''}`.trim(),
+        level: currentLevel.title,
+        totalHours: totalHours,
+        completionDate: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        schoolName: "Early Childhood Education Center", // You can make this dynamic based on school data
+        categoryBreakdown: eceHoursData.map(item => ({
+          category: item.category,
+          hours: Math.round((item.categoryHours / 60) * 10) / 10
+        })),
+        certificateId: `ECE-${targetEmployee.id}-${Date.now()}`,
+        directorName: user.isAdmin || user.isSchoolAdmin ? `${user.firstName || user.username} ${user.lastName || ''}`.trim() : 'Director'
+      };
+
+      // Generate PDF certificate using jsPDF
+      const PDFDocument = require('jspdf').jsPDF;
+      const doc = new PDFDocument({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Set up certificate design
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const centerX = pageWidth / 2;
+
+      // Background and border
+      doc.setFillColor(245, 247, 250);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(2);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+      // Title
+      doc.setFontSize(24);
+      doc.setTextColor(59, 130, 246);
+      doc.text('CERTIFICATE OF PROFESSIONAL DEVELOPMENT', centerX, 35, { align: 'center' });
+
+      // Subtitle
+      doc.setFontSize(16);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Early Childhood Education', centerX, 45, { align: 'center' });
+
+      // Main content
+      doc.setFontSize(14);
+      doc.setTextColor(51, 65, 85);
+      doc.text('This certifies that', centerX, 65, { align: 'center' });
+
+      // Employee name
+      doc.setFontSize(20);
+      doc.setTextColor(15, 23, 42);
+      doc.text(certificateData.employeeName, centerX, 80, { align: 'center' });
+
+      // Achievement text
+      doc.setFontSize(14);
+      doc.setTextColor(51, 65, 85);
+      doc.text(`has successfully completed professional development requirements`, centerX, 95, { align: 'center' });
+      doc.text(`and achieved the level of`, centerX, 105, { align: 'center' });
+
+      // Level achievement
+      doc.setFontSize(18);
+      doc.setTextColor(59, 130, 246);
+      doc.text(certificateData.level, centerX, 120, { align: 'center' });
+
+      // Hours completed
+      doc.setFontSize(12);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Total Professional Development Hours: ${certificateData.totalHours}`, centerX, 135, { align: 'center' });
+
+      // Category breakdown
+      if (certificateData.categoryBreakdown.length > 0) {
+        doc.text('Training Categories Completed:', centerX, 150, { align: 'center' });
+        let yPos = 160;
+        certificateData.categoryBreakdown.forEach(category => {
+          doc.text(`${category.category}: ${category.hours} hours`, centerX, yPos, { align: 'center' });
+          yPos += 8;
+        });
+      }
+
+      // Date and signatures
+      const signatureY = pageHeight - 50;
+      doc.setFontSize(10);
+      doc.text(`Date: ${certificateData.completionDate}`, 30, signatureY);
+      doc.text(`Certificate ID: ${certificateData.certificateId}`, 30, signatureY + 10);
+
+      doc.text(`Director: ${certificateData.directorName}`, pageWidth - 80, signatureY);
+      doc.text('_________________________', pageWidth - 80, signatureY + 5);
+
+      // Generate PDF buffer
+      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="ECE_Certificate_${certificateData.employeeName.replace(/\s+/g, '_')}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error("Error generating certificate:", error);
+      res.status(500).json({ message: "Failed to generate certificate" });
+    }
+  });
+
   // Add ECE hours for multiple users (group training)
   app.post("/api/ece-hours/bulk", requireAuth, requirePaidAccess, async (req, res) => {
     try {
