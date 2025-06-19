@@ -50,6 +50,14 @@ interface ChallengeQuestion {
   explanation: string;
 }
 
+// Interface for conversation messages
+interface ConversationMessage {
+  id: string;
+  sender: 'ai' | 'user';
+  message: string;
+  timestamp: Date;
+}
+
 export function UltimateEscalator() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -65,6 +73,13 @@ export function UltimateEscalator() {
   const [activeTab, setActiveTab] = useState('beginner');
   const [activeTopic, setActiveTopic] = useState('all');
   const [showAllChallenges, setShowAllChallenges] = useState(false);
+  
+  // Scenario Square-Off specific state
+  const [showConversation, setShowConversation] = useState(false);
+  const [conversationMessages, setConversationMessages] = useState<ConversationMessage[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+  const [conversationComplete, setConversationComplete] = useState(false);
 
   // Mock user progress data - this would come from the API in a real app
   const { data: userProgress, isLoading: loadingProgress } = useQuery({
@@ -73,6 +88,16 @@ export function UltimateEscalator() {
 
   // Demo challenges - these would come from the API in a real implementation
   const escalatorChallenges: EscalatorChallenge[] = [
+    {
+      id: 100,
+      title: "Scenario Square-Off",
+      description: "Test your biases and EQ through conversational simulation with an AI coach that helps you reflect on real classroom struggles",
+      difficulty: 'beginner',
+      category: 'emotional-intelligence',
+      points: 1,
+      estimatedTime: 5,
+      status: 'available'
+    },
     {
       id: 101,
       title: "Core Values Mastery",
@@ -298,6 +323,7 @@ export function UltimateEscalator() {
   // Available topic categories
   const topicCategories = [
     { id: 'all', name: 'All Topics' },
+    { id: 'emotional-intelligence', name: 'Emotional Intelligence' },
     { id: 'core-values', name: 'Core Values' },
     { id: 'classroom-management', name: 'Classroom Management' },
     { id: 'child-development', name: 'Child Development' },
@@ -338,6 +364,94 @@ export function UltimateEscalator() {
       });
     }
   });
+
+  // Start Scenario Square-Off conversation
+  const startScenarioSquareOff = () => {
+    const initialMessage: ConversationMessage = {
+      id: 'ai-1',
+      sender: 'ai',
+      message: "Hey there—let's take a breath and check in. What's something in your classroom that's been really challenging for you lately?",
+      timestamp: new Date()
+    };
+    
+    setConversationMessages([initialMessage]);
+    setShowConversation(true);
+    setConversationComplete(false);
+  };
+
+  // Send user message and get AI response
+  const sendMessage = async () => {
+    if (!userInput.trim()) return;
+
+    const userMessage: ConversationMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      message: userInput.trim(),
+      timestamp: new Date()
+    };
+
+    setConversationMessages(prev => [...prev, userMessage]);
+    setUserInput('');
+    setIsAiTyping(true);
+
+    try {
+      const response = await apiRequest('/api/scenario-square-off', {
+        method: 'POST',
+        data: {
+          messages: [...conversationMessages, userMessage].map(msg => ({
+            role: msg.sender === 'ai' ? 'assistant' : 'user',
+            content: msg.message
+          }))
+        }
+      });
+
+      const aiMessage: ConversationMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        message: response.response,
+        timestamp: new Date()
+      };
+
+      setConversationMessages(prev => [...prev, aiMessage]);
+      
+      // Check if conversation should end (simple heuristic)
+      if (response.response.includes("You've got this") || response.response.includes("check back in")) {
+        setTimeout(() => setConversationComplete(true), 2000);
+      }
+    } catch (error) {
+      console.error('AI response error:', error);
+      toast({
+        title: "Connection Error",
+        description: "Unable to get AI response. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAiTyping(false);
+    }
+  };
+
+  // Complete the conversation and award points
+  const completeScenarioSquareOff = async () => {
+    try {
+      await apiRequest('/api/award-points', {
+        method: 'POST',
+        data: { points: 1, reason: 'Completed Scenario Square-Off challenge' }
+      });
+
+      toast({
+        title: "Challenge Complete!",
+        description: "You earned 1 point for practicing emotional intelligence.",
+        variant: "default"
+      });
+
+      setShowConversation(false);
+      setConversationMessages([]);
+      setShowChallengeDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    } catch (error) {
+      console.error('Points award error:', error);
+    }
+  };
 
   // Generate questions based on the selected challenge
   const generateChallengeQuestions = (challenge: EscalatorChallenge) => {
@@ -694,12 +808,22 @@ export function UltimateEscalator() {
   // Start a challenge
   const startChallenge = (challenge: EscalatorChallenge) => {
     setSelectedChallenge(challenge);
+    
+    // Handle Scenario Square-Off differently as a conversation
+    if (challenge.id === 100) { // Scenario Square-Off ID
+      startScenarioSquareOff();
+      setShowChallengeDialog(true);
+      return;
+    }
+    
+    // Handle regular quiz challenges
     const questions = generateChallengeQuestions(challenge);
     setCurrentQuestions(questions);
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
     setChallengeCompleted(false);
     setShowResults(false);
+    setShowConversation(false);
     setShowChallengeDialog(true);
   };
 
@@ -929,7 +1053,7 @@ export function UltimateEscalator() {
       {/* Challenge Dialog */}
       <Dialog open={showChallengeDialog} onOpenChange={setShowChallengeDialog}>
         <DialogContent className="max-w-2xl">
-          {selectedChallenge && !showResults && (
+          {selectedChallenge && !showResults && !showConversation && (
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center">

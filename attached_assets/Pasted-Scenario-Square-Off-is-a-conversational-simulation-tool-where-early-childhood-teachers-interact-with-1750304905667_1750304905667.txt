@@ -1,0 +1,58 @@
+Scenario Square-Off is a conversational simulation tool where early childhood teachers interact with a realistic, emotionally intelligent AI coach that helps them reflect on real classroom struggles. It’s not a quiz. It’s a coaching dialogue designed to:
+
+Practice emotional intelligence
+
+Unpack bias or shallow thinking
+
+Improve empathy and classroom problem-solving
+
+Shift fixed mindsets into growth-oriented thinking
+
+🗂️ Core Features:
+1. Open-Ended Starter Prompt (AI-initiated)
+“What’s something you’re finding really difficult in your classroom right now?”
+“If you could change one behavior in a child you work with—what would it be?”
+
+AI listens, summarizes the pain point
+
+Validates their feeling with a compassionate tone
+
+Then responds with targeted follow-up questions to unpack context
+
+2. Emotional Reflection Layer
+If the user shares frustration (“He hits me and hates me”), the AI responds:
+
+“That sounds painful. Can you tell me more about what happens before he hits you?”
+“Do you think there might be a need he’s trying to express?”
+
+If teacher blames or labels (“He’s just bad”), AI challenges gently:
+
+“What makes you feel that way? Has he ever responded differently before?”
+“What do you think might be going on behind that behavior?”
+
+3. Adaptive Insight Engine
+Depending on their responses, the AI can:
+
+Offer educational insights (“Sometimes hitting can be a form of sensory seeking or a stress release.”)
+
+Ask diagnostic questions (“Has he been sleeping well? Is there a pattern?”)
+
+Suggest strategies (“Would you be open to trying a calm corner or giving him a helper job?”)
+
+4. Positive Reinforcement
+If the teacher shows reflective growth, AI praises:
+
+“That’s a powerful insight. It takes a great teacher to think about root causes.”
+
+If the teacher struggles, AI never shames, but guides:
+
+“Let’s explore this together—what would it feel like to try something different next time?”
+
+🧠 Example Interaction:
+AI: “What’s one behavior in your classroom that’s been the hardest to manage?”
+Teacher: “There’s a kid who hits me. He hates me.”
+AI: “Wow, that must be frustrating—and painful too. Why do you think he’s reacting that way?”
+Teacher: “I don’t know. Maybe he’s just mean.”
+AI: “Has he always acted that way? Do you ever notice times when he’s calmer or more connected?”
+Teacher: “Sometimes he’s okay after snack.”
+AI: “Interesting. That might tell us something. Do you think hunger or routine could be part of what’s going on?”
