@@ -3188,8 +3188,25 @@ Continue for all 5 questions...
       const [settings] = await db.select().from(eceReportingSettings)
         .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
 
-      if (!settings || !settings.isActive) {
-        return res.status(400).json({ message: "No active reporting settings found" });
+      if (!settings) {
+        return res.status(400).json({ 
+          message: "No ECE reporting settings found. Please configure email settings first in the Email Settings tab.",
+          errorType: "NO_SETTINGS"
+        });
+      }
+
+      if (!settings.isActive) {
+        return res.status(400).json({ 
+          message: "ECE reporting is disabled. Please enable email reports in the Email Settings tab.",
+          errorType: "SETTINGS_DISABLED"
+        });
+      }
+
+      if (!settings.reportingEmails || settings.reportingEmails.length === 0) {
+        return res.status(400).json({ 
+          message: "No email recipients configured. Please add email addresses in the Email Settings tab.",
+          errorType: "NO_RECIPIENTS"
+        });
       }
 
       // Generate test report data for current month
