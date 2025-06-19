@@ -316,4 +316,86 @@ router.post('/generate-assessment-feedback', requireAuth, async (req, res) => {
   }
 });
 
+// Voice boost endpoint for Perfect Manager
+router.post('/boost', requireAuth, async (req, res) => {
+  try {
+    const motivationalMessages = [
+      "You are writing chapter one in children's lives - what an incredible honor and responsibility. Your energy, your presence, your care becomes part of their foundation. Today, you have the power to plant seeds of confidence, curiosity, and joy that will grow for a lifetime.",
+      "The sacred work you do with our youngest learners is building tomorrow's leaders, innovators, and changemakers. Every moment of patience, every gentle word, every creative lesson you share is shaping the future. Your dedication matters more than you know.",
+      "In early childhood education, you're not just teaching ABCs and 123s - you're teaching hearts to be brave, minds to be curious, and spirits to believe in themselves. You are a guardian of wonder, a cultivator of dreams. Keep shining your light.",
+      "Remember, the children in your care will carry pieces of your kindness, your wisdom, and your belief in them for their entire lives. You are planting forests of possibility in young minds. Your work is both profound and beautiful.",
+      "Every day you show up, you're choosing to invest in humanity's most precious resource - our children. Your patience builds their resilience, your encouragement fuels their confidence, and your love becomes their inner voice of strength.",
+      "You have the extraordinary privilege of witnessing first steps, first words, first discoveries, and first friendships. You are the keeper of wonder, the protector of imagination, and the architect of lifelong learning. This is sacred work."
+    ];
+
+    const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+    
+    const audioBuffer = await voiceService.generateSpeech(randomMessage, 'professional-female', {
+      stability: 0.75,
+      similarity_boost: 0.8,
+      style: 0.2
+    });
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Failed to generate voice boost audio' });
+    }
+
+    // Set proper headers for audio response
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString(),
+      'Cache-Control': 'no-cache'
+    });
+
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Voice boost error:', error);
+    res.status(500).json({ error: 'Voice boost generation failed' });
+  }
+});
+
+// Voice reset endpoint for Perfect Manager (breathing exercise)
+router.post('/reset', requireAuth, async (req, res) => {
+  try {
+    const resetScript = `Welcome to your three-minute leadership reset. Find a comfortable position and close your eyes if you feel safe to do so. 
+
+We'll practice a structured breathing pattern - breathe in for four counts, hold for six counts, and exhale for six counts. This rhythm helps activate your body's natural relaxation response.
+
+Let's begin. Breathe in slowly through your nose... one, two, three, four. Now hold that breath... one, two, three, four, five, six. And slowly exhale through your mouth... one, two, three, four, five, six.
+
+Excellent. Let's continue this pattern. Inhale for four... one, two, three, four. Hold for six... one, two, three, four, five, six. Exhale for six... one, two, three, four, five, six.
+
+As you breathe, remember that taking this time for yourself isn't selfish - it's essential. You can't pour from an empty cup. By caring for yourself, you're better equipped to lead with clarity, patience, and wisdom.
+
+Continue breathing... in for four, hold for six, out for six. Feel your shoulders relaxing, your mind clearing, your heart opening to the possibilities ahead.
+
+You are exactly where you need to be, doing exactly what you're meant to do. Trust yourself, trust your team, and trust the process.
+
+Take three more deep breaths on your own, and when you're ready, gently open your eyes. You are centered, you are strong, and you are ready to lead with purpose.`;
+
+    const audioBuffer = await voiceService.generateSpeech(resetScript, 'professional-female', {
+      stability: 0.8,
+      similarity_boost: 0.7,
+      style: 0.1,
+      speaking_rate: 0.8  // Slower pace for relaxation
+    });
+    
+    if (!audioBuffer) {
+      return res.status(500).json({ error: 'Failed to generate reset audio' });
+    }
+
+    // Set proper headers for audio response
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString(),
+      'Cache-Control': 'no-cache'
+    });
+
+    res.send(audioBuffer);
+  } catch (error) {
+    console.error('Voice reset error:', error);
+    res.status(500).json({ error: 'Voice reset generation failed' });
+  }
+});
+
 export default router;
