@@ -93,6 +93,7 @@ export default function EceHoursTracker() {
   const [showManualTrainingDialog, setShowManualTrainingDialog] = useState(false);
   const [showBulkTrainingDialog, setShowBulkTrainingDialog] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [generatingCertificateFor, setGeneratingCertificateFor] = useState<number | null>(null);
   const [manualTrainingForm, setManualTrainingForm] = useState({
     targetUserId: '',
     category: '',
@@ -137,6 +138,7 @@ export default function EceHoursTracker() {
 
   const generateCertificateMutation = useMutation({
     mutationFn: async (employeeId: number) => {
+      setGeneratingCertificateFor(employeeId);
       const response = await fetch('/api/ece-certificate/generate', {
         method: 'POST',
         headers: {
@@ -167,15 +169,17 @@ export default function EceHoursTracker() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      return { success: true, filename };
+      return { success: true, filename, employeeId };
     },
     onSuccess: (data: any) => {
+      setGeneratingCertificateFor(null);
       toast({
         title: "Certificate Generated",
         description: `Professional development certificate downloaded successfully: ${data.filename}`,
       });
     },
     onError: (error: any) => {
+      setGeneratingCertificateFor(null);
       toast({
         title: "Certificate Generation Failed",
         description: error.message || "Failed to generate professional development certificate",
@@ -779,10 +783,10 @@ export default function EceHoursTracker() {
                             variant="outline"
                             size="sm"
                             onClick={() => generateCertificateMutation.mutate(employee.employeeId)}
-                            disabled={generateCertificateMutation.isPending}
+                            disabled={generatingCertificateFor === employee.employeeId}
                             className="flex items-center space-x-1"
                           >
-                            {generateCertificateMutation.isPending ? (
+                            {generatingCertificateFor === employee.employeeId ? (
                               <>
                                 <Download className="h-4 w-4 animate-spin" />
                                 <span>Generating...</span>

@@ -3615,7 +3615,8 @@ Continue for all 5 questions...
       };
 
       // Generate PDF certificate using jsPDF
-      const PDFDocument = require('jspdf').jsPDF;
+      const { jsPDF } = await import('jspdf');
+      const PDFDocument = jsPDF;
       const doc = new PDFDocument({
         orientation: 'landscape',
         unit: 'mm',
