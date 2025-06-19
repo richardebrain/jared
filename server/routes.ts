@@ -243,6 +243,7 @@ import videoSearchRoutes from "./api/videoSearchRoutes";
 import podcastRoutes from "./routes/podcast";
 import { musicmakerRouter } from "./routes/musicmaker";
 import imageGenerationRoutes from "./api/imageGenerationRoutes";
+import { setupSecurityMiddleware } from "./middleware/security";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -434,6 +435,9 @@ async function ensureDefaultSchoolExists() {
 }
 
 export async function registerRoutes(app: Express): Promise<void> {
+  // Setup security middleware first
+  setupSecurityMiddleware(app);
+  
   // Setup Google authentication
   setupGoogleAuth(app);
 
