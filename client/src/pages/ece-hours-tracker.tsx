@@ -128,9 +128,22 @@ export default function EceHoursTracker() {
       });
     },
     onError: (error: any) => {
+      // Parse specific error types for better user guidance
+      let errorMessage = "Failed to send test email";
+      
+      if (error.message?.includes("No ECE reporting settings found")) {
+        errorMessage = "Please save your email settings first before sending a test report.";
+      } else if (error.message?.includes("ECE reporting is disabled")) {
+        errorMessage = "Email reports are disabled. Please enable them in settings.";
+      } else if (error.message?.includes("No email recipients")) {
+        errorMessage = "Please add at least one email address before sending test reports.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
-        title: "Error",
-        description: error.message || "Failed to send test email",
+        title: "Test Email Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
