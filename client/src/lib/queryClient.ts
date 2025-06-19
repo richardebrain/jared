@@ -60,14 +60,14 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        // Don't retry auth errors
-        if (error?.response?.status === 401 || error?.response?.status === 403) {
+        // Don't retry auth errors or not found to improve speed
+        if (error?.response?.status === 401 || error?.response?.status === 403 || error?.response?.status === 404) {
           return false;
         }
-        // Retry other errors only once
+        // Quick fail for network errors to improve perceived speed
         return failureCount < 1;
       },
-      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      staleTime: 2 * 60 * 1000, // 2 minutes cache for faster updates
       refetchOnWindowFocus: false, // Disable to prevent loops
       queryFn: defaultQueryFn,
     },
