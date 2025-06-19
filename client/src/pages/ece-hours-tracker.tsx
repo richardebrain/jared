@@ -359,10 +359,10 @@ export default function EceHoursTracker() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/admin">
+          <Link href="/director-toolkit">
             <Button variant="outline" size="sm" className="flex items-center space-x-2">
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Admin</span>
+              <span>Back to Director Toolkit</span>
             </Button>
           </Link>
           <div>
