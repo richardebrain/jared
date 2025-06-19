@@ -332,7 +332,7 @@ router.post('/boost', requireAuth, async (req, res) => {
     
     const audioBuffer = await voiceService.generateSpeech(randomMessage, 'professional-female', {
       stability: 0.75,
-      similarity_boost: 0.8,
+      similarityBoost: 0.8,
       style: 0.2
     });
     
@@ -375,9 +375,8 @@ Take three more deep breaths on your own, and when you're ready, gently open you
 
     const audioBuffer = await voiceService.generateSpeech(resetScript, 'professional-female', {
       stability: 0.8,
-      similarity_boost: 0.7,
-      style: 0.1,
-      speaking_rate: 0.8  // Slower pace for relaxation
+      similarityBoost: 0.7,
+      style: 0.1
     });
     
     if (!audioBuffer) {

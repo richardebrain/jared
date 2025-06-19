@@ -104,38 +104,99 @@ export default function PerfectManager() {
       setAudioType(type);
 
       const endpoint = type === 'voice-boost' ? '/api/voice/boost' : '/api/voice/reset';
-      const response = await fetch(endpoint, { method: 'POST' });
+      
+      toast({
+        title: "Generating Audio",
+        description: "Creating your personalized audio message...",
+      });
+
+      const response = await fetch(endpoint, { 
+        method: 'POST',
+        credentials: 'include'
+      });
       
       if (!response.ok) {
-        throw new Error('Failed to generate audio');
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+
+      // Check if the response is actually audio
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('audio')) {
+        throw new Error(`Invalid response type: ${contentType}`);
       }
       
       const audioBlob = await response.blob();
+      console.log('Audio blob size:', audioBlob.size, 'bytes');
+      console.log('Audio blob type:', audioBlob.type);
+      
+      if (audioBlob.size === 0) {
+        throw new Error('Received empty audio file');
+      }
+
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       
+      // Pre-load the audio
+      audio.preload = 'auto';
+      
       setCurrentAudio(audio);
       
-      audio.onended = () => {
-        setIsAudioPlaying(false);
-        setAudioType(null);
-        setCurrentAudio(null);
-        URL.revokeObjectURL(audioUrl);
+      audio.onloadeddata = () => {
+        console.log('Audio loaded successfully, duration:', audio.duration);
       };
       
-      audio.onerror = () => {
+      audio.onended = () => {
+        console.log('Audio playback ended');
         setIsAudioPlaying(false);
         setAudioType(null);
         setCurrentAudio(null);
         URL.revokeObjectURL(audioUrl);
         toast({
-          title: "Audio Error",
-          description: "Failed to play audio. Please try again.",
-          variant: "destructive",
+          title: "Audio Complete",
+          description: "Playback finished successfully.",
         });
       };
       
-      await audio.play();
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        console.error('Audio error details:', audio.error);
+        setIsAudioPlaying(false);
+        setAudioType(null);
+        setCurrentAudio(null);
+        URL.revokeObjectURL(audioUrl);
+        toast({
+          title: "Audio Playback Error",
+          description: `Failed to play audio: ${audio.error?.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
+      };
+
+      audio.oncanplaythrough = async () => {
+        try {
+          console.log('Audio can play through, attempting to start playback');
+          await audio.play();
+          console.log('Audio playback started successfully');
+          toast({
+            title: "Playing Audio",
+            description: "Your motivational message is now playing.",
+          });
+        } catch (playError) {
+          console.error('Audio play() failed:', playError);
+          setIsAudioPlaying(false);
+          setAudioType(null);
+          setCurrentAudio(null);
+          URL.revokeObjectURL(audioUrl);
+          toast({
+            title: "Playback Failed",
+            description: `Could not start audio: ${playError.message}`,
+            variant: "destructive",
+          });
+        }
+      };
+
+      // Load the audio
+      audio.load();
       
     } catch (error) {
       console.error('Audio generation error:', error);
@@ -143,7 +204,7 @@ export default function PerfectManager() {
       setAudioType(null);
       toast({
         title: "Audio Generation Failed",
-        description: "Unable to generate audio at this time. Please try again.",
+        description: `Unable to generate audio: ${error.message}`,
         variant: "destructive",
       });
     }
