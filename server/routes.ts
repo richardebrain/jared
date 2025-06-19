@@ -4615,11 +4615,11 @@ Continue for all 5 questions...
 
   // Direct admin password check reset endpoints
   app.post("/api/admin/reset-points/:userId", async (req, res) => {
-    // Check for admin password directly
+    // Check for admin password from environment variable
     const adminPassword = req.query.admin_password;
-    console.log("Reset points - Admin password received:", adminPassword);
+    console.log("Reset points - Admin password check requested");
 
-    if (adminPassword !== "BIGSURF55") {
+    if (!process.env.ADMIN_PASSWORD || adminPassword !== process.env.ADMIN_PASSWORD) {
       console.log("Reset points - Admin password incorrect, access denied");
       return res
         .status(403)
