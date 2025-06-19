@@ -1304,7 +1304,14 @@ Continue for all 5 questions...
         const nativeLanguage = req.body.nativeLanguage?.trim() || "English";
         const timeZone = req.body.timeZone?.trim() || "UTC-05:00";
 
-        console.log(`Registration attempt for username: "${username}"`);
+        console.log(`=== REGISTRATION ATTEMPT ===`);
+        console.log(`Username: "${username}"`);
+        console.log(`Email: "${email}"`);
+        console.log(`First Name: "${firstName}"`);
+        console.log(`Last Name: "${lastName}"`);
+        console.log(`School ID: ${req.body.schoolId}`);
+        console.log(`User Agent: ${req.get('User-Agent')}`);
+        console.log(`IP Address: ${req.ip}`);
 
         if (!username || !password || !firstName || !lastName || !email) {
           // Log which fields are missing for debugging
