@@ -33,16 +33,19 @@ export function setupSecurityMiddleware(app: Express) {
   // Rate limiting for sensitive endpoints
   const attemptTracker = new Map<string, { count: number; resetTime: number }>();
   
-  app.use('/api/auth/login', (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  // Apply rate limiting specifically to login endpoint
+  const rateLimitLogin = (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip || req.socket.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+    const clientId = Array.isArray(ip) ? ip[0] : ip.toString();
     const now = Date.now();
     const windowMs = 15 * 60 * 1000; // 15 minutes
     const maxAttempts = 5;
     
-    let attempts = attemptTracker.get(ip);
+    let attempts = attemptTracker.get(clientId);
     
     if (!attempts || now > attempts.resetTime) {
       attempts = { count: 0, resetTime: now + windowMs };
+      attemptTracker.set(clientId, attempts);
     }
     
     if (attempts.count >= maxAttempts) {
@@ -53,10 +56,12 @@ export function setupSecurityMiddleware(app: Express) {
     }
     
     attempts.count++;
-    attemptTracker.set(ip, attempts);
+    attemptTracker.set(clientId, attempts);
     
     next();
-  });
+  };
+  
+  app.use('/api/auth/login', rateLimitLogin);
 
   // Input validation middleware
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
@@ -89,6 +94,7 @@ export function setupSecurityMiddleware(app: Express) {
   });
 
   // Remove sensitive headers from responses
+  app.disable('x-powered-by');
   app.use((req: Request, res: Response, next: NextFunction) => {
     res.removeHeader('X-Powered-By');
     next();

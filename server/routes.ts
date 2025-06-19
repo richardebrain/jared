@@ -2366,8 +2366,8 @@ Continue for all 5 questions...
     }
   });
 
-  // Get all users (for leaderboard)
-  app.get("/api/users", async (req, res) => {
+  // Get all users (for leaderboard) - requires authentication
+  app.get("/api/users", requireAuth, async (req, res) => {
     try {
       console.log("Fetching all users for leaderboard...");
 
