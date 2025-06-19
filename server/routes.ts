@@ -3584,16 +3584,26 @@ Continue for all 5 questions...
       const totalMinutes = eceHoursData.reduce((sum, item) => sum + item.totalHours, 0);
       const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
 
-      // Determine current level based on total hours and points
+      // Determine current level based on total hours and points (both requirements must be met)
       const getCurrentLevel = (points: number, eceHours: number) => {
+        // Master Teacher: 300+ ECE hours AND 400+ points
         if (eceHours >= 300 && points >= 400) return { level: 5, title: "Master Teacher" };
+        // Senior Teacher: 200+ ECE hours AND 300+ points
         if (eceHours >= 200 && points >= 300) return { level: 4, title: "Senior Teacher" };
+        // Lead Teacher: 100+ ECE hours AND 200+ points
         if (eceHours >= 100 && points >= 200) return { level: 3, title: "Lead Teacher" };
+        // Associate Teacher: 30+ ECE hours AND 100+ points
         if (eceHours >= 30 && points >= 100) return { level: 2, title: "Associate Teacher" };
+        // Assistant Teacher: Default level for everyone else
         return { level: 1, title: "Assistant Teacher" };
       };
 
       const currentLevel = getCurrentLevel(targetEmployee.points || 0, totalHours);
+      
+      // Debug logging for level calculation
+      console.log(`Certificate Debug - Employee: ${targetEmployee.firstName || targetEmployee.username}`);
+      console.log(`Points: ${targetEmployee.points || 0}, ECE Hours: ${totalHours}`);
+      console.log(`Calculated Level: ${currentLevel.title}`);
 
       // Generate certificate data
       const certificateData = {
@@ -3627,69 +3637,112 @@ Continue for all 5 questions...
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const centerX = pageWidth / 2;
+      const margin = 15;
 
-      // Background and border
-      doc.setFillColor(245, 247, 250);
+      // Elegant cream background
+      doc.setFillColor(252, 251, 247);
       doc.rect(0, 0, pageWidth, pageHeight, 'F');
       
-      doc.setDrawColor(59, 130, 246);
-      doc.setLineWidth(2);
-      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+      // Decorative border with double lines
+      doc.setDrawColor(26, 54, 93); // Deep navy blue
+      doc.setLineWidth(1.5);
+      doc.rect(margin, margin, pageWidth - (margin * 2), pageHeight - (margin * 2));
+      
+      doc.setLineWidth(0.5);
+      doc.rect(margin + 5, margin + 5, pageWidth - (margin * 2) - 10, pageHeight - (margin * 2) - 10);
 
-      // Title
-      doc.setFontSize(24);
-      doc.setTextColor(59, 130, 246);
-      doc.text('CERTIFICATE OF PROFESSIONAL DEVELOPMENT', centerX, 35, { align: 'center' });
-
-      // Subtitle
+      // Elegant header with refined typography
+      doc.setFontSize(28);
+      doc.setTextColor(26, 54, 93);
+      doc.text('CERTIFICATE', centerX, 40, { align: 'center' });
+      
       doc.setFontSize(16);
-      doc.setTextColor(100, 116, 139);
-      doc.text('Early Childhood Education', centerX, 45, { align: 'center' });
+      doc.setTextColor(139, 69, 19); // Brown accent
+      doc.text('OF PROFESSIONAL DEVELOPMENT', centerX, 50, { align: 'center' });
 
-      // Main content
-      doc.setFontSize(14);
-      doc.setTextColor(51, 65, 85);
-      doc.text('This certifies that', centerX, 65, { align: 'center' });
-
-      // Employee name
-      doc.setFontSize(20);
-      doc.setTextColor(15, 23, 42);
-      doc.text(certificateData.employeeName, centerX, 80, { align: 'center' });
-
-      // Achievement text
-      doc.setFontSize(14);
-      doc.setTextColor(51, 65, 85);
-      doc.text(`has successfully completed professional development requirements`, centerX, 95, { align: 'center' });
-      doc.text(`and achieved the level of`, centerX, 105, { align: 'center' });
-
-      // Level achievement
-      doc.setFontSize(18);
-      doc.setTextColor(59, 130, 246);
-      doc.text(certificateData.level, centerX, 120, { align: 'center' });
-
-      // Hours completed
+      // Institution line
       doc.setFontSize(12);
-      doc.setTextColor(71, 85, 105);
-      doc.text(`Total Professional Development Hours: ${certificateData.totalHours}`, centerX, 135, { align: 'center' });
+      doc.setTextColor(75, 85, 99);
+      doc.text('Early Childhood Education Professional Development Program', centerX, 60, { align: 'center' });
 
-      // Category breakdown
+      // Decorative line
+      doc.setDrawColor(139, 69, 19);
+      doc.setLineWidth(0.5);
+      doc.line(centerX - 60, 65, centerX + 60, 65);
+
+      // Main certificate text with professional formatting
+      doc.setFontSize(14);
+      doc.setTextColor(55, 65, 81);
+      doc.text('This is to certify that', centerX, 85, { align: 'center' });
+
+      // Employee name with elegant styling
+      doc.setFontSize(24);
+      doc.setTextColor(26, 54, 93);
+      doc.text(certificateData.employeeName, centerX, 105, { align: 'center' });
+      
+      // Underline for name
+      const nameWidth = doc.getTextWidth(certificateData.employeeName);
+      doc.setDrawColor(139, 69, 19);
+      doc.setLineWidth(0.5);
+      doc.line(centerX - (nameWidth/2) - 5, 108, centerX + (nameWidth/2) + 5, 108);
+
+      // Achievement description
+      doc.setFontSize(14);
+      doc.setTextColor(55, 65, 81);
+      doc.text('has successfully completed the required professional development training', centerX, 125, { align: 'center' });
+      doc.text('and has demonstrated competency at the level of', centerX, 135, { align: 'center' });
+
+      // Level achievement with prestigious styling
+      doc.setFontSize(20);
+      doc.setTextColor(139, 69, 19);
+      doc.text(certificateData.level, centerX, 155, { align: 'center' });
+
+      // Professional details section
+      doc.setFontSize(12);
+      doc.setTextColor(75, 85, 99);
+      doc.text(`Professional Development Hours Completed: ${certificateData.totalHours}`, centerX, 175, { align: 'center' });
+
+      // Training categories in a more professional layout
       if (certificateData.categoryBreakdown.length > 0) {
-        doc.text('Training Categories Completed:', centerX, 150, { align: 'center' });
-        let yPos = 160;
-        certificateData.categoryBreakdown.forEach(category => {
-          doc.text(`${category.category}: ${category.hours} hours`, centerX, yPos, { align: 'center' });
+        doc.setFontSize(11);
+        doc.setTextColor(55, 65, 81);
+        doc.text('Areas of Professional Development:', centerX, 190, { align: 'center' });
+        
+        let yPos = 200;
+        const maxCategoriesPerLine = 2;
+        for (let i = 0; i < certificateData.categoryBreakdown.length; i += maxCategoriesPerLine) {
+          const categoriesLine = certificateData.categoryBreakdown.slice(i, i + maxCategoriesPerLine);
+          const lineText = categoriesLine.map(cat => `${cat.category} (${cat.hours}h)`).join(' • ');
+          doc.text(lineText, centerX, yPos, { align: 'center' });
           yPos += 8;
-        });
+        }
       }
 
-      // Date and signatures
-      const signatureY = pageHeight - 50;
+      // Professional footer section
+      const footerY = pageHeight - 40;
+      
+      // Date section
       doc.setFontSize(10);
-      doc.text(`Date: ${certificateData.completionDate}`, 30, signatureY);
-      doc.text(`Certificate ID: ${certificateData.certificateId}`, 30, signatureY + 10);
+      doc.setTextColor(75, 85, 99);
+      doc.text('Date of Completion:', 30, footerY - 15);
+      doc.setTextColor(26, 54, 93);
+      doc.text(certificateData.completionDate, 30, footerY - 5);
 
-      doc.text(`Director: ${certificateData.directorName}`, pageWidth - 80, signatureY);
-      doc.text('_________________________', pageWidth - 80, signatureY + 5);
+      // Certificate ID
+      doc.setTextColor(75, 85, 99);
+      doc.text('Certificate ID:', 30, footerY + 10);
+      doc.setTextColor(26, 54, 93);
+      doc.text(certificateData.certificateId, 30, footerY + 20);
+
+      // Director signature section
+      const sigX = pageWidth - 100;
+      doc.setTextColor(75, 85, 99);
+      doc.text('Program Director:', sigX, footerY - 15);
+      doc.setDrawColor(26, 54, 93);
+      doc.setLineWidth(0.5);
+      doc.line(sigX, footerY, sigX + 70, footerY);
+      doc.setTextColor(26, 54, 93);
+      doc.text(certificateData.directorName, sigX, footerY + 8);
 
       // Generate PDF buffer
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
