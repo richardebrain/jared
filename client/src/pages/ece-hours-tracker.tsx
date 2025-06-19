@@ -80,6 +80,19 @@ export default function EceHoursTracker() {
     frequency: 'monthly',
     isActive: true
   });
+  
+  // Manual training form state
+  const [showManualTrainingDialog, setShowManualTrainingDialog] = useState(false);
+  const [showBulkTrainingDialog, setShowBulkTrainingDialog] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [manualTrainingForm, setManualTrainingForm] = useState({
+    targetUserId: '',
+    category: '',
+    duration: '',
+    trainingTitle: '',
+    trainingLocation: '',
+    notes: ''
+  });
 
   // Query hooks
   const { data: eceData, isLoading, error } = useQuery<EceHoursData>({
@@ -180,6 +193,78 @@ export default function EceHoursTracker() {
         variant: "destructive",
       });
     },
+  });
+
+  // Manual training mutations
+  const addManualTrainingMutation = useMutation({
+    mutationFn: async (trainingData: any) => {
+      return apiRequest('/api/ece-hours', {
+        method: 'POST',
+        data: {
+          ...trainingData,
+          trainingType: 'in_person'
+        }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Training Hours Added",
+        description: "In-person training hours added successfully!"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/school/ece-hours-tracker'] });
+      setShowManualTrainingDialog(false);
+      setManualTrainingForm({
+        targetUserId: '',
+        category: '',
+        duration: '',
+        trainingTitle: '',
+        trainingLocation: '',
+        notes: ''
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Add Hours",
+        description: error.message || "Failed to add training hours",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const addBulkTrainingMutation = useMutation({
+    mutationFn: async (trainingData: any) => {
+      return apiRequest('/api/ece-hours/bulk', {
+        method: 'POST',
+        data: {
+          ...trainingData,
+          trainingType: 'in_person'
+        }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Bulk Training Added",
+        description: "In-person training hours added for all selected teachers!"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/school/ece-hours-tracker'] });
+      setShowBulkTrainingDialog(false);
+      setSelectedUserIds([]);
+      setManualTrainingForm({
+        targetUserId: '',
+        category: '',
+        duration: '',
+        trainingTitle: '',
+        trainingLocation: '',
+        notes: ''
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Add Bulk Hours",
+        description: error.message || "Failed to add bulk training hours",
+        variant: "destructive"
+      });
+    }
   });
 
   // Effect hooks
@@ -344,6 +429,270 @@ export default function EceHoursTracker() {
         </TabsList>
 
         <TabsContent value="employees" className="space-y-6">
+          {/* Manual Training Entry Controls */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Plus className="h-5 w-5" />
+                  <span>Add In-Person Training Hours</span>
+                </div>
+                <div className="flex space-x-2">
+                  <Dialog open={showManualTrainingDialog} onOpenChange={setShowManualTrainingDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Individual
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Add Individual Training Hours</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="targetUser">Select Teacher</Label>
+                          <Select 
+                            value={manualTrainingForm.targetUserId} 
+                            onValueChange={(value) => setManualTrainingForm(prev => ({ ...prev, targetUserId: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose a teacher" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {eceData?.employees.map((employee) => (
+                                <SelectItem key={employee.employeeId} value={employee.employeeId.toString()}>
+                                  {employee.employeeName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="trainingTitle">Training Title</Label>
+                          <Input
+                            id="trainingTitle"
+                            value={manualTrainingForm.trainingTitle}
+                            onChange={(e) => setManualTrainingForm(prev => ({ ...prev, trainingTitle: e.target.value }))}
+                            placeholder="e.g., Child Development Workshop"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label htmlFor="category">ECE Category</Label>
+                            <Select 
+                              value={manualTrainingForm.category} 
+                              onValueChange={(value) => setManualTrainingForm(prev => ({ ...prev, category: value }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="social-emotional">Social-Emotional</SelectItem>
+                                <SelectItem value="cognitive-development">Cognitive Development</SelectItem>
+                                <SelectItem value="physical-development">Physical Development</SelectItem>
+                                <SelectItem value="communication">Communication</SelectItem>
+                                <SelectItem value="adaptive">Adaptive Skills</SelectItem>
+                                <SelectItem value="health-safety">Health & Safety</SelectItem>
+                                <SelectItem value="family-engagement">Family Engagement</SelectItem>
+                                <SelectItem value="professional-development">Professional Development</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="duration">Hours</Label>
+                            <Input
+                              id="duration"
+                              type="number"
+                              step="0.5"
+                              min="0.5"
+                              max="8"
+                              value={manualTrainingForm.duration}
+                              onChange={(e) => setManualTrainingForm(prev => ({ ...prev, duration: e.target.value }))}
+                              placeholder="2.0"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="trainingLocation">Training Location</Label>
+                          <Input
+                            id="trainingLocation"
+                            value={manualTrainingForm.trainingLocation}
+                            onChange={(e) => setManualTrainingForm(prev => ({ ...prev, trainingLocation: e.target.value }))}
+                            placeholder="e.g., Phoenix Convention Center"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="notes">Notes (Optional)</Label>
+                          <Input
+                            id="notes"
+                            value={manualTrainingForm.notes}
+                            onChange={(e) => setManualTrainingForm(prev => ({ ...prev, notes: e.target.value }))}
+                            placeholder="Additional details..."
+                          />
+                        </div>
+                        
+                        <Button
+                          onClick={() => {
+                            if (!manualTrainingForm.targetUserId || !manualTrainingForm.trainingTitle || !manualTrainingForm.category || !manualTrainingForm.duration) {
+                              toast({
+                                title: "Missing Information",
+                                description: "Please fill in all required fields",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+                            addManualTrainingMutation.mutate({
+                              targetUserId: parseInt(manualTrainingForm.targetUserId),
+                              category: manualTrainingForm.category,
+                              duration: Math.round(parseFloat(manualTrainingForm.duration) * 60), // Convert to minutes
+                              trainingTitle: manualTrainingForm.trainingTitle,
+                              trainingLocation: manualTrainingForm.trainingLocation,
+                              notes: manualTrainingForm.notes
+                            });
+                          }}
+                          disabled={addManualTrainingMutation.isPending}
+                          className="w-full"
+                        >
+                          {addManualTrainingMutation.isPending ? "Adding..." : "Add Training Hours"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={showBulkTrainingDialog} onOpenChange={setShowBulkTrainingDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Users className="h-4 w-4 mr-2" />
+                        Group
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Add Group Training Hours</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Select Teachers</Label>
+                          <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1">
+                            {eceData?.employees.map((employee) => (
+                              <div key={employee.employeeId} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`user-${employee.employeeId}`}
+                                  checked={selectedUserIds.includes(employee.employeeId)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedUserIds(prev => [...prev, employee.employeeId]);
+                                    } else {
+                                      setSelectedUserIds(prev => prev.filter(id => id !== employee.employeeId));
+                                    }
+                                  }}
+                                  className="rounded"
+                                />
+                                <label htmlFor={`user-${employee.employeeId}`} className="text-sm">
+                                  {employee.employeeName}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="groupTrainingTitle">Training Title</Label>
+                          <Input
+                            id="groupTrainingTitle"
+                            value={manualTrainingForm.trainingTitle}
+                            onChange={(e) => setManualTrainingForm(prev => ({ ...prev, trainingTitle: e.target.value }))}
+                            placeholder="e.g., Annual ECE Conference"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label htmlFor="groupCategory">ECE Category</Label>
+                            <Select 
+                              value={manualTrainingForm.category} 
+                              onValueChange={(value) => setManualTrainingForm(prev => ({ ...prev, category: value }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="social-emotional">Social-Emotional</SelectItem>
+                                <SelectItem value="cognitive-development">Cognitive Development</SelectItem>
+                                <SelectItem value="physical-development">Physical Development</SelectItem>
+                                <SelectItem value="communication">Communication</SelectItem>
+                                <SelectItem value="adaptive">Adaptive Skills</SelectItem>
+                                <SelectItem value="health-safety">Health & Safety</SelectItem>
+                                <SelectItem value="family-engagement">Family Engagement</SelectItem>
+                                <SelectItem value="professional-development">Professional Development</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="groupDuration">Hours</Label>
+                            <Input
+                              id="groupDuration"
+                              type="number"
+                              step="0.5"
+                              min="0.5"
+                              max="8"
+                              value={manualTrainingForm.duration}
+                              onChange={(e) => setManualTrainingForm(prev => ({ ...prev, duration: e.target.value }))}
+                              placeholder="6.0"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="groupLocation">Training Location</Label>
+                          <Input
+                            id="groupLocation"
+                            value={manualTrainingForm.trainingLocation}
+                            onChange={(e) => setManualTrainingForm(prev => ({ ...prev, trainingLocation: e.target.value }))}
+                            placeholder="e.g., Phoenix Convention Center"
+                          />
+                        </div>
+                        
+                        <Button
+                          onClick={() => {
+                            if (selectedUserIds.length === 0 || !manualTrainingForm.trainingTitle || !manualTrainingForm.category || !manualTrainingForm.duration) {
+                              toast({
+                                title: "Missing Information",
+                                description: "Please select teachers and fill in all required fields",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+                            addBulkTrainingMutation.mutate({
+                              userIds: selectedUserIds,
+                              category: manualTrainingForm.category,
+                              duration: Math.round(parseFloat(manualTrainingForm.duration) * 60), // Convert to minutes
+                              trainingTitle: manualTrainingForm.trainingTitle,
+                              trainingLocation: manualTrainingForm.trainingLocation,
+                              notes: manualTrainingForm.notes
+                            });
+                          }}
+                          disabled={addBulkTrainingMutation.isPending}
+                          className="w-full"
+                        >
+                          {addBulkTrainingMutation.isPending ? "Adding..." : `Add Hours for ${selectedUserIds.length} Teachers`}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
           {/* Employee List */}
           <Card>
             <CardHeader>

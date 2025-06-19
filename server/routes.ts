@@ -3050,6 +3050,14 @@ Continue for all 5 questions...
           return acc;
         }, {} as Record<string, number>);
 
+        // Calculate hours breakdown by training type
+        const onlineHours = eceHoursQuery
+          .filter(h => !h.trainingType || h.trainingType === 'online')
+          .reduce((sum, h) => sum + (h.duration / 60), 0);
+        const inPersonHours = eceHoursQuery
+          .filter(h => h.trainingType === 'in_person')
+          .reduce((sum, h) => sum + (h.duration / 60), 0);
+
         // Calculate progress percentage
         const requiredHours = 30; // Annual requirement
         const progressPercentage = Math.min((totalHours / requiredHours) * 100, 100);
@@ -3380,7 +3388,7 @@ Continue for all 5 questions...
         return res.status(404).json({ message: "User not found" });
       }
 
-      const { targetUserId, category, duration, trainingTitle, notes } = req.body;
+      const { targetUserId, category, duration, trainingTitle, notes, trainingType, trainingLocation } = req.body;
 
       // Only allow admins or approved trainers to add hours for other users
       const finalUserId = targetUserId || userId;
@@ -3395,12 +3403,15 @@ Continue for all 5 questions...
         trainingTitle,
         approvedBy: userId,
         schoolId: user.schoolId,
-        notes
+        notes,
+        trainingType: trainingType || 'online',
+        trainingLocation: trainingLocation || null,
+        addedBy: targetUserId ? userId : null // Track who manually added the hours
       };
 
       const newEceHour = await db.insert(eceHours).values(eceHourData).returning();
 
-      console.log(`ECE hours added: ${duration} minutes in ${category} for user ${finalUserId}`);
+      console.log(`ECE hours added: ${duration} minutes in ${category} for user ${finalUserId} (${trainingType})`);
 
       res.status(201).json({
         success: true,
@@ -3409,6 +3420,56 @@ Continue for all 5 questions...
     } catch (error) {
       console.error("Error adding ECE hours:", error);
       res.status(500).json({ message: "Failed to add ECE hours" });
+    }
+  });
+
+  // Add ECE hours for multiple users (group training)
+  app.post("/api/ece-hours/bulk", requireAuth, requirePaidAccess, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Only allow admins to add bulk hours
+      if (!user.isAdmin && !user.isSchoolAdmin) {
+        return res.status(403).json({ message: "Only administrators can add bulk training hours" });
+      }
+
+      const { userIds, category, duration, trainingTitle, notes, trainingType, trainingLocation } = req.body;
+
+      if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: "User IDs array is required" });
+      }
+
+      // Prepare bulk insert data
+      const bulkEceHourData = userIds.map((targetUserId: number) => ({
+        userId: targetUserId,
+        category,
+        duration: parseInt(duration),
+        trainingTitle,
+        approvedBy: userId,
+        schoolId: user.schoolId,
+        notes,
+        trainingType: trainingType || 'in_person',
+        trainingLocation: trainingLocation || null,
+        addedBy: userId
+      }));
+
+      const newEceHours = await db.insert(eceHours).values(bulkEceHourData).returning();
+
+      console.log(`Bulk ECE hours added: ${duration} minutes in ${category} for ${userIds.length} users (${trainingType})`);
+
+      res.status(201).json({
+        success: true,
+        eceHours: newEceHours,
+        count: newEceHours.length
+      });
+    } catch (error) {
+      console.error("Error adding bulk ECE hours:", error);
+      res.status(500).json({ message: "Failed to add bulk ECE hours" });
     }
   });
 
