@@ -261,98 +261,146 @@ export default function PerfectManager() {
       yPosition = 40;
       pdf.setTextColor(0, 0, 0); // Reset to black
 
-      // Situation Overview
-      addText(`Early Childhood Education Leadership Strategy`, 14, true, [70, 130, 180]);
-      addText(`Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 10);
-      
-      if (generatedAdvice.scenario) {
-        addText(`Scenario Type: ${generatedAdvice.scenario}`, 12, true);
-      }
+      // Header Section
+      addText(`DIRECTOR'S ACTION BRIEF`, 16, true, [70, 130, 180]);
+      addText(`Issue Focus: ${generatedAdvice.scenario || selectedScenario || 'Leadership Situation'}`, 12, true);
       if (employeeName) {
-        addText(`Team Member: ${employeeName}`, 12, true);
+        addText(`Team Member: ${employeeName}`, 11);
       }
-      if (situation) {
-        addText(`Specific Situation: ${situation}`, 11);
-      }
+      addText(`Generated: ${new Date().toLocaleDateString()}`, 10);
       
       addSeparator();
 
-      // Executive Leadership Summary
-      addText("EXECUTIVE LEADERSHIP SUMMARY", 14, true, [70, 130, 180]);
-      const summaryText = `This comprehensive leadership guide provides targeted strategies for addressing the specific situation described above. As an early childhood education director, you are stewarding both the professional growth of your staff and the sacred trust of families who rely on your leadership. This guide synthesizes proven leadership principles with ECE-specific expertise to help you navigate this challenge with wisdom, empathy, and effectiveness.`;
-      addText(summaryText, 10);
-
-      // Understanding the Root Causes
-      addText("UNDERSTANDING THE ROOT CAUSES", 14, true, [70, 130, 180]);
-      addText("Dig deeper than surface behaviors to address underlying factors:", 10);
-      generatedAdvice.rootCauses?.forEach((cause: string, index: number) => {
-        addText(`${index + 1}. ${cause}`, 10);
-      });
-
-      // Immediate Leadership Actions (Next 48-72 Hours)
-      addText("IMMEDIATE LEADERSHIP ACTIONS", 14, true, [70, 130, 180]);
-      addText("Priority steps to take within the next 48-72 hours:", 10);
-      generatedAdvice.immediateActions?.forEach((action: string, index: number) => {
-        addText(`□ ${action}`, 10);
-      });
-
-      // Conversation Framework
-      addText("CONVERSATION FRAMEWORK", 14, true, [70, 130, 180]);
-      addText("Structure your discussion with empathy and clear expectations:", 10);
+      // 1. Suspected Root Causes
+      addText("1. SUSPECTED ROOT CAUSES (To Explore Thoughtfully)", 14, true, [70, 130, 180]);
+      addText('"Behavior is a signal. Understand it before correcting it." - Brene Brown', 10, false, [100, 100, 100]);
+      addText("", 5);
       
-      if (generatedAdvice.conversationScript?.openingLines) {
-        addText("Opening Lines (Set caring, supportive tone):", 12, true);
+      if (generatedAdvice.rootCauses && generatedAdvice.rootCauses.length > 0) {
+        generatedAdvice.rootCauses.forEach((cause: string) => {
+          addText(`• ${cause}`, 10);
+        });
+      } else {
+        // Default root causes to explore
+        const defaultCauses = [
+          "Personal life stress: Family, transportation, health issues",
+          "Burnout or disengagement: Lack of energy or connection to work",
+          "Unclear expectations or accountability culture",
+          "Skills gap or confidence issues in their role",
+          "Lack of ownership or buy-in around their responsibilities"
+        ];
+        defaultCauses.forEach(cause => addText(`• ${cause}`, 10));
+      }
+      
+      addText("", 5);
+      addText("Director's Exploration Prompt:", 11, true);
+      addText("\"What have you noticed about their general mood or energy level? Is this new behavior or ongoing? Any patterns with specific days, people, or situations?\"", 10, false, [60, 60, 60]);
+
+      // 2. Director's First Action Steps
+      addText("2. DIRECTOR'S FIRST ACTION STEPS", 14, true, [70, 130, 180]);
+      addText('"Approach first with curiosity, not confrontation."', 10, false, [100, 100, 100]);
+      addText("", 5);
+      
+      if (generatedAdvice.immediateActions && generatedAdvice.immediateActions.length > 0) {
+        generatedAdvice.immediateActions.forEach((action: string) => {
+          addText(`✓ ${action}`, 10);
+        });
+      } else {
+        const defaultActions = [
+          "Schedule a private 1:1 conversation within 48 hours",
+          "Use open-ended questions to understand their perspective",
+          "Reflect and summarize what you hear—without judgment",
+          "Determine if support is needed: resources, adjustments, or tools",
+          "Clarify expectations clearly and kindly"
+        ];
+        defaultActions.forEach(action => addText(`✓ ${action}`, 10));
+      }
+
+      // 3. How to Lead the Conversation
+      addText("3. HOW TO LEAD THE CONVERSATION (Tone & Phrasing)", 14, true, [70, 130, 180]);
+      
+      addText("Open with empathy:", 11, true);
+      if (generatedAdvice.conversationScript?.openingLines && generatedAdvice.conversationScript.openingLines.length > 0) {
         generatedAdvice.conversationScript.openingLines.forEach((line: string) => {
-          addText(`• "${line}"`, 10);
+          addText(`"${line}"`, 10);
         });
+      } else {
+        addText('"You matter to this team, and I want to understand what\'s going on so we can move forward together."', 10);
       }
+      
+      addText("", 3);
+      addText("Hold accountability:", 11, true);
+      addText('"This standard is important to our team—and I believe you can meet it with the right plan."', 10);
+      
+      addText("", 3);
+      addText("Plan together:", 11, true);
+      addText('"What would help you succeed in this area? What do you think is a reasonable next step?"', 10);
 
-      if (generatedAdvice.conversationScript?.listeningPrompts) {
-        addText("Active Listening Prompts:", 12, true);
-        generatedAdvice.conversationScript.listeningPrompts.forEach((prompt: string) => {
-          addText(`• "${prompt}"`, 10);
-        });
-      }
-
-      if (generatedAdvice.conversationScript?.closingStatements) {
-        addText("Inspirational Closing Statements:", 12, true);
-        generatedAdvice.conversationScript.closingStatements.forEach((statement: string) => {
-          addText(`• "${statement}"`, 10);
-        });
-      }
-
-      // Long-term Coaching Strategies
-      addText("LONG-TERM COACHING STRATEGIES", 14, true, [70, 130, 180]);
-      addText("Sustainable approaches for lasting professional growth:", 10);
-      generatedAdvice.longTermStrategies?.forEach((strategy: string, index: number) => {
-        addText(`${index + 1}. ${strategy}`, 10);
+      // 4. Expert Leadership Insights
+      addText("4. EXPERT LEADERSHIP INSIGHTS", 14, true, [70, 130, 180]);
+      
+      const expertInsights = [
+        {
+          expert: "Brene Brown",
+          tool: '"Clear is kind."',
+          application: "Be direct, avoid vague hints. Say what needs to be said with empathy."
+        },
+        {
+          expert: "Tony Robbins", 
+          tool: '"Progress equals happiness."',
+          application: "Help them see small wins and forward movement in addressing this issue."
+        },
+        {
+          expert: "Simon Sinek",
+          tool: '"Start with why."',
+          application: "Reconnect them to their purpose. Why are they here? Why does this work matter?"
+        }
+      ];
+      
+      expertInsights.forEach(insight => {
+        addText(`${insight.expert}: ${insight.tool}`, 11, true);
+        addText(`Application: ${insight.application}`, 10);
+        addText("", 3);
       });
 
-      // Prevention & Proactive Measures
-      if (generatedAdvice.preventionStrategies && generatedAdvice.preventionStrategies.length > 0) {
-        addText("PREVENTION & PROACTIVE MEASURES", 14, true, [70, 130, 180]);
-        addText("Systemic changes to prevent similar situations:", 10);
-        generatedAdvice.preventionStrategies.forEach((strategy: string, index: number) => {
-          addText(`${index + 1}. ${strategy}`, 10);
+      // 5. Next Steps & Accountability Plan
+      addText("5. NEXT STEPS & ACCOUNTABILITY PLAN", 14, true, [70, 130, 180]);
+      
+      if (generatedAdvice.followUpPlan && generatedAdvice.followUpPlan.length > 0) {
+        addText("Goal | Plan | Follow-up", 11, true);
+        addText("", 3);
+        generatedAdvice.followUpPlan.forEach((item: string, index: number) => {
+          const timeframe = index === 0 ? "Week 1" : index === 1 ? "Week 2" : "Month 1";
+          addText(`${timeframe}: ${item}`, 10);
         });
+      } else {
+        addText("Immediate (48 hours): Schedule follow-up conversation and check progress", 10);
+        addText("Week 1: Daily check-ins via text or brief morning meeting", 10);
+        addText("Week 2: Formal review of improvement and next steps", 10);
+        addText("Month 1: Full evaluation and continued coaching if needed", 10);
       }
 
-      // Follow-up and Accountability Plan
-      addText("FOLLOW-UP & ACCOUNTABILITY PLAN", 14, true, [70, 130, 180]);
-      addText("Structured timeline to ensure lasting change:", 10);
-      generatedAdvice.followUpPlan?.forEach((item: string, index: number) => {
-        const timeframe = index === 0 ? "Week 1" : index === 1 ? "Week 2" : index === 2 ? "Month 1" : `Follow-up ${index + 1}`;
-        addText(`${timeframe}: ${item}`, 10);
+      // 6. What's Worked for Other Centers
+      addText("6. PROVEN STRATEGIES FROM OTHER ECE CENTERS", 14, true, [70, 130, 180]);
+      
+      const provenStrategies = [
+        "Offering temporary schedule adjustment to rebuild confidence",
+        "Giving employee a small leadership task to reignite engagement", 
+        "Creating peer accountability partnerships for mutual support",
+        "Using positive reinforcement when improvements are observed",
+        "Providing specific professional development opportunities"
+      ];
+      
+      provenStrategies.forEach(strategy => {
+        addText(`✓ ${strategy}`, 10);
       });
 
-      // Success Metrics & Measurement
-      if (generatedAdvice.successMetrics && generatedAdvice.successMetrics.length > 0) {
-        addText("SUCCESS METRICS & MEASUREMENT", 14, true, [70, 130, 180]);
-        addText("How to measure progress and success:", 10);
-        generatedAdvice.successMetrics.forEach((metric: string, index: number) => {
-          addText(`${index + 1}. ${metric}`, 10);
-        });
-      }
+      // Final Director Message
+      addText("", 10);
+      addSeparator();
+      addText("FINAL WORD TO THE DIRECTOR", 14, true, [70, 130, 180]);
+      const finalMessage = `"Be firm. Be fair. Be curious. Behavior that's corrected with compassion can unlock loyalty, growth, and maturity. Don't just correct them—coach them. Remember: Leading in early childhood education means you're nurturing the professionals who write 'chapter one' in children's lives."`;
+      addText(finalMessage, 10, false, [60, 60, 60]);
 
       // Leadership Reflection Questions
       addText("LEADERSHIP REFLECTION QUESTIONS", 14, true, [70, 130, 180]);

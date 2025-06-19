@@ -1,0 +1,76 @@
+Absolutely—what you’re envisioning is a Director’s Action Brief: a compact, smart, AI-generated support tool inside MentorMe that helps directors manage performance or behavioral issues with empathy, insight, and evidence-based strategy. Below is a template for what this 1–2 page auto-generated support doc could look like, complete with prompts and logic for integration.
+
+🧩 MentorMe Director’s Action Brief
+🔍 Issue Focus: Employee Tardiness
+🧠 1. Suspected Root Causes (To Explore Thoughtfully)
+“Behavior is a signal. Understand it before correcting it.” – Brené Brown
+
+Personal Life Stress: Family, transportation, health issues
+
+Burnout or disengagement: Dread coming in, lack of energy or connection
+
+Unclear expectations or lack of accountability culture
+
+Poor sleep hygiene or time management skills
+
+Lack of ownership or buy-in around their role
+
+📝 Prompt to use with Director:
+
+“What have you noticed about their general mood or energy level? Is this new behavior or ongoing? Any patterns—specific days, people, or roles?”
+
+📋 2. Director’s First Action Steps
+“Approach first with curiosity, not confrontation.”
+
+✅ Schedule a private 1:1 conversation within 48 hours.
+
+✅ Use open-ended questions:
+
+“How are things going for you outside of work?”
+
+“I’ve noticed you’ve had some trouble getting in on time. Can you tell me about that?”
+
+✅ Reflect and summarize what you hear—without judgment.
+
+✅ Determine if support is needed: childcare, time shift, accountability partner
+
+✅ Clarify expectations clearly and kindly
+
+🗣️ 3. How to Lead the Conversation (Tone & Phrasing)
+Open with empathy:
+
+“You matter to this team, and I want to understand what’s going on so we can move forward together.”
+
+Hold accountability:
+
+“Being on time is a basic standard here—and I believe you can meet it with the right plan.”
+
+Plan together:
+
+“What would help you arrive on time consistently? What do you think is a reasonable next step?”
+
+🚦 4. Suggested Motivational Insights from Experts
+Expert	Tool/Quote	Application
+Brené Brown	“Clear is kind.”	Be direct, avoid vague hints. Say what needs to be said with empathy.
+Tony Robbins	"Change happens when the pain of staying the same is greater than the pain of change."	Help them link tardiness to lost trust, opportunity, or team morale—but from a place of belief in their potential.
+Simon Sinek	“Start with why.”	Reconnect them to the mission. Why are they here? Why does this job matter to them?
+Mel Robbins	The 5-Second Rule	Teach them to use mental triggers to stop hesitation and act faster in the morning routine.
+
+🎯 5. Next Steps & Accountability Plan
+Goal	Plan	Follow-up
+Arrive on time 5 days this week	Set alarm 30 min earlier, no snooze. Accountability text from peer or you	Daily check-in via Vojo or morning text
+Reflect on “why I work here”	Write 3 reasons, share privately with you or Vojo	Review during next 1:1
+Agree on new consequence if continued	First step: written reminder	Review in 2 weeks, escalate only if needed
+
+📈 6. What’s Worked for Other Centers:
+✅ Offering a temporary shift swap to rebuild confidence
+
+✅ Giving employee a small leadership task to reignite buy-in
+
+✅ Creating a “Tardy Jar” challenge: if on time all week, earn a reward or recognition
+
+✅ Using Vojo check-in prompts to log how they’re feeling each morning before arrival
+
+❤️ Final Word to the Director:
+"Be firm. Be fair. Be curious. Behavior that’s corrected with compassion can unlock loyalty, growth, and maturity. Don’t just correct them—coach them."
+
