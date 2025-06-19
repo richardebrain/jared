@@ -40,6 +40,8 @@ interface EmployeeEceData {
   periodStart: string;
   periodEnd: string;
   totalHours: number;
+  onlineHours: number;
+  inPersonHours: number;
   requiredHours: number;
   progressPercentage: number;
   hoursRemaining: number;
@@ -50,6 +52,8 @@ interface EmployeeEceData {
     title: string;
     category: string;
     hours: number;
+    trainingType: string;
+    location?: string;
     completedAt: string;
   }>;
 }
@@ -756,21 +760,25 @@ export default function EceHoursTracker() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <div className="flex items-center justify-between text-sm">
-                            <span>Progress</span>
+                            <span>Total Progress</span>
                             <span>{employee.totalHours}/{employee.requiredHours} hours</span>
                           </div>
                           <Progress value={employee.progressPercentage} className="mt-1" />
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-blue-600">{employee.hoursRemaining}</p>
-                          <p className="text-sm text-gray-600">Hours Remaining</p>
+                          <p className="text-lg font-bold text-green-600">{employee.onlineHours}</p>
+                          <p className="text-xs text-gray-600">Online Hours</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-purple-600">{employee.daysUntilRenewal}</p>
-                          <p className="text-sm text-gray-600">Days Until Renewal</p>
+                          <p className="text-lg font-bold text-orange-600">{employee.inPersonHours}</p>
+                          <p className="text-xs text-gray-600">In-Person Hours</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-purple-600">{employee.daysUntilRenewal}</p>
+                          <p className="text-xs text-gray-600">Days Until Renewal</p>
                         </div>
                       </div>
 

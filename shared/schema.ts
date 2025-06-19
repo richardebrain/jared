@@ -1820,6 +1820,11 @@ export const eceHours = pgTable("ece_hours", {
   schoolId: integer("school_id").references(() => schools.id),
   certificateGenerated: boolean("certificate_generated").default(false),
   notes: text("notes"), // additional notes about the training
+  // Manual training entry fields
+  trainingType: text("training_type").notNull().default("online"), // "online" or "in_person"
+  trainingLocation: text("training_location"), // venue for in-person training
+  isManualEntry: boolean("is_manual_entry").default(false), // true for manually added hours
+  addedBy: integer("added_by").references(() => users.id), // admin who manually added the hours
 }, (table) => ({
   // Index for user's ECE hours lookup
   userHoursIdx: index("ece_hours_user_idx").on(table.userId),
@@ -1829,6 +1834,8 @@ export const eceHours = pgTable("ece_hours", {
   schoolIdx: index("ece_hours_school_idx").on(table.schoolId),
   // Index for completion date range queries
   completedDateIdx: index("ece_hours_completed_date_idx").on(table.completedAt),
+  // Index for training type reporting
+  trainingTypeIdx: index("ece_hours_training_type_idx").on(table.trainingType),
 }));
 
 export const insertEceHoursSchema = createInsertSchema(eceHours).omit({

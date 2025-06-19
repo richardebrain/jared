@@ -3074,6 +3074,8 @@ Continue for all 5 questions...
           periodStart: periodStart.toISOString().split('T')[0],
           periodEnd: periodEnd.toISOString().split('T')[0],
           totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal
+          onlineHours: Math.round(onlineHours * 10) / 10,
+          inPersonHours: Math.round(inPersonHours * 10) / 10,
           requiredHours,
           progressPercentage: Math.round(progressPercentage),
           hoursRemaining: Math.max(0, requiredHours - totalHours),
@@ -3084,6 +3086,8 @@ Continue for all 5 questions...
             title: h.trainingTitle,
             category: h.category,
             hours: Math.round((h.duration / 60) * 10) / 10,
+            trainingType: h.trainingType || 'online',
+            location: h.trainingLocation || null,
             completedAt: h.completedAt?.toISOString().split('T')[0]
           }))
         };
