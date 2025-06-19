@@ -122,9 +122,13 @@ export default function EceHoursTracker() {
       });
     },
     onSuccess: (data: any) => {
+      const isSimulated = data.note && data.note.includes("SendGrid API key");
       toast({
-        title: "Test Email Sent",
-        description: `Test report sent to ${data.recipients?.length || 0} email(s)`,
+        title: isSimulated ? "Test Email Simulated" : "Test Email Sent",
+        description: isSimulated 
+          ? `${data.message} - ${data.note}`
+          : `Test report sent to ${data.recipients?.length || 0} email(s)`,
+        variant: isSimulated ? "default" : "default",
       });
     },
     onError: (error: any) => {
