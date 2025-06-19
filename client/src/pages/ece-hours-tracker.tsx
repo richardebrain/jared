@@ -27,7 +27,7 @@ import {
   Plus,
   X as XIcon
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -75,6 +75,7 @@ export default function EceHoursTracker() {
   // All hooks must be called at the top level, in the same order every time
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   // State hooks
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeEceData | null>(null);
@@ -359,12 +360,15 @@ export default function EceHoursTracker() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/director-toolkit">
-            <Button variant="outline" size="sm" className="flex items-center space-x-2">
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Director Toolkit</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center space-x-2"
+            onClick={() => setLocation('/director-toolkit')}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Director Toolkit</span>
+          </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">ECE Hours Tracker</h1>
             <p className="text-gray-600">Monitor early childhood education training compliance</p>
