@@ -731,7 +731,13 @@ function Router(props: {
       <Route path="/admin/teachers/:teacherId/assessment-results">
         <ProtectedRoute adminOnly={true}>
           <AdminTeacherAssessmentResultsPage />
-        </ProtectedRoute>m
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/ece-hours-tracker">
+        <ProtectedRoute adminOnly={true}>
+          <EceHoursTracker />
+        </ProtectedRoute>
       </Route>
 
       <Route path="/admin/assign-modules">
