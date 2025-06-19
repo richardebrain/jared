@@ -1372,9 +1372,7 @@ Continue for all 5 questions...
         }
 
         // Hash the password before storing
-        console.log(`Hashing password for user: ${email}`);
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log(`Password hashed successfully, length: ${hashedPassword.length}`);
 
         // Create new user
         const newUser = await storage.createUser({
