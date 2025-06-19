@@ -219,6 +219,10 @@ export default function PerfectManager() {
 
       // Helper function to add text with word wrapping
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+        // Clean text to prevent PDF formatting issues
+        const cleanText = text.replace(/[^\x20-\x7E\xA0-\xFF]/g, '').trim();
+        if (!cleanText) return;
+        
         pdf.setFontSize(fontSize);
         pdf.setTextColor(color[0], color[1], color[2]);
         if (isBold) {
@@ -227,7 +231,7 @@ export default function PerfectManager() {
           pdf.setFont(undefined, 'normal');
         }
         
-        const lines = pdf.splitTextToSize(text, maxLineWidth);
+        const lines = pdf.splitTextToSize(cleanText, maxLineWidth);
         lines.forEach((line: string) => {
           if (yPosition > pdf.internal.pageSize.getHeight() - margin) {
             pdf.addPage();
@@ -404,6 +408,10 @@ export default function PerfectManager() {
       let yPosition = margin;
 
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+        // Clean text to prevent PDF formatting issues
+        const cleanText = text.replace(/[^\x20-\x7E\xA0-\xFF]/g, '').trim();
+        if (!cleanText) return;
+        
         pdf.setFontSize(fontSize);
         pdf.setTextColor(color[0], color[1], color[2]);
         if (isBold) {
@@ -412,7 +420,7 @@ export default function PerfectManager() {
           pdf.setFont(undefined, 'normal');
         }
         
-        const lines = pdf.splitTextToSize(text, maxLineWidth);
+        const lines = pdf.splitTextToSize(cleanText, maxLineWidth);
         lines.forEach((line: string) => {
           if (yPosition > pdf.internal.pageSize.getHeight() - margin) {
             pdf.addPage();
@@ -499,6 +507,29 @@ export default function PerfectManager() {
           yPosition += 5;
         });
       }
+
+      // Leadership Wisdom Section
+      addText("WISDOM FROM LEGENDARY LEADERS", 14, true, [46, 125, 50]);
+      const leadershipQuotes = [
+        {
+          leader: "Tony Robbins",
+          quote: "Progress equals happiness. The secret to living is giving. Focus on where you want to go, not where you have been."
+        },
+        {
+          leader: "Brené Brown", 
+          quote: "Vulnerability is not winning or losing; it's having the courage to show up when you can't control the outcome."
+        },
+        {
+          leader: "Simon Sinek",
+          quote: "Leadership is not about being in charge. Leadership is about taking care of those in your charge."
+        }
+      ];
+
+      leadershipQuotes.forEach(({ leader, quote }) => {
+        addText(`${leader} reminds us:`, 11, true, [46, 125, 50]);
+        addText(`"${quote}"`, 10);
+        yPosition += 3;
+      });
 
       // Core Values Connection
       if (generatedAdvice.coreValuesConnection && generatedAdvice.coreValuesConnection.length > 0) {
