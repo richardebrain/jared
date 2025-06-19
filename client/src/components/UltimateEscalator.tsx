@@ -14,7 +14,9 @@ import {
   BookOpen,
   Clock,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Mic,
+  MicOff
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,6 +83,58 @@ export function UltimateEscalator() {
   const [userInput, setUserInput] = useState('');
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [conversationComplete, setConversationComplete] = useState(false);
+  
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+      
+      recognitionInstance.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setUserInput(prev => prev + (prev ? ' ' : '') + transcript);
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onerror = () => {
+        setIsListening(false);
+        toast({
+          title: "Voice input error",
+          description: "Could not recognize speech. Please try again.",
+          variant: "destructive"
+        });
+      };
+      
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+      
+      setRecognition(recognitionInstance);
+    }
+  }, [toast]);
+
+  // Voice input functions
+  const startListening = () => {
+    if (recognition && !isListening) {
+      setIsListening(true);
+      recognition.start();
+    }
+  };
+
+  const stopListening = () => {
+    if (recognition && isListening) {
+      recognition.stop();
+      setIsListening(false);
+    }
+  };
 
   // Mock user progress data - this would come from the API in a real app
   const { data: userProgress, isLoading: loadingProgress } = useQuery({
@@ -1173,14 +1227,25 @@ export function UltimateEscalator() {
                     <Input
                       value={userInput}
                       onChange={(e) => setUserInput(e.target.value)}
-                      placeholder="Share your thoughts or response..."
+                      placeholder={isListening ? "Listening..." : "Share your thoughts or response..."}
                       onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                      disabled={isAiTyping}
+                      disabled={isAiTyping || isListening}
                       className="flex-1"
                     />
+                    {recognition && (
+                      <Button
+                        onClick={isListening ? stopListening : startListening}
+                        disabled={isAiTyping}
+                        size="sm"
+                        variant={isListening ? "destructive" : "outline"}
+                        className={isListening ? "animate-pulse" : ""}
+                      >
+                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </Button>
+                    )}
                     <Button 
                       onClick={sendMessage} 
-                      disabled={!userInput.trim() || isAiTyping}
+                      disabled={!userInput.trim() || isAiTyping || isListening}
                       size="sm"
                     >
                       Send
