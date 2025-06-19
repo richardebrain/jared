@@ -308,12 +308,14 @@ const logoUpload = multer({
 
 // Helper middleware for requiring authentication with comprehensive session verification
 const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
-  console.log("Auth check - Session ID:", req.session.id);
-  console.log("Auth check - Session data:", req.session);
+  console.log("🔐 Auth middleware triggered for:", req.method, req.path);
+  console.log("Auth check - Session ID:", req.session?.id || "No session");
+  console.log("Auth check - Session userId:", req.session?.userId || "No userId");
+  console.log("Auth check - Session data:", req.session || "No session object");
 
-  if (!req.session.userId) {
-    console.log("Auth failed - No userId in session");
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!req.session || !req.session.userId) {
+    console.log("❌ Auth failed - No userId in session");
+    return res.status(401).json({ message: "Unauthorized - Authentication required" });
   }
 
   try {
