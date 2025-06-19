@@ -6546,6 +6546,111 @@ Continue for all 5 questions...
     `;
   }
 
+  // Scenario Square-Off conversational AI endpoint
+  app.post('/api/scenario-square-off', requireAuth, async (req, res) => {
+    try {
+      const { messages } = req.body;
+      
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: 'Messages array is required' });
+      }
+
+      // Build comprehensive system prompt for emotional intelligence coaching
+      const systemPrompt = `You are an experienced early childhood education coach conducting a "Scenario Square-Off" session. This is a conversational simulation designed to help teachers practice emotional intelligence, examine their biases, and develop better responses to challenging classroom situations.
+
+Your role:
+- Act as a wise, empathetic mentor who asks thoughtful questions
+- Help the teacher explore their emotional reactions and underlying assumptions
+- Guide them to recognize potential biases in their thinking
+- Encourage self-reflection about their responses to children and situations
+- Keep the conversation focused on growth and learning
+- Be supportive but also challenge them to think deeper
+
+Conversation style:
+- Ask one thoughtful question at a time
+- Listen actively to their responses
+- Reflect back what you hear to show understanding
+- Gently probe for deeper insights
+- Use "What if..." and "How might..." questions
+- Share brief wisdom when appropriate
+- Keep responses conversational and not overly academic
+
+The conversation should naturally progress through:
+1. Understanding the challenge they're facing
+2. Exploring their emotional response
+3. Examining any assumptions or biases
+4. Considering alternative perspectives
+5. Developing actionable strategies
+6. Encouraging their growth
+
+Keep responses to 2-3 sentences maximum. End the conversation naturally when they've had meaningful insights and growth (usually after 6-8 exchanges). Signal completion with phrases like "You've got this" or "check back in."`;
+
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY!,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-sonnet-20240229',
+            max_tokens: 300,
+            system: systemPrompt,
+            messages: messages
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Anthropic API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const aiResponse = data.content?.[0]?.text || "I'm here to listen. Can you tell me more about what's happening?";
+
+        res.json({ response: aiResponse });
+      } catch (aiError) {
+        console.error('Anthropic API error:', aiError);
+        
+        // Fallback to OpenAI if Anthropic fails
+        try {
+          const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              max_tokens: 300,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                ...messages
+              ]
+            })
+          });
+
+          if (!openaiResponse.ok) {
+            throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+          }
+
+          const openaiData = await openaiResponse.json();
+          const aiResponse = openaiData.choices?.[0]?.message?.content || "I'm here to listen. Can you tell me more about what's happening?";
+
+          res.json({ response: aiResponse });
+        } catch (openaiError) {
+          console.error('OpenAI API error:', openaiError);
+          res.json({ 
+            response: "I'm experiencing some connection issues, but I'm here to support you. Can you share what's on your mind about your classroom situation?" 
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Scenario Square-Off error:', error);
+      res.status(500).json({ error: 'Failed to generate AI response' });
+    }
+  });
+
   // Perfect Manager AI Leadership Advice Endpoint
   app.post("/api/perfect-manager/advice", requireAuth, async (req, res) => {
     try {

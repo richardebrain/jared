@@ -25,6 +25,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -306,6 +307,16 @@ export function UltimateEscalator() {
       category: 'core-values',
       points: 1,
       estimatedTime: 3,
+      status: 'available'
+    },
+    {
+      id: 100,
+      title: "Scenario Square-Off",
+      description: "Practice emotional intelligence through realistic coaching conversations that challenge your biases and responses",
+      difficulty: 'intermediate',
+      category: 'leadership',
+      points: 1,
+      estimatedTime: 5,
       status: 'available'
     },
     {
@@ -1108,6 +1119,89 @@ export function UltimateEscalator() {
                   </Button>
                 </div>
               </DialogFooter>
+            </>
+          )}
+
+          {/* Scenario Square-Off Conversation Interface */}
+          {selectedChallenge && showConversation && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center">
+                  <Brain className="h-5 w-5 mr-2 text-purple-500" />
+                  Scenario Square-Off: EQ Challenge
+                </DialogTitle>
+                <DialogDescription>
+                  Practice emotional intelligence through realistic coaching conversations
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="py-4">
+                <div className="h-96 border rounded-lg bg-gray-50 overflow-y-auto p-4 mb-4">
+                  {conversationMessages.map((message) => (
+                    <div key={message.id} className={`mb-4 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                      <div className={`inline-block max-w-[80%] p-3 rounded-lg ${
+                        message.sender === 'user' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-white border shadow-sm'
+                      }`}>
+                        <p className="text-sm">{message.message}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isAiTyping && (
+                    <div className="text-left mb-4">
+                      <div className="inline-block bg-white border shadow-sm p-3 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                          <span className="text-xs text-gray-500">AI is thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {!conversationComplete && (
+                  <div className="flex gap-2">
+                    <Input
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      placeholder="Share your thoughts or response..."
+                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      disabled={isAiTyping}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={sendMessage} 
+                      disabled={!userInput.trim() || isAiTyping}
+                      size="sm"
+                    >
+                      Send
+                    </Button>
+                  </div>
+                )}
+                
+                {conversationComplete && (
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-green-800 font-medium mb-2">
+                      Conversation Complete! 
+                    </p>
+                    <p className="text-sm text-green-600 mb-4">
+                      You've practiced valuable emotional intelligence skills through this coaching dialogue.
+                    </p>
+                    <Button onClick={completeScenarioSquareOff} className="bg-green-600 hover:bg-green-700">
+                      Claim 1 Point
+                    </Button>
+                  </div>
+                )}
+              </div>
             </>
           )}
           
