@@ -95,6 +95,7 @@ import MusicMaker from "@/pages/music-maker";
 import PerfectManager from "@/pages/admin-perfect-manager";
 import SchoolECETracking from "@/pages/school-ece-tracking";
 import EceHoursTracker from "@/pages/ece-hours-tracker";
+import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 
 // Create a wrapper component that uses AuthProvider internally
@@ -216,6 +217,12 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/assessment-required">
+        <ProtectedRoute>
+          <AssessmentRequired />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/learning-style">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
@@ -229,27 +236,15 @@ function Router(props: {
       </Route>
 
       <Route path="/modules/:id">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+        <ProtectedRoute requiresAssessment={true}>
           <LearningModulePage />
-        )}
+        </ProtectedRoute>
       </Route>
 
       <Route path="/learning-module/:id">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+        <ProtectedRoute requiresAssessment={true}>
           <LearningModulePage />
-        )}
+        </ProtectedRoute>
       </Route>
 
       <Route path="/core-values-module">
