@@ -1961,28 +1961,7 @@ Continue for all 5 questions...
     });
   }
 
-  // Temporary debug endpoint for Teresa's permissions
-  app.get("/api/debug/user/:id", async (req, res) => {
-    const userId = parseInt(req.params.id);
-    if (userId === 46) { // Teresa's ID
-      try {
-        const user = await storage.getUser(userId);
-        console.log("DEBUG: Raw user data from database:", JSON.stringify(user, null, 2));
-        res.json({
-          rawUserData: user,
-          adminFields: {
-            isAdmin: user?.isAdmin,
-            isSchoolAdmin: user?.isSchoolAdmin,
-            isOwner: user?.isOwner
-          }
-        });
-      } catch (error) {
-        res.status(500).json({ error: "Debug failed", details: error.message });
-      }
-    } else {
-      res.status(403).json({ error: "Debug only available for Teresa" });
-    }
-  });
+
 
   app.get("/api/auth/me", async (req, res) => {
     console.log("GET /api/auth/me - Session ID:", req.session.id);
