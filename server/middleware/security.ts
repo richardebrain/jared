@@ -4,8 +4,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 export function setupSecurityMiddleware(app: Express) {
   // Add security headers
   app.use((req: Request, res: Response, next: NextFunction) => {
-    // Prevent clickjacking
-    res.setHeader('X-Frame-Options', 'DENY');
+    // Prevent clickjacking (allow same origin for video embeds)
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     
     // Prevent MIME type sniffing
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -16,15 +16,17 @@ export function setupSecurityMiddleware(app: Express) {
     // Referrer policy for privacy
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
-    // Content Security Policy (relaxed for development)
+    // Content Security Policy (allows video content from trusted sources)
     res.setHeader('Content-Security-Policy', 
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://youtube.com; " +
       "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: https:; " +
       "font-src 'self' data:; " +
       "connect-src 'self' https:; " +
-      "media-src 'self' https:;"
+      "media-src 'self' https: https://www.youtube.com https://youtube.com https://vimeo.com; " +
+      "frame-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com; " +
+      "child-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com;"
     );
     
     next();
