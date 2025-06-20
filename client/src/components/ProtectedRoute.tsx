@@ -40,12 +40,6 @@ export function ProtectedRoute({
   }
   
   if (schoolAdminOnly && !isSchoolAdmin) {
-    console.log("ProtectedRoute DEBUG: schoolAdminOnly access denied", {
-      schoolAdminOnly,
-      isSchoolAdmin,
-      userId: user?.id,
-      username: user?.username
-    });
     return <Redirect to="/dashboard" />;
   }
   
