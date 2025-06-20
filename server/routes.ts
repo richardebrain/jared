@@ -6029,6 +6029,44 @@ Continue for all 5 questions...
     }
   });
 
+  // Individual user credential update endpoint
+  app.post("/api/update-credential", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { field, date } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      // Build update object based on field
+      const updateData: any = {};
+      const validFields = [
+        'fingerprintExpiration',
+        'cprExpiration', 
+        'firstAidExpiration',
+        'foodHandlerExpiration'
+      ];
+
+      if (!validFields.includes(field)) {
+        return res.status(400).json({ message: "Invalid field" });
+      }
+
+      updateData[field] = date ? new Date(date) : null;
+
+      // Update the user's certification
+      await storage.updateUser(userId, updateData);
+
+      res.json({
+        success: true,
+        message: "Credential updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating credential:", error);
+      res.status(500).json({ message: "Failed to update credential" });
+    }
+  });
+
   app.post(
     "/api/admin/update-teacher-certifications",
     requireAuth,
