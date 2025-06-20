@@ -1995,16 +1995,7 @@ Continue for all 5 questions...
         `GET /api/auth/me - Found user: ${user.username} (ID: ${user.id})`,
       );
       
-      // Debug logging for Teresa specifically
-      if (userId === 46) {
-        console.log("DEBUG: Teresa's user data from /api/auth/me:", JSON.stringify({
-          id: user.id,
-          username: user.username,
-          isAdmin: user.isAdmin,
-          isSchoolAdmin: user.isSchoolAdmin,
-          isOwner: user.isOwner
-        }, null, 2));
-      }
+
 
       // Ensure user points are properly initialized
       if (user.points === undefined || user.points === null) {

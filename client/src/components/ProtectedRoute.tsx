@@ -21,7 +21,7 @@ export function ProtectedRoute({
   schoolAdminOnly = false,
   ownerOnly = false
 }: ProtectedRouteProps): JSX.Element {
-  const { isAuthenticated, isLoading, isAdmin, isSchoolAdmin, isOwner } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin, isSchoolAdmin, isOwner, user } = useAuth();
   
   if (isLoading) {
     return (
@@ -40,6 +40,12 @@ export function ProtectedRoute({
   }
   
   if (schoolAdminOnly && !isSchoolAdmin) {
+    console.log("ProtectedRoute DEBUG: schoolAdminOnly access denied", {
+      schoolAdminOnly,
+      isSchoolAdmin,
+      userId: user?.id,
+      username: user?.username
+    });
     return <Redirect to="/dashboard" />;
   }
   
