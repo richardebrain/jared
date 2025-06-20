@@ -94,9 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/auth/me'],
     retry: false, // Disable retries to prevent session clearing loops
     refetchOnWindowFocus: false, // Disable refetch on window focus to prevent loops
-    refetchOnMount: false, // Disable refetch on mount to prevent loops
-    staleTime: 300000, // 5 minutes
-    gcTime: 600000, // 10 minutes
+    refetchOnMount: true, // Enable refetch on mount for proper session verification
+    staleTime: 60000, // 1 minute - shorter to ensure fresh auth data
+    gcTime: 300000, // 5 minutes
     enabled: !isOnPublicPage() && !authFailed, // Only fetch if not on public page and auth hasn't failed
   });
 
