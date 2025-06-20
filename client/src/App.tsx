@@ -199,39 +199,21 @@ function Router(props: {
       </Route>
 
       <Route path="/initial-assessment">
-        {!isAuthenticated && !isLoading ? (
-          location !== "/login" ? <Redirect to="/login" /> : <Login />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+        <ProtectedRoute>
           <InitialAssessment />
-        )}
+        </ProtectedRoute>
       </Route>
 
       <Route path="/assessment-questions">
-        {!isAuthenticated && !isLoading ? (
-          location !== "/login" ? <Redirect to="/login" /> : <Login />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+        <ProtectedRoute>
           <AssessmentQuestions />
-        )}
+        </ProtectedRoute>
       </Route>
 
       <Route path="/assessment-results">
-        {!isAuthenticated && !isLoading ? (
-          location !== "/login" ? <Redirect to="/login" /> : <Login />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
+        <ProtectedRoute>
           <AssessmentResults />
-        )}
+        </ProtectedRoute>
       </Route>
 
       <Route path="/learning-style">
@@ -717,19 +699,19 @@ function Router(props: {
       </Route>
 
       <Route path="/admin/assign-modules">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <AdminAssignModulesPage />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/messaging">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <AdminMessagingPage />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/video-library">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <AdminVideoLibraryPage />
         </ProtectedRoute>
       </Route>
@@ -759,7 +741,7 @@ function Router(props: {
       </Route>
 
       <Route path="/admin/perfect-manager">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <PerfectManager />
         </ProtectedRoute>
       </Route>
