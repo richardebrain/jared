@@ -699,19 +699,19 @@ function Router(props: {
       </Route>
 
       <Route path="/admin/teachers">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <AdminTeachersPage />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/teachers/:teacherId/assessment-results">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <AdminTeacherAssessmentResultsPage />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/ece-hours-tracker">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <EceHoursTracker />
         </ProtectedRoute>
       </Route>
@@ -735,7 +735,7 @@ function Router(props: {
       </Route>
 
       <Route path="/admin/analytics">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <AdminAnalyticsPage />
         </ProtectedRoute>
       </Route>

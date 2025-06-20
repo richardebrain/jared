@@ -378,6 +378,17 @@ const requireAssessmentCompletion = async (
       return res.status(401).json({ message: "Authentication required" });
     }
 
+    // Get user to check if they're a school admin
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Skip assessment requirement for school admins
+    if (user.isSchoolAdmin) {
+      return next();
+    }
+
     // Check if user has completed at least one assessment
     const completedAssessments =
       await storage.getUserCompletedAssessments(userId);
