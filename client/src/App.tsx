@@ -717,7 +717,7 @@ function Router(props: {
       </Route>
 
       <Route path="/director-toolkit">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <DirectorToolkit />
         </ProtectedRoute>
       </Route>

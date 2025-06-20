@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
+  schoolAdminOnly?: boolean;
   ownerOnly?: boolean;
 }
 
@@ -17,9 +18,10 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ 
   children,
   adminOnly = false,
+  schoolAdminOnly = false,
   ownerOnly = false
 }: ProtectedRouteProps): JSX.Element {
-  const { isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin, isSchoolAdmin, isOwner } = useAuth();
   
   if (isLoading) {
     return (
@@ -34,6 +36,10 @@ export function ProtectedRoute({
   }
   
   if (adminOnly && !isAdmin) {
+    return <Redirect to="/dashboard" />;
+  }
+  
+  if (schoolAdminOnly && !isSchoolAdmin) {
     return <Redirect to="/dashboard" />;
   }
   
