@@ -194,13 +194,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);
+      
+      // Handle timeout and 403 errors differently in deployed environment
+      if (error.message.includes('timeout') || error.message.includes('taking too long')) {
+        toast({
+          title: "Login timeout",
+          description: "Please wait a moment and try again. The server may be busy.",
+          variant: "destructive",
+        });
+        // Don't set auth failed for timeouts - allow retry
+        return;
+      }
+      
+      if (error.message.includes('403') || error.message.includes('Authentication failed')) {
+        toast({
+          title: "Authentication failed",
+          description: "Please check your credentials and try again.",
+          variant: "destructive",
+        });
+        // Clear any stale session data that might be causing 403s
+        sessionStorage.clear();
+        localStorage.removeItem('authState');
+        queryClient.clear();
+      } else {
+        toast({
+          title: "Login failed",
+          description: error.message || "Invalid username or password",
+          variant: "destructive",
+        });
+      }
+      
       setAuthFailed(true);
       clearAuthState();
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid username or password",
-        variant: "destructive",
-      });
       throw error;
     },
   });

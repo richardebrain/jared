@@ -132,15 +132,56 @@ export function clearAuthState(): void {
  */
 export async function loginUser(credentials: { username: string; password: string }): Promise<User> {
   try {
-    const response = await apiRequest<User>("/api/auth/login", {
-      method: "POST",
-      data: credentials
-    });
+    console.log("Attempting login request to backend...");
     
-    return response;
+    // Use fetch directly for better timeout control in deployed environment
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+      // Extended timeout for deployed version
+      signal: AbortSignal.timeout(45000), // 45 second timeout
+    });
+
+    console.log("Login response status:", response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("Login failed with status:", response.status, "Error:", errorData);
+      
+      let errorMessage = "Login failed";
+      try {
+        const parsedError = JSON.parse(errorData);
+        errorMessage = parsedError.message || parsedError.details || errorMessage;
+      } catch {
+        errorMessage = response.status === 408 ? "Login timed out. Please try again." : 
+                     response.status === 403 ? "Authentication failed. Please check your credentials." :
+                     "Network error. Please try again.";
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const userData = await response.json();
+    console.log("Login successful, user data received");
+    return userData;
+    
   } catch (error: any) {
     console.error("Login error:", error);
-    throw new Error(error.message || "Invalid username or password");
+    
+    // Handle timeout errors specifically
+    if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+      throw new Error("Login is taking too long. Please check your connection and try again.");
+    }
+    
+    // Handle network errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error("Network connection error. Please check your internet connection.");
+    }
+    
+    throw new Error(error.message || "Authentication failed. Please try again.");
   }
 }
 
