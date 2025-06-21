@@ -1700,12 +1700,29 @@ Continue for all 5 questions...
           );
         }
 
+        // Check and enforce concurrent session limits before creating session
+        try {
+          const { sessionSecurity } = await import('./middleware/sessionSecurity');
+          const { allowed, activeSessions } = await sessionSecurity.checkConcurrentSessions(user.id);
+          
+          if (!allowed) {
+            console.log(`User ${user.id} has ${activeSessions} active sessions. Enforcing limit of 3.`);
+            await sessionSecurity.enforceSessionLimit(user.id);
+          }
+        } catch (sessionError) {
+          console.error('Error checking concurrent sessions:', sessionError);
+          // Continue with login - don't block user on session security errors
+        }
+
         // Set the user session with userId
         req.session.userId = user.id;
 
         // Add a login timestamp for better tracking
         const loginTime = new Date();
         req.session.loginTime = loginTime.toISOString();
+        
+        // Initialize session activity tracking
+        (req.session as any).lastActivity = loginTime.toISOString();
 
         // Update user's last active time and handle login streak
         const today = new Date();
@@ -1905,6 +1922,50 @@ Continue for all 5 questions...
       });
     });
   }
+
+  // Session monitoring endpoints for enhanced security
+  app.get("/api/admin/session-stats", requireAuth, async (req, res) => {
+    try {
+      // Check if user is admin
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser?.isOwner && !currentUser?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { sessionSecurity } = await import('./middleware/sessionSecurity');
+      const stats = await sessionSecurity.getSessionStats();
+      
+      res.json({
+        ...stats,
+        sessionDuration: "24 hours",
+        idleTimeout: "3 hours",
+        maxConcurrentSessions: 3,
+        securityLevel: "Enhanced ECE Platform Security"
+      });
+    } catch (error) {
+      console.error('Error fetching session stats:', error);
+      res.status(500).json({ message: "Failed to fetch session statistics" });
+    }
+  });
+
+  // Get current user's active sessions
+  app.get("/api/auth/my-sessions", requireAuth, async (req, res) => {
+    try {
+      const { sessionSecurity } = await import('./middleware/sessionSecurity');
+      const { activeSessions } = await sessionSecurity.checkConcurrentSessions(req.session.userId);
+      
+      res.json({
+        currentSessionId: req.session.id?.substring(0, 8) + "...",
+        activeSessions,
+        maxAllowed: 3,
+        sessionExpiry: req.session.cookie.expires || "24 hours",
+        lastActivity: (req.session as any).lastActivity || (req.session as any).loginTime
+      });
+    } catch (error) {
+      console.error('Error fetching user sessions:', error);
+      res.status(500).json({ message: "Failed to fetch session information" });
+    }
+  });
 
   // Clear session route - for use on fresh deployment to ensure no auto-login
   if (!skipAuthEndpoints) {

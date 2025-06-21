@@ -49,16 +49,20 @@ server.headersTimeout = 66000; // 66 seconds
 const PgSession = connectPgSimple(session);
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Enhanced session security configuration for ECE platform
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours (reduced from 7 days)
+const IDLE_TIMEOUT = 3 * 60 * 60 * 1000; // 3 hours idle timeout
+
 app.use(session({
   secret: process.env.SESSION_SECRET || "mentor-me-secret-dev-only",
   resave: false,
   saveUninitialized: false,
-  rolling: true,
+  rolling: true, // Extends session with activity
   name: 'mentorme.sid',
   cookie: { 
     secure: false, // Allow HTTP for Replit deployment
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: SESSION_DURATION, // 24 hours
     sameSite: "lax",
     path: '/'
   },
@@ -66,12 +70,44 @@ app.use(session({
     conString: process.env.DATABASE_URL,
     tableName: 'sessions',
     createTableIfMissing: true,
-    pruneSessionInterval: 24 * 60 * 60,
+    pruneSessionInterval: 60 * 60, // Clean expired sessions every hour
     errorLog: (error) => {
       console.error('Session store error:', error);
     }
   })
 }));
+
+// Session security middleware for idle timeout and activity monitoring
+app.use((req, res, next) => {
+  if (req.session && req.session.userId) {
+    const now = Date.now();
+    const lastActivity = (req.session as any).lastActivity || (req.session as any).loginTime || now;
+    const timeSinceActivity = now - new Date(lastActivity).getTime();
+    
+    // Check for idle timeout (3 hours)
+    if (timeSinceActivity > IDLE_TIMEOUT) {
+      console.log(`Session idle timeout for user ${req.session.userId}. Last activity: ${new Date(lastActivity).toISOString()}`);
+      req.session.destroy((err) => {
+        if (err) console.error('Error destroying idle session:', err);
+      });
+      res.clearCookie('mentorme.sid');
+      return res.status(401).json({
+        message: "Session expired due to inactivity",
+        details: "Please log in again to continue.",
+        code: "IDLE_TIMEOUT"
+      });
+    }
+    
+    // Update last activity timestamp
+    (req.session as any).lastActivity = new Date().toISOString();
+    
+    // Save session with updated activity time
+    req.session.save((err) => {
+      if (err) console.error('Error saving session activity:', err);
+    });
+  }
+  next();
+});
 
 // All authentication endpoints moved to routes.ts to prevent conflicts
 
