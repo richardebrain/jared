@@ -1549,7 +1549,7 @@ Continue for all 5 questions...
             details: "The login operation took too long. Please try again." 
           });
         }
-      }, 15000); // 15 second timeout
+      }, 30000); // 30 second timeout
 
       try {
         // Extract and trim credentials for consistency
@@ -1582,21 +1582,12 @@ Continue for all 5 questions...
         
         let user;
         try {
-          user = await Promise.race([
-            storage.getUserByUsername(username),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Database timeout')), 10000)
-            )
-          ]);
+          // Try to find user by username first
+          user = await storage.getUserByUsername(username);
           
           // If not found by username, try finding by email (for new email-based accounts)
           if (!user) {
-            user = await Promise.race([
-              storage.getUserByEmail(username),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Database timeout')), 10000)
-              )
-            ]);
+            user = await storage.getUserByEmail(username);
           }
           
           console.log(`Database lookup completed in ${Date.now() - dbStartTime}ms`);
@@ -1622,34 +1613,15 @@ Continue for all 5 questions...
         }
 
         // Clean up session if user is already logged in to prevent login loops
-        if (req.session.userId) {
-          // Clear any existing session first with timeout
-          try {
-            await Promise.race([
-              new Promise<void>((resolve) => {
-                req.session.destroy((err) => {
-                  if (err)
-                    console.error(
-                      "Error destroying existing session for user:",
-                      err,
-                    );
-                  resolve();
-                });
-              }),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Session destroy timeout')), 5000)
-              )
-            ]);
-          } catch (error) {
-            console.error("Session destroy timeout:", error);
-            // Continue anyway, we'll create a new session
-          }
-
-          // Need to manually clear the cookie since destroy doesn't do it automatically
+        if (req.session.userId && req.session.userId !== user.id) {
+          console.log(`Clearing existing session for different user: ${req.session.userId}`);
+          // Clear any existing session for a different user
+          req.session.destroy((err) => {
+            if (err) {
+              console.error("Error destroying existing session:", err);
+            }
+          });
           res.clearCookie("connect.sid");
-
-          // Initialize a new session object since we destroyed the previous one
-          req.session = req.session || {};
         }
 
         // Debug logging for authentication
