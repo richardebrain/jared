@@ -17,7 +17,8 @@ import {
   MessageSquare, 
   Zap, 
   CheckCircle2, 
-  ArrowRight, 
+  ArrowRight,
+  Music, 
   ArrowLeft, 
   X,
   GraduationCap,
@@ -79,8 +80,8 @@ const tutorialSteps: TutorialStep[] = [
   },
   {
     id: 'modules',
-    title: 'Interactive Learning Modules',
-    description: 'Explore our comprehensive library of training modules organized by topic and duration. From quick 5-minute micro-modules to comprehensive courses.',
+    title: 'Lightning Training Modules',
+    description: 'Only have 15 minutes for training? Take 4 lightning trainings to earn 1 full ECE hour! Quick, engaging modules that fit your busy schedule. Earn points, climb ranks, and watch videos for extra rewards!',
     icon: <BookOpen className="h-6 w-6 text-purple-600" />,
     screenshot: moduleOutlineScreenshot,
     action: {
@@ -122,9 +123,21 @@ const tutorialSteps: TutorialStep[] = [
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
+    id: 'music-library',
+    title: 'Classroom Music Library',
+    description: 'Need calming music for nap time? Energizing songs for transitions? Browse our curated music library designed specifically for early childhood classrooms. Make every moment magical with the perfect soundtrack!',
+    icon: <Music className="h-6 w-6 text-purple-600" />,
+    screenshot: dashboardScreenshot,
+    action: {
+      text: 'Browse Music',
+      href: '/games'
+    },
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
     id: 'video-library',
     title: 'Professional Video Library',
-    description: 'Access curated professional development videos with integrated quizzes and ECE hour tracking for comprehensive learning experiences.',
+    description: 'Watch videos and earn points! Professional development videos with integrated quizzes that count toward your ECE hours. Rate boring content low so we can remove it - we want only the best training over time!',
     icon: <Play className="h-6 w-6 text-red-600" />,
     screenshot: videoLibraryScreenshot,
     action: {
@@ -178,6 +191,54 @@ const tutorialSteps: TutorialStep[] = [
     action: {
       text: 'Create Module',
       href: '/new-module-creator'
+    },
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
+    id: 'custom-story-creator',
+    title: 'Custom Story Creator',
+    description: 'Have a child who doesn\'t speak English? Create comfort stories in their language to help with biting, transitions, or any classroom challenge! Personalized stories that speak to each child\'s heart in their home language.',
+    icon: <BookOpen className="h-6 w-6 text-pink-600" />,
+    screenshot: dashboardScreenshot,
+    action: {
+      text: 'Create Story',
+      href: '/games'
+    },
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
+    id: 'suessifier',
+    title: 'The Suessifier',
+    description: 'Want a fun poem with your student\'s name? Test the Suessifier! Create personalized Dr. Seuss-style poems that make every child feel special. Perfect for circle time, transitions, or celebrating achievements!',
+    icon: <Music className="h-6 w-6 text-orange-600" />,
+    screenshot: dashboardScreenshot,
+    action: {
+      text: 'Create Poem',
+      href: '/games'
+    },
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
+    id: 'core-values-shoutouts',
+    title: 'Core Value Shout-Outs',
+    description: 'Celebrate your team! Give core value shout-outs to employees who embody your school\'s values. Build positive culture while earning points and climbing the leaderboard. Recognition that matters!',
+    icon: <Award className="h-6 w-6 text-green-600" />,
+    screenshot: dashboardScreenshot,
+    action: {
+      text: 'Give Shout-Out',
+      href: '/dashboard'
+    },
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
+    id: 'leaderboard',
+    title: 'Get on Top of the Leaderboard',
+    description: 'Compete with your colleagues! See who\'s earning the most points, completing the most training, and climbing the teacher ranks. Friendly competition that motivates everyone to grow professionally!',
+    icon: <BarChart3 className="h-6 w-6 text-blue-600" />,
+    screenshot: dashboardScreenshot,
+    action: {
+      text: 'View Leaderboard',
+      href: '/dashboard'
     },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
