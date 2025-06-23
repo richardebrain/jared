@@ -1,0 +1,25 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="600" fill="#ffffff"/>
+<rect x="20" y="20" width="760" height="560" fill="#f0f9ff" rx="12"/>
+<text x="400" y="50" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">Points &amp; Progression Tracking</text>
+<rect x="40" y="80" width="720" height="120" fill="#dbeafe" rx="8"/>
+<text x="60" y="110" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600" fill="#1e40af">Your Progress Dashboard</text>
+<text x="60" y="135" font-family="Inter, Arial, sans-serif" font-size="14" fill="#3730a3">Current Points: 485</text>
+<text x="60" y="155" font-family="Inter, Arial, sans-serif" font-size="14" fill="#3730a3">Current Level: Lead Teacher</text>
+<text x="60" y="175" font-family="Inter, Arial, sans-serif" font-size="14" fill="#3730a3">ECE Hours: 15.5 hours</text>
+<rect x="500" y="100" width="200" height="30" fill="#3b82f6" rx="4"/>
+<text x="600" y="118" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">Progress to Master: 75%</text>
+<rect x="40" y="220" width="340" height="160" fill="#ecfdf5" rx="8"/>
+<text x="60" y="250" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#065f46">Recent Achievements</text>
+<text x="60" y="275" font-family="Inter, Arial, sans-serif" font-size="12" fill="#047857">✓ Completed Quiz: +15 points</text>
+<text x="60" y="295" font-family="Inter, Arial, sans-serif" font-size="12" fill="#047857">✓ Watched Video: +5 points</text>
+<text x="60" y="315" font-family="Inter, Arial, sans-serif" font-size="12" fill="#047857">✓ Finished Module: +20 points</text>
+<text x="60" y="335" font-family="Inter, Arial, sans-serif" font-size="12" fill="#047857">✓ 5-Day Streak Bonus: +25 points</text>
+<rect x="420" y="220" width="340" height="160" fill="#fef3c7" rx="8"/>
+<text x="440" y="250" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#92400e">Next Milestones</text>
+<text x="440" y="275" font-family="Inter, Arial, sans-serif" font-size="12" fill="#d97706">Master Teacher: 600 points + 100 ECE hours</text>
+<text x="440" y="295" font-family="Inter, Arial, sans-serif" font-size="12" fill="#d97706">Silver Box Reward: Complete 5-day streak</text>
+<text x="440" y="315" font-family="Inter, Arial, sans-serif" font-size="12" fill="#d97706">Bear Bucks Earned: 48 total</text>
+<rect x="300" y="420" width="200" height="50" fill="#10b981" rx="8"/>
+<text x="400" y="450" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">View Full Progress</text>
+</svg>
