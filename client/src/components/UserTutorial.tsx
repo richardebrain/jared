@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import confetti from 'canvas-confetti';
 import { 
   Play, 
   BookOpen, 
@@ -154,6 +155,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
   const [currentStep, setCurrentStep] = useState(0);
   const [showMysteryBox, setShowMysteryBox] = useState(false);
   const [mysteryBoxOpened, setMysteryBoxOpened] = useState(false);
+  const [mysteryBoxOpening, setMysteryBoxOpening] = useState(false);
   const [mysteryBoxReward, setMysteryBoxReward] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -187,8 +189,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
-      // Award 1 point for tutorial progress and play coin sound
-      awardTutorialPoint();
+      // Just move to next step without point popup
       setCurrentStep(currentStep + 1);
     } else {
       // On the last step, show mystery box instead of completing immediately
@@ -265,7 +266,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
     onClose();
   };
 
-  // Open mystery box and award random bonus points
+  // Open mystery box with dramatic reveal and confetti
   const openMysteryBox = async () => {
     if (mysteryBoxOpened) return;
     
@@ -273,63 +274,119 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
       // Generate random bonus points (1-20)
       const bonusPoints = Math.floor(Math.random() * 20) + 1;
       
-      // Award the bonus points
-      const response = await apiRequest('/api/mystery-box-reward', {
-        method: 'POST',
-        data: { bonusPoints }
-      });
+      // Start dramatic opening sequence
+      setMysteryBoxOpening(true);
       
-      setMysteryBoxReward(bonusPoints);
-      setMysteryBoxOpened(true);
-      
-      // Play special victory sound
-      const audio = new Audio('/victory-sound.mp3');
-      audio.volume = 0.4;
-      audio.play().catch(() => {
-        // Fallback: create victory sound using Web Audio API
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Victory melody
-        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-        let time = audioContext.currentTime;
-        
-        notes.forEach((freq, index) => {
-          oscillator.frequency.setValueAtTime(freq, time + index * 0.2);
-        });
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.8);
-      });
+      // Dramatic pause before opening
+      setTimeout(async () => {
+        try {
+          // Award the bonus points
+          await apiRequest('/api/mystery-box-reward', {
+            method: 'POST',
+            data: { bonusPoints }
+          });
+          
+          setMysteryBoxReward(bonusPoints);
+          
+          // Award all tutorial points at once at the end
+          for (let i = 0; i < totalSteps; i++) {
+            await apiRequest('/api/award-tutorial-point', {
+              method: 'POST'
+            });
+          }
+          
+          // Play special victory sound
+          const audio = new Audio('/victory-sound.mp3');
+          audio.volume = 0.4;
+          audio.play().catch(() => {
+            // Fallback: create victory sound using Web Audio API
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Victory melody
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            let time = audioContext.currentTime;
+            
+            notes.forEach((freq, index) => {
+              oscillator.frequency.setValueAtTime(freq, time + index * 0.2);
+            });
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.8);
+          });
 
-      const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
-      
-      // Show exciting reward notification
-      toast({
-        title: "🎁 Mystery Box Opened!",
-        description: `Congratulations ${firstName}! You won ${bonusPoints} bonus points! Your tutorial adventure is complete!`,
-        duration: 4000,
-      });
-      
-      // Complete tutorial after short delay
-      setTimeout(() => {
-        handleComplete();
-      }, 4000);
+          // Trigger confetti effect
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
+          });
+          
+          // Second burst of confetti
+          setTimeout(() => {
+            confetti({
+              particleCount: 100,
+              spread: 80,
+              origin: { y: 0.7 },
+              colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']
+            });
+          }, 300);
+          
+          // Third burst from different angle
+          setTimeout(() => {
+            confetti({
+              particleCount: 75,
+              spread: 60,
+              origin: { x: 0.2, y: 0.8 },
+              colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1']
+            });
+            confetti({
+              particleCount: 75,
+              spread: 60,
+              origin: { x: 0.8, y: 0.8 },
+              colors: ['#96CEB4', '#FFEAA7', '#DDA0DD', '#FFD700']
+            });
+          }, 600);
+          
+          setMysteryBoxOpening(false);
+          setMysteryBoxOpened(true);
+
+          const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
+          
+          // Show exciting final reward notification with all points
+          toast({
+            title: "🎁 Tutorial Complete!",
+            description: `Congratulations ${firstName}! You earned ${totalSteps} tutorial points PLUS ${bonusPoints} bonus points! Welcome to MentorMe ECE!`,
+            duration: 5000,
+          });
+          
+          // Complete tutorial after display time
+          setTimeout(() => {
+            handleComplete();
+          }, 5000);
+          
+        } catch (error) {
+          console.error('Error opening mystery box:', error);
+          setMysteryBoxOpening(false);
+          toast({
+            title: "Mystery Box Error",
+            description: "Something went wrong with your mystery box. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }, 2000); // 2 second dramatic pause
       
     } catch (error) {
-      console.error('Error opening mystery box:', error);
-      toast({
-        title: "Mystery Box Error",
-        description: "Something went wrong with your mystery box. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error starting mystery box:', error);
+      setMysteryBoxOpening(false);
     }
   };
 
@@ -461,7 +518,17 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                 Click to open your mystery box and discover bonus points to start your journey!
               </p>
               
-              {!mysteryBoxOpened ? (
+              {mysteryBoxOpening ? (
+                <div className="space-y-4">
+                  <div className="text-8xl animate-pulse">🎁</div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
+                    Opening your mystery box...
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  </div>
+                </div>
+              ) : !mysteryBoxOpened ? (
                 <Button
                   onClick={openMysteryBox}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
@@ -470,17 +537,20 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <div className="text-4xl">🎉</div>
-                  <div className="bg-white rounded-lg p-4 border-2 border-yellow-300">
-                    <div className="text-3xl font-bold text-yellow-600">
+                  <div className="text-6xl animate-bounce">🎉</div>
+                  <div className="bg-white rounded-lg p-6 border-4 border-yellow-300 shadow-xl">
+                    <div className="text-4xl font-bold text-yellow-600 mb-2">
                       +{mysteryBoxReward} Bonus Points!
                     </div>
-                    <p className="text-gray-600 mt-2">
-                      Amazing! You now have {10 + mysteryBoxReward} total points to start your adventure!
+                    <div className="text-2xl font-bold text-purple-600 mb-2">
+                      +{totalSteps} Tutorial Points!
+                    </div>
+                    <p className="text-gray-700 text-lg font-medium">
+                      Amazing! You now have {10 + totalSteps + mysteryBoxReward} total points to start your adventure!
                     </p>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Your tutorial will complete automatically in a few seconds...
+                  <p className="text-lg text-purple-600 font-medium animate-pulse">
+                    Welcome to MentorMe ECE! Your journey begins now...
                   </p>
                 </div>
               )}
