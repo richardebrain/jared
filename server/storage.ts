@@ -1443,6 +1443,7 @@ export class DatabaseStorage implements IStorage {
         isOwner: users.isOwner,
         schoolId: users.schoolId,
         createdAt: users.createdAt,
+        hasCompletedTutorial: users.hasCompletedTutorial,
       }).from(users).where(eq(users.id, id));
       return user || undefined;
     } catch (error) {

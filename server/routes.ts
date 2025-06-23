@@ -2071,10 +2071,10 @@ Continue for all 5 questions...
       // Do not return password in response
       const { password, ...userWithoutPassword } = user;
 
-      // Ensure hasCompletedTutorial field is included
+      // Ensure hasCompletedTutorial field is included (preserve database value)
       const userResponse = {
         ...userWithoutPassword,
-        hasCompletedTutorial: userWithoutPassword.hasCompletedTutorial || false
+        hasCompletedTutorial: userWithoutPassword.hasCompletedTutorial ?? false
       };
 
       res.status(200).json(userResponse);

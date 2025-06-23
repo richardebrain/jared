@@ -49,14 +49,14 @@ export function useTutorial() {
   useEffect(() => {
     if (user) {
       // NEVER show tutorial again if user has completed it
-      if (user.hasCompletedTutorial === true) {
+      if (user.hasCompletedTutorial) {
         setShowTutorial(false);
         return;
       }
       
       // Only show tutorial for genuinely new users who haven't completed it
       const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const shouldShowTutorial = user.hasCompletedTutorial !== true && isNewUser;
+      const shouldShowTutorial = !user.hasCompletedTutorial && isNewUser;
       
       // Add small delay to avoid showing immediately on login
       if (shouldShowTutorial) {
