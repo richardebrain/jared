@@ -28,17 +28,18 @@ import {
   MapPin,
   AlertCircle,
   Loader2,
-  Send,
-  MessageSquare,
-  GraduationCap,
-  Heart,
   Shield,
+  Heart,
   UtensilsCrossed,
   Fingerprint,
-  Play,
-  CheckSquare,
   AlertTriangle,
-  Plus
+  MessageSquare,
+  Send,
+  Plus,
+  Play,
+  GraduationCap,
+  Flame,
+  Timer
 } from 'lucide-react';
 
 interface TeacherInfo {
@@ -323,6 +324,54 @@ export default function AdminTeacherAssessmentResultsPage() {
                   <div className="text-sm text-yellow-800 font-medium">Overall Score</div>
                   <div className="text-2xl font-bold text-yellow-900">{results.accuracyRate}%</div>
                 </div>
+              </div>
+            </div>
+            
+            {/* Comprehensive Teacher Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6 pt-6 border-t border-gray-200">
+              {/* Current Points */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Current Points</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-900">{teacher.points?.toLocaleString() || 0}</div>
+              </div>
+              
+              {/* Streak Count */}
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Flame className="h-5 w-5 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-800">Current Streak</span>
+                </div>
+                <div className="text-2xl font-bold text-orange-900">{teacher.streak || 0} days</div>
+              </div>
+              
+              {/* MentorMe Hours */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Timer className="h-5 w-5 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-800">MentorMe Hours</span>
+                </div>
+                <div className="text-2xl font-bold text-purple-900">{(teacher.lifetimePoints / 100 || 0).toFixed(1)}h</div>
+              </div>
+              
+              {/* Teacher Level */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <GraduationCap className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">Teacher Level</span>
+                </div>
+                <div className="text-2xl font-bold text-green-900">Level {teacher.level || 1}</div>
+              </div>
+              
+              {/* Lifetime Points */}
+              <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="h-5 w-5 text-pink-600" />
+                  <span className="text-sm font-medium text-pink-800">Lifetime Points</span>
+                </div>
+                <div className="text-2xl font-bold text-pink-900">{teacher.lifetimePoints?.toLocaleString() || 0}</div>
               </div>
             </div>
           </CardHeader>
