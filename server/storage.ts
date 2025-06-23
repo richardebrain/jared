@@ -72,6 +72,7 @@ export interface IStorage {
   getUsersBySchoolId(schoolId: number): Promise<User[]>;
   updateUserSchool(userId: number, schoolId: number): Promise<User>;
   checkUserAccessStatus(userId: number): Promise<{hasAccess: boolean, reason?: string}>;
+  completeTutorial(userId: number): Promise<boolean>;
   
   // Game operations
   getUserGameHistory(userId: number): Promise<GameCompletion[]>;
@@ -2650,6 +2651,20 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(moduleDrafts)
       .where(eq(moduleDrafts.id, id));
+  }
+
+  // Tutorial completion
+  async completeTutorial(userId: number): Promise<boolean> {
+    try {
+      await db
+        .update(users)
+        .set({ hasCompletedTutorial: true })
+        .where(eq(users.id, userId));
+      return true;
+    } catch (error) {
+      console.error("Error completing tutorial:", error);
+      return false;
+    }
   }
 }
 

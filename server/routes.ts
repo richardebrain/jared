@@ -2064,6 +2064,22 @@ Continue for all 5 questions...
     }
   });
 
+  // Complete user tutorial
+  app.post("/api/user/complete-tutorial", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const userId = req.session.userId as number;
+      await storage.completeTutorial(userId);
+      res.status(200).json({ message: "Tutorial completed successfully" });
+    } catch (error) {
+      console.error("Error completing tutorial:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get teachers for current user's school (for director dashboard)
   app.get("/api/school-teachers", async (req, res) => {
     if (!req.session.userId) {
