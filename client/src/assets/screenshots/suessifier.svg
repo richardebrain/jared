@@ -1,17 +1,80 @@
 <svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="800" height="600" fill="#ffffff"/>
-<rect x="20" y="60" width="760" height="520" fill="#fef3c7" rx="12"/>
-<text x="400" y="40" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">The Suessifier</text>
-<rect x="40" y="100" width="720" height="80" fill="#fde68a" rx="8"/>
-<text x="60" y="125" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#92400e">Child's Name:</text>
-<text x="60" y="155" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Emma</text>
-<rect x="40" y="200" width="720" height="120" fill="#fde68a" rx="8"/>
-<text x="60" y="225" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#92400e">Generated Poem:</text>
-<text x="60" y="255" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111827">Emma, Emma, what a star!</text>
-<text x="60" y="275" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111827">You're amazing, yes you are!</text>
-<text x="60" y="295" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111827">With a smile so bright and true...</text>
-<rect x="300" y="360" width="200" height="50" fill="#f59e0b" rx="8"/>
-<text x="400" y="390" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Create Poem</text>
-<rect x="300" y="430" width="200" height="50" fill="#059669" rx="8"/>
-<text x="400" y="460" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Save &amp; Print</text>
+<rect width="800" height="600" fill="#f1f5f9"/>
+
+<!-- Header Navigation -->
+<rect x="0" y="0" width="800" height="60" fill="#1e293b"/>
+<text x="30" y="35" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff">MentorMe ECE</text>
+<rect x="580" y="20" width="60" height="20" fill="#3b82f6" rx="10"/>
+<text x="610" y="32" font-family="Inter, Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">485 pts</text>
+<circle cx="720" cy="30" r="15" fill="#e2e8f0"/>
+
+<!-- Sidebar -->
+<rect x="0" y="60" width="200" height="540" fill="#ffffff"/>
+<rect x="20" y="80" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="98" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">📊 Dashboard</text>
+<rect x="20" y="120" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="138" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">⚡ Modules</text>
+<rect x="20" y="160" width="160" height="30" fill="#3b82f6" rx="4"/>
+<text x="30" y="178" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff">✨ Suessifier</text>
+<rect x="20" y="200" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="218" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">🎵 Music Library</text>
+
+<!-- Main Content Area -->
+<rect x="200" y="60" width="600" height="540" fill="#ffffff"/>
+<text x="220" y="100" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" fill="#111827">The Suessifier</text>
+<text x="220" y="125" font-family="Inter, Arial, sans-serif" font-size="14" fill="#6b7280">Transform any topic into a fun Dr. Seuss-style poem for your classroom</text>
+
+<!-- Input Form -->
+<rect x="220" y="150" width="560" height="80" fill="#f8fafc" rx="8"/>
+<text x="235" y="175" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#374151">What should we Suessify today?</text>
+<rect x="235" y="185" width="400" height="30" fill="#ffffff" rx="4" stroke="#d1d5db"/>
+<text x="245" y="203" font-family="Inter, Arial, sans-serif" font-size="12" fill="#9ca3af">Enter any topic (e.g., "washing hands", "sharing toys", "circle time")</text>
+<rect x="645" y="185" width="120" height="30" fill="#ec4899" rx="4"/>
+<text x="705" y="204" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">✨ Suessify It!</text>
+
+<!-- Generated Poem Display -->
+<rect x="220" y="250" width="560" height="280" fill="#fce7f3" rx="8"/>
+<text x="235" y="275" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#be185d">🎩 "The Hand-Washing Song"</text>
+<text x="235" y="295" font-family="Inter, Arial, sans-serif" font-size="12" fill="#ec4899">Generated for: Washing Hands • Just now</text>
+
+<!-- Poem Content with Seuss-style formatting -->
+<text x="235" y="325" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#831843">Oh, the places your hands have been!</text>
+<text x="235" y="345" font-family="Inter, Arial, sans-serif" font-size="12" fill="#be185d">From here to there, from there to here,</text>
+<text x="235" y="360" font-family="Inter, Arial, sans-serif" font-size="12" fill="#be185d">Germy hands are everywhere!</text>
+
+<text x="235" y="385" font-family="Inter, Arial, sans-serif" font-size="12" fill="#be185d">But soap and water, what a sight!</text>
+<text x="235" y="400" font-family="Inter, Arial, sans-serif" font-size="12" fill="#be185d">They make those germy hands so bright!</text>
+
+<text x="235" y="425" font-family="Inter, Arial, sans-serif" font-size="12" fill="#be185d">Scrub and rub and wash with care,</text>
+<text x="235" y="440" font-family="Inter, Arial, sans-serif" font-size="12" fill="#be185d">Clean hands here, clean hands there!</text>
+
+<text x="235" y="465" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#831843">Twenty seconds, count with me,</text>
+<text x="235" y="485" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#831843">Then your hands will germ-free be!</text>
+
+<!-- Action Buttons -->
+<rect x="235" y="500" width="100" height="25" fill="#059669" rx="4"/>
+<text x="285" y="515" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">🔊 Read Aloud</text>
+<rect x="345" y="500" width="100" height="25" fill="#3b82f6" rx="4"/>
+<text x="395" y="515" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">📋 Copy Text</text>
+<rect x="455" y="500" width="100" height="25" fill="#7c3aed" rx="4"/>
+<text x="505" y="515" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">🔄 New Version</text>
+<rect x="565" y="500" width="100" height="25" fill="#ec4899" rx="4"/>
+<text x="615" y="515" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">💾 Save Poem</text>
+
+<!-- Recent Poems -->
+<rect x="220" y="550" width="270" height="40" fill="#ecfdf5" rx="8"/>
+<text x="235" y="565" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#065f46">📚 Recent Poems</text>
+<text x="235" y="580" font-family="Inter, Arial, sans-serif" font-size="10" fill="#047857">• Circle Time Fun • Sharing is Caring • Nap Time Magic</text>
+
+<!-- Popular Topics -->
+<rect x="510" y="550" width="270" height="40" fill="#fef3c7" rx="8"/>
+<text x="525" y="565" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#92400e">🔥 Popular Topics</text>
+<text x="525" y="580" font-family="Inter, Arial, sans-serif" font-size="10" fill="#d97706">• Clean Up Time • Being Kind • Listening Skills • Potty Training</text>
+
+<!-- Floating Tips -->
+<rect x="600" y="350" width="160" height="60" fill="#ffffff" rx="6" stroke="#e5e7eb"/>
+<text x="610" y="365" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#374151">💡 Pro Tip</text>
+<text x="610" y="380" font-family="Inter, Arial, sans-serif" font-size="9" fill="#6b7280">Use specific emotions or</text>
+<text x="610" y="390" font-family="Inter, Arial, sans-serif" font-size="9" fill="#6b7280">actions for better rhymes!</text>
+<text x="610" y="400" font-family="Inter, Arial, sans-serif" font-size="8" fill="#9ca3af">Perfect for transitions!</text>
 </svg>

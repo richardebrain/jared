@@ -1,25 +1,104 @@
 <svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="800" height="600" fill="#ffffff"/>
-<rect x="20" y="20" width="760" height="560" fill="#f1f5f9" rx="12"/>
-<text x="400" y="50" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">Teacher Leaderboard</text>
-<rect x="40" y="80" width="720" height="60" fill="#fef3c7" rx="8"/>
-<text x="60" y="105" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#92400e">🏆 Top Performers This Month</text>
-<text x="60" y="125" font-family="Inter, Arial, sans-serif" font-size="12" fill="#92400e">Compete with colleagues and climb the ranks!</text>
-<rect x="40" y="160" width="720" height="80" fill="#dcfce7" rx="8"/>
-<text x="60" y="185" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#166534">1st Place - Sarah Johnson</text>
-<text x="60" y="205" font-family="Inter, Arial, sans-serif" font-size="12" fill="#166534">485 points • 12 modules completed • Lead Teacher</text>
-<rect x="650" y="170" width="80" height="30" fill="#16a34a" rx="4"/>
-<text x="690" y="188" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">485 pts</text>
-<rect x="40" y="260" width="720" height="80" fill="#e0f2fe" rx="8"/>
-<text x="60" y="285" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#0c4a6e">2nd Place - Maria Rodriguez</text>
-<text x="60" y="305" font-family="Inter, Arial, sans-serif" font-size="12" fill="#0c4a6e">395 points • 10 modules completed • Associate Teacher</text>
-<rect x="650" y="270" width="80" height="30" fill="#0284c7" rx="4"/>
-<text x="690" y="288" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">395 pts</text>
-<rect x="40" y="360" width="720" height="80" fill="#fef7ff" rx="8"/>
-<text x="60" y="385" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#6b21a8">3rd Place - Jennifer Kim</text>
-<text x="60" y="405" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b21a8">365 points • 9 modules completed • Assistant Teacher</text>
-<rect x="650" y="370" width="80" height="30" fill="#9333ea" rx="4"/>
-<text x="690" y="388" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">365 pts</text>
-<rect x="300" y="480" width="200" height="50" fill="#3b82f6" rx="8"/>
-<text x="400" y="510" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">View Full Rankings</text>
+<rect width="800" height="600" fill="#f1f5f9"/>
+
+<!-- Header Navigation -->
+<rect x="0" y="0" width="800" height="60" fill="#1e293b"/>
+<text x="30" y="35" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff">MentorMe ECE</text>
+<rect x="580" y="20" width="60" height="20" fill="#3b82f6" rx="10"/>
+<text x="610" y="32" font-family="Inter, Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">485 pts</text>
+<circle cx="720" cy="30" r="15" fill="#e2e8f0"/>
+
+<!-- Sidebar -->
+<rect x="0" y="60" width="200" height="540" fill="#ffffff"/>
+<rect x="20" y="80" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="98" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">📊 Dashboard</text>
+<rect x="20" y="120" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="138" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">⚡ Modules</text>
+<rect x="20" y="160" width="160" height="30" fill="#3b82f6" rx="4"/>
+<text x="30" y="178" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff">🏆 Leaderboard</text>
+<rect x="20" y="200" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="218" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">👥 Director Tools</text>
+
+<!-- Main Content Area -->
+<rect x="200" y="60" width="600" height="540" fill="#ffffff"/>
+<text x="220" y="100" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" fill="#111827">Team Leaderboard</text>
+<text x="220" y="125" font-family="Inter, Arial, sans-serif" font-size="14" fill="#6b7280">See who's leading in professional development this month</text>
+
+<!-- Leaderboard Header -->
+<rect x="220" y="150" width="560" height="40" fill="#f8fafc" rx="6"/>
+<text x="235" y="165" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#374151">RANK</text>
+<text x="280" y="165" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#374151">TEACHER</text>
+<text x="450" y="165" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#374151">POINTS</text>
+<text x="520" y="165" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#374151">ECE HOURS</text>
+<text x="600" y="165" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#374151">STREAK</text>
+<text x="680" y="165" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#374151">LEVEL</text>
+
+<!-- 1st Place -->
+<rect x="220" y="200" width="560" height="50" fill="#fef3c7" rx="6"/>
+<text x="250" y="220" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#d97706">🥇</text>
+<text x="235" y="235" font-family="Inter, Arial, sans-serif" font-size="12" fill="#92400e">1st</text>
+<circle cx="295" cy="225" r="15" fill="#f59e0b"/>
+<text x="295" y="230" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">SM</text>
+<text x="320" y="220" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#374151">Sarah Martinez</text>
+<text x="320" y="235" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">Lead Teacher</text>
+<text x="450" y="230" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#d97706">742</text>
+<text x="520" y="230" font-family="Inter, Arial, sans-serif" font-size="14" fill="#22c55e">12.5h</text>
+<text x="600" y="230" font-family="Inter, Arial, sans-serif" font-size="14" fill="#7c3aed">🔥 8</text>
+<text x="680" y="230" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Senior</text>
+
+<!-- 2nd Place -->
+<rect x="220" y="260" width="560" height="50" fill="#f3f4f6" rx="6"/>
+<text x="250" y="280" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#9ca3af">🥈</text>
+<text x="235" y="295" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">2nd</text>
+<circle cx="295" cy="285" r="15" fill="#6b7280"/>
+<text x="295" y="290" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">MB</text>
+<text x="320" y="280" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#374151">Maria Brown</text>
+<text x="320" y="295" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">Associate Teacher</text>
+<text x="450" y="290" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#6b7280">615</text>
+<text x="520" y="290" font-family="Inter, Arial, sans-serif" font-size="14" fill="#22c55e">9.2h</text>
+<text x="600" y="290" font-family="Inter, Arial, sans-serif" font-size="14" fill="#7c3aed">🔥 6</text>
+<text x="680" y="290" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Lead</text>
+
+<!-- 3rd Place (Current User) -->
+<rect x="220" y="320" width="560" height="50" fill="#e0f2fe" rx="6"/>
+<text x="250" y="340" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#0284c7">🥉</text>
+<text x="235" y="355" font-family="Inter, Arial, sans-serif" font-size="12" fill="#0369a1">3rd</text>
+<circle cx="295" cy="345" r="15" fill="#0284c7"/>
+<text x="295" y="350" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">NC</text>
+<text x="320" y="340" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#0f172a">Natalie Cook (You)</text>
+<text x="320" y="355" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">Assistant Teacher</text>
+<text x="450" y="350" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#0284c7">485</text>
+<text x="520" y="350" font-family="Inter, Arial, sans-serif" font-size="14" fill="#22c55e">8.5h</text>
+<text x="600" y="350" font-family="Inter, Arial, sans-serif" font-size="14" fill="#7c3aed">🔥 5</text>
+<text x="680" y="350" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Lead</text>
+
+<!-- 4th Place -->
+<rect x="220" y="380" width="560" height="40" fill="#ffffff" rx="6"/>
+<text x="235" y="395" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">4th</text>
+<circle cx="290" cy="400" r="12" fill="#e5e7eb"/>
+<text x="290" y="405" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600" fill="#6b7280" text-anchor="middle">AW</text>
+<text x="310" y="395" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Alex Wilson</text>
+<text x="310" y="408" font-family="Inter, Arial, sans-serif" font-size="10" fill="#6b7280">Assistant Teacher</text>
+<text x="450" y="402" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">320</text>
+<text x="520" y="402" font-family="Inter, Arial, sans-serif" font-size="12" fill="#22c55e">6.2h</text>
+<text x="600" y="402" font-family="Inter, Arial, sans-serif" font-size="12" fill="#ef4444">0</text>
+<text x="680" y="402" font-family="Inter, Arial, sans-serif" font-size="10" fill="#374151">Associate</text>
+
+<!-- 5th Place -->
+<rect x="220" y="430" width="560" height="40" fill="#ffffff" rx="6"/>
+<text x="235" y="445" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">5th</text>
+<circle cx="290" cy="450" r="12" fill="#e5e7eb"/>
+<text x="290" y="455" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600" fill="#6b7280" text-anchor="middle">JD</text>
+<text x="310" y="445" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Jennifer Davis</text>
+<text x="310" y="458" font-family="Inter, Arial, sans-serif" font-size="10" fill="#6b7280">New Teacher</text>
+<text x="450" y="452" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">180</text>
+<text x="520" y="452" font-family="Inter, Arial, sans-serif" font-size="12" fill="#22c55e">3.1h</text>
+<text x="600" y="452" font-family="Inter, Arial, sans-serif" font-size="12" fill="#ef4444">0</text>
+<text x="680" y="452" font-family="Inter, Arial, sans-serif" font-size="10" fill="#374151">Assistant</text>
+
+<!-- Bottom Stats -->
+<rect x="220" y="490" width="560" height="60" fill="#f8fafc" rx="6"/>
+<text x="235" y="510" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#374151">Monthly Competition</text>
+<text x="235" y="530" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b7280">Competition ends in 8 days • Top 3 teachers win Bear Bucks prizes!</text>
+<text x="235" y="545" font-family="Inter, Arial, sans-serif" font-size="10" fill="#7c3aed">🎁 1st: 100 Bear Bucks • 2nd: 50 Bear Bucks • 3rd: 25 Bear Bucks</text>
 </svg>

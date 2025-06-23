@@ -1,16 +1,80 @@
 <svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="800" height="600" fill="#ffffff"/>
-<rect x="20" y="60" width="760" height="520" fill="#f9fafb" rx="12"/>
-<text x="400" y="40" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">Custom Story Creator</text>
-<rect x="40" y="100" width="720" height="80" fill="#edf2f7" rx="8"/>
-<text x="60" y="125" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#374151">Child's Name:</text>
-<text x="60" y="155" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Maria</text>
-<rect x="40" y="200" width="720" height="80" fill="#edf2f7" rx="8"/>
-<text x="60" y="225" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#374151">Language:</text>
-<text x="60" y="255" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Spanish</text>
-<rect x="40" y="300" width="720" height="80" fill="#edf2f7" rx="8"/>
-<text x="60" y="325" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#374151">Challenge:</text>
-<text x="60" y="355" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Biting during transitions</text>
-<rect x="300" y="430" width="200" height="50" fill="#ec4899" rx="8"/>
-<text x="400" y="460" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Create Story</text>
+<rect width="800" height="600" fill="#f1f5f9"/>
+
+<!-- Header Navigation -->
+<rect x="0" y="0" width="800" height="60" fill="#1e293b"/>
+<text x="30" y="35" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff">MentorMe ECE</text>
+<rect x="580" y="20" width="60" height="20" fill="#3b82f6" rx="10"/>
+<text x="610" y="32" font-family="Inter, Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">485 pts</text>
+<circle cx="720" cy="30" r="15" fill="#e2e8f0"/>
+
+<!-- Sidebar -->
+<rect x="0" y="60" width="200" height="540" fill="#ffffff"/>
+<rect x="20" y="80" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="98" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">📊 Dashboard</text>
+<rect x="20" y="120" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="138" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">⚡ Modules</text>
+<rect x="20" y="160" width="160" height="30" fill="#3b82f6" rx="4"/>
+<text x="30" y="178" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff">📚 Story Creator</text>
+<rect x="20" y="200" width="160" height="30" fill="#e2e8f0" rx="4"/>
+<text x="30" y="218" font-family="Inter, Arial, sans-serif" font-size="12" fill="#475569">🎵 Music Library</text>
+
+<!-- Main Content Area -->
+<rect x="200" y="60" width="600" height="540" fill="#ffffff"/>
+<text x="220" y="100" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" fill="#111827">Custom Story Creator</text>
+<text x="220" y="125" font-family="Inter, Arial, sans-serif" font-size="14" fill="#6b7280">Create personalized comfort stories for your children in any language</text>
+
+<!-- Story Input Form -->
+<rect x="220" y="150" width="560" height="100" fill="#f8fafc" rx="8"/>
+<text x="235" y="175" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#374151">Create Your Story</text>
+<rect x="235" y="185" width="300" height="30" fill="#ffffff" rx="4" stroke="#d1d5db"/>
+<text x="245" y="203" font-family="Inter, Arial, sans-serif" font-size="12" fill="#9ca3af">Child's name (e.g., Sofia)</text>
+<rect x="545" y="185" width="200" height="30" fill="#ffffff" rx="4" stroke="#d1d5db"/>
+<text x="555" y="203" font-family="Inter, Arial, sans-serif" font-size="12" fill="#9ca3af">Language (e.g., Spanish)</text>
+<rect x="235" y="220" width="350" height="20" fill="#ffffff" rx="4" stroke="#d1d5db"/>
+<text x="245" y="233" font-family="Inter, Arial, sans-serif" font-size="10" fill="#9ca3af">Story theme (e.g., "feeling scared at bedtime")</text>
+<rect x="595" y="220" width="150" height="20" fill="#7c3aed" rx="4"/>
+<text x="670" y="232" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">✨ Generate Story</text>
+
+<!-- Generated Story Display -->
+<rect x="220" y="270" width="560" height="200" fill="#fef3c7" rx="8"/>
+<text x="235" y="295" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#92400e">📖 Sofia's Brave Night</text>
+<text x="235" y="315" font-family="Inter, Arial, sans-serif" font-size="12" fill="#d97706">Generated in Spanish • 2 minutes ago</text>
+
+<text x="235" y="340" font-family="Inter, Arial, sans-serif" font-size="11" fill="#b45309">"Había una vez una niña valiente llamada Sofia. Cuando llegaba la hora de dormir,</text>
+<text x="235" y="355" font-family="Inter, Arial, sans-serif" font-size="11" fill="#b45309">Sofia a veces se sentía un poco asustada. Pero su mamá le recordó que tenía un</text>
+<text x="235" y="370" font-family="Inter, Arial, sans-serif" font-size="11" fill="#b45309">corazón muy valiente, como el de una pequeña leona. 'Cuando sientes miedo,' le dijo</text>
+<text x="235" y="385" font-family="Inter, Arial, sans-serif" font-size="11" fill="#b45309">su mamá, 'respira profundo y recuerda que eres más fuerte de lo que crees.'</text>
+<text x="235" y="400" font-family="Inter, Arial, sans-serif" font-size="11" fill="#b45309">Sofia sonrió, respiró profundo, y se durmió tranquila sabiendo que era valiente."</text>
+
+<rect x="235" y="425" width="80" height="25" fill="#059669" rx="4"/>
+<text x="275" y="440" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">🔊 Read Aloud</text>
+<rect x="325" y="425" width="80" height="25" fill="#3b82f6" rx="4"/>
+<text x="365" y="440" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">📄 Save PDF</text>
+<rect x="415" y="425" width="80" height="25" fill="#7c3aed" rx="4"/>
+<text x="455" y="440" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">🔄 Regenerate</text>
+<rect x="505" y="425" width="80" height="25" fill="#ec4899" rx="4"/>
+<text x="545" y="440" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">💖 Add to Library</text>
+
+<!-- Story Library -->
+<rect x="220" y="490" width="270" height="90" fill="#ecfdf5" rx="8"/>
+<text x="235" y="510" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#065f46">📚 Your Story Library</text>
+<text x="235" y="530" font-family="Inter, Arial, sans-serif" font-size="10" fill="#047857">• Emma's First Day (English)</text>
+<text x="235" y="545" font-family="Inter, Arial, sans-serif" font-size="10" fill="#047857">• Miguel's Adventure (Spanish)</text>
+<text x="235" y="560" font-family="Inter, Arial, sans-serif" font-size="10" fill="#047857">• Aiden's Courage Story (English)</text>
+<rect x="400" y="550" width="80" height="20" fill="#059669" rx="4"/>
+<text x="440" y="562" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle">View All (12)</text>
+
+<!-- Quick Templates -->
+<rect x="510" y="490" width="270" height="90" fill="#f3e8ff" rx="8"/>
+<text x="525" y="510" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#6b21a8">⚡ Quick Templates</text>
+<text x="525" y="530" font-family="Inter, Arial, sans-serif" font-size="10" fill="#7c3aed">• Bedtime Fears</text>
+<text x="525" y="545" font-family="Inter, Arial, sans-serif" font-size="10" fill="#7c3aed">• First Day at School</text>
+<text x="525" y="560" font-family="Inter, Arial, sans-serif" font-size="10" fill="#7c3aed">• Sharing Toys</text>
+<rect x="690" y="550" width="80" height="20" fill="#7c3aed" rx="4"/>
+<text x="730" y="562" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle">Browse All</text>
+
+<!-- Bottom Info -->
+<rect x="220" y="590" width="560" height="10" fill="#f1f5f9" rx="6"/>
+<text x="235" y="598" font-family="Inter, Arial, sans-serif" font-size="8" fill="#6b7280">💡 Stories automatically adapt to child's age and cultural background • Supports 25+ languages</text>
 </svg>
