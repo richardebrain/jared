@@ -69,9 +69,9 @@ export default function MatchingActivityPlayer({ activity, onComplete }: Matchin
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && !assignedLefts.has(active.id)) {
-      setMatches(prev => ({ ...prev, [over.id]: active.id }));
-      setAssignedLefts(prev => new Set(prev).add(active.id));
+    if (over && !assignedLefts.has(String(active.id))) {
+      setMatches(prev => ({ ...prev, [String(over.id)]: String(active.id) }));
+      setAssignedLefts(prev => new Set(prev).add(String(active.id)));
     }
   };
 
