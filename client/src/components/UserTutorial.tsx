@@ -361,10 +361,10 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
           const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
           
-          // Show exciting final reward notification with all points
+          // Show exciting final reward notification with bonus points
           toast({
             title: "🎁 Tutorial Complete!",
-            description: `Congratulations ${firstName}! You earned ${totalSteps} tutorial points PLUS ${bonusPoints} bonus points! Welcome to MentorMe ECE!`,
+            description: `Congratulations ${firstName}! You earned ${bonusPoints} bonus points! Welcome to MentorMe ECE!`,
             duration: 5000,
           });
           
@@ -538,19 +538,16 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
               ) : (
                 <div className="space-y-3">
                   <div className="text-6xl animate-bounce">🎉</div>
-                  <div className="bg-white rounded-lg p-6 border-4 border-yellow-300 shadow-xl">
-                    <div className="text-4xl font-bold text-yellow-600 mb-2">
+                  <div className="bg-white rounded-lg p-4 border-4 border-yellow-300 shadow-xl">
+                    <div className="text-3xl font-bold text-yellow-600 mb-2">
                       +{mysteryBoxReward} Bonus Points!
                     </div>
-                    <div className="text-2xl font-bold text-purple-600 mb-2">
-                      +{totalSteps} Tutorial Points!
-                    </div>
-                    <p className="text-gray-700 text-lg font-medium">
-                      Amazing! You now have {10 + totalSteps + mysteryBoxReward} total points to start your adventure!
+                    <p className="text-gray-700 text-base font-medium">
+                      Congratulations! You've completed the tutorial and earned bonus points to start your learning journey!
                     </p>
                   </div>
-                  <p className="text-lg text-purple-600 font-medium animate-pulse">
-                    Welcome to MentorMe ECE! Your journey begins now...
+                  <p className="text-base text-purple-600 font-medium animate-pulse">
+                    Welcome to MentorMe ECE! Your adventure begins now...
                   </p>
                 </div>
               )}
