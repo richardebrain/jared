@@ -47,16 +47,17 @@ interface UserTutorialProps {
   userRole: 'teacher' | 'admin' | 'school_admin';
 }
 
-// Import content-specific tutorial images
-import customStoryCreatorImg from "@/assets/screenshots/custom-story-creator.svg";
-import lightningModulesImg from "@/assets/screenshots/lightning-modules.svg";
-import pointsTrackingImg from "@/assets/screenshots/points-tracking.svg";
-import eceTrackingImg from "@/assets/screenshots/ece-tracking.svg";
-import leaderboardImg from "@/assets/screenshots/leaderboard.svg";
-import musicLibraryImg from "@/assets/screenshots/music-library.svg";
-import suessifierImg from "@/assets/screenshots/suessifier.svg";
-import videoLibraryImg from "@/assets/screenshots/video-library.svg";
-import teacherDashboardImg from "@/assets/screenshots/teacher-dashboard.svg";
+// Import actual screenshots of the platform interface
+import signInPageImg from "@assets/Mentor Me Sign in page_1750717282945.png";
+import welcomePageImg from "@assets/WELCOME PAGE points, levels etc_1750717282945.png";
+import dashboardImg from "@assets/Dashboard_1750717282945.png";
+import progressionMapImg from "@assets/Progression Map_1750717282945.png";
+import teacherLevelsImg from "@assets/Teacher Levels assistant to master_1750717282945.png";
+import teacherToolkitImg from "@assets/Teacher Toolkit_1750717282945.png";
+import communityModulesImg from "@assets/Community Modules_1750717282945.png";
+import audioLibraryImg from "@assets/Audio Library_1750717282946.png";
+import videoLibraryImg from "@assets/Video Library_1750717282946.png";
+import coreValuesImg from "@assets/Core Values Shout Out_1750717282946.png";
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -64,166 +65,82 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Welcome to MentorMe ECE',
     description: 'Transform your teaching with quick, engaging professional development! Only have 15 minutes? Perfect! Earn ECE hours while having fun, climb the teacher ranks, and discover tools that make your classroom magical.',
     icon: <GraduationCap className="h-6 w-6 text-blue-600" />,
-    screenshot: teacherDashboardImg,
+    screenshot: signInPageImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
     id: 'dashboard',
-    title: 'Your Progression Dashboard',
+    title: 'Your Teacher Dashboard',
     description: 'Watch yourself climb from Assistant to Master Teacher! See exactly how many points you earn for each activity and track your ECE hours. Your dashboard shows your rank progress, streak rewards, and the path to your next level!',
     icon: <BarChart3 className="h-6 w-6 text-orange-500" />,
-    screenshot: leaderboardImg,
-    action: {
-      text: 'View Dashboard',
-      href: '/dashboard'
-    },
+    screenshot: dashboardImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'modules',
-    title: 'Lightning Training Modules',
-    description: 'Only have 15 minutes for training? Take 4 lightning trainings to earn 1 full ECE hour! Quick, engaging modules that fit your busy schedule. Earn points, climb ranks, and watch videos for extra rewards!',
-    icon: <Zap className="h-6 w-6 text-purple-600" />,
-    screenshot: lightningModulesImg,
-    action: {
-      text: 'Browse Modules',
-      href: '/modules'
-    },
+    id: 'welcome-streak',
+    title: 'Daily Welcome & Streak Tracking',
+    description: 'Start each day with a personalized welcome showing your learning streak! Track your points, Bear Bucks, and current level. Your dedication to professional growth is celebrated with daily motivation and streak rewards.',
+    icon: <Star className="h-6 w-6 text-yellow-500" />,
+    screenshot: welcomePageImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'assessment',
-    title: 'Adaptive Assessments',
-    description: 'Take skill assessments that adapt to your knowledge level and provide personalized learning recommendations based on your performance.',
-    icon: <Target className="h-6 w-6 text-orange-600" />,
-    screenshot: pointsTrackingImg,
-    action: {
-      text: 'Start Assessment',
-      href: '/assessment'
-    },
+    id: 'progression',
+    title: 'Teacher Progression Map',
+    description: 'Track your journey from Assistant to Master Teacher! See exactly what points and ECE hours you need for your next level. Visual progress bars show both your points and training hour requirements.',
+    icon: <Target className="h-6 w-6 text-purple-600" />,
+    screenshot: progressionMapImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'ece-tracking',
-    title: 'ECE Hours & Progress Tracking',
-    description: 'Track your 30-hour annual ECE requirement with visual progress bars. Hours are automatically tracked from completed modules and emailed to your director monthly. Admins can add in-person training hours for off-site courses.',
-    icon: <Clock className="h-6 w-6 text-cyan-500" />,
-    screenshot: eceTrackingImg,
-    action: {
-      text: 'View ECE Progress',
-      href: '/dashboard'
-    },
+    id: 'teacher-levels',
+    title: 'Professional Certification Levels',
+    description: 'Explore the five teacher certification levels from Assistant to Master. Each level shows specific requirements including points, assessment scores, training hours, experience, and director approval needed for advancement.',
+    icon: <Award className="h-6 w-6 text-blue-600" />,
+    screenshot: teacherLevelsImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'games-music-tools',
-    title: 'Interactive Tools & Music Library',
-    description: 'Earn points and compete on leaderboards! Access calming nap time music, energizing transition songs, custom story creator, and Suessifier for personalized poems. Make every classroom moment magical with our curated tools.',
+    id: 'teacher-toolkit',
+    title: 'AI-Powered Teacher Toolkit',
+    description: 'Access powerful teaching tools including parent response generator, lesson plan creator, custom story builder, transition timer, and Suessifier. Plus video library, EduTok tips, and director meeting scheduler.',
+    icon: <Settings className="h-6 w-6 text-green-600" />,
+    screenshot: teacherToolkitImg,
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
+    id: 'community-modules',
+    title: 'Community Learning Modules',
+    description: 'Discover top-rated training modules created by fellow educators. Community competition encourages quality content creation with special prizes for top creators. Rate modules to maintain high standards.',
+    icon: <Users className="h-6 w-6 text-orange-600" />,
+    screenshot: communityModulesImg,
+    userTypes: ['teacher', 'admin', 'school_admin']
+  },
+  {
+    id: 'audio-library',
+    title: 'Music & Audio Library',
+    description: 'Access calming nap time music, energizing transition songs, and educational audio content. Perfect for creating the right classroom atmosphere throughout your daily routines.',
     icon: <Music className="h-6 w-6 text-purple-600" />,
-    screenshot: musicLibraryImg,
-    action: {
-      text: 'Explore Tools',
-      href: '/games'
-    },
+    screenshot: audioLibraryImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'content-library',
-    title: 'Video Library & Module Creator',
-    description: 'Watch professional development videos with integrated quizzes that count toward ECE hours. Create custom modules using AI or upload PowerPoint presentations. Rate content to maintain quality - only the best training stays!',
+    id: 'video-library',
+    title: 'Professional Development Videos',
+    description: 'Watch curated professional development videos with integrated quizzes that count toward ECE hours. Videos cover essential topics like child development, classroom management, and teaching strategies.',
     icon: <Play className="h-6 w-6 text-red-600" />,
     screenshot: videoLibraryImg,
-    action: {
-      text: 'Explore Content',
-      href: '/videos'
-    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'director-toolkit',
-    title: 'Director Toolkit',
-    description: 'Access powerful administrative tools including teacher management, ECE tracking, Perfect Manager coaching system, and comprehensive reporting.',
-    icon: <Settings className="h-6 w-6 text-indigo-600" />,
-    screenshot: leaderboardImg,
-    action: {
-      text: 'Open Director Toolkit',
-      href: '/admin'
-    },
-    userTypes: ['admin', 'school_admin']
-  },
-  {
-    id: 'teacher-management',
-    title: 'Teacher Profiles & Progress',
-    description: 'Monitor your team\'s professional development, track ECE hours, generate certificates, and manage user roles and permissions.',
-    icon: <Users className="h-6 w-6 text-cyan-600" />,
-    screenshot: pointsTrackingImg,
-    action: {
-      text: 'Manage Teachers',
-      href: '/admin/teachers'
-    },
-    userTypes: ['admin', 'school_admin']
-  },
-  {
-    id: 'perfect-manager',
-    title: 'Perfect Manager AI Coach',
-    description: 'Get personalized leadership coaching for challenging workplace situations. AI-powered advice from top leadership experts for ECE directors.',
-    icon: <MessageSquare className="h-6 w-6 text-pink-600" />,
-    screenshot: customStoryCreatorImg,
-    action: {
-      text: 'Try Perfect Manager',
-      href: '/admin/perfect-manager'
-    },
-    userTypes: ['admin', 'school_admin']
+    id: 'core-values',
+    title: 'Core Values Recognition',
+    description: 'Recognize fellow teachers for exemplifying core values like "Be Prepared." Nominate colleagues, share specific examples, and build a positive workplace culture through peer recognition and appreciation.',
+    icon: <MessageSquare className="h-6 w-6 text-green-600" />,
+    screenshot: coreValuesImg,
+    userTypes: ['teacher', 'admin', 'school_admin']
   },
 
-  {
-    id: 'custom-story-creator',
-    title: 'Custom Story Creator',
-    description: 'Have a child who doesn\'t speak English? Create comfort stories in their language to help with biting, transitions, or any classroom challenge! Personalized stories that speak to each child\'s heart in their home language.',
-    icon: <BookOpen className="h-6 w-6 text-pink-600" />,
-    screenshot: customStoryCreatorImg,
-    action: {
-      text: 'Create Story',
-      href: '/games'
-    },
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
-  {
-    id: 'suessifier',
-    title: 'The Suessifier',
-    description: 'Want a fun poem with your student\'s name? Test the Suessifier! Create personalized Dr. Seuss-style poems that make every child feel special. Perfect for circle time, transitions, or celebrating achievements!',
-    icon: <Music className="h-6 w-6 text-orange-600" />,
-    screenshot: suessifierImg,
-    action: {
-      text: 'Create Poem',
-      href: '/games'
-    },
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
-  {
-    id: 'core-values-shoutouts',
-    title: 'Core Value Shout-Outs',
-    description: 'Celebrate your team! Give core value shout-outs to employees who embody your school\'s values. Build positive culture while earning points and climbing the leaderboard. Recognition that matters!',
-    icon: <Award className="h-6 w-6 text-green-600" />,
-    screenshot: leaderboardImg,
-    action: {
-      text: 'Give Shout-Out',
-      href: '/dashboard'
-    },
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
-  {
-    id: 'leaderboard',
-    title: 'Get on Top of the Leaderboard',
-    description: 'Compete with your colleagues! See who\'s earning the most points, completing the most training, and climbing the teacher ranks. Friendly competition that motivates everyone to grow professionally!',
-    icon: <BarChart3 className="h-6 w-6 text-blue-600" />,
-    screenshot: leaderboardImg,
-    action: {
-      text: 'View Leaderboard',
-      href: '/dashboard'
-    },
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
   {
     id: 'getting-started',
     title: 'Ready to Begin!',
