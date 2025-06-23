@@ -263,11 +263,10 @@ export default function GamesPage() {
         <StreakRewardsSummary streakCount={user?.streak || 0} className="mb-6" />
         
         <Tabs defaultValue="educational" className="space-y-6" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 w-full max-w-3xl mx-auto h-12">
+          <TabsList className="grid grid-cols-3 w-full max-w-3xl mx-auto h-12">
             <TabsTrigger value="educational" className="text-sm font-medium">Educational Games</TabsTrigger>
             <TabsTrigger value="puzzle" className="text-sm font-medium">Teaching Puzzles</TabsTrigger>
             <TabsTrigger value="slots" className="text-sm font-medium">Lucky Games</TabsTrigger>
-            <TabsTrigger value="daily" className="text-sm font-medium">Daily Challenge</TabsTrigger>
           </TabsList>
           
           {/* Educational Games Tab */}
@@ -617,17 +616,7 @@ export default function GamesPage() {
             )}
           </TabsContent>
           
-          <TabsContent value="daily">
-            <Card>
-              <CardHeader>
-                <CardTitle>Daily Teaching Challenge</CardTitle>
-                <CardDescription>Complete daily challenges to earn extra points and rewards</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DailyChallenge />
-              </CardContent>
-            </Card>
-          </TabsContent>
+
           
           <TabsContent value="rewards">
             <Card>

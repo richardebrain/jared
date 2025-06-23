@@ -256,42 +256,56 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
         </DialogHeader>
 
         <div className="py-6">
-          <Card className="border-2 border-dashed border-gray-200">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full flex items-center justify-center">
-                  {currentStepData.icon}
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold">{currentStepData.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {currentStepData.description}
-                  </p>
-                </div>
-
-                {currentStepData.action && (
-                  <div className="pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        if (currentStepData.action?.href) {
-                          window.open(currentStepData.action.href, '_blank');
-                        }
-                        if (currentStepData.action?.onClick) {
-                          currentStepData.action.onClick();
-                        }
-                      }}
-                      className="gap-2"
-                    >
-                      {currentStepData.action.text}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+          <div className="space-y-4">
+            {/* Screenshot Display */}
+            {currentStepData.screenshot && (
+              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <img 
+                  src={currentStepData.screenshot} 
+                  alt={`${currentStepData.title} interface`}
+                  className="w-full h-48 object-cover"
+                />
               </div>
-            </CardContent>
-          </Card>
+            )}
+            
+            {/* Step Information */}
+            <Card className="border-2 border-dashed border-gray-200">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full flex items-center justify-center">
+                    {currentStepData.icon}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">{currentStepData.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {currentStepData.description}
+                    </p>
+                  </div>
+
+                  {currentStepData.action && (
+                    <div className="pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (currentStepData.action?.href) {
+                            window.open(currentStepData.action.href, '_blank');
+                          }
+                          if (currentStepData.action?.onClick) {
+                            currentStepData.action.onClick();
+                          }
+                        }}
+                        className="gap-2"
+                      >
+                        {currentStepData.action.text}
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Role-specific tips */}
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
