@@ -1613,30 +1613,15 @@ Continue for all 5 questions...
         }
 
         // Clean up session if user is already logged in to prevent login loops
+        // Use simpler approach to avoid session destruction issues
         if (req.session.userId && req.session.userId !== user.id) {
-          console.log(`Clearing existing session for different user: ${req.session.userId}`);
-          // Clear any existing session for a different user synchronously
-          try {
-            await new Promise((resolve, reject) => {
-              req.session.destroy((err) => {
-                if (err) {
-                  console.error("Error destroying existing session:", err);
-                  reject(err);
-                } else {
-                  resolve(true);
-                }
-              });
-            });
-            res.clearCookie("connect.sid");
-            console.log("Session destruction completed successfully");
-          } catch (error) {
-            console.error("Failed to destroy session:", error);
-            clearTimeout(loginTimeout);
-            return res.status(500).json({
-              message: "Session cleanup error",
-              details: "Unable to clear existing session. Please try again."
-            });
-          }
+          console.log(`Clearing existing session data for different user: ${req.session.userId}`);
+          // Simply clear session data instead of destroying/regenerating
+          req.session.userId = undefined;
+          req.session.loginTime = undefined;
+          (req.session as any).lastActivity = undefined;
+          res.clearCookie("connect.sid");
+          console.log("Session data cleared successfully");
         }
 
         // Debug logging for authentication
@@ -1727,6 +1712,16 @@ Continue for all 5 questions...
         } catch (sessionError) {
           console.error('Error checking concurrent sessions:', sessionError);
           // Continue with login - don't block user on session security errors
+        }
+
+        // Ensure session exists before setting properties
+        if (!req.session) {
+          console.error("Session object is undefined after regeneration, attempting to create new session");
+          clearTimeout(loginTimeout);
+          return res.status(500).json({
+            message: "Session error",
+            details: "Session could not be established. Please try again."
+          });
         }
 
         // Set the user session with userId - simplified approach for better reliability
