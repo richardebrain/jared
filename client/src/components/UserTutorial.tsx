@@ -47,13 +47,7 @@ interface UserTutorialProps {
   userRole: 'teacher' | 'admin' | 'school_admin';
 }
 
-// Import new accurate screenshots for enhanced tutorial
-import customStoryCreatorScreenshot from "@assets/screenshots/custom-story-creator.svg";
-import suessifierScreenshot from "@assets/screenshots/suessifier.svg";
-import lightningModulesScreenshot from "@assets/screenshots/lightning-modules.svg";
-import leaderboardScreenshot from "@assets/screenshots/leaderboard.svg";
-import musicLibraryScreenshot from "@assets/screenshots/music-library.svg";
-import pointsTrackingScreenshot from "@assets/screenshots/points-tracking.svg";
+// Import existing screenshots for enhanced tutorial
 import dashboardScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.36_1749935018429.png";
 import assessmentScreenshot from "@assets/Screenshot 2025-06-15 at 14.38.41_1749994726716.png";
 import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 16.11.11_1749913887467.png";
@@ -75,7 +69,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Your Progression Dashboard',
     description: 'Watch yourself climb from Assistant to Master Teacher! See exactly how many points you earn for each activity and track your ECE hours. Your dashboard shows your rank progress, streak rewards, and the path to your next level!',
     icon: <BarChart3 className="h-6 w-6 text-green-600" />,
-    screenshot: pointsTrackingScreenshot,
+    screenshot: dashboardScreenshot,
     action: {
       text: 'View Dashboard',
       href: '/dashboard'
@@ -87,7 +81,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Lightning Training Modules',
     description: 'Only have 15 minutes for training? Take 4 lightning trainings to earn 1 full ECE hour! Quick, engaging modules that fit your busy schedule. Earn points, climb ranks, and watch videos for extra rewards!',
     icon: <Zap className="h-6 w-6 text-purple-600" />,
-    screenshot: lightningModulesScreenshot,
+    screenshot: dashboardScreenshot,
     action: {
       text: 'Browse Modules',
       href: '/modules'
@@ -131,7 +125,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Classroom Music Library',
     description: 'Need calming music for nap time? Energizing songs for transitions? Browse our curated music library designed specifically for early childhood classrooms. Make every moment magical with the perfect soundtrack!',
     icon: <Music className="h-6 w-6 text-purple-600" />,
-    screenshot: musicLibraryScreenshot,
+    screenshot: videoLibraryScreenshot,
     action: {
       text: 'Browse Music',
       href: '/games'
@@ -203,7 +197,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Custom Story Creator',
     description: 'Have a child who doesn\'t speak English? Create comfort stories in their language to help with biting, transitions, or any classroom challenge! Personalized stories that speak to each child\'s heart in their home language.',
     icon: <BookOpen className="h-6 w-6 text-pink-600" />,
-    screenshot: customStoryCreatorScreenshot,
+    screenshot: dashboardScreenshot,
     action: {
       text: 'Create Story',
       href: '/games'
