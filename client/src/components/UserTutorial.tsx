@@ -104,7 +104,7 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: 'ece-tracking',
     title: 'ECE Hours Tracking',
-    description: 'Automatically track your professional development hours for ECE compliance. View your progress toward certification requirements.',
+    description: 'Automatically track your professional development hours for ECE compliance. Your ECE hours are emailed to your director monthly for easy tracking, and your admin can also add in-person training hours you complete off-site.',
     icon: <Clock className="h-6 w-6 text-cyan-500" />,
     screenshot: pointsTrackingImg,
     action: {
@@ -555,8 +555,10 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                 "Start with micro modules (5 minutes) for quick learning during busy days, then progress to longer modules."}
               {currentStepData.id === 'assessment' && 
                 "Take the initial assessment to get personalized module recommendations based on your current knowledge."}
-              {currentStepData.id === 'ece-tracking' && 
-                "ECE hours are automatically tracked when you complete eligible modules - no manual entry needed!"}
+              {currentStepData.id === 'ece-tracking' && userRole === 'teacher' && 
+                "ECE hours are automatically tracked when you complete eligible modules and emailed to your director monthly. Your admin can also add in-person training hours for off-site courses."}
+              {currentStepData.id === 'ece-tracking' && (userRole === 'admin' || userRole === 'school_admin') && 
+                "Monitor all teachers' ECE progress and manually add in-person training hours through the ECE Hours Tracker in the Director Toolkit."}
               {currentStepData.id === 'director-toolkit' && 
                 "The Perfect Manager feature provides AI coaching for challenging workplace situations with your team."}
               {currentStepData.id === 'getting-started' && 
