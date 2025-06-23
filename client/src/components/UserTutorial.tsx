@@ -60,15 +60,15 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to MentorMe ECE',
-    description: 'Your professional development platform for early childhood education. Let\'s explore the key features that will enhance your teaching journey.',
+    description: 'Transform your teaching with quick, engaging professional development! Only have 15 minutes? Perfect! Earn ECE hours while having fun, climb the teacher ranks, and discover tools that make your classroom magical.',
     icon: <GraduationCap className="h-6 w-6 text-blue-600" />,
     screenshot: dashboardScreenshot,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
     id: 'dashboard',
-    title: 'Your Learning Dashboard',
-    description: 'Track your progress, view recommendations, and see your learning path. Your dashboard shows completed modules, streak status, and ECE hours.',
+    title: 'Your Progression Dashboard',
+    description: 'Watch yourself climb from Assistant to Master Teacher! See exactly how many points you earn for each activity and track your ECE hours. Your dashboard shows your rank progress, streak rewards, and the path to your next level!',
     icon: <BarChart3 className="h-6 w-6 text-green-600" />,
     screenshot: dashboardScreenshot,
     action: {
