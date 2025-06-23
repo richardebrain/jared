@@ -965,6 +965,13 @@ export default function Dashboard() {
           onClose={() => setShowWelcomeDashboard(false)} 
         />
       )}
+
+      {/* User Tutorial for new users */}
+      <UserTutorial
+        isOpen={showTutorial}
+        onClose={closeTutorial}
+        userRole={userRole}
+      />
     </div>
   );
 }
