@@ -1694,7 +1694,7 @@ Continue for all 5 questions...
         }
 
         // Clean out any existing session
-        if (req.session.userId) {
+        if (req.session && req.session.userId) {
           console.log(
             `Clearing previous session for user ID: ${req.session.userId}`,
           );
@@ -1714,7 +1714,7 @@ Continue for all 5 questions...
           // Continue with login - don't block user on session security errors
         }
 
-        // Set the user session with userId
+        // Set the user session with userId - simplified approach for better reliability
         req.session.userId = user.id;
 
         // Add a login timestamp for better tracking
