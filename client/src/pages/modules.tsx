@@ -55,6 +55,36 @@ export default function AllModules() {
   const standardModules = modules.filter(module => module.duration > 15 && module.duration <= 45);
   const largeModules = modules.filter(module => module.duration > 45);
 
+  // Helper function to group modules by topic/category
+  const groupModulesByTopic = (moduleList: LearningModule[]) => {
+    const grouped = moduleList.reduce((acc, module) => {
+      const topic = module.category || 'Other';
+      if (!acc[topic]) {
+        acc[topic] = [];
+      }
+      acc[topic].push(module);
+      return acc;
+    }, {} as Record<string, LearningModule[]>);
+    
+    // Sort topics alphabetically, but put 'Other' at the end
+    const sortedTopics = Object.keys(grouped).sort((a, b) => {
+      if (a === 'Other') return 1;
+      if (b === 'Other') return -1;
+      return a.localeCompare(b);
+    });
+    
+    return sortedTopics.map(topic => ({
+      topic,
+      modules: grouped[topic]
+    }));
+  };
+
+  // Group each module type by topic
+  const microModulesByTopic = groupModulesByTopic(microModules);
+  const miniModulesByTopic = groupModulesByTopic(miniModules);
+  const standardModulesByTopic = groupModulesByTopic(standardModules);
+  const largeModulesByTopic = groupModulesByTopic(largeModules);
+
   // Get progress for a module
   const getModuleProgress = (moduleId: number) => {
     const progress = userProgress.find(p => p.moduleId === moduleId);
@@ -318,13 +348,13 @@ export default function AllModules() {
           )}
           
           {/* Progress Bar if in progress */}
-          {progress && progress.progress > 0 && !isCompleted && (
+          {progress > 0 && !isCompleted && (
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">Progress</span>
-                <span className="text-sm text-gray-600">{Math.round(progress.progress)}%</span>
+                <span className="text-sm text-gray-600">{Math.round(progress)}%</span>
               </div>
-              <Progress value={progress.progress} className="h-2" />
+              <Progress value={progress} className="h-2" />
             </div>
           )}
         </CardContent>
@@ -335,7 +365,7 @@ export default function AllModules() {
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Link href={`/module/${moduleId}`}>
-              {progress && progress.progress > 0 && !isCompleted ? (
+              {progress > 0 && !isCompleted ? (
                 <>
                   <Bookmark className="mr-2 h-4 w-4" /> Continue Learning
                 </>
@@ -362,8 +392,8 @@ export default function AllModules() {
       </div>
 
       <p className="text-muted-foreground mb-6">
-        Browse all available training modules organized by size. Micro modules take just 5 minutes or less for quick learning on essential topics,
-        mini modules can be completed in 5-15 minutes, standard modules take 15-45 minutes, and large modules are more comprehensive learning experiences.
+        Browse all available training modules organized by size and topic. Each module type is grouped by subject area to help you find relevant content faster.
+        Micro modules take just 5 minutes or less, mini modules can be completed in 5-15 minutes, standard modules take 15-45 minutes, and large modules are comprehensive learning experiences.
       </p>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -377,69 +407,153 @@ export default function AllModules() {
         </TabsList>
         
         <TabsContent value="all" className="mt-6">
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Timer className="mr-2 h-5 w-5 text-rose-500" />
-              Micro Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(5 minutes or less)</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {microModules.map(renderModuleCard)}
+          {/* Micro Modules by Topic */}
+          {microModulesByTopic.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <Timer className="mr-2 h-5 w-5 text-rose-500" />
+                Micro Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(5 minutes or less)</span>
+              </h2>
+              {microModulesByTopic.map(({ topic, modules }) => (
+                <div key={topic} className="mb-6">
+                  <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-rose-300 pl-3">
+                    {topic} ({modules.length})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {modules.map(renderModuleCard)}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
           
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Timer className="mr-2 h-5 w-5 text-green-600" />
-              Mini Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(5-15 minutes)</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {miniModules.map(renderModuleCard)}
+          {/* Mini Modules by Topic */}
+          {miniModulesByTopic.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <Timer className="mr-2 h-5 w-5 text-green-600" />
+                Mini Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(5-15 minutes)</span>
+              </h2>
+              {miniModulesByTopic.map(({ topic, modules }) => (
+                <div key={topic} className="mb-6">
+                  <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-green-300 pl-3">
+                    {topic} ({modules.length})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {modules.map(renderModuleCard)}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
           
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <BookOpen className="mr-2 h-5 w-5 text-blue-600" />
-              Standard Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(15-45 minutes)</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {standardModules.map(renderModuleCard)}
+          {/* Standard Modules by Topic */}
+          {standardModulesByTopic.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <BookOpen className="mr-2 h-5 w-5 text-blue-600" />
+                Standard Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(15-45 minutes)</span>
+              </h2>
+              {standardModulesByTopic.map(({ topic, modules }) => (
+                <div key={topic} className="mb-6">
+                  <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-blue-300 pl-3">
+                    {topic} ({modules.length})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {modules.map(renderModuleCard)}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
           
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Star className="mr-2 h-5 w-5 text-amber-600" />
-              Large Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(45+ minutes)</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {largeModules.map(renderModuleCard)}
+          {/* Large Modules by Topic */}
+          {largeModulesByTopic.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <Star className="mr-2 h-5 w-5 text-amber-600" />
+                Large Modules <span className="text-sm font-normal ml-2 text-muted-foreground">(45+ minutes)</span>
+              </h2>
+              {largeModulesByTopic.map(({ topic, modules }) => (
+                <div key={topic} className="mb-6">
+                  <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-amber-300 pl-3">
+                    {topic} ({modules.length})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {modules.map(renderModuleCard)}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </TabsContent>
         
         <TabsContent value="micro" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {microModules.map(renderModuleCard)}
-          </div>
+          {microModulesByTopic.length > 0 ? (
+            microModulesByTopic.map(({ topic, modules }) => (
+              <div key={topic} className="mb-6">
+                <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-rose-300 pl-3">
+                  {topic} ({modules.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {modules.map(renderModuleCard)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-8">No micro modules available.</p>
+          )}
         </TabsContent>
         
         <TabsContent value="mini" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {miniModules.map(renderModuleCard)}
-          </div>
+          {miniModulesByTopic.length > 0 ? (
+            miniModulesByTopic.map(({ topic, modules }) => (
+              <div key={topic} className="mb-6">
+                <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-green-300 pl-3">
+                  {topic} ({modules.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {modules.map(renderModuleCard)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-8">No mini modules available.</p>
+          )}
         </TabsContent>
         
         <TabsContent value="standard" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {standardModules.map(renderModuleCard)}
-          </div>
+          {standardModulesByTopic.length > 0 ? (
+            standardModulesByTopic.map(({ topic, modules }) => (
+              <div key={topic} className="mb-6">
+                <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-blue-300 pl-3">
+                  {topic} ({modules.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {modules.map(renderModuleCard)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-8">No standard modules available.</p>
+          )}
         </TabsContent>
         
         <TabsContent value="large" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {largeModules.map(renderModuleCard)}
-          </div>
+          {largeModulesByTopic.length > 0 ? (
+            largeModulesByTopic.map(({ topic, modules }) => (
+              <div key={topic} className="mb-6">
+                <h3 className="text-lg font-medium mb-3 text-gray-700 border-l-4 border-amber-300 pl-3">
+                  {topic} ({modules.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {modules.map(renderModuleCard)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-8">No large modules available.</p>
+          )}
         </TabsContent>
         
         <TabsContent value="community" className="mt-6">
