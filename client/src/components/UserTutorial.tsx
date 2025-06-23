@@ -277,9 +277,52 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
+      // Award 1 point for tutorial progress and play coin sound
+      awardTutorialPoint();
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
+    }
+  };
+
+  // Award points for tutorial progress with sound
+  const awardTutorialPoint = async () => {
+    try {
+      await apiRequest('/api/award-tutorial-point', {
+        method: 'POST'
+      });
+      
+      // Play coin sound effect
+      const audio = new Audio('/coin-sound.mp3');
+      audio.volume = 0.3;
+      audio.play().catch(() => {
+        // Fallback: create coin sound using Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.1);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      });
+
+      // Show brief points notification
+      toast({
+        title: "🎉 Tutorial Progress!",
+        description: "+1 Point earned! Keep going to unlock the points system rewards!",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Error awarding tutorial point:', error);
     }
   };
 
