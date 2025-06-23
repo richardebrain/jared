@@ -1886,8 +1886,7 @@ Continue for all 5 questions...
         if (!res.headersSent) {
           res.status(500).json({
             message: "Internal server error",
-            details:
-              "There was a problem with the login process. Please try again.",
+            details: "There was a problem with the login process. Please try again.",
           });
         }
       }
