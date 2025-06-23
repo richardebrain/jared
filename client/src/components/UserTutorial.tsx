@@ -495,25 +495,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                     </p>
                   </div>
 
-                  {currentStepData.action && (
-                    <div className="pt-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          if (currentStepData.action?.href) {
-                            window.open(currentStepData.action.href, '_blank');
-                          }
-                          if (currentStepData.action?.onClick) {
-                            currentStepData.action.onClick();
-                          }
-                        }}
-                        className="gap-2"
-                      >
-                        {currentStepData.action.text}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+
                 </div>
               </CardContent>
             </Card>
