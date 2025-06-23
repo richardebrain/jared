@@ -54,6 +54,7 @@ import pointsTrackingImg from "@/assets/screenshots/points-tracking.svg";
 import leaderboardImg from "@/assets/screenshots/leaderboard.svg";
 import musicLibraryImg from "@/assets/screenshots/music-library.svg";
 import suessifierImg from "@/assets/screenshots/suessifier.svg";
+import videoLibraryImg from "@/assets/screenshots/video-library.svg";
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -137,7 +138,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Professional Video Library',
     description: 'Watch videos and earn points! Professional development videos with integrated quizzes that count toward your ECE hours. Rate boring content low so we can remove it - we want only the best training over time!',
     icon: <Play className="h-6 w-6 text-red-600" />,
-    screenshot: lightningModulesImg,
+    screenshot: videoLibraryImg,
     action: {
       text: 'Browse Videos',
       href: '/videos'
@@ -190,7 +191,7 @@ const tutorialSteps: TutorialStep[] = [
       text: 'Create Module',
       href: '/new-module-creator'
     },
-    userTypes: ['teacher', 'admin', 'school_admin']
+    userTypes: ['admin', 'school_admin']
   },
   {
     id: 'custom-story-creator',
