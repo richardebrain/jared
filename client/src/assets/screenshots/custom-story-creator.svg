@@ -1,0 +1,16 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="600" fill="#ffffff"/>
+<rect x="20" y="60" width="760" height="520" fill="#f9fafb" rx="12"/>
+<text x="400" y="40" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">Custom Story Creator</text>
+<rect x="40" y="100" width="720" height="80" fill="#edf2f7" rx="8"/>
+<text x="60" y="125" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#374151">Child's Name:</text>
+<text x="60" y="155" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Maria</text>
+<rect x="40" y="200" width="720" height="80" fill="#edf2f7" rx="8"/>
+<text x="60" y="225" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#374151">Language:</text>
+<text x="60" y="255" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Spanish</text>
+<rect x="40" y="300" width="720" height="80" fill="#edf2f7" rx="8"/>
+<text x="60" y="325" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#374151">Challenge:</text>
+<text x="60" y="355" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Biting during transitions</text>
+<rect x="300" y="430" width="200" height="50" fill="#ec4899" rx="8"/>
+<text x="400" y="460" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Create Story</text>
+</svg>

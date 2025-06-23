@@ -1,0 +1,17 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="600" fill="#ffffff"/>
+<rect x="20" y="60" width="760" height="520" fill="#fef3c7" rx="12"/>
+<text x="400" y="40" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">The Suessifier</text>
+<rect x="40" y="100" width="720" height="80" fill="#fde68a" rx="8"/>
+<text x="60" y="125" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#92400e">Child's Name:</text>
+<text x="60" y="155" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111827">Emma</text>
+<rect x="40" y="200" width="720" height="120" fill="#fde68a" rx="8"/>
+<text x="60" y="225" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#92400e">Generated Poem:</text>
+<text x="60" y="255" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111827">Emma, Emma, what a star!</text>
+<text x="60" y="275" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111827">You're amazing, yes you are!</text>
+<text x="60" y="295" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111827">With a smile so bright and true...</text>
+<rect x="300" y="360" width="200" height="50" fill="#f59e0b" rx="8"/>
+<text x="400" y="390" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Create Poem</text>
+<rect x="300" y="430" width="200" height="50" fill="#059669" rx="8"/>
+<text x="400" y="460" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Save &amp; Print</text>
+</svg>

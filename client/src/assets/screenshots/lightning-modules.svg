@@ -1,0 +1,26 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="600" fill="#ffffff"/>
+<rect x="20" y="20" width="760" height="560" fill="#f8fafc" rx="12"/>
+<text x="400" y="50" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="600" fill="#111827" text-anchor="middle">Lightning Training Modules</text>
+<rect x="40" y="80" width="340" height="220" fill="#e0e7ff" rx="8"/>
+<text x="60" y="110" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#3730a3">Quick Start Training</text>
+<text x="60" y="135" font-family="Inter, Arial, sans-serif" font-size="14" fill="#4338ca">15 minutes • 5 points</text>
+<text x="60" y="165" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6366f1">✓ Interactive Quiz</text>
+<text x="60" y="185" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6366f1">✓ Video Examples</text>
+<text x="60" y="205" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6366f1">✓ 0.25 ECE Hours</text>
+<rect x="60" y="230" width="100" height="30" fill="#6366f1" rx="4"/>
+<text x="110" y="248" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">Start Module</text>
+<rect x="420" y="80" width="340" height="220" fill="#ecfdf5" rx="8"/>
+<text x="440" y="110" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#065f46">Classroom Management</text>
+<text x="440" y="135" font-family="Inter, Arial, sans-serif" font-size="14" fill="#047857">12 minutes • 8 points</text>
+<text x="440" y="165" font-family="Inter, Arial, sans-serif" font-size="12" fill="#059669">✓ Scenario Practice</text>
+<text x="440" y="185" font-family="Inter, Arial, sans-serif" font-size="12" fill="#059669">✓ Real Examples</text>
+<text x="440" y="205" font-family="Inter, Arial, sans-serif" font-size="12" fill="#059669">✓ 0.2 ECE Hours</text>
+<rect x="440" y="230" width="100" height="30" fill="#059669" rx="4"/>
+<text x="490" y="248" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">Start Module</text>
+<rect x="40" y="320" width="720" height="60" fill="#fef3c7" rx="8"/>
+<text x="60" y="345" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#92400e">💡 Pro Tip:</text>
+<text x="60" y="365" font-family="Inter, Arial, sans-serif" font-size="12" fill="#92400e">Complete 4 lightning trainings (15 min each) = 1 full ECE hour!</text>
+<rect x="300" y="420" width="200" height="50" fill="#7c3aed" rx="8"/>
+<text x="400" y="450" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Browse All Modules</text>
+</svg>
