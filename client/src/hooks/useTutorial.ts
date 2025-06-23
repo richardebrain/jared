@@ -48,12 +48,15 @@ export function useTutorial() {
   // Check if user should see tutorial
   useEffect(() => {
     if (user) {
-      // Show tutorial if:
-      // 1. User hasn't completed tutorial yet
-      // 2. User was created recently (within last 7 days)
-      // 3. User explicitly hasn't dismissed it
+      // NEVER show tutorial again if user has completed it
+      if (user.hasCompletedTutorial === true) {
+        setShowTutorial(false);
+        return;
+      }
+      
+      // Only show tutorial for genuinely new users who haven't completed it
       const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const shouldShowTutorial = !user.hasCompletedTutorial && isNewUser;
+      const shouldShowTutorial = user.hasCompletedTutorial !== true && isNewUser;
       
       // Add small delay to avoid showing immediately on login
       if (shouldShowTutorial) {
@@ -61,6 +64,8 @@ export function useTutorial() {
           setShowTutorial(true);
         }, 2000);
         return () => clearTimeout(timer);
+      } else {
+        setShowTutorial(false);
       }
     }
   }, [user]);
