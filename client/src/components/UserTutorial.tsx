@@ -56,6 +56,7 @@ import leaderboardImg from "@/assets/screenshots/leaderboard.svg";
 import musicLibraryImg from "@/assets/screenshots/music-library.svg";
 import suessifierImg from "@/assets/screenshots/suessifier.svg";
 import videoLibraryImg from "@/assets/screenshots/video-library.svg";
+import teacherDashboardImg from "@/assets/screenshots/teacher-dashboard.svg";
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -63,7 +64,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Welcome to MentorMe ECE',
     description: 'Transform your teaching with quick, engaging professional development! Only have 15 minutes? Perfect! Earn ECE hours while having fun, climb the teacher ranks, and discover tools that make your classroom magical.',
     icon: <GraduationCap className="h-6 w-6 text-blue-600" />,
-    screenshot: pointsTrackingImg,
+    screenshot: teacherDashboardImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
