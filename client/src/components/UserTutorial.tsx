@@ -46,11 +46,15 @@ interface UserTutorialProps {
   userRole: 'teacher' | 'admin' | 'school_admin';
 }
 
-import dashboardScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.17_1749935001943.png";
-import modulesScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.36_1749935018429.png";
-import assessmentScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.45_1749935030072.png";
-import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.55_1749935038462.png";
-import eceTrackingScreenshot from "@assets/Screenshot 2025-06-15 at 14.38.41_1749994726716.png";
+// Import correct screenshots based on content
+import dashboardScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.36_1749935018429.png";
+import moduleCreatorScreenshot from "@assets/Screenshot 2025-06-14 at 13.12.55_1749903179794.png";
+import moduleOutlineScreenshot from "@assets/Screenshot 2025-06-14 at 15.05.03_1749909906126.png";
+import assessmentScreenshot from "@assets/Screenshot 2025-06-15 at 14.38.41_1749994726716.png";
+import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 16.11.11_1749913887467.png";
+import teacherManagementScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.17_1749935001943.png";
+import videoLibraryScreenshot from "@assets/Screenshot 2025-06-14 at 12.29.16_1749900559890.png";
+import eceTrackingScreenshot from "@assets/Screenshot 2025-06-15 at 14.39.44_1749994787827.png";
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -78,7 +82,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Interactive Learning Modules',
     description: 'Explore our comprehensive library of training modules organized by topic and duration. From quick 5-minute micro-modules to comprehensive courses.',
     icon: <BookOpen className="h-6 w-6 text-purple-600" />,
-    screenshot: modulesScreenshot,
+    screenshot: moduleOutlineScreenshot,
     action: {
       text: 'Browse Modules',
       href: '/modules'
@@ -122,7 +126,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Professional Video Library',
     description: 'Access curated professional development videos with integrated quizzes and ECE hour tracking for comprehensive learning experiences.',
     icon: <Play className="h-6 w-6 text-red-600" />,
-    screenshot: modulesScreenshot,
+    screenshot: videoLibraryScreenshot,
     action: {
       text: 'Browse Videos',
       href: '/videos'
@@ -170,7 +174,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Create Custom Modules',
     description: 'Build your own training modules using AI assistance, manual creation, or PowerPoint import. Share with your team or the community.',
     icon: <Zap className="h-6 w-6 text-violet-600" />,
-    screenshot: modulesScreenshot,
+    screenshot: moduleCreatorScreenshot,
     action: {
       text: 'Create Module',
       href: '/new-module-creator'
