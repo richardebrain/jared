@@ -4619,22 +4619,19 @@ Continue for all 5 questions...
     }
   });
 
-  // Admin routes with direct password checking for reliability
-  app.get("/api/admin/users", async (req, res) => {
-    // Check for admin password directly
-    const adminPassword = req.query.admin_password;
-    console.log("Admin password received:", adminPassword);
-
-    if (adminPassword !== "BIGSURF55") {
-      console.log("Admin password incorrect, access denied");
-      return res.status(403).json({
-        message: "Forbidden: Admin access required. Password incorrect.",
-      });
-    }
-
-    console.log("Admin password correct, proceeding to fetch users");
-
+  // Admin routes with proper session-based authentication
+  app.get("/api/admin/users", requireAuth, async (req, res) => {
     try {
+      // Check if user has admin privileges
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser?.isOwner && !currentUser?.isAdmin) {
+        console.log("User lacks admin privileges, access denied");
+        return res.status(403).json({
+          message: "Forbidden: Admin access required.",
+        });
+      }
+
+      console.log("Admin access verified, proceeding to fetch users");
       // First check raw SQL query to confirm users exist
       const rawUsers = await db.select().from(users);
       console.log("Raw SQL users count:", rawUsers.length);
@@ -4667,20 +4664,17 @@ Continue for all 5 questions...
     }
   });
 
-  // Direct admin password check reset endpoints
-  app.post("/api/admin/reset-points/:userId", async (req, res) => {
-    // Check for admin password from environment variable
-    const adminPassword = req.query.admin_password;
-    console.log("Reset points - Admin password check requested");
-
-    if (!process.env.ADMIN_PASSWORD || adminPassword !== process.env.ADMIN_PASSWORD) {
-      console.log("Reset points - Admin password incorrect, access denied");
-      return res
-        .status(403)
-        .json({ message: "Forbidden: Admin access required" });
-    }
-
+  // Secure admin reset endpoints with proper authentication
+  app.post("/api/admin/reset-points/:userId", requireAuth, async (req, res) => {
     try {
+      // Check if user has admin privileges
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser?.isOwner && !currentUser?.isAdmin) {
+        console.log("Reset points - User lacks admin privileges, access denied");
+        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      }
+      
+      console.log("Reset points - Admin access verified");
       const userId = parseInt(req.params.userId);
       console.log("Resetting points for user ID:", userId);
 
@@ -4704,19 +4698,17 @@ Continue for all 5 questions...
     }
   });
 
-  app.post("/api/admin/reset-progress/:userId", async (req, res) => {
-    // Check for admin password directly
-    const adminPassword = req.query.admin_password;
-    console.log("Reset progress - Admin password received:", adminPassword);
-
-    if (adminPassword !== "BIGSURF55") {
-      console.log("Reset progress - Admin password incorrect, access denied");
-      return res
-        .status(403)
-        .json({ message: "Forbidden: Admin access required" });
-    }
-
+  app.post("/api/admin/reset-progress/:userId", requireAuth, async (req, res) => {
     try {
+      // Check if user has admin privileges
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser?.isOwner && !currentUser?.isAdmin) {
+        console.log("Reset progress - User lacks admin privileges, access denied");
+        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      }
+      
+      console.log("Reset progress - Admin access verified");
+
       const userId = parseInt(req.params.userId);
       console.log("Resetting progress for user ID:", userId);
 
