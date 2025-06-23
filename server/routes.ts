@@ -2071,7 +2071,13 @@ Continue for all 5 questions...
       // Do not return password in response
       const { password, ...userWithoutPassword } = user;
 
-      res.status(200).json(userWithoutPassword);
+      // Ensure hasCompletedTutorial field is included
+      const userResponse = {
+        ...userWithoutPassword,
+        hasCompletedTutorial: userWithoutPassword.hasCompletedTutorial || false
+      };
+
+      res.status(200).json(userResponse);
     } catch (error) {
       console.error("GET /api/auth/me - Error:", error);
       res.status(500).json({ message: "Internal server error" });
