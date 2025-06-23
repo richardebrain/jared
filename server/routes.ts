@@ -1615,13 +1615,28 @@ Continue for all 5 questions...
         // Clean up session if user is already logged in to prevent login loops
         if (req.session.userId && req.session.userId !== user.id) {
           console.log(`Clearing existing session for different user: ${req.session.userId}`);
-          // Clear any existing session for a different user
-          req.session.destroy((err) => {
-            if (err) {
-              console.error("Error destroying existing session:", err);
-            }
-          });
-          res.clearCookie("connect.sid");
+          // Clear any existing session for a different user synchronously
+          try {
+            await new Promise((resolve, reject) => {
+              req.session.destroy((err) => {
+                if (err) {
+                  console.error("Error destroying existing session:", err);
+                  reject(err);
+                } else {
+                  resolve(true);
+                }
+              });
+            });
+            res.clearCookie("connect.sid");
+            console.log("Session destruction completed successfully");
+          } catch (error) {
+            console.error("Failed to destroy session:", error);
+            clearTimeout(loginTimeout);
+            return res.status(500).json({
+              message: "Session cleanup error",
+              details: "Unable to clear existing session. Please try again."
+            });
+          }
         }
 
         // Debug logging for authentication
