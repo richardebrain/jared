@@ -401,7 +401,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-4 border-purple-300 shadow-2xl">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-4 border-purple-300 shadow-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -508,46 +508,46 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
         {/* Mystery Box on Final Step */}
         {currentStep === totalSteps - 1 && showMysteryBox && (
-          <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border-2 border-dashed border-purple-300">
-            <div className="text-center space-y-4">
-              <div className="text-6xl animate-bounce">🎁</div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <div className="mt-4 p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border-2 border-dashed border-purple-300">
+            <div className="text-center space-y-3">
+              <div className="text-5xl animate-bounce">🎁</div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Congratulations! You've earned a Mystery Box!
               </h3>
-              <p className="text-gray-700 text-lg">
-                Click to open your mystery box and discover bonus points to start your journey!
+              <p className="text-gray-700 text-base">
+                Click to open your mystery box and discover bonus points!
               </p>
               
               {mysteryBoxOpening ? (
-                <div className="space-y-4">
-                  <div className="text-8xl animate-pulse">🎁</div>
-                  <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
+                <div className="space-y-3">
+                  <div className="text-6xl animate-pulse">🎁</div>
+                  <div className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
                     Opening your mystery box...
                   </div>
                   <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
                   </div>
                 </div>
               ) : !mysteryBoxOpened ? (
                 <Button
                   onClick={openMysteryBox}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   ✨ Open Mystery Box! ✨
                 </Button>
               ) : (
-                <div className="space-y-3">
-                  <div className="text-6xl animate-bounce">🎉</div>
-                  <div className="bg-white rounded-lg p-4 border-4 border-yellow-300 shadow-xl">
-                    <div className="text-3xl font-bold text-yellow-600 mb-2">
+                <div className="space-y-2">
+                  <div className="text-5xl animate-bounce">🎉</div>
+                  <div className="bg-white rounded-lg p-3 border-4 border-yellow-300 shadow-xl">
+                    <div className="text-2xl font-bold text-yellow-600 mb-1">
                       +{mysteryBoxReward} Bonus Points!
                     </div>
-                    <p className="text-gray-700 text-base font-medium">
-                      Congratulations! You've completed the tutorial and earned bonus points to start your learning journey!
+                    <p className="text-gray-700 text-sm font-medium">
+                      Tutorial complete! Bonus points earned!
                     </p>
                   </div>
-                  <p className="text-base text-purple-600 font-medium animate-pulse">
-                    Welcome to MentorMe ECE! Your adventure begins now...
+                  <p className="text-sm text-purple-600 font-medium animate-pulse">
+                    Welcome to MentorMe ECE!
                   </p>
                 </div>
               )}

@@ -88,6 +88,8 @@ export const users = pgTable("users", {
   // Song generation tracking fields for MusicMakerPrek
   songRequestsThisWeek: integer("song_requests_this_week").default(0),
   lastSongWeek: text("last_song_week"), // Format: "YYYY-WW"
+  // Tutorial completion tracking
+  hasCompletedTutorial: boolean("has_completed_tutorial").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
