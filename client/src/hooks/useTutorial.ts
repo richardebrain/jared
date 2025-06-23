@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface User {
   id: number;
@@ -11,11 +11,30 @@ interface User {
 
 export function useTutorial() {
   const [showTutorial, setShowTutorial] = useState(false);
+  const queryClient = useQueryClient();
 
   // Get current user data
   const { data: user } = useQuery<User>({
     queryKey: ['/api/auth/me'],
     retry: false,
+  });
+
+  // Tutorial completion mutation
+  const completeTutorialMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/user/complete-tutorial', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to complete tutorial');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      setShowTutorial(false);
+    },
   });
 
   // Determine user role for tutorial customization
@@ -48,11 +67,13 @@ export function useTutorial() {
 
   const openTutorial = () => setShowTutorial(true);
   const closeTutorial = () => setShowTutorial(false);
+  const completeTutorial = () => completeTutorialMutation.mutate();
 
   return {
     showTutorial,
     openTutorial,
     closeTutorial,
+    completeTutorial,
     userRole: getUserRole(user),
     isNewUser: user ? new Date(user.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) : false
   };

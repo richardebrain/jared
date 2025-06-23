@@ -42,12 +42,15 @@ import AchievementPopup from "@/components/AchievementPopup";
 import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
 import PersonalizedMiniLessons from "@/components/PersonalizedMiniLessons";
 import CommunityModules from "@/components/CommunityModules";
+import UserTutorial from "@/components/UserTutorial";
+import { useTutorial } from "@/hooks/useTutorial";
 
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
   const [showAchievement, setShowAchievement] = useState(false);
   const [lastCompletedModule, setLastCompletedModule] = useState<string | null>(null);
+  const { showTutorial, openTutorial, closeTutorial, completeTutorial, userRole, isNewUser } = useTutorial();
   const [showMindfulnessReminder, setShowMindfulnessReminder] = useState(false);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [showWelcomeDashboard, setShowWelcomeDashboard] = useState(false);
