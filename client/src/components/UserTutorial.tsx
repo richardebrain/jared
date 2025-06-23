@@ -51,6 +51,7 @@ interface UserTutorialProps {
 import customStoryCreatorImg from "@/assets/screenshots/custom-story-creator.svg";
 import lightningModulesImg from "@/assets/screenshots/lightning-modules.svg";
 import pointsTrackingImg from "@/assets/screenshots/points-tracking.svg";
+import eceTrackingImg from "@/assets/screenshots/ece-tracking.svg";
 import leaderboardImg from "@/assets/screenshots/leaderboard.svg";
 import musicLibraryImg from "@/assets/screenshots/music-library.svg";
 import suessifierImg from "@/assets/screenshots/suessifier.svg";
@@ -103,10 +104,10 @@ const tutorialSteps: TutorialStep[] = [
   },
   {
     id: 'ece-tracking',
-    title: 'ECE Hours Tracking',
-    description: 'Automatically track your professional development hours for ECE compliance. Your ECE hours are emailed to your director monthly for easy tracking, and your admin can also add in-person training hours you complete off-site.',
+    title: 'ECE Hours & Progress Tracking',
+    description: 'Track your 30-hour annual ECE requirement with visual progress bars. Hours are automatically tracked from completed modules and emailed to your director monthly. Admins can add in-person training hours for off-site courses.',
     icon: <Clock className="h-6 w-6 text-cyan-500" />,
-    screenshot: pointsTrackingImg,
+    screenshot: eceTrackingImg,
     action: {
       text: 'View ECE Progress',
       href: '/dashboard'
@@ -114,33 +115,25 @@ const tutorialSteps: TutorialStep[] = [
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'points-system',
-    title: 'Points & Achievements',
-    description: 'Earn points for completing modules and assessments. Build learning streaks and unlock achievements as you progress in your professional development.',
-    icon: <Award className="h-6 w-6 text-yellow-600" />,
-    screenshot: pointsTrackingImg,
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
-  {
-    id: 'music-library',
-    title: 'Classroom Music Library',
-    description: 'Need calming music for nap time? Energizing songs for transitions? Browse our curated music library designed specifically for early childhood classrooms. Make every moment magical with the perfect soundtrack!',
+    id: 'games-music-tools',
+    title: 'Interactive Tools & Music Library',
+    description: 'Earn points and compete on leaderboards! Access calming nap time music, energizing transition songs, custom story creator, and Suessifier for personalized poems. Make every classroom moment magical with our curated tools.',
     icon: <Music className="h-6 w-6 text-purple-600" />,
     screenshot: musicLibraryImg,
     action: {
-      text: 'Browse Music',
+      text: 'Explore Tools',
       href: '/games'
     },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'video-library',
-    title: 'Professional Video Library',
-    description: 'Watch videos and earn points! Professional development videos with integrated quizzes that count toward your ECE hours. Rate boring content low so we can remove it - we want only the best training over time!',
+    id: 'content-library',
+    title: 'Video Library & Module Creator',
+    description: 'Watch professional development videos with integrated quizzes that count toward ECE hours. Create custom modules using AI or upload PowerPoint presentations. Rate content to maintain quality - only the best training stays!',
     icon: <Play className="h-6 w-6 text-red-600" />,
     screenshot: videoLibraryImg,
     action: {
-      text: 'Browse Videos',
+      text: 'Explore Content',
       href: '/videos'
     },
     userTypes: ['teacher', 'admin', 'school_admin']
@@ -181,18 +174,7 @@ const tutorialSteps: TutorialStep[] = [
     },
     userTypes: ['admin', 'school_admin']
   },
-  {
-    id: 'module-creator',
-    title: 'Create Custom Modules',
-    description: 'Build your own training modules using AI assistance, manual creation, or PowerPoint import. Share with your team or the community.',
-    icon: <Zap className="h-6 w-6 text-violet-600" />,
-    screenshot: lightningModulesImg,
-    action: {
-      text: 'Create Module',
-      href: '/new-module-creator'
-    },
-    userTypes: ['admin', 'school_admin']
-  },
+
   {
     id: 'custom-story-creator',
     title: 'Custom Story Creator',
