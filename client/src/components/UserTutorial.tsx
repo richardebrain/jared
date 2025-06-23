@@ -47,13 +47,13 @@ interface UserTutorialProps {
   userRole: 'teacher' | 'admin' | 'school_admin';
 }
 
-// Import existing screenshots for enhanced tutorial
-import dashboardScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.36_1749935018429.png";
-import assessmentScreenshot from "@assets/Screenshot 2025-06-15 at 14.38.41_1749994726716.png";
-import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 16.11.11_1749913887467.png";
-import teacherManagementScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.17_1749935001943.png";
-import videoLibraryScreenshot from "@assets/Screenshot 2025-06-14 at 12.29.16_1749900559890.png";
-import eceTrackingScreenshot from "@assets/Screenshot 2025-06-15 at 14.39.44_1749994787827.png";
+// Import content-specific tutorial images
+import customStoryCreatorImg from "@/assets/screenshots/custom-story-creator.svg";
+import lightningModulesImg from "@/assets/screenshots/lightning-modules.svg";
+import pointsTrackingImg from "@/assets/screenshots/points-tracking.svg";
+import leaderboardImg from "@/assets/screenshots/leaderboard.svg";
+import musicLibraryImg from "@/assets/screenshots/music-library.svg";
+import suessifierImg from "@/assets/screenshots/suessifier.svg";
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -61,7 +61,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Welcome to MentorMe ECE',
     description: 'Transform your teaching with quick, engaging professional development! Only have 15 minutes? Perfect! Earn ECE hours while having fun, climb the teacher ranks, and discover tools that make your classroom magical.',
     icon: <GraduationCap className="h-6 w-6 text-blue-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: pointsTrackingImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
@@ -69,7 +69,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Your Progression Dashboard',
     description: 'Watch yourself climb from Assistant to Master Teacher! See exactly how many points you earn for each activity and track your ECE hours. Your dashboard shows your rank progress, streak rewards, and the path to your next level!',
     icon: <BarChart3 className="h-6 w-6 text-orange-500" />,
-    screenshot: dashboardScreenshot,
+    screenshot: leaderboardImg,
     action: {
       text: 'View Dashboard',
       href: '/dashboard'
@@ -81,7 +81,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Lightning Training Modules',
     description: 'Only have 15 minutes for training? Take 4 lightning trainings to earn 1 full ECE hour! Quick, engaging modules that fit your busy schedule. Earn points, climb ranks, and watch videos for extra rewards!',
     icon: <Zap className="h-6 w-6 text-purple-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: lightningModulesImg,
     action: {
       text: 'Browse Modules',
       href: '/modules'
@@ -93,7 +93,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Adaptive Assessments',
     description: 'Take skill assessments that adapt to your knowledge level and provide personalized learning recommendations based on your performance.',
     icon: <Target className="h-6 w-6 text-orange-600" />,
-    screenshot: assessmentScreenshot,
+    screenshot: pointsTrackingImg,
     action: {
       text: 'Start Assessment',
       href: '/assessment'
@@ -105,7 +105,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'ECE Hours Tracking',
     description: 'Automatically track your professional development hours for ECE compliance. View your progress toward certification requirements.',
     icon: <Clock className="h-6 w-6 text-cyan-500" />,
-    screenshot: eceTrackingScreenshot,
+    screenshot: pointsTrackingImg,
     action: {
       text: 'View ECE Progress',
       href: '/dashboard'
@@ -117,7 +117,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Points & Achievements',
     description: 'Earn points for completing modules and assessments. Build learning streaks and unlock achievements as you progress in your professional development.',
     icon: <Award className="h-6 w-6 text-yellow-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: pointsTrackingImg,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
@@ -125,7 +125,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Classroom Music Library',
     description: 'Need calming music for nap time? Energizing songs for transitions? Browse our curated music library designed specifically for early childhood classrooms. Make every moment magical with the perfect soundtrack!',
     icon: <Music className="h-6 w-6 text-purple-600" />,
-    screenshot: videoLibraryScreenshot,
+    screenshot: musicLibraryImg,
     action: {
       text: 'Browse Music',
       href: '/games'
@@ -137,7 +137,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Professional Video Library',
     description: 'Watch videos and earn points! Professional development videos with integrated quizzes that count toward your ECE hours. Rate boring content low so we can remove it - we want only the best training over time!',
     icon: <Play className="h-6 w-6 text-red-600" />,
-    screenshot: videoLibraryScreenshot,
+    screenshot: lightningModulesImg,
     action: {
       text: 'Browse Videos',
       href: '/videos'
@@ -149,7 +149,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Director Toolkit',
     description: 'Access powerful administrative tools including teacher management, ECE tracking, Perfect Manager coaching system, and comprehensive reporting.',
     icon: <Settings className="h-6 w-6 text-indigo-600" />,
-    screenshot: directorToolkitScreenshot,
+    screenshot: leaderboardImg,
     action: {
       text: 'Open Director Toolkit',
       href: '/admin'
@@ -161,7 +161,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Teacher Profiles & Progress',
     description: 'Monitor your team\'s professional development, track ECE hours, generate certificates, and manage user roles and permissions.',
     icon: <Users className="h-6 w-6 text-cyan-600" />,
-    screenshot: eceTrackingScreenshot,
+    screenshot: pointsTrackingImg,
     action: {
       text: 'Manage Teachers',
       href: '/admin/teachers'
@@ -173,7 +173,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Perfect Manager AI Coach',
     description: 'Get personalized leadership coaching for challenging workplace situations. AI-powered advice from top leadership experts for ECE directors.',
     icon: <MessageSquare className="h-6 w-6 text-pink-600" />,
-    screenshot: directorToolkitScreenshot,
+    screenshot: customStoryCreatorImg,
     action: {
       text: 'Try Perfect Manager',
       href: '/admin/perfect-manager'
@@ -185,7 +185,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Create Custom Modules',
     description: 'Build your own training modules using AI assistance, manual creation, or PowerPoint import. Share with your team or the community.',
     icon: <Zap className="h-6 w-6 text-violet-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: lightningModulesImg,
     action: {
       text: 'Create Module',
       href: '/new-module-creator'
@@ -197,7 +197,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Custom Story Creator',
     description: 'Have a child who doesn\'t speak English? Create comfort stories in their language to help with biting, transitions, or any classroom challenge! Personalized stories that speak to each child\'s heart in their home language.',
     icon: <BookOpen className="h-6 w-6 text-pink-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: customStoryCreatorImg,
     action: {
       text: 'Create Story',
       href: '/games'
@@ -209,7 +209,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'The Suessifier',
     description: 'Want a fun poem with your student\'s name? Test the Suessifier! Create personalized Dr. Seuss-style poems that make every child feel special. Perfect for circle time, transitions, or celebrating achievements!',
     icon: <Music className="h-6 w-6 text-orange-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: suessifierImg,
     action: {
       text: 'Create Poem',
       href: '/games'
@@ -221,7 +221,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Core Value Shout-Outs',
     description: 'Celebrate your team! Give core value shout-outs to employees who embody your school\'s values. Build positive culture while earning points and climbing the leaderboard. Recognition that matters!',
     icon: <Award className="h-6 w-6 text-green-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: leaderboardImg,
     action: {
       text: 'Give Shout-Out',
       href: '/dashboard'
@@ -233,7 +233,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Get on Top of the Leaderboard',
     description: 'Compete with your colleagues! See who\'s earning the most points, completing the most training, and climbing the teacher ranks. Friendly competition that motivates everyone to grow professionally!',
     icon: <BarChart3 className="h-6 w-6 text-blue-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: leaderboardImg,
     action: {
       text: 'View Leaderboard',
       href: '/dashboard'
