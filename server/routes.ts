@@ -5828,6 +5828,31 @@ Continue for all 5 questions...
     }
   });
 
+  // Mystery Box Reward Route
+  app.post("/api/mystery-box-reward", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { bonusPoints } = req.body;
+      
+      // Validate bonus points (1-20)
+      if (!bonusPoints || bonusPoints < 1 || bonusPoints > 20) {
+        return res.status(400).json({ error: "Invalid bonus points amount" });
+      }
+      
+      // Award bonus points from mystery box
+      await storage.addUserPoints(userId, bonusPoints);
+      
+      res.status(200).json({ 
+        success: true, 
+        bonusPoints,
+        message: `Mystery box opened! Awarded ${bonusPoints} bonus points!` 
+      });
+    } catch (error) {
+      console.error("Error awarding mystery box reward:", error);
+      res.status(500).json({ message: "Failed to award mystery box reward" });
+    }
+  });
+
   // Core Values Shout Outs routes
   app.get("/api/core-values-shoutouts", async (req, res) => {
     try {

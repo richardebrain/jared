@@ -251,6 +251,9 @@ const tutorialSteps: TutorialStep[] = [
 
 export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [showMysteryBox, setShowMysteryBox] = useState(false);
+  const [mysteryBoxOpened, setMysteryBoxOpened] = useState(false);
+  const [mysteryBoxReward, setMysteryBoxReward] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -287,7 +290,8 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
       awardTutorialPoint();
       setCurrentStep(currentStep + 1);
     } else {
-      handleComplete();
+      // On the last step, show mystery box instead of completing immediately
+      setShowMysteryBox(true);
     }
   };
 
@@ -358,6 +362,74 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
   const handleComplete = () => {
     completeTutorialMutation.mutate();
     onClose();
+  };
+
+  // Open mystery box and award random bonus points
+  const openMysteryBox = async () => {
+    if (mysteryBoxOpened) return;
+    
+    try {
+      // Generate random bonus points (1-20)
+      const bonusPoints = Math.floor(Math.random() * 20) + 1;
+      
+      // Award the bonus points
+      const response = await apiRequest('/api/mystery-box-reward', {
+        method: 'POST',
+        data: { bonusPoints }
+      });
+      
+      setMysteryBoxReward(bonusPoints);
+      setMysteryBoxOpened(true);
+      
+      // Play special victory sound
+      const audio = new Audio('/victory-sound.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(() => {
+        // Fallback: create victory sound using Web Audio API
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Victory melody
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        let time = audioContext.currentTime;
+        
+        notes.forEach((freq, index) => {
+          oscillator.frequency.setValueAtTime(freq, time + index * 0.2);
+        });
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.8);
+      });
+
+      const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
+      
+      // Show exciting reward notification
+      toast({
+        title: "🎁 Mystery Box Opened!",
+        description: `Congratulations ${firstName}! You won ${bonusPoints} bonus points! Your tutorial adventure is complete!`,
+        duration: 4000,
+      });
+      
+      // Complete tutorial after short delay
+      setTimeout(() => {
+        handleComplete();
+      }, 4000);
+      
+    } catch (error) {
+      console.error('Error opening mystery box:', error);
+      toast({
+        title: "Mystery Box Error",
+        description: "Something went wrong with your mystery box. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSkip = () => {
@@ -492,11 +564,50 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
           </div>
         </div>
 
+        {/* Mystery Box on Final Step */}
+        {currentStep === totalSteps - 1 && showMysteryBox && (
+          <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border-2 border-dashed border-purple-300">
+            <div className="text-center space-y-4">
+              <div className="text-6xl animate-bounce">🎁</div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Congratulations! You've earned a Mystery Box!
+              </h3>
+              <p className="text-gray-700 text-lg">
+                Click to open your mystery box and discover bonus points to start your journey!
+              </p>
+              
+              {!mysteryBoxOpened ? (
+                <Button
+                  onClick={openMysteryBox}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  ✨ Open Mystery Box! ✨
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-4xl">🎉</div>
+                  <div className="bg-white rounded-lg p-4 border-2 border-yellow-300">
+                    <div className="text-3xl font-bold text-yellow-600">
+                      +{mysteryBoxReward} Bonus Points!
+                    </div>
+                    <p className="text-gray-600 mt-2">
+                      Amazing! You now have {10 + mysteryBoxReward} total points to start your adventure!
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Your tutorial will complete automatically in a few seconds...
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <DialogFooter className="flex justify-between">
           <Button
             variant="outline"
             onClick={handlePrevious}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 || showMysteryBox}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -504,16 +615,20 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
           </Button>
           
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={handleSkip}>
-              Skip Tutorial
-            </Button>
-            <Button onClick={handleNext} className="gap-2">
-              {currentStep === totalSteps - 1 ? 'Complete' : 'Next'}
-              {currentStep === totalSteps - 1 ? 
-                <CheckCircle2 className="h-4 w-4" /> : 
-                <ArrowRight className="h-4 w-4" />
-              }
-            </Button>
+            {!showMysteryBox && (
+              <>
+                <Button variant="ghost" onClick={handleSkip}>
+                  Skip Tutorial
+                </Button>
+                <Button onClick={handleNext} className="gap-2">
+                  {currentStep === totalSteps - 1 ? 'Get Reward!' : 'Next'}
+                  {currentStep === totalSteps - 1 ? 
+                    <Star className="h-4 w-4" /> : 
+                    <ArrowRight className="h-4 w-4" />
+                  }
+                </Button>
+              </>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>
