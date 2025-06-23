@@ -388,7 +388,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                 <img 
                   src={currentStepData.screenshot} 
                   alt={`${currentStepData.title} interface`}
-                  className="w-full h-40 object-contain"
+                  className="w-full h-44 object-contain"
                 />
               </div>
             )}
