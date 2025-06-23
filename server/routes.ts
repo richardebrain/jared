@@ -1410,7 +1410,7 @@ Continue for all 5 questions...
             preferred: null,
           },
           schoolId: req.body.schoolId || 1, // Default to Raising Arizona if no school specified
-          points: 0,
+          points: 10, // Give new users 10 points as introduction to points system
           bearBucks: 0,
           level: 1,
           isAdmin: false,
@@ -5806,6 +5806,25 @@ Continue for all 5 questions...
         isAppropriate: true,
         category: "general",
       });
+    }
+  });
+
+  // Tutorial Point Award Route
+  app.post("/api/award-tutorial-point", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Award 1 point for tutorial progress
+      await storage.addUserPoints(userId, 1);
+      
+      res.status(200).json({ 
+        success: true, 
+        pointsAwarded: 1,
+        message: "Tutorial point awarded successfully"
+      });
+    } catch (error) {
+      console.error("Error awarding tutorial point:", error);
+      res.status(500).json({ message: "Failed to award tutorial point" });
     }
   });
 

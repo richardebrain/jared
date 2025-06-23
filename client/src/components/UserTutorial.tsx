@@ -254,6 +254,12 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get user data for personalized affirmations
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/me'],
+    enabled: isOpen,
+  });
+
   // Filter steps based on user role
   const relevantSteps = tutorialSteps.filter(step => step.userTypes.includes(userRole));
   const totalSteps = relevantSteps.length;
@@ -285,7 +291,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
     }
   };
 
-  // Award points for tutorial progress with sound
+  // Award points for tutorial progress with sound and personalized affirmations
   const awardTutorialPoint = async () => {
     try {
       await apiRequest('/api/award-tutorial-point', {
@@ -297,7 +303,7 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
       audio.volume = 0.3;
       audio.play().catch(() => {
         // Fallback: create coin sound using Web Audio API
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
@@ -315,11 +321,28 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
         oscillator.stop(audioContext.currentTime + 0.3);
       });
 
-      // Show brief points notification
+      // Get user's first name for personalized affirmation
+      const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
+      const currentStepData = tutorialSteps.filter(step => step.userTypes.includes(userRole))[currentStep];
+      
+      // Create personalized affirmations based on the tutorial step
+      const getAffirmation = (stepId: string, name: string) => {
+        const affirmations: { [key: string]: string } = {
+          'welcome': `Congrats ${name}! Now you know the platform basics. Here's a point! You are Amazing!`,
+          'modules': `Fantastic ${name}! You've learned about learning modules. Here's a point! You're a Star!`,
+          'assessment': `Wonderful ${name}! Now you understand assessments. Here's a point! You Rock!`,
+          'ece-tracking': `Excellent ${name}! ECE tracking makes sense now. Here's a point! You're Incredible!`,
+          'director-toolkit': `Outstanding ${name}! You've discovered the Director Toolkit. Here's a point! You're Brilliant!`,
+          'getting-started': `Perfect ${name}! You're ready to begin your journey. Here's a point! You're Unstoppable!`
+        };
+        return affirmations[stepId] || `Great job ${name}! Tutorial step complete. Here's a point! You're Awesome!`;
+      };
+
+      // Show personalized affirmation notification
       toast({
         title: "🎉 Tutorial Progress!",
-        description: "+1 Point earned! Keep going to unlock the points system rewards!",
-        duration: 2000,
+        description: getAffirmation(currentStepData.id, firstName),
+        duration: 3000,
       });
     } catch (error) {
       console.error('Error awarding tutorial point:', error);
