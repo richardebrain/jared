@@ -68,7 +68,7 @@ const tutorialSteps: TutorialStep[] = [
     id: 'dashboard',
     title: 'Your Progression Dashboard',
     description: 'Watch yourself climb from Assistant to Master Teacher! See exactly how many points you earn for each activity and track your ECE hours. Your dashboard shows your rank progress, streak rewards, and the path to your next level!',
-    icon: <BarChart3 className="h-6 w-6 text-green-600" />,
+    icon: <BarChart3 className="h-6 w-6 text-orange-500" />,
     screenshot: dashboardScreenshot,
     action: {
       text: 'View Dashboard',
@@ -104,7 +104,7 @@ const tutorialSteps: TutorialStep[] = [
     id: 'ece-tracking',
     title: 'ECE Hours Tracking',
     description: 'Automatically track your professional development hours for ECE compliance. View your progress toward certification requirements.',
-    icon: <Clock className="h-6 w-6 text-emerald-600" />,
+    icon: <Clock className="h-6 w-6 text-cyan-500" />,
     screenshot: eceTrackingScreenshot,
     action: {
       text: 'View ECE Progress',
@@ -244,7 +244,7 @@ const tutorialSteps: TutorialStep[] = [
     id: 'getting-started',
     title: 'Ready to Begin!',
     description: 'You\'re all set to start your professional development journey. Remember to check your dashboard regularly for new recommendations and progress updates.',
-    icon: <CheckCircle2 className="h-6 w-6 text-green-600" />,
+    icon: <CheckCircle2 className="h-6 w-6 text-purple-500" />,
     userTypes: ['teacher', 'admin', 'school_admin']
   }
 ];
@@ -305,14 +305,22 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-4 border-purple-300 shadow-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-3">
-              {currentStepData.icon}
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <div className="relative">
+                {currentStepData.icon}
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+              </div>
               {currentStepData.title}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={handleSkip}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleSkip}
+              className="text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded-full font-semibold"
+            >
               <X className="h-4 w-4" />
               Skip Tutorial
             </Button>
@@ -320,11 +328,16 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
           
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Step {currentStep + 1} of {totalSteps}</span>
-              <span>{Math.round(progress)}% Complete</span>
+            <div className="flex justify-between text-sm font-semibold">
+              <span className="text-purple-600">🎮 Level {currentStep + 1} of {totalSteps}</span>
+              <span className="text-pink-600">{Math.round(progress)}% Complete ⭐</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <div className="relative">
+              <Progress value={progress} className="h-3 bg-gray-200 border-2 border-purple-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" 
+                   style={{ width: `${progress}%` }}>
+              </div>
+            </div>
           </div>
         </DialogHeader>
 
@@ -342,16 +355,20 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
             )}
             
             {/* Step Information */}
-            <Card className="border-2 border-dashed border-gray-200">
+            <Card className="border-4 border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
               <CardContent className="pt-6">
                 <div className="text-center space-y-4">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full flex items-center justify-center">
-                    {currentStepData.icon}
+                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse border-4 border-yellow-300">
+                    <div className="text-white text-2xl">
+                      {currentStepData.icon}
+                    </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold">{currentStepData.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      {currentStepData.title}
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed font-medium text-lg">
                       {currentStepData.description}
                     </p>
                   </div>
