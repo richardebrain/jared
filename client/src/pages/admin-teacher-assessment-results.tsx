@@ -197,8 +197,84 @@ export default function AdminTeacherAssessmentResultsPage() {
 
   const { teacher, assessment, results, learningPath } = data;
 
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch teacher's modules progress
+  const { data: teacherModules, isLoading: modulesLoading } = useQuery({
+    queryKey: [`/api/users/${teacherId}/modules`],
+    enabled: !!teacherId,
+  });
+
+  // Fetch all available modules for assignment
+  const { data: allModules, isLoading: allModulesLoading } = useQuery({
+    queryKey: ['/api/modules'],
+  });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { recipientId: number; subject: string; content: string }) => {
+      return await apiRequest('/api/messages', {
+        method: 'POST',
+        data: data,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message sent successfully",
+        description: "Your message has been delivered to the teacher.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to send message",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Assign module mutation
+  const assignModuleMutation = useMutation({
+    mutationFn: async (data: { teacherId: number; moduleId: number }) => {
+      return await apiRequest('/api/assign-module', {
+        method: 'POST',
+        data: data,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Module assigned successfully",
+        description: "The teacher will be notified of the new assignment.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${teacherId}/modules`] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to assign module",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const formatCertDate = (dateString: string | null) => {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    const now = new Date();
+    const isExpired = date < now;
+    const daysUntilExpiry = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return {
+      formatted: date.toLocaleDateString(),
+      isExpired,
+      daysUntilExpiry,
+      isExpiringSoon: daysUntilExpiry <= 30 && daysUntilExpiry > 0
+    };
+  };
+
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header with back navigation */}
       <div className="mb-6">
         <Link href="/admin/teachers">
@@ -214,40 +290,73 @@ export default function AdminTeacherAssessmentResultsPage() {
           <span className="mx-2">›</span>
           <span>{teacher.firstName} {teacher.lastName}</span>
           <span className="mx-2">›</span>
-          <span>Assessment Results</span>
+          <span>Full Teacher Stats</span>
         </nav>
         
         {/* Teacher identification header */}
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
+              <Avatar className="h-20 w-20">
                 <AvatarImage src={teacher.profilePicture} alt={teacher.firstName} />
-                <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xl font-bold">
                   {teacher.firstName?.charAt(0)}{teacher.lastName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <User className="h-6 w-6" />
+                <h1 className="text-3xl font-bold flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <User className="h-7 w-7 text-purple-600" />
                   {teacher.firstName} {teacher.lastName}
                 </h1>
-                <p className="text-muted-foreground">@{teacher.username}</p>
+                <p className="text-muted-foreground text-lg">@{teacher.username}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <School className="h-4 w-4" />
-                  <span className="text-sm">{teacher.schoolName}</span>
+                  <School className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium">{teacher.schoolName}</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">Assessment completed: {formatDate(assessment.completedAt)}</span>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground">Assessment Completed</div>
-                <div className="font-medium">{formatDate(assessment.completedAt)}</div>
+              <div className="text-right space-y-2">
+                <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg p-3">
+                  <div className="text-sm text-yellow-800 font-medium">Overall Score</div>
+                  <div className="text-2xl font-bold text-yellow-900">{results.accuracyRate}%</div>
+                </div>
               </div>
             </div>
           </CardHeader>
         </Card>
       </div>
 
-      {/* Assessment overview */}
+      {/* Tabbed interface for comprehensive teacher management */}
+      <Tabs defaultValue="assessment" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-blue-50 to-purple-50 p-1 rounded-xl">
+          <TabsTrigger value="assessment" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md">
+            <Target className="h-4 w-4" />
+            Assessment
+          </TabsTrigger>
+          <TabsTrigger value="modules" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md">
+            <BookOpen className="h-4 w-4" />
+            Modules
+          </TabsTrigger>
+          <TabsTrigger value="certifications" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md">
+            <Shield className="h-4 w-4" />
+            Certifications
+          </TabsTrigger>
+          <TabsTrigger value="messaging" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md">
+            <MessageSquare className="h-4 w-4" />
+            Messaging
+          </TabsTrigger>
+          <TabsTrigger value="assign" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md">
+            <Plus className="h-4 w-4" />
+            Assign
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Assessment Results Tab */}
+        <TabsContent value="assessment" className="space-y-6">
+          {/* Assessment overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardContent className="p-4">
@@ -435,29 +544,445 @@ export default function AdminTeacherAssessmentResultsPage() {
         </Card>
       )}
 
-      {/* Immediate Next Steps */}
-      {results.immediateNextSteps && results.immediateNextSteps.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Immediate Next Steps
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {results.immediateNextSteps.map((step, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <div className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mt-0.5">
-                    {index + 1}
+          {/* Immediate Next Steps */}
+          {results.immediateNextSteps && results.immediateNextSteps.length > 0 && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Immediate Next Steps
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {results.immediateNextSteps.map((step, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <div className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mt-0.5">
+                        {index + 1}
+                      </div>
+                      <span className="text-gray-700">{step}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Modules Progress Tab */}
+        <TabsContent value="modules" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                  Completed Modules
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {modulesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="ml-2">Loading modules...</span>
                   </div>
-                  <span className="text-gray-700">{step}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+                ) : teacherModules?.completed?.length > 0 ? (
+                  <div className="space-y-3">
+                    {teacherModules.completed.map((module: any) => (
+                      <div key={module.id} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-green-800">{module.title}</h4>
+                            <p className="text-sm text-green-600">Completed: {formatDate(module.completedAt)}</p>
+                          </div>
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        </div>
+                        <Progress value={100} className="mt-2 h-2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic">No completed modules yet.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Play className="h-5 w-5 text-orange-600" />
+                  In Progress Modules
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {teacherModules?.inProgress?.length > 0 ? (
+                  <div className="space-y-3">
+                    {teacherModules.inProgress.map((module: any) => (
+                      <div key={module.id} className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-orange-800">{module.title}</h4>
+                            <p className="text-sm text-orange-600">Started: {formatDate(module.startedAt)}</p>
+                          </div>
+                          <Play className="h-5 w-5 text-orange-600" />
+                        </div>
+                        <Progress value={module.progress || 0} className="mt-2 h-2" />
+                        <p className="text-xs text-orange-600 mt-1">{module.progress || 0}% complete</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic">No modules in progress.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Certifications Tab */}
+        <TabsContent value="certifications" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* CPR Certification */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-red-600" />
+                  CPR Certification
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const certInfo = formatCertDate(teacher.cpr_expiration);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Expiration Date:</span>
+                        <span className={`font-medium ${
+                          certInfo.isExpired ? 'text-red-600' : 
+                          certInfo.isExpiringSoon ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {certInfo.formatted}
+                        </span>
+                      </div>
+                      {certInfo.isExpired && (
+                        <div className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expired</span>
+                        </div>
+                      )}
+                      {certInfo.isExpiringSoon && (
+                        <div className="flex items-center gap-2 text-orange-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expires in {certInfo.daysUntilExpiry} days</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* First Aid Certification */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  First Aid Certification
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const certInfo = formatCertDate(teacher.first_aid_expiration);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Expiration Date:</span>
+                        <span className={`font-medium ${
+                          certInfo.isExpired ? 'text-red-600' : 
+                          certInfo.isExpiringSoon ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {certInfo.formatted}
+                        </span>
+                      </div>
+                      {certInfo.isExpired && (
+                        <div className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expired</span>
+                        </div>
+                      )}
+                      {certInfo.isExpiringSoon && (
+                        <div className="flex items-center gap-2 text-orange-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expires in {certInfo.daysUntilExpiry} days</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Food Handler Certification */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UtensilsCrossed className="h-5 w-5 text-green-600" />
+                  Food Handler Certification
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const certInfo = formatCertDate(teacher.food_handler_expiration);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Expiration Date:</span>
+                        <span className={`font-medium ${
+                          certInfo.isExpired ? 'text-red-600' : 
+                          certInfo.isExpiringSoon ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {certInfo.formatted}
+                        </span>
+                      </div>
+                      {certInfo.isExpired && (
+                        <div className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expired</span>
+                        </div>
+                      )}
+                      {certInfo.isExpiringSoon && (
+                        <div className="flex items-center gap-2 text-orange-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expires in {certInfo.daysUntilExpiry} days</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Fingerprint Certification */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Fingerprint className="h-5 w-5 text-purple-600" />
+                  Fingerprint Certification
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const certInfo = formatCertDate(teacher.fingerprint_expiration);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Expiration Date:</span>
+                        <span className={`font-medium ${
+                          certInfo.isExpired ? 'text-red-600' : 
+                          certInfo.isExpiringSoon ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {certInfo.formatted}
+                        </span>
+                      </div>
+                      {certInfo.isExpired && (
+                        <div className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expired</span>
+                        </div>
+                      )}
+                      {certInfo.isExpiringSoon && (
+                        <div className="flex items-center gap-2 text-orange-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Expires in {certInfo.daysUntilExpiry} days</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Messaging Tab */}
+        <TabsContent value="messaging" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="h-5 w-5 text-blue-600" />
+                Send Message to {teacher.firstName}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Compose New Message
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Send Message</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target as HTMLFormElement);
+                    sendMessageMutation.mutate({
+                      recipientId: teacher.id,
+                      subject: formData.get('subject') as string,
+                      content: formData.get('content') as string,
+                    });
+                  }}>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="subject">Subject</Label>
+                        <Input
+                          id="subject"
+                          name="subject"
+                          placeholder="Enter message subject"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="content">Message</Label>
+                        <Textarea
+                          id="content"
+                          name="content"
+                          placeholder="Type your message here..."
+                          rows={5}
+                          required
+                        />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={sendMessageMutation.isPending}
+                      >
+                        {sendMessageMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send Message
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Assignment Tab */}
+        <TabsContent value="assign" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-purple-600" />
+                Assign Modules to {teacher.firstName}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Assign New Module
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Assign Module</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target as HTMLFormElement);
+                    const moduleId = parseInt(formData.get('moduleId') as string);
+                    assignModuleMutation.mutate({
+                      teacherId: teacher.id,
+                      moduleId,
+                    });
+                  }}>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="moduleId">Select Module</Label>
+                        <Select name="moduleId" required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a module to assign" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allModules?.map((module: any) => (
+                              <SelectItem key={module.id} value={module.id.toString()}>
+                                {module.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={assignModuleMutation.isPending}
+                      >
+                        {assignModuleMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Assigning...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Assign Module
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Quick assign recommended modules based on assessment */}
+              {results.primaryMiniLessons && results.primaryMiniLessons.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    Recommended Based on Assessment
+                  </h3>
+                  <div className="space-y-2">
+                    {results.primaryMiniLessons.slice(0, 3).map((lesson: any, index: number) => (
+                      <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-blue-800">{lesson.title}</h4>
+                            <p className="text-sm text-blue-600">{lesson.domainName}</p>
+                            <p className="text-xs text-blue-500">Est. {lesson.estimatedDuration} min</p>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => assignModuleMutation.mutate({
+                              teacherId: teacher.id,
+                              moduleId: parseInt(lesson.miniLessonId),
+                            })}
+                            disabled={assignModuleMutation.isPending}
+                          >
+                            Assign
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

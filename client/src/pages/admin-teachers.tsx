@@ -489,7 +489,7 @@ export default function AdminTeachersPage() {
                         className="w-full"
                       >
                         <Award className="h-3 w-3 mr-2" />
-                        View Assessment Results
+                        Full Teacher Stats
                       </Button>
                     </Link>
                   </div>
