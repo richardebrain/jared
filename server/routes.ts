@@ -905,9 +905,9 @@ Continue for all 5 questions...
 
 
 
-  // Register AI suggestion routes with monitoring
-  app.use("/api/ai", aiSuggestionRoutes);
+  // Register AI suggestion routes - MUST be before other /api routes
   app.use("/api/ai-suggestions", aiSuggestionRoutes);
+  app.use("/api/ai", aiSuggestionRoutes);
 
   // Register personalized mini-lessons routes
   app.use("/api", personalizedModuleRoutes);
