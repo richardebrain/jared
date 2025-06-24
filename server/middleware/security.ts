@@ -67,11 +67,19 @@ export function setupSecurityMiddleware(app: Express) {
 
   // Input validation middleware
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+    // Skip validation for AI content generation endpoints
+    const aiEndpoints = ['/api/perplexity/generate', '/api/suessify', '/api/ai/', '/api/openai/'];
+    const isAIEndpoint = aiEndpoints.some(endpoint => req.path.startsWith(endpoint));
+    
+    if (isAIEndpoint) {
+      return next();
+    }
+    
     // Check for potentially dangerous input patterns
     const checkForDangerousInput = (obj: any): boolean => {
       if (typeof obj === 'string') {
-        // Check for SQL injection patterns
-        const sqlPatterns = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)/i;
+        // More specific SQL injection patterns - only flag if they look like actual SQL
+        const sqlPatterns = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|EXEC|UNION)\b.*\b(FROM|INTO|SET|WHERE|TABLE)\b)/i;
         // Check for XSS patterns
         const xssPatterns = /<script|javascript:|on\w+=/i;
         
