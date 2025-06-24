@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -43,7 +43,7 @@ interface RewardHistory {
 
 export function SlotMachine({ onClose }: SlotMachineProps) {
   const { toast } = useToast();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [spinning, setSpinning] = useState(false);
   const [spinEnabled, setSpinEnabled] = useState(true);
   const [dailySpinsLeft, setDailySpinsLeft] = useState(3);

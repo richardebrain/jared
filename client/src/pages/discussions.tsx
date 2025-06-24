@@ -423,7 +423,7 @@ const DiscussionsPage = () => {
 
 // Component for displaying the user's discussions
 const MyDiscussions = () => {
-  const { isAuthenticated } = useSimpleAuth();
+  const { isAuthenticated } = useAuth();
   
   const { data: myThreads = [], isLoading, error } = useQuery({
     queryKey: ['/api/discussions/my-threads'],
@@ -465,7 +465,7 @@ const MyDiscussions = () => {
 };
 
 // Placeholder for auth context
-const useSimpleAuth = () => {
+const useAuth = () => {
   return {
     isAuthenticated: false, // This will be replaced with actual auth state
     user: null

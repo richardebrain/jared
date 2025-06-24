@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import Header from '@/components/Header';
@@ -36,7 +36,7 @@ import {
 const CHAPTER_ONE_MODULE_ID = 34;
 
 export default function ChapterOnePage() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   

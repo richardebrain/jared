@@ -1,6 +1,6 @@
 import React from 'react';
 import { Redirect } from 'wouter';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useQuery } from '@tanstack/react-query';
 
 interface AssessmentStatus {
@@ -33,10 +33,7 @@ export function ProtectedRoute({
   ownerOnly = false,
   requiresAssessment = false
 }: ProtectedRouteProps): JSX.Element {
-  const { isAuthenticated, isLoading, user } = useSimpleAuth();
-  const isAdmin = user?.isAdmin || user?.is_admin || false;
-  const isSchoolAdmin = user?.isSchoolAdmin || user?.is_school_admin || false;
-  const isOwner = user?.isOwner || user?.is_owner || false;
+  const { isAuthenticated, isLoading, isAdmin, isSchoolAdmin, isOwner, user } = useAuth();
   
   // Check assessment status if required
   const { data: assessmentStatus, isLoading: assessmentLoading } = useQuery<AssessmentStatus>({
@@ -102,7 +99,7 @@ export function PublicRoute({
   children,
   redirectAuthenticated = false 
 }: PublicRouteProps): JSX.Element {
-  const { isAuthenticated, isLoading } = useSimpleAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   
   // Check for force login parameter to bypass auto-login
   const urlParams = new URLSearchParams(window.location.search);

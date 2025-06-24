@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import { Loader2 } from 'lucide-react';
@@ -14,7 +14,7 @@ type AssessmentStep = 'eligibility' | 'introduction' | 'overview' | 'commitment'
 
 export default function InitialAssessment() {
   const [, setLocation] = useLocation();
-  const { user, isAuthenticated, isLoading: authLoading } = useSimpleAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<AssessmentStep>('eligibility');
   const [isStartingAssessment, setIsStartingAssessment] = useState(false);

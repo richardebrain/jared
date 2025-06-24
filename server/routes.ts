@@ -592,60 +592,66 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
 }
 `;
 
-      try {
-        const openai = new (await import("openai")).default({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
+      const questionData = await monitoredAIRequest(
+        'quiz-question-generation',
+        async () => {
+          const openai = new (await import("openai")).default({
+            apiKey: process.env.OPENAI_API_KEY,
+          });
 
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: prompt }],
-          response_format: { type: "json_object" },
-          temperature: 0.7,
-          max_tokens: 1000,
-        });
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
+            temperature: 0.7,
+            max_tokens: 1000,
+          });
 
-        const content = response.choices[0].message.content;
-        if (!content) {
-          throw new Error("No content received from AI service");
-        }
-
-        const questionData = JSON.parse(content);
-        
-        // Validate the response structure
-        if (!questionData.question || !questionData.answers || !Array.isArray(questionData.answers)) {
-          throw new Error("Invalid response format from AI service");
-        }
-
-        // Ensure correctAnswer is within valid range
-        if (typeof questionData.correctAnswer !== 'number' || 
-            questionData.correctAnswer < 0 || 
-            questionData.correctAnswer >= questionData.answers.length) {
-          questionData.correctAnswer = 0; // Default to first answer if invalid
-        }
-
-        res.json({ question: questionData });
-      } catch (aiError) {
-        console.error("AI service error:", aiError);
-        // Return a fallback response instead of failing
-        res.json({
-          question: {
-            question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
-            answers: [
-              "Regular safety inspections and maintenance",
-              "Ignoring minor equipment issues", 
-              "Allowing unsupervised play",
-              "Using damaged equipment"
-            ],
-            correctAnswer: 0,
-            explanation: "Regular safety inspections help identify and prevent potential hazards before accidents occur."
+          const content = response.choices[0].message.content;
+          if (!content) {
+            throw new Error("No content received from AI service");
           }
-        });
-      }
+
+          const questionData = JSON.parse(content);
+          
+          // Validate the response structure
+          if (!questionData.question || !questionData.answers || !Array.isArray(questionData.answers)) {
+            throw new Error("Invalid response format from AI service");
+          }
+
+          // Ensure correctAnswer is within valid range
+          if (typeof questionData.correctAnswer !== 'number' || 
+              questionData.correctAnswer < 0 || 
+              questionData.correctAnswer >= questionData.answers.length) {
+            questionData.correctAnswer = 0; // Default to first answer if invalid
+          }
+
+          return questionData;
+        },
+        () => ({
+          question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
+          answers: [
+            "Regular safety inspections and maintenance",
+            "Ignoring minor equipment issues", 
+            "Allowing unsupervised play",
+            "Using damaged equipment"
+          ],
+          correctAnswer: 0,
+          explanation: "Regular safety inspections help identify and prevent potential hazards before accidents occur."
+        })
+      );
+
+      res.json({ question: questionData });
     } catch (error) {
       console.error("Single quiz question generation error:", error);
+      const errorResponse = enhancedErrorHandler(error, 'ai-quiz-generation', {
+        moduleTitle,
+        sectionTitle,
+        difficulty
+      });
+      
       res.status(500).json({
-        error: "Failed to generate quiz question",
+        ...errorResponse,
         question: {
           question: "What is an important aspect of early childhood education?",
           answers: [
@@ -782,8 +788,14 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
       });
     } catch (error) {
       console.error("Error generating activity:", error);
+      const errorResponse = enhancedErrorHandler(error, 'ai-activity-generation', {
+        moduleTitle,
+        sectionTitle,
+        activityType
+      });
+      
       res.status(500).json({
-        error: "Failed to generate activity",
+        ...errorResponse,
         activity: {
           activityType: "drag-and-match",
           title: "Classroom Management Strategies",
@@ -903,11 +915,12 @@ Continue for all 5 questions...
   // Register credential management routes
   app.use("/api/credentials", credentialRoutes);
 
+  // Register AI health monitoring middleware
+  app.use(aiHealthCheck);
 
-
-  // Register AI suggestion routes - MUST be before other /api routes
-  app.use("/api/ai-suggestions", aiSuggestionRoutes);
+  // Register AI suggestion routes with monitoring
   app.use("/api/ai", aiSuggestionRoutes);
+  app.use("/api/ai-suggestions", aiSuggestionRoutes);
 
   // Register personalized mini-lessons routes
   app.use("/api", personalizedModuleRoutes);
@@ -1716,7 +1729,7 @@ Continue for all 5 questions...
           req.session.userId = undefined;
           req.session.loginTime = undefined;
           (req.session as any).lastActivity = undefined;
-          res.clearCookie("mentorme.sid");
+          res.clearCookie("connect.sid");
           console.log("Session data cleared successfully");
         }
 
@@ -1916,7 +1929,7 @@ Continue for all 5 questions...
         console.log("Logout successful - Session destroyed");
 
         // Clear cookies by setting expiration in the past
-        res.clearCookie("mentorme.sid");
+        res.clearCookie("connect.sid");
 
         res.status(200).json({
           message: "Logged out successfully",
@@ -1991,7 +2004,7 @@ Continue for all 5 questions...
           console.log("Session cleared successfully");
 
           // Clear cookies by setting expiration in the past
-          res.clearCookie("mentorme.sid");
+          res.clearCookie("connect.sid");
 
           return res.status(200).json({
             message: "Session cleared successfully",
@@ -2010,21 +2023,19 @@ Continue for all 5 questions...
 
 
 
-  app.get("/api/auth/user", async (req, res) => {
-    // Force JSON response
-    res.setHeader('Content-Type', 'application/json');
-    console.log("GET /api/auth/user - Session ID:", req.session?.id);
-    console.log("GET /api/auth/user - Session data:", req.session);
+  app.get("/api/auth/me", async (req, res) => {
+    console.log("GET /api/auth/me - Session ID:", req.session.id);
+    console.log("GET /api/auth/me - Session data:", req.session);
 
     // Check if session has userId
-    if (!req.session?.userId) {
-      console.log("GET /api/auth/user - No userId in session");
+    if (!req.session.userId) {
+      console.log("GET /api/auth/me - No userId in session");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     try {
       const userId = req.session.userId as number;
-      console.log(`GET /api/auth/user - Looking up user with ID: ${userId}`);
+      console.log(`GET /api/auth/me - Looking up user with ID: ${userId}`);
 
       const user = await storage.getUser(userId);
 

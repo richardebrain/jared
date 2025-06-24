@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import confetti from 'canvas-confetti';
 import { 
@@ -155,7 +155,7 @@ const FRAME_TIME = 1000 / TARGET_FPS;
 
 export default function WhoLeftTheGateOpen() {
   // All hooks must be called at the top level consistently
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();

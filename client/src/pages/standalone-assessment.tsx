@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 
 export default function StandaloneAssessment() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   
   useEffect(() => {
     // Create iframe element with specific height

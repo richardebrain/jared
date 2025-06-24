@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -76,7 +76,7 @@ const platformIntegrations: PlatformIntegration[] = [
 ];
 
 export default function PlatformIntegrationsPage() {
-  const { user, isLoading } = useSimpleAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');

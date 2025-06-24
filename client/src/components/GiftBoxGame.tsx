@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +43,7 @@ interface GiftBoxGameProps {
 }
 
 export default function GiftBoxGame({ canOpen = true, onComplete }: GiftBoxGameProps) {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [opening, setOpening] = useState(false);
   const [isOpened, setIsOpened] = useState(false);

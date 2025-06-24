@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { queryClient } from '@/lib/queryClient';
 import { 
   Clock, 
@@ -218,7 +218,7 @@ const transitionScenarios: TransitionScenario[] = [
 ];
 
 export default function TransitionMaster() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'complete'>('menu');
   const [currentScenario, setCurrentScenario] = useState(0);
@@ -282,7 +282,7 @@ export default function TransitionMaster() {
         })
       });
 
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       toast({
         title: "Transition Master Complete!",

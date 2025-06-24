@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 
 import {
   Form,
@@ -35,7 +35,23 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login, isLoading, isAuthenticated } = useSimpleAuth();
+  // Safely get auth context with fallback
+  let authContext;
+  try {
+    authContext = useAuth();
+  } catch (error) {
+    // If auth context is not available, use fallback values
+    authContext = {
+      isAuthenticated: false,
+      isLoading: false,
+      login: async () => {
+        // Fallback login function that makes direct API call
+        throw new Error("Auth context not available");
+      }
+    };
+  }
+  
+  const { isAuthenticated, isLoading, login } = authContext;
   
   const navigate = (path: string) => {
     setLocation(path);
@@ -62,7 +78,7 @@ export default function Login() {
       };
       
       // Use the auth context's login function
-      await login(trimmedValues.username,trimmedValues.password);
+      await login(trimmedValues);
       
       // Navigation will be handled by the useEffect below when isAuthenticated changes
     } catch (error: any) {

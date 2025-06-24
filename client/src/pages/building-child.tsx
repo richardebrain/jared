@@ -1,11 +1,11 @@
 import React from 'react';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useLocation } from 'wouter';
 import BuildingChildTraining from '@/components/BuildingChildTraining';
 import Header from '@/components/Header';
 
 export default function BuildingChildPage() {
-  const { isAuthenticated, isLoading } = useSimpleAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (

@@ -233,8 +233,8 @@ export default function FroggerGame(): JSX.Element {
   
   // Fetch user points
   const { data: user } = useQuery({
-    queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('/api/auth/user')
+    queryKey: ['/api/auth/me'],
+    queryFn: () => apiRequest('/api/auth/me')
   });
   
   // Game state

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Link } from 'wouter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -74,7 +74,7 @@ import {
 } from 'lucide-react';
 
 export default function GamesPage() {
-  const { user, isLoading } = useSimpleAuth();
+  const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("play");
   const queryClient = useQueryClient();
   const { toast } = useToast();

@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const cached = AuthStorage.getAuthData();
       if (cached) {
         // Set in query cache immediately
-        queryClient.setQueryData(['/api/auth/user'], cached);
+        queryClient.setQueryData(['/api/auth/me'], cached);
         return cached;
       }
     } catch (error) {
@@ -107,13 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     refetch: refetchUser
   } = useQuery<BaseUser>({
-    queryKey: ['/api/auth/user'],
+    queryKey: ['/api/auth/me'],
     retry: false,
     refetchOnWindowFocus: false,
-    refetchOnMount: true, // Enable mount fetching
-    staleTime: 60000, // 1 minute cache
-    gcTime: 120000, // 2 minutes cleanup
-    enabled: true, // Enable by default
+    refetchOnMount: false,
+    staleTime: 300000, // 5 minutes - much longer cache
+    gcTime: 600000, // 10 minutes - longer cleanup
+    enabled: false, // Disabled by default - only fetch when needed
   });
 
   // Smart auth validation - minimize server calls
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const cachedAuth = AuthStorage.getAuthData();
         if (cachedAuth) {
           setUser(cachedAuth);
-          queryClient.setQueryData(['/api/auth/user'], cachedAuth);
+          queryClient.setQueryData(['/api/auth/me'], cachedAuth);
           return;
         }
       } catch (error) {
@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       toast({
         title: "Login successful",
-        description: `Welcome back, ${enhancedUser.firstName || enhancedUser.username}!`,
+        description: `Welcome back, ${enhancedUser.firstName}!`,
       });
       
       console.log("Login successful! Redirecting to dashboard...");
@@ -394,21 +394,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 /**
  * Hook to use the authentication context
  */
-export function useSimpleAuth(): AuthContextType {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   
   if (context === undefined) {
-    throw new Error('useSimpleAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   
   return context;
-}
-
-/**
- * Legacy hook alias for backward compatibility
- */
-export function useAuth(): AuthContextType {
-  return useSimpleAuth();
 }
 
 /**
@@ -418,7 +411,7 @@ export function withAuth<P extends object>(
   Component: React.ComponentType<P>
 ): React.FC<P> {
   return function AuthenticatedComponent(props: P) {
-    const { isAuthenticated, isLoading } = useSimpleAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     
     if (isLoading) {
       return (

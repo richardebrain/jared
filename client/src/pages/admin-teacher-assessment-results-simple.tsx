@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'wouter';
-import { useSimpleAuth } from '@/lib/simple-auth';
+import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +52,7 @@ interface TeacherAssessmentData {
 }
 
 export default function AdminTeacherAssessmentResultsSimple() {
-  const { user, isAuthenticated, isSchoolAdmin, isAdmin, isOwner } = useSimpleAuth();
+  const { user, isAuthenticated, isSchoolAdmin, isAdmin, isOwner } = useAuth();
   const { toast } = useToast();
   const params = useParams<{ teacherId: string }>();
   const queryClient = useQueryClient();

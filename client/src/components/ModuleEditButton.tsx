@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ interface ModuleEditButtonProps {
 export function ModuleEditButton({ module, className }: ModuleEditButtonProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editedModule, setEditedModule] = useState(module);
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   // Check if current user is the creator of this module

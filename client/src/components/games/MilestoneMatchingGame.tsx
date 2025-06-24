@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -108,7 +108,7 @@ interface GameProps {
 
 export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
   const { toast } = useToast();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [currentRound, setCurrentRound] = useState<number>(0);
   const [totalRounds] = useState<number>(10); // 10 rounds per game
   const [timer, setTimer] = useState<number>(0);
@@ -154,7 +154,7 @@ export default function MilestoneMatchingGame({ game, onClose }: GameProps) {
       // Invalidate relevant queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['/api/game-completions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/game-completions/daily-count'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       toast({
         title: "Game Completed!",

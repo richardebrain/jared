@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import {
   Wind,
@@ -58,7 +58,7 @@ interface ModuleSection {
 }
 
 export function MindfulMorningsOutline() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [activeModule, setActiveModule] = useState("module0");
   const [activeSection, setActiveSection] = useState(0);

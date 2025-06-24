@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ interface StreakProtectionProps {
 }
 
 export default function StreakProtection({ className }: StreakProtectionProps) {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const bearBucks = user?.bearBucks || 0;

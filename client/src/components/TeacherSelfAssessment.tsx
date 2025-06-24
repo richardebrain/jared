@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 
 // Define the skill levels
 const SKILL_LEVELS = [
@@ -28,7 +28,7 @@ const SKILLS = [
 
 const TeacherSelfAssessment: React.FC = () => {
   const { toast } = useToast();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [assessments, setAssessments] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   

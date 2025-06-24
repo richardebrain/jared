@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { SoundManager } from "@/lib/sounds";
 
 type PointsRewardOptions = {
@@ -15,7 +15,7 @@ type PointsRewardOptions = {
  */
 export function usePointsReward(options: PointsRewardOptions = {}) {
   const { toast } = useToast();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   
   const {

@@ -20,24 +20,17 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
   const path = queryKey[0] as string;
   
   try {
-    // Use native fetch for better cookie handling
-    const response = await fetch(path, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+    // Optimized timeouts for faster login performance
+    const timeout = path.includes('/api/ai') || path.includes('/generate') ? 60000 : 3000; // 60s for AI/generation, 3s for others
+    const response = await axios.get(path, {
+      withCredentials: true, // Important for cookies/sessions
+      timeout: timeout,
     });
     
-    if (!response.ok) {
-      throw new Error(`${response.status}: ${response.statusText}`);
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error: any) {
     // Enhanced error handling for auth endpoints
-    if (path === '/api/auth/user' || path === '/api/auth/me') {
+    if (path === '/api/auth/me') {
       const isOnPublicPage = () => {
         const currentPath = window.location.pathname;
         return currentPath === '/login' || currentPath === '/register' || 
@@ -117,11 +110,6 @@ export async function apiRequest<T = any>(
       ...config,
       withCredentials: true,
       timeout: timeout,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        ...config.headers,
-      },
     };
   }
 

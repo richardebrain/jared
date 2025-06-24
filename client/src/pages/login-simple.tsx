@@ -4,8 +4,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { AuthStorage } from "@/lib/auth-storage";
 
 import {
   Form,
@@ -31,7 +31,6 @@ const loginSchema = z.object({
 
 export default function LoginSimple() {
   const { toast } = useToast();
-  const { login } = useSimpleAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -55,18 +54,26 @@ export default function LoginSimple() {
     try {
       setIsLoading(true);
       
-      const success = await login(values.username.trim(), values.password.trim());
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        data: {
+          username: values.username.trim(),
+          password: values.password.trim()
+        }
+      });
       
-      if (success) {
+      if (response) {
+        // Store auth data and redirect
+        AuthStorage.setAuthData(response);
         toast({
           title: "Login successful",
-          description: "Welcome back!",
+          description: `Welcome back, ${response.firstName}!`,
         });
         
-        // Redirect to home
-        window.location.href = '/';
-      } else {
-        throw new Error('Invalid username or password');
+        // Small delay to show success message, then redirect
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
       }
     } catch (error: any) {
       console.error("Login error:", error);

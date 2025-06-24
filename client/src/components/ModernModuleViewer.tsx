@@ -681,7 +681,7 @@ Start with one transition type and gradually expand your repertoire as children 
     );
   }
 
-  // User data is already available from useSimpleAuth hook above
+  // User data is already available from useAuth hook above
 
   // Welcome screen view
   if (currentView === 'welcome') {

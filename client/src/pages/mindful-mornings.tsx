@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import { MindfulMorningsOutline } from "@/components/MindfulMorningsOutline";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import BearAssistant from "@/components/BearAssistant";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Sparkles, Wind, Heart, Award, Brain } from "lucide-react";
 
 export default function MindfulMorningsPage() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("course");
   
   return (

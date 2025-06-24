@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { Sparkles, Gift, History, Coins, Award, AlertTriangle } from "lucide-react";
@@ -51,7 +51,7 @@ const REWARDS = [
 ];
 
 export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardProps) {
-  const { user: baseUser } = useSimpleAuth();
+  const { user: baseUser } = useAuth();
   const user = ensureUserDefaults(baseUser);
   const { toast } = useToast();
   const queryClient = useQueryClient();

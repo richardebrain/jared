@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { Link } from "wouter";
 
 import {
@@ -70,7 +70,7 @@ const formSchema = z.object({
 });
 
 export default function CoreValuesShoutOutPage() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nominate");

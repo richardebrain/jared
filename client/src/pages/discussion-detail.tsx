@@ -200,7 +200,7 @@ const DiscussionDetailPage = () => {
 
 // Component for displaying thread actions
 const ThreadActions = ({ thread }: { thread: DiscussionThread }) => {
-  const { isAuthenticated, user } = useSimpleAuth();
+  const { isAuthenticated, user } = useAuth();
   const isAuthor = isAuthenticated && user?.id === thread.authorId;
   
   if (!isAuthenticated) return null;
@@ -281,7 +281,7 @@ const DeleteThreadDialog = ({ thread }: { thread: DiscussionThread }) => {
 
 // Component for adding a new comment
 const AddComment = ({ threadId, parentCommentId }: { threadId: number, parentCommentId?: number }) => {
-  const { isAuthenticated } = useSimpleAuth();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -409,7 +409,7 @@ const CommentCard = ({
   depth: number
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
-  const { isAuthenticated, user } = useSimpleAuth();
+  const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const maxDepth = 3; // Maximum nesting depth for replies
@@ -709,7 +709,7 @@ const UserInfo = ({ user, showAvatar = false }: { user?: any, showAvatar?: boole
 };
 
 // Placeholder for auth context
-const useSimpleAuth = () => {
+const useAuth = () => {
   return {
     isAuthenticated: false, // This will be replaced with actual auth state
     user: null

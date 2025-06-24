@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 
 export default function BonusGamesButton({user}:{user:any}) {
-  // const { user } = useSimpleAuth();
+  // const { user } = useAuth();
   const [gamePlayed, setGamePlayed] = useState(false);
   
   // Check for special access using demo account

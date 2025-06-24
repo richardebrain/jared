@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function InviteTeachersPage() {
   const { toast } = useToast();
-  const { user, isOwner, isSchoolAdmin, isAdmin } = useSimpleAuth();
+  const { user, isOwner, isSchoolAdmin, isAdmin } = useAuth();
   const [emails, setEmails] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const queryClient = useQueryClient();

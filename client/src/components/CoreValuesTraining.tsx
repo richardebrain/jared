@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Heart, 
@@ -258,7 +258,7 @@ const VisualHighlight = ({ children }: { children: React.ReactNode }) => (
 );
 
 export function CoreValuesTraining() {
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [currentValueIndex, setCurrentValueIndex] = useState(0);
   const [quizStarted, setQuizStarted] = useState(false);

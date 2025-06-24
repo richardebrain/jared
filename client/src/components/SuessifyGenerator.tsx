@@ -87,44 +87,37 @@ export function SuessifyGenerator() {
     setPoem('');
 
     try {
-      const response = await fetch('/api/ai/suessify', {
+      const response = await fetch('/api/perplexity/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          text: prompt
+          prompt: `Create a short, fun Dr. Seuss style poem (max 8 lines) for preschool children about the following situation. Make it simple, rhyming, and positive: "${prompt}". The poem should be very short and simple enough for young children to understand.`
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to generate poem');
+        throw new Error('Failed to generate poem');
       }
 
       const data = await response.json();
       
-      if (data.suessifiedText) {
-        setPoem(data.suessifiedText);
+      // Handle both response formats for backward compatibility
+      if (data.content) {
+        setPoem(data.content);
+      } else if (data.success && data.content) {
+        setPoem(data.content);
+      } else if (data.choices && data.choices[0] && data.choices[0].message) {
+        setPoem(data.choices[0].message.content);
       } else {
         setPoem("Oh my, oh dear! A poem should be here!\nBut something went wrong, I fear!");
       }
     } catch (error) {
       console.error('Error generating poem:', error);
-      const errorMessage = error.message || 'Unknown error occurred';
-      
-      let userMessage = "Unable to create your Dr. Seuss poem. Please try again.";
-      if (errorMessage.includes('AI service')) {
-        userMessage = "AI service is temporarily unavailable. Please try again in a few minutes.";
-      } else if (errorMessage.includes('rate limit')) {
-        userMessage = "Too many requests. Please wait a moment and try again.";
-      } else if (errorMessage.includes('timeout')) {
-        userMessage = "Request timed out. Please try again with simpler text.";
-      }
-      
       toast({
         title: "Generation Failed",
-        description: userMessage,
+        description: "Unable to create your Dr. Seuss poem. Please try again.",
         variant: "destructive"
       });
     } finally {

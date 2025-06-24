@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 import {
   Card,
   CardContent,
@@ -184,7 +184,7 @@ interface PublishSettings {
 export default function NewModuleAI() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
 
   // Fetch real teachers from the admin's school
   const { data: schoolTeachers = [] } = useQuery({

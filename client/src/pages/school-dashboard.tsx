@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useParams, useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/lib/simple-auth";
+import { useAuth } from "@/lib/auth-context";
 
 import {
   Card,
@@ -60,7 +60,7 @@ export default function SchoolDashboard() {
   const { schoolId: urlSchoolId } = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { user, isAuthenticated, isLoading: authLoading } = useSimpleAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [addTeacherOpen, setAddTeacherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
