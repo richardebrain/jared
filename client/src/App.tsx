@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// Import ErrorBoundary component
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
 import { useSimpleAuth } from "@/lib/simple-auth";
-// Import session utilities for debugging
 import "@/lib/sessionUtils";
+
+// Import pages
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
@@ -48,1059 +48,282 @@ import OwnerDashboardPage from "@/pages/settings/owner-dashboard";
 import OwnerDashboardStandalone from "@/pages/owner-dashboard-standalone";
 import PlatformIntegrationsPage from "@/pages/platform-integrations";
 import AccountPage from "@/pages/settings/account";
-import BearyAIPage from "@/pages/beary-ai";
-import GamesPage from "@/pages/games";
-import EnhancedFroggerGame from "@/components/games/EnhancedFroggerGame";
-import AdminPage from "@/pages/admin";
-import LessonPlanMakerPage from "@/pages/lesson-plan-maker";
-import LessonPlanCreator from "@/pages/lesson-plan-creator";
-import LessonPlanViewer from "@/pages/lesson-plan-viewer";
-import CasinoPage from "@/pages/casino";
-import TransitionTimer from "@/pages/transition-timer";
-import SchoolDashboard from "@/pages/school-dashboard";
-import ProfilePage from "@/pages/profile";
-import AppOwnerDashboard from "@/pages/app-owner-dashboard";
-import EduTokPage from "@/pages/edutok";
-import AdminModulesPage from "@/pages/admin-modules";
-import InviteTeachersPage from "@/pages/invite-teachers";
-import AvatarCustomizationPage from "@/pages/avatar-customization";
-import DirectorMessages from "@/pages/director-messages";
-import ComprehensiveModuleCreator from "@/pages/comprehensive-module-creator";
-import NewComprehensiveModuleCreator from "@/pages/new-comprehensive-module-creator";
-import NewModuleCreator from "@/pages/new-module-creator";
-import NewModuleAI from "@/pages/new-module-ai";
-import NewModuleManual from "@/pages/new-module-manual";
-import NewModuleImport from "@/pages/new-module-import";
-import EnhancedModuleBuilder from "@/pages/enhanced-module-builder";
-import ModuleWizard from "@/pages/module-wizard";
-import ModuleCreationWorkflow from "@/components/ModuleCreationWorkflow";
-import EmailServiceDemo from "@/pages/EmailServiceDemo";
-import DirectorToolkit from "@/pages/director-toolkit";
-import AdminTeachersPage from "@/pages/admin-teachers";
-import AdminTeacherAssessmentResultsSimple from "@/pages/admin-teacher-assessment-results-simple";
-import AdminAssignModulesPage from "@/pages/admin-assign-modules";
-import AdminMessagingPage from "@/pages/admin-messaging";
-import AdminBearBucksPage from "@/pages/admin-bear-bucks";
-import AdminMeetingCreator from "@/pages/admin-meeting-creator";
-import AdminVideoLibraryPage from "@/pages/admin-video-library";
-import AdminAnalyticsPage from "@/pages/admin-analytics";
-import CertificateManager from "@/pages/certificate-manager";
-import NewsletterManager from "@/pages/newsletter-manager";
-import MessagesPage from "@/pages/messages";
-import SchoolSettingsPage from "@/pages/school-settings";
-import AdvancedVoiceFeatures from "@/components/AdvancedVoiceFeatures";
-import PersonalizedStories from "@/pages/personalized-stories";
-import ModuleFlowTest from "@/pages/module-flow-test";
-import PodcastGenerator from "@/pages/podcast-generator";
-import MusicMaker from "@/pages/music-maker";
-import PerfectManager from "@/pages/admin-perfect-manager";
-import SchoolECETracking from "@/pages/school-ece-tracking";
-import EceHoursTracker from "@/pages/ece-hours-tracker";
-import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 import EmergencyLogin from "@/pages/emergency-login";
 
-// Permanent auth system with validation
+// Import other components
 import { AuthValidator } from "@/lib/auth-validator";
 
-// Create a wrapper component that uses SimpleAuth
-function AuthenticatedRouter() {
-  try {
-    const { isAuthenticated, isLoading, user } = useSimpleAuth();
-    const isAdmin = user?.isAdmin || user?.is_admin || false;
-    const isOwner = user?.isOwner || user?.is_owner || false;
+// Main App component
+function App() {
+  const { isAuthenticated, isLoading, user } = useSimpleAuth();
+  const isAdmin = user?.isAdmin || user?.is_admin || false;
+  const isOwner = user?.isOwner || user?.is_owner || false;
 
-    // No loading states - immediate rendering with cached auth
-    // Loading is always false with persistent storage
-
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
-      );
-    }
-
-    return (
-      <Router>
-        <Switch>
-          {isAuthenticated ? (
-            <Route path="/" component={Dashboard} />
-          ) : (
-            <>
-              <Route path="/login" component={Login} />
-              <Route component={() => {
-                window.location.href = "/login";
-                return null;
-              }} />
-            </>
-          )}
-        </Switch>
-      </Router>
-    );
-  } catch (error) {
-    console.error("Auth router error:", error);
-    // Fallback to login page if auth system fails
-    sessionStorage.removeItem("auth_checked");
-    localStorage.removeItem("auth_check_time");
-
-    return (
-      <Switch>
-        <Route path="/login">
-          <Login />
-        </Route>
-        <Route path="/register">
-          <Register />
-        </Route>
-        <Route path="/business-signup">
-          <BusinessSignup />
-        </Route>
-        <Route path="/test-page">
-          <TestPage />
-        </Route>
-        <Route path="/ece-hours-tracker">
-          <EceHoursTracker />
-        </Route>
-        <Route path="/">
-          <Redirect to="/login" />
-        </Route>
-      </Switch>
+      </div>
     );
   }
-}
 
-// Router component takes auth state as props
-function Router(props: {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: any;
-  isAdmin: boolean;
-  isOwner: boolean;
-}) {
-  const { isAuthenticated, isLoading, user, isAdmin, isOwner } = props;
-  const [location] = useLocation();
-  
   return (
-    <Switch>
-      {/* Public routes - always load immediately */}
-      {/* <Route path="/login">
-        <LoginSimple />
-      </Route> */}
-      
-      <Route path="/login-full">
-        <Login />
-      </Route>
-
-      <Route path="/register">
-        <Register />
-      </Route>
-
-      <Route path="/business-signup">
-        <BusinessSignup />
-      </Route>
-
-      {/* Emergency login route - bypasses auth context completely */}
-      <Route path="/emergency">
-        <EmergencyLogin />
-      </Route>
-
-      {/* Temporary public route for testing state synchronization fix */}
-      
-
-      {/* Root path - show landing page or dashboard based on auth */}
-      <Route path="/">
-        {isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-          </div>
-        ) : isAuthenticated ? <Dashboard /> : <LandingPage />}
-      </Route>
-
-      {/* Protected routes */}
-      <Route path="/dashboard">
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/dashboard-enhanced">
-        <ProtectedRoute>
-          <EnhancedDashboard />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/progression-map">
-        <ProtectedRoute>
-          <ProgressionMap />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/initial-assessment">
-        <ProtectedRoute>
-          <InitialAssessment />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/assessment-questions">
-        <ProtectedRoute>
-          <AssessmentQuestions />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/assessment-results">
-        <ProtectedRoute>
-          <AssessmentResults />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/assessment-required">
-        <ProtectedRoute>
-          <AssessmentRequired />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/learning-style">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <LearningStylePage />
-        )}
-      </Route>
-
-      <Route path="/modules/:id">
-        <ProtectedRoute requiresAssessment={true}>
-          <LearningModulePage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/learning-module/:id">
-        <ProtectedRoute requiresAssessment={true}>
-          <LearningModulePage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/core-values-module">
-        <ProtectedRoute requiresAssessment={true}>
-          <CoreValuesModulePage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/core-values-module-new">
-        <ProtectedRoute requiresAssessment={true}>
-          <CoreValuesModuleNew />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/micro-modules/:id">
-        <ProtectedRoute requiresAssessment={true}>
-          <MicroModulePage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/discussions/:id">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <DiscussionsPage />
-        )}
-      </Route>
-
-      <Route path="/discussions">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <DiscussionsPage />
-        )}
-      </Route>
-
-      <Route path="/modules">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <AllModules />
-        )}
-      </Route>
-
-      <Route path="/core-values">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <CoreValuesPage />
-        )}
-      </Route>
-
-      <Route path="/chapter-one">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ChapterOnePage />
-        )}
-      </Route>
-
-      <Route path="/mindful-mornings">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <MindfulMorningsPage />
-        )}
-      </Route>
-
-      <Route path="/mindful-mornings-module">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <MindfulMorningsModulePage />
-        )}
-      </Route>
-
-      <Route path="/classroom-music">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ClassroomMusic />
-        )}
-      </Route>
-
-      <Route path="/storytelling-demo">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <StorytellingDemoPage />
-        )}
-      </Route>
-
-      <Route path="/personalized-stories">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <PersonalizedStories />
-        )}
-      </Route>
-
-      <Route path="/module-flow-test">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ModuleFlowTest />
-        )}
-      </Route>
-
-      <Route path="/voice-features-demo">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <AdvancedVoiceFeatures />
-        )}
-      </Route>
-
-      <Route path="/core-values-shout-out">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <CoreValuesShoutOutPage />
-        )}
-      </Route>
-
-      <Route path="/building-child">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <BuildingChildPage />
-        )}
-      </Route>
-
-      <Route path="/video-resources">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <VideoResourcesPage />
-        )}
-      </Route>
-
-      <Route path="/voice-features-demo">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <AdvancedVoiceFeatures />
-        )}
-      </Route>
-
-      <Route path="/tools">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ToolsPage />
-        )}
-      </Route>
-
-      <Route path="/settings/account">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <AccountPage />
-        )}
-      </Route>
-
-      <Route path="/settings/owner-dashboard">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <OwnerDashboardPage />
-        )}
-      </Route>
-
-      <Route path="/owner-dashboard">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <OwnerDashboardStandalone />
-        )}
-      </Route>
-
-      <Route path="/settings/data-sources">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <DataSourcesPage />
-        )}
-      </Route>
-
-      <Route path="/settings/content">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ContentPage />
-        )}
-      </Route>
-
-      <Route path="/settings/platform-integrations">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <PlatformIntegrationsPage />
-        )}
-      </Route>
-
-      <Route path="/beary-ai">
-        <ProtectedRoute adminOnly={false}>
-          <BearyAIPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/games">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <GamesPage />
-        )}
-      </Route>
-
-      <Route path="/enhanced-frogger">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <EnhancedFroggerGame />
-        )}
-      </Route>
-
-      <Route path="/casino">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <CasinoPage />
-        )}
-      </Route>
-
-      <Route path="/lesson-plan-maker">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <LessonPlanMakerPage />
-        )}
-      </Route>
-
-      <Route path="/lesson-plan-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <LessonPlanCreator />
-        )}
-      </Route>
-
-      <Route path="/lesson-plan/:id">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <LessonPlanViewer />
-        )}
-      </Route>
-
-      <Route path="/admin">
-        <ProtectedRoute adminOnly={true}>
-          <AdminPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin-dashboard">
-        {isLoading ? (
-          <div className="flex items-center justify-center min-h-screen bg-background">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : !isAuthenticated ? (
-          <Redirect to="/login" />
-        ) : !isAdmin ? (
-          <Redirect to="/dashboard" />
-        ) : (
-          <AdminPage skipPasswordCheck={true} />
-        )}
-      </Route>
-
-      <Route path="/director-messages">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <DirectorMessages />
-        )}
-      </Route>
-
-      <Route path="/director-toolkit">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <DirectorToolkit />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/teachers">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <AdminTeachersPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/teachers/:teacherId/assessment-results">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <AdminTeacherAssessmentResultsSimple />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/ece-hours-tracker">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <EceHoursTracker />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/assign-modules">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <AdminAssignModulesPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/messaging">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <AdminMessagingPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/video-library">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <AdminVideoLibraryPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/analytics">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <AdminAnalyticsPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/school-settings">
-        <ProtectedRoute adminOnly={true}>
-          <SchoolSettingsPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/certificate-manager">
-        <ProtectedRoute adminOnly={true}>
-          <CertificateManager />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/newsletter-manager">
-        <ProtectedRoute adminOnly={true}>
-          <NewsletterManager />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/perfect-manager">
-        <ProtectedRoute schoolAdminOnly={true}>
-          <PerfectManager />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin-perfect-manager">
-        <ProtectedRoute adminOnly={true}>
-          <PerfectManager />
-        </ProtectedRoute>
-      </Route>
-
-      {/* <Route path="/module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-        <NewModuleAI />
-        )}
-      </Route> */}
-
-      {/* <Route path="/comprehensive-module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ComprehensiveModuleCreator />
-        )}
-      </Route> */}
-
-      {/* <Route path="/new-comprehensive-module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <NewComprehensiveModuleCreator />
-        )}
-      </Route> */}
-
-      <Route path="/module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <NewModuleCreator />
-        )}
-      </Route>
-
-      <Route path="/new-module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <NewModuleCreator />
-        )}
-      </Route>
-
-      {/* <Route path="/new-module/ai">
-        <NewModuleAI />
-      </Route> */}
-      <Route path="/module-creator/ai">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-      <NewModuleAI />
-        )}
-      </Route>
-
-      <Route path="/module-creator/manual">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <NewModuleManual />
-        )}
-      </Route>
-
-      <Route path="/module-creator/import">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <NewModuleImport />
-        )}
-      </Route>
-
-      <Route path="/enhanced-module-builder">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <EnhancedModuleBuilder />
-        )}
-      </Route>
-
-      <Route path="/comprehensive-module-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ComprehensiveModuleCreator />
-        )}
-      </Route>
-
-      <Route path="/messages">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <MessagesPage />
-        )}
-      </Route>
-
-      <Route path="/admin-bear-bucks">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <AdminBearBucksPage />
-        )}
-      </Route>
-
-      <Route path="/admin-meeting-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <AdminMeetingCreator />
-        )}
-      </Route>
-
-      <Route path="/module-wizard">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ModuleWizard />
-        )}
-      </Route>
-
-      <Route path="/podcast-generator">
-        <ProtectedRoute adminOnly={true}>
-          <PodcastGenerator />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/music-maker">
-        <ProtectedRoute adminOnly={true}>
-          <MusicMaker />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/step-by-step-creator">
-        {!isAuthenticated && !isLoading ? (
-          <Redirect to="/login" />
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <ModuleCreationWorkflow />
-        )}
-      </Route>
-
-      <Route path="/admin/modules">
-        <ProtectedRoute adminOnly={true}>
-          <AdminModulesPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/test-page">
-        <TestPage />
-      </Route>
-
-      <Route path="/ece-hours-tracker">
-        <ProtectedRoute adminOnly={true}>
-          <EceHoursTracker />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/email-demo">
-        <ProtectedRoute adminOnly={true}>
-          <EmailServiceDemo />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/transition-timer">
-        <ProtectedRoute>
-          <TransitionTimer />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/dynamic-assessment">
-        <PublicRoute>
-          <DynamicAssessmentPage />
-        </PublicRoute>
-      </Route>
-
-      <Route path="/standalone-assessment">
-        <ProtectedRoute>
-          <StandaloneAssessment />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/simple-standalone-assessment">
-        <ProtectedRoute>
-          <SimpleStandaloneAssessment />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/self-assessment">
-        <ProtectedRoute>
-          <SelfAssessment />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/assessment-launcher">
-        <ProtectedRoute>
-          <AssessmentLauncher />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/schools/:schoolId">
-        <ProtectedRoute>
-          <SchoolDashboard />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/schools/:schoolId/ece-tracking">
-        <ProtectedRoute>
-          <SchoolECETracking />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/school-dashboard">
-        <ProtectedRoute>
-          <SchoolDashboard />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/profile">
-        <ProtectedRoute>
-          <ProfilePage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/app-owner-dashboard">
-        <ProtectedRoute adminOnly={true}>
-          <AppOwnerDashboard />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/invite-teachers">
-        <ProtectedRoute>
-          <InviteTeachersPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/edutok">
-        <ProtectedRoute>
-          <EduTokPage />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/avatar-customization">
-        <ProtectedRoute>
-          <ProfilePage />
-        </ProtectedRoute>
-      </Route>
-
-      {/* Root path handled earlier (showing Dashboard for authenticated users, LandingPage for others) */}
-
-      {/* Direct access routes for emergency use - simplified to avoid auth context issues */}
-      <Route path="/direct/login">
-        <Login />
-      </Route>
-
-      <Route path="/direct/register">
-        <Register />
-      </Route>
-
-      <Route path="/test-page">
-        <TestPage />
-      </Route>
-
-      {/* Fallback route */}
-      <Route>
-        <NotFound />
-      </Route>
-    </Switch>
-  );
-}
-
-function App() {
-  return (
-    <TooltipProvider>
-      <ErrorBoundary>
-        <Somple
-        <AuthenticatedRouter />
-      </ErrorBoundary>
+    <div className="min-h-screen bg-background">
       <Toaster />
-    </TooltipProvider>
+      <ErrorBoundary>
+        <Switch>
+          {/* Public routes */}
+          <Route path="/login">
+            <Login />
+          </Route>
+          
+          <Route path="/login-simple">
+            <LoginSimple />
+          </Route>
+
+          <Route path="/register">
+            <Register />
+          </Route>
+
+          <Route path="/business-signup">
+            <BusinessSignup />
+          </Route>
+
+          <Route path="/emergency">
+            <EmergencyLogin />
+          </Route>
+
+          <Route path="/test-page">
+            <TestPage />
+          </Route>
+
+          {/* Root path - show landing page or dashboard based on auth */}
+          <Route path="/">
+            {isAuthenticated ? <Dashboard /> : <LandingPage />}
+          </Route>
+
+          {/* Protected routes */}
+          <Route path="/dashboard">
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/dashboard-enhanced">
+            <ProtectedRoute>
+              <EnhancedDashboard />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/progression-map">
+            <ProtectedRoute>
+              <ProgressionMap />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/initial-assessment">
+            <ProtectedRoute>
+              <InitialAssessment />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/assessment-questions">
+            <ProtectedRoute>
+              <AssessmentQuestions />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/assessment-results">
+            <ProtectedRoute>
+              <AssessmentResults />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/learning-style">
+            <ProtectedRoute>
+              <LearningStylePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/modules/:id">
+            <ProtectedRoute requiresAssessment={true}>
+              <LearningModulePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/learning-module/:id">
+            <ProtectedRoute requiresAssessment={true}>
+              <LearningModulePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/core-values-module">
+            <ProtectedRoute requiresAssessment={true}>
+              <CoreValuesModulePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/core-values-module-new">
+            <ProtectedRoute requiresAssessment={true}>
+              <CoreValuesModuleNew />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/mindful-mornings-module">
+            <ProtectedRoute requiresAssessment={true}>
+              <MindfulMorningsModulePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/micro-module/:id">
+            <ProtectedRoute requiresAssessment={true}>
+              <MicroModulePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/discussions">
+            <ProtectedRoute>
+              <DiscussionsPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/modules">
+            <ProtectedRoute>
+              <AllModules />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/core-values">
+            <ProtectedRoute>
+              <CoreValuesPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/mindful-mornings">
+            <ProtectedRoute>
+              <MindfulMorningsPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/storytelling-demo">
+            <ProtectedRoute>
+              <StorytellingDemoPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/classroom-music">
+            <ProtectedRoute>
+              <ClassroomMusic />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/core-values-shout-out">
+            <ProtectedRoute>
+              <CoreValuesShoutOutPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/building-child">
+            <ProtectedRoute>
+              <BuildingChildPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/chapter-one">
+            <ProtectedRoute>
+              <ChapterOnePage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/video-resources">
+            <ProtectedRoute>
+              <VideoResourcesPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/tools">
+            <ProtectedRoute>
+              <ToolsPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/settings/data-sources">
+            <ProtectedRoute adminOnly={true}>
+              <DataSourcesPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/settings/content">
+            <ProtectedRoute adminOnly={true}>
+              <ContentPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/settings/owner-dashboard">
+            <ProtectedRoute adminOnly={true}>
+              <OwnerDashboardPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/owner-dashboard">
+            <ProtectedRoute adminOnly={true}>
+              <OwnerDashboardStandalone />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/platform-integrations">
+            <ProtectedRoute adminOnly={true}>
+              <PlatformIntegrationsPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/settings/account">
+            <ProtectedRoute>
+              <AccountPage />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/dynamic-assessment">
+            <PublicRoute>
+              <DynamicAssessmentPage />
+            </PublicRoute>
+          </Route>
+
+          <Route path="/standalone-assessment">
+            <ProtectedRoute>
+              <StandaloneAssessment />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/simple-standalone-assessment">
+            <ProtectedRoute>
+              <SimpleStandaloneAssessment />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/assessment-launcher">
+            <ProtectedRoute>
+              <AssessmentLauncher />
+            </ProtectedRoute>
+          </Route>
+
+          <Route path="/self-assessment">
+            <ProtectedRoute>
+              <SelfAssessment />
+            </ProtectedRoute>
+          </Route>
+
+          {/* Catch all route */}
+          <Route>
+            <NotFound />
+          </Route>
+        </Switch>
+      </ErrorBoundary>
+    </div>
   );
 }
 
