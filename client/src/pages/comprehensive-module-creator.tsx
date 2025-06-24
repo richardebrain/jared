@@ -1347,17 +1347,45 @@ export default function ComprehensiveModuleCreator() {
   };
 
   const addQuestionToQuiz = () => {
-    if (!currentQuizQuestion.question.trim() || 
-        currentQuizQuestion.answers.filter(a => a.trim()).length < 2) {
+    // Enhanced validation
+    if (!currentQuizQuestion.question.trim()) {
       toast({
-        title: "Incomplete Question",
-        description: "Please add a question and at least 2 answers.",
+        title: "Invalid Input Detected",
+        description: "Please enter a question before adding.",
         variant: "destructive",
       });
       return;
     }
 
-    setBuiltQuizQuestions(prev => [...prev, { ...currentQuizQuestion }]);
+    const validAnswers = currentQuizQuestion.answers.filter(a => a.trim());
+    if (validAnswers.length < 2) {
+      toast({
+        title: "Invalid Input Detected", 
+        description: "Please provide at least 2 answer options.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Ensure correct answer index is valid
+    if (currentQuizQuestion.correctAnswer >= validAnswers.length) {
+      toast({
+        title: "Invalid Input Detected",
+        description: "Please select a valid correct answer from the available options.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create validated question object
+    const validatedQuestion = {
+      question: currentQuizQuestion.question.trim(),
+      answers: validAnswers,
+      correctAnswer: currentQuizQuestion.correctAnswer,
+      explanation: currentQuizQuestion.explanation.trim() || ''
+    };
+
+    setBuiltQuizQuestions(prev => [...prev, validatedQuestion]);
     setCurrentQuizQuestion({
       question: '',
       answers: ['', '', '', ''],

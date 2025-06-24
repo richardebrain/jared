@@ -536,8 +536,13 @@ export async function registerRoutes(app: Express): Promise<void> {
         existingQuestions,
       );
 
-      if (!sectionTitle) {
-        return res.status(400).json({ error: "Section title is required" });
+      // Enhanced input validation
+      if (!sectionTitle || typeof sectionTitle !== 'string' || sectionTitle.trim().length === 0) {
+        return res.status(400).json({ error: "Valid section title is required" });
+      }
+
+      if (!moduleTitle || typeof moduleTitle !== 'string' || moduleTitle.trim().length === 0) {
+        return res.status(400).json({ error: "Valid module title is required" });
       }
 
       const difficultyPrompts = {
