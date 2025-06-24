@@ -55,8 +55,8 @@ import EmergencyLogin from "@/pages/emergency-login";
 // Import other components
 // import { AuthValidator } from "@/lib/auth-validator";
 
-// Main App component
-function App() {
+// Internal component that uses auth context
+function AppContent() {
   const { isAuthenticated, isLoading, user } = useSimpleAuth();
   const isAdmin = user?.isAdmin || user?.is_admin || false;
   const isOwner = user?.isOwner || user?.is_owner || false;
@@ -74,7 +74,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster />
       <ErrorBoundary>
         <Switch>
           {/* Public routes */}
@@ -325,6 +324,16 @@ function App() {
         </Switch>
       </ErrorBoundary>
     </div>
+  );
+}
+
+// Main App component wrapper
+function App() {
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <AppContent />
+    </TooltipProvider>
   );
 }
 
