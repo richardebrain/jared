@@ -2316,6 +2316,14 @@ Continue for all 5 questions...
           console.log("module_ratings table not found, skipping...");
         }
         
+        // Delete game completions
+        try {
+          await db.execute(sql`DELETE FROM game_completions WHERE user_id = ${targetUserId}`);
+          console.log("Deleted from game_completions");
+        } catch (e) {
+          console.log("game_completions table not found, skipping...");
+        }
+
         // Delete daily logins
         try {
           await db.execute(sql`DELETE FROM daily_logins WHERE user_id = ${targetUserId}`);
