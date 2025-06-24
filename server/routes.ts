@@ -2265,9 +2265,10 @@ Continue for all 5 questions...
         // Delete user progress
         await db.execute(sql`DELETE FROM user_progress WHERE user_id = ${targetUserId}`);
         
-        // Delete user messages (try both possible table names)
+        // Delete user messages (try both possible table names) - delete both sender and recipient
         try {
-          await db.execute(sql`DELETE FROM teacher_messages WHERE recipient_id = ${targetUserId}`);
+          await db.execute(sql`DELETE FROM teacher_messages WHERE recipient_id = ${targetUserId} OR sender_id = ${targetUserId}`);
+          console.log("Deleted from teacher_messages");
         } catch (e) {
           console.log("teacher_messages table not found, skipping...");
         }
