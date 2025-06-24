@@ -320,7 +320,7 @@ export default function BounceAwayBlocks() {
   // Fetch user points
   const fetchUserPoints = async () => {
     try {
-      const response = await apiRequest('/api/auth/me');
+      const response = await apiRequest('/api/auth/user');
       setGameState(prev => ({ ...prev, userPoints: response.points || 0 }));
     } catch (error) {
       console.error('Failed to fetch user points:', error);

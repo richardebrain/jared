@@ -98,7 +98,7 @@ export default function WordScrambleGame({ game, onClose }: GameProps): React.Re
       // Invalidate relevant queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['/api/game-completions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/game-completions/daily-count'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
       toast({
         title: "Word Scramble Completed!",

@@ -2011,18 +2011,18 @@ Continue for all 5 questions...
 
 
   app.get("/api/auth/user", async (req, res) => {
-    console.log("GET /api/auth/me - Session ID:", req.session.id);
-    console.log("GET /api/auth/me - Session data:", req.session);
+    console.log("GET /api/auth/user - Session ID:", req.session?.id);
+    console.log("GET /api/auth/user - Session data:", req.session);
 
     // Check if session has userId
-    if (!req.session.userId) {
-      console.log("GET /api/auth/me - No userId in session");
+    if (!req.session?.userId) {
+      console.log("GET /api/auth/user - No userId in session");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     try {
       const userId = req.session.userId as number;
-      console.log(`GET /api/auth/me - Looking up user with ID: ${userId}`);
+      console.log(`GET /api/auth/user - Looking up user with ID: ${userId}`);
 
       const user = await storage.getUser(userId);
 

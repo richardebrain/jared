@@ -30,7 +30,7 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
     return response.data;
   } catch (error: any) {
     // Enhanced error handling for auth endpoints
-    if (path === '/api/auth/me') {
+    if (path === '/api/auth/user' || path === '/api/auth/me') {
       const isOnPublicPage = () => {
         const currentPath = window.location.pathname;
         return currentPath === '/login' || currentPath === '/register' || 
