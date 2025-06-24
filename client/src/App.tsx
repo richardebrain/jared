@@ -106,7 +106,6 @@ import { AuthValidator } from "@/lib/auth-validator";
 // Create a wrapper component that uses SimpleAuth
 function AuthenticatedRouter() {
   try {
-    // This component safely uses useSimpleAuth
     const { isAuthenticated, isLoading, user } = useSimpleAuth();
     const isAdmin = user?.isAdmin || user?.is_admin || false;
     const isOwner = user?.isOwner || user?.is_owner || false;
