@@ -52,16 +52,17 @@ interface TeacherAssessmentData {
 }
 
 export default function AdminTeacherAssessmentResultsSimple() {
-  const { user, isAuthenticated, isSchoolAdmin } = useAuth();
+  const { user, isAuthenticated, isSchoolAdmin, isAdmin, isOwner } = useAuth();
   const { toast } = useToast();
   const params = useParams<{ teacherId: string }>();
   const queryClient = useQueryClient();
   
   const teacherId = params?.teacherId;
+  const hasAdminAccess = isAuthenticated && (isSchoolAdmin || isAdmin || isOwner);
 
   const { data, isLoading, error } = useQuery<TeacherAssessmentData>({
     queryKey: [`/api/admin/teachers/${teacherId}/assessment-results`],
-    enabled: !!teacherId && isAuthenticated && isSchoolAdmin,
+    enabled: !!teacherId && hasAdminAccess,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -104,12 +105,12 @@ export default function AdminTeacherAssessmentResultsSimple() {
     );
   }
 
-  if (!isSchoolAdmin) {
+  if (!hasAdminAccess) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Access denied</h2>
-          <p>School admin privileges required.</p>
+          <p>Admin privileges required to view teacher assessment results.</p>
         </div>
       </div>
     );
