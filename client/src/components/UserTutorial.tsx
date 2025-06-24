@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import confetti from 'canvas-confetti';
 import { 
   Play, 
   BookOpen, 
@@ -18,8 +17,7 @@ import {
   MessageSquare, 
   Zap, 
   CheckCircle2, 
-  ArrowRight,
-  Music, 
+  ArrowRight, 
   ArrowLeft, 
   X,
   GraduationCap,
@@ -48,123 +46,156 @@ interface UserTutorialProps {
   userRole: 'teacher' | 'admin' | 'school_admin';
 }
 
-// Import actual screenshots of the platform interface
-import signInPageImg from "@assets/Mentor Me Sign in page_1750717282945.png";
-import welcomePageImg from "@assets/WELCOME PAGE points, levels etc_1750717282945.png";
-import dashboardImg from "@assets/Dashboard_1750717282945.png";
-import progressionMapImg from "@assets/Progression Map_1750717282945.png";
-import teacherLevelsImg from "@assets/Teacher Levels assistant to master_1750717282945.png";
-import teacherToolkitImg from "@assets/Teacher Toolkit_1750717282945.png";
-import communityModulesImg from "@assets/Community Modules_1750717282945.png";
-import audioLibraryImg from "@assets/Audio Library_1750717282946.png";
-import videoLibraryImg from "@assets/Video Library_1750717282946.png";
-import coreValuesImg from "@assets/Core Values Shout Out_1750717282946.png";
+// Import correct screenshots based on content
+import dashboardScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.36_1749935018429.png";
+import moduleCreatorScreenshot from "@assets/Screenshot 2025-06-14 at 13.12.55_1749903179794.png";
+import moduleOutlineScreenshot from "@assets/Screenshot 2025-06-14 at 15.05.03_1749909906126.png";
+import assessmentScreenshot from "@assets/Screenshot 2025-06-15 at 14.38.41_1749994726716.png";
+import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 16.11.11_1749913887467.png";
+import teacherManagementScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.17_1749935001943.png";
+import videoLibraryScreenshot from "@assets/Screenshot 2025-06-14 at 12.29.16_1749900559890.png";
+import eceTrackingScreenshot from "@assets/Screenshot 2025-06-15 at 14.39.44_1749994787827.png";
+// Use moduleOutlineScreenshot for modules section as it shows the module interface
+const modulesScreenshot = moduleOutlineScreenshot;
 
 const tutorialSteps: TutorialStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to MentorMe ECE',
-    description: 'Transform your teaching with quick, engaging professional development! Only have 15 minutes? Perfect! Earn ECE hours while having fun, climb the teacher ranks, and discover tools that make your classroom magical.',
+    description: 'Your professional development platform for early childhood education. Let\'s explore the key features that will enhance your teaching journey.',
     icon: <GraduationCap className="h-6 w-6 text-blue-600" />,
-    screenshot: signInPageImg,
+    screenshot: dashboardScreenshot,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
     id: 'dashboard',
-    title: 'Your Teacher Dashboard',
-    description: 'Watch yourself climb from Assistant to Master Teacher! See exactly how many points you earn for each activity and track your ECE hours. Your dashboard shows your rank progress, streak rewards, and the path to your next level!',
-    icon: <BarChart3 className="h-6 w-6 text-orange-500" />,
-    screenshot: dashboardImg,
+    title: 'Your Learning Dashboard',
+    description: 'Track your progress, view recommendations, and see your learning path. Your dashboard shows completed modules, streak status, and ECE hours.',
+    icon: <BarChart3 className="h-6 w-6 text-green-600" />,
+    screenshot: dashboardScreenshot,
+    action: {
+      text: 'View Dashboard',
+      href: '/dashboard'
+    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'welcome-streak',
-    title: 'Daily Welcome & Streak Tracking',
-    description: 'Start each day with a personalized welcome showing your learning streak! Track your points, Bear Bucks, and current level. Your dedication to professional growth is celebrated with daily motivation and streak rewards.',
-    icon: <Star className="h-6 w-6 text-yellow-500" />,
-    screenshot: welcomePageImg,
+    id: 'modules',
+    title: 'Interactive Learning Modules',
+    description: 'Explore our comprehensive library of training modules organized by topic and duration. From quick 5-minute micro-modules to comprehensive courses.',
+    icon: <BookOpen className="h-6 w-6 text-purple-600" />,
+    screenshot: modulesScreenshot,
+    action: {
+      text: 'Browse Modules',
+      href: '/modules'
+    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'progression',
-    title: 'Teacher Progression Map',
-    description: 'Track your journey from Assistant to Master Teacher! See exactly what points and ECE hours you need for your next level. Visual progress bars show both your points and training hour requirements.',
-    icon: <Target className="h-6 w-6 text-purple-600" />,
-    screenshot: progressionMapImg,
+    id: 'assessment',
+    title: 'Adaptive Assessments',
+    description: 'Take skill assessments that adapt to your knowledge level and provide personalized learning recommendations based on your performance.',
+    icon: <Target className="h-6 w-6 text-orange-600" />,
+    screenshot: assessmentScreenshot,
+    action: {
+      text: 'Start Assessment',
+      href: '/assessment'
+    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'teacher-levels',
-    title: 'Professional Certification Levels',
-    description: 'Explore the five teacher certification levels from Assistant to Master. Each level shows specific requirements including points, assessment scores, training hours, experience, and director approval needed for advancement.',
-    icon: <Award className="h-6 w-6 text-blue-600" />,
-    screenshot: teacherLevelsImg,
+    id: 'ece-tracking',
+    title: 'ECE Hours Tracking',
+    description: 'Automatically track your professional development hours for ECE compliance. View your progress toward certification requirements.',
+    icon: <Clock className="h-6 w-6 text-emerald-600" />,
+    screenshot: eceTrackingScreenshot,
+    action: {
+      text: 'View ECE Progress',
+      href: '/dashboard'
+    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'teacher-toolkit',
-    title: 'AI-Powered Teacher Toolkit',
-    description: 'Access powerful teaching tools including parent response generator, lesson plan creator, custom story builder, transition timer, and Suessifier. Plus video library, EduTok tips, and director meeting scheduler.',
-    icon: <Settings className="h-6 w-6 text-green-600" />,
-    screenshot: teacherToolkitImg,
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
-  {
-    id: 'community-modules',
-    title: 'Community Learning Modules',
-    description: 'Discover top-rated training modules created by fellow educators. Community competition encourages quality content creation with special prizes for top creators. Rate modules to maintain high standards.',
-    icon: <Users className="h-6 w-6 text-orange-600" />,
-    screenshot: communityModulesImg,
-    userTypes: ['teacher', 'admin', 'school_admin']
-  },
-  {
-    id: 'audio-library',
-    title: 'Music & Audio Library',
-    description: 'Access calming nap time music, energizing transition songs, and educational audio content. Perfect for creating the right classroom atmosphere throughout your daily routines.',
-    icon: <Music className="h-6 w-6 text-purple-600" />,
-    screenshot: audioLibraryImg,
+    id: 'points-system',
+    title: 'Points & Achievements',
+    description: 'Earn points for completing modules and assessments. Build learning streaks and unlock achievements as you progress in your professional development.',
+    icon: <Award className="h-6 w-6 text-yellow-600" />,
+    screenshot: dashboardScreenshot,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
     id: 'video-library',
-    title: 'Professional Development Videos',
-    description: 'Watch curated professional development videos with integrated quizzes that count toward ECE hours. Videos cover essential topics like child development, classroom management, and teaching strategies.',
+    title: 'Professional Video Library',
+    description: 'Access curated professional development videos with integrated quizzes and ECE hour tracking for comprehensive learning experiences.',
     icon: <Play className="h-6 w-6 text-red-600" />,
-    screenshot: videoLibraryImg,
+    screenshot: modulesScreenshot,
+    action: {
+      text: 'Browse Videos',
+      href: '/videos'
+    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
-    id: 'core-values',
-    title: 'Core Values Recognition',
-    description: 'Recognize fellow teachers for exemplifying core values like "Be Prepared." Nominate colleagues, share specific examples, and build a positive workplace culture through peer recognition and appreciation.',
-    icon: <MessageSquare className="h-6 w-6 text-green-600" />,
-    screenshot: coreValuesImg,
+    id: 'director-toolkit',
+    title: 'Director Toolkit',
+    description: 'Access powerful administrative tools including teacher management, ECE tracking, Perfect Manager coaching system, and comprehensive reporting.',
+    icon: <Settings className="h-6 w-6 text-indigo-600" />,
+    screenshot: directorToolkitScreenshot,
+    action: {
+      text: 'Open Director Toolkit',
+      href: '/admin'
+    },
+    userTypes: ['admin', 'school_admin']
+  },
+  {
+    id: 'teacher-management',
+    title: 'Teacher Profiles & Progress',
+    description: 'Monitor your team\'s professional development, track ECE hours, generate certificates, and manage user roles and permissions.',
+    icon: <Users className="h-6 w-6 text-cyan-600" />,
+    screenshot: eceTrackingScreenshot,
+    action: {
+      text: 'Manage Teachers',
+      href: '/admin/teachers'
+    },
+    userTypes: ['admin', 'school_admin']
+  },
+  {
+    id: 'perfect-manager',
+    title: 'Perfect Manager AI Coach',
+    description: 'Get personalized leadership coaching for challenging workplace situations. AI-powered advice from top leadership experts for ECE directors.',
+    icon: <MessageSquare className="h-6 w-6 text-pink-600" />,
+    screenshot: directorToolkitScreenshot,
+    action: {
+      text: 'Try Perfect Manager',
+      href: '/admin/perfect-manager'
+    },
+    userTypes: ['admin', 'school_admin']
+  },
+  {
+    id: 'module-creator',
+    title: 'Create Custom Modules',
+    description: 'Build your own training modules using AI assistance, manual creation, or PowerPoint import. Share with your team or the community.',
+    icon: <Zap className="h-6 w-6 text-violet-600" />,
+    screenshot: modulesScreenshot,
+    action: {
+      text: 'Create Module',
+      href: '/new-module-creator'
+    },
     userTypes: ['teacher', 'admin', 'school_admin']
   },
-
   {
     id: 'getting-started',
     title: 'Ready to Begin!',
     description: 'You\'re all set to start your professional development journey. Remember to check your dashboard regularly for new recommendations and progress updates.',
-    icon: <CheckCircle2 className="h-6 w-6 text-purple-500" />,
+    icon: <CheckCircle2 className="h-6 w-6 text-green-600" />,
     userTypes: ['teacher', 'admin', 'school_admin']
   }
 ];
 
 export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [showMysteryBox, setShowMysteryBox] = useState(false);
-  const [mysteryBoxOpened, setMysteryBoxOpened] = useState(false);
-  const [mysteryBoxOpening, setMysteryBoxOpening] = useState(false);
-  const [mysteryBoxReward, setMysteryBoxReward] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Get user data for personalized affirmations
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/me'],
-    enabled: isOpen,
-  });
 
   // Filter steps based on user role
   const relevantSteps = tutorialSteps.filter(step => step.userTypes.includes(userRole));
@@ -189,69 +220,9 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
-      // Just move to next step without point popup
       setCurrentStep(currentStep + 1);
     } else {
-      // On the last step, show mystery box instead of completing immediately
-      setShowMysteryBox(true);
-    }
-  };
-
-  // Award points for tutorial progress with sound and personalized affirmations
-  const awardTutorialPoint = async () => {
-    try {
-      await apiRequest('/api/award-tutorial-point', {
-        method: 'POST'
-      });
-      
-      // Play coin sound effect
-      const audio = new Audio('/coin-sound.mp3');
-      audio.volume = 0.3;
-      audio.play().catch(() => {
-        // Fallback: create coin sound using Web Audio API
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.1);
-        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-      });
-
-      // Get user's first name for personalized affirmation
-      const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
-      const currentStepData = tutorialSteps.filter(step => step.userTypes.includes(userRole))[currentStep];
-      
-      // Create personalized affirmations based on the tutorial step
-      const getAffirmation = (stepId: string, name: string) => {
-        const affirmations: { [key: string]: string } = {
-          'welcome': `Congrats ${name}! Now you know the platform basics. Here's a point! You are Amazing!`,
-          'modules': `Fantastic ${name}! You've learned about learning modules. Here's a point! You're a Star!`,
-          'assessment': `Wonderful ${name}! Now you understand assessments. Here's a point! You Rock!`,
-          'ece-tracking': `Excellent ${name}! ECE tracking makes sense now. Here's a point! You're Incredible!`,
-          'director-toolkit': `Outstanding ${name}! You've discovered the Director Toolkit. Here's a point! You're Brilliant!`,
-          'getting-started': `Perfect ${name}! You're ready to begin your journey. Here's a point! You're Unstoppable!`
-        };
-        return affirmations[stepId] || `Great job ${name}! Tutorial step complete. Here's a point! You're Awesome!`;
-      };
-
-      // Show personalized affirmation notification
-      toast({
-        title: "🎉 Tutorial Progress!",
-        description: getAffirmation(currentStepData.id, firstName),
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error('Error awarding tutorial point:', error);
+      handleComplete();
     }
   };
 
@@ -266,130 +237,6 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
     onClose();
   };
 
-  // Open mystery box with dramatic reveal and confetti
-  const openMysteryBox = async () => {
-    if (mysteryBoxOpened) return;
-    
-    try {
-      // Generate random bonus points (1-20)
-      const bonusPoints = Math.floor(Math.random() * 20) + 1;
-      
-      // Start dramatic opening sequence
-      setMysteryBoxOpening(true);
-      
-      // Dramatic pause before opening
-      setTimeout(async () => {
-        try {
-          // Award the bonus points
-          await apiRequest('/api/mystery-box-reward', {
-            method: 'POST',
-            data: { bonusPoints }
-          });
-          
-          setMysteryBoxReward(bonusPoints);
-          
-          // Award all tutorial points at once at the end
-          for (let i = 0; i < totalSteps; i++) {
-            await apiRequest('/api/award-tutorial-point', {
-              method: 'POST'
-            });
-          }
-          
-          // Play special victory sound
-          const audio = new Audio('/victory-sound.mp3');
-          audio.volume = 0.4;
-          audio.play().catch(() => {
-            // Fallback: create victory sound using Web Audio API
-            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // Victory melody
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-            let time = audioContext.currentTime;
-            
-            notes.forEach((freq, index) => {
-              oscillator.frequency.setValueAtTime(freq, time + index * 0.2);
-            });
-            
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.8);
-          });
-
-          // Trigger confetti effect
-          confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
-          });
-          
-          // Second burst of confetti
-          setTimeout(() => {
-            confetti({
-              particleCount: 100,
-              spread: 80,
-              origin: { y: 0.7 },
-              colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']
-            });
-          }, 300);
-          
-          // Third burst from different angle
-          setTimeout(() => {
-            confetti({
-              particleCount: 75,
-              spread: 60,
-              origin: { x: 0.2, y: 0.8 },
-              colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1']
-            });
-            confetti({
-              particleCount: 75,
-              spread: 60,
-              origin: { x: 0.8, y: 0.8 },
-              colors: ['#96CEB4', '#FFEAA7', '#DDA0DD', '#FFD700']
-            });
-          }, 600);
-          
-          setMysteryBoxOpening(false);
-          setMysteryBoxOpened(true);
-
-          const firstName = (user as any)?.firstName || (user as any)?.username || 'Amazing Teacher';
-          
-          // Show exciting final reward notification with bonus points
-          toast({
-            title: "🎁 Tutorial Complete!",
-            description: `Congratulations ${firstName}! You earned ${bonusPoints} bonus points! Welcome to MentorMe ECE!`,
-            duration: 5000,
-          });
-          
-          // Complete tutorial after display time
-          setTimeout(() => {
-            handleComplete();
-          }, 5000);
-          
-        } catch (error) {
-          console.error('Error opening mystery box:', error);
-          setMysteryBoxOpening(false);
-          toast({
-            title: "Mystery Box Error",
-            description: "Something went wrong with your mystery box. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }, 2000); // 2 second dramatic pause
-      
-    } catch (error) {
-      console.error('Error starting mystery box:', error);
-      setMysteryBoxOpening(false);
-    }
-  };
-
   const handleSkip = () => {
     completeTutorialMutation.mutate();
     onClose();
@@ -401,39 +248,26 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-4 border-purple-300 shadow-2xl">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              <div className="relative">
-                {currentStepData.icon}
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-              </div>
+            <DialogTitle className="flex items-center gap-3">
+              {currentStepData.icon}
               {currentStepData.title}
             </DialogTitle>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleSkip}
-              className="text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded-full font-semibold"
-            >
+            <Button variant="ghost" size="sm" onClick={handleSkip}>
               <X className="h-4 w-4" />
               Skip Tutorial
             </Button>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-purple-600">🎮 Level {currentStep + 1} of {totalSteps}</span>
-              <span className="text-pink-600">{Math.round(progress)}% Complete ⭐</span>
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Step {currentStep + 1} of {totalSteps}</span>
+              <span>{Math.round(progress)}% Complete</span>
             </div>
-            <div className="relative">
-              <Progress value={progress} className="h-3 bg-gray-200 border-2 border-purple-300" />
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" 
-                   style={{ width: `${progress}%` }}>
-              </div>
-            </div>
+            <Progress value={progress} className="h-2" />
           </div>
         </DialogHeader>
 
@@ -445,31 +279,45 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                 <img 
                   src={currentStepData.screenshot} 
                   alt={`${currentStepData.title} interface`}
-                  className="w-full h-64 object-contain"
+                  className="w-full h-48 object-cover"
                 />
               </div>
             )}
-            
+
             {/* Step Information */}
-            <Card className="border-4 border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+            <Card className="border-2 border-dashed border-gray-200">
               <CardContent className="pt-6">
                 <div className="text-center space-y-4">
-                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse border-4 border-yellow-300">
-                    <div className="text-white text-2xl">
-                      {currentStepData.icon}
-                    </div>
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full flex items-center justify-center">
+                    {currentStepData.icon}
                   </div>
-                  
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      {currentStepData.title}
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed font-medium text-lg">
+
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">{currentStepData.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">
                       {currentStepData.description}
                     </p>
                   </div>
 
-
+                  {currentStepData.action && (
+                    <div className="pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (currentStepData.action?.href) {
+                            window.open(currentStepData.action.href, '_blank');
+                          }
+                          if (currentStepData.action?.onClick) {
+                            currentStepData.action.onClick();
+                          }
+                        }}
+                        className="gap-2"
+                      >
+                        {currentStepData.action.text}
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -494,10 +342,8 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
                 "Start with micro modules (5 minutes) for quick learning during busy days, then progress to longer modules."}
               {currentStepData.id === 'assessment' && 
                 "Take the initial assessment to get personalized module recommendations based on your current knowledge."}
-              {currentStepData.id === 'ece-tracking' && userRole === 'teacher' && 
-                "ECE hours are automatically tracked when you complete eligible modules and emailed to your director monthly. Your admin can also add in-person training hours for off-site courses."}
-              {currentStepData.id === 'ece-tracking' && (userRole === 'admin' || userRole === 'school_admin') && 
-                "Monitor all teachers' ECE progress and manually add in-person training hours through the ECE Hours Tracker in the Director Toolkit."}
+              {currentStepData.id === 'ece-tracking' && 
+                "ECE hours are automatically tracked when you complete eligible modules - no manual entry needed!"}
               {currentStepData.id === 'director-toolkit' && 
                 "The Perfect Manager feature provides AI coaching for challenging workplace situations with your team."}
               {currentStepData.id === 'getting-started' && 
@@ -506,81 +352,28 @@ export default function UserTutorial({ isOpen, onClose, userRole }: UserTutorial
           </div>
         </div>
 
-        {/* Mystery Box on Final Step */}
-        {currentStep === totalSteps - 1 && showMysteryBox && (
-          <div className="mt-4 p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border-2 border-dashed border-purple-300">
-            <div className="text-center space-y-3">
-              <div className="text-5xl animate-bounce">🎁</div>
-              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Congratulations! You've earned a Mystery Box!
-              </h3>
-              <p className="text-gray-700 text-base">
-                Click to open your mystery box and discover bonus points!
-              </p>
-              
-              {mysteryBoxOpening ? (
-                <div className="space-y-3">
-                  <div className="text-6xl animate-pulse">🎁</div>
-                  <div className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
-                    Opening your mystery box...
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                  </div>
-                </div>
-              ) : !mysteryBoxOpened ? (
-                <Button
-                  onClick={openMysteryBox}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
-                >
-                  ✨ Open Mystery Box! ✨
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <div className="text-5xl animate-bounce">🎉</div>
-                  <div className="bg-white rounded-lg p-3 border-4 border-yellow-300 shadow-xl">
-                    <div className="text-2xl font-bold text-yellow-600 mb-1">
-                      +{mysteryBoxReward} Bonus Points!
-                    </div>
-                    <p className="text-gray-700 text-sm font-medium">
-                      Tutorial complete! Bonus points earned!
-                    </p>
-                  </div>
-                  <p className="text-sm text-purple-600 font-medium animate-pulse">
-                    Welcome to MentorMe ECE!
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         <DialogFooter className="flex justify-between">
           <Button
             variant="outline"
             onClick={handlePrevious}
-            disabled={currentStep === 0 || showMysteryBox}
+            disabled={currentStep === 0}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Previous
           </Button>
-          
+
           <div className="flex gap-2">
-            {!showMysteryBox && (
-              <>
-                <Button variant="ghost" onClick={handleSkip}>
-                  Skip Tutorial
-                </Button>
-                <Button onClick={handleNext} className="gap-2">
-                  {currentStep === totalSteps - 1 ? 'Get Reward!' : 'Next'}
-                  {currentStep === totalSteps - 1 ? 
-                    <Star className="h-4 w-4" /> : 
-                    <ArrowRight className="h-4 w-4" />
-                  }
-                </Button>
-              </>
-            )}
+            <Button variant="ghost" onClick={handleSkip}>
+              Skip Tutorial
+            </Button>
+            <Button onClick={handleNext} className="gap-2">
+              {currentStep === totalSteps - 1 ? 'Complete' : 'Next'}
+              {currentStep === totalSteps - 1 ? 
+                <CheckCircle2 className="h-4 w-4" /> : 
+                <ArrowRight className="h-4 w-4" />
+              }
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

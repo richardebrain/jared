@@ -13,6 +13,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { registerRoutes } from './routes.js';
+import { scheduledTaskService } from './services/scheduledTasks.js';
+
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -166,6 +168,8 @@ async function startServer() {
     
     // Register all comprehensive routes from routes.ts
     await registerRoutes(app, false); // Enable auth endpoints
+    await scheduledTaskService.initialize();
+
 
     // Enhanced error handling middleware
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {

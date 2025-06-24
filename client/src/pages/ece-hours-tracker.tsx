@@ -79,7 +79,7 @@ export default function EceHoursTracker() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  
+
   // State hooks
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeEceData | null>(null);
   const [newRenewalDate, setNewRenewalDate] = useState('');
@@ -88,7 +88,7 @@ export default function EceHoursTracker() {
     frequency: 'monthly',
     isActive: true
   });
-  
+
   // Manual training form state
   const [showManualTrainingDialog, setShowManualTrainingDialog] = useState(false);
   const [showBulkTrainingDialog, setShowBulkTrainingDialog] = useState(false);
@@ -147,19 +147,19 @@ export default function EceHoursTracker() {
         credentials: 'include',
         body: JSON.stringify({ employeeId })
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to generate certificate');
       }
-      
+
       // Handle PDF download
       const blob = await response.blob();
       const contentDisposition = response.headers.get('Content-Disposition');
       const filename = contentDisposition 
         ? contentDisposition.split('filename="')[1]?.split('"')[0] 
         : 'ECE_Certificate.pdf';
-      
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -168,7 +168,7 @@ export default function EceHoursTracker() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       return { success: true, filename, employeeId };
     },
     onSuccess: (data: any) => {
@@ -191,44 +191,43 @@ export default function EceHoursTracker() {
   const sendTestReportMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('/api/school/ece-test-report', {
-        method: 'POST',
-        data: {}
+        method: 'POST'
       });
     },
-    onSuccess: (data: any) => {
-      const isSimulated = data.note && data.note.includes("SendGrid API key");
+    onSuccess: () => {
       toast({
-        title: isSimulated ? "Test Email Simulated" : "Test Email Sent",
-        description: isSimulated 
-          ? `${data.message} - ${data.note}`
-          : `Test report sent to ${data.recipients?.length || 0} email(s)`,
-        variant: isSimulated ? "default" : "default",
+        title: "Test Report Sent",
+        description: "Test ECE report has been sent to your configured email addresses",
       });
     },
     onError: (error: any) => {
-      // Parse specific error types for better user guidance
-      let errorMessage = "Failed to send test email";
-      
-      if (error.message?.includes("No ECE reporting settings found")) {
-        errorMessage = "Please save your email settings first before sending a test report.";
-      } else if (error.message?.includes("ECE reporting is disabled")) {
-        errorMessage = "Email reports are disabled. Please enable them in settings.";
-      } else if (error.message?.includes("No email recipients")) {
-        errorMessage = "Please add at least one email address before sending test reports.";
-      } else if (error.message?.includes("EMAIL_SEND_FAILED")) {
-        errorMessage = "Email service temporarily unavailable. Please try again in a few minutes.";
-      } else if (error.message?.includes("check your email configuration")) {
-        errorMessage = "Email configuration issue detected. Please contact support if this persists.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
       toast({
-        title: "Test Email Failed",
-        description: errorMessage,
-        variant: "destructive",
+        title: "Failed to Send Test Report",
+        description: error.message || "Failed to send test report",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sendMonthlyReportMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/school/ece-monthly-report', {
+        method: 'POST'
       });
     },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Monthly Report Sent",
+        description: `Monthly ECE report sent to ${data.recipients?.length || 0} recipient(s)`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Send Monthly Report",
+        description: error.message || "Failed to send monthly report",
+        variant: "destructive"
+      });
+    }
   });
 
   const updateRenewalDateMutation = useMutation({
@@ -532,7 +531,7 @@ export default function EceHoursTracker() {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="trainingTitle">Training Title</Label>
                           <Input
@@ -542,7 +541,7 @@ export default function EceHoursTracker() {
                             placeholder="e.g., Child Development Workshop"
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <Label htmlFor="category">ECE Category</Label>
@@ -565,7 +564,7 @@ export default function EceHoursTracker() {
                               </SelectContent>
                             </Select>
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="duration">Hours</Label>
                             <Input
@@ -580,7 +579,7 @@ export default function EceHoursTracker() {
                             />
                           </div>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="trainingLocation">Training Location</Label>
                           <Input
@@ -590,7 +589,7 @@ export default function EceHoursTracker() {
                             placeholder="e.g., Phoenix Convention Center"
                           />
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="notes">Notes (Optional)</Label>
                           <Input
@@ -600,7 +599,7 @@ export default function EceHoursTracker() {
                             placeholder="Additional details..."
                           />
                         </div>
-                        
+
                         <Button
                           onClick={() => {
                             if (!manualTrainingForm.targetUserId || !manualTrainingForm.trainingTitle || !manualTrainingForm.category || !manualTrainingForm.duration) {
@@ -666,7 +665,7 @@ export default function EceHoursTracker() {
                             ))}
                           </div>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="groupTrainingTitle">Training Title</Label>
                           <Input
@@ -676,7 +675,7 @@ export default function EceHoursTracker() {
                             placeholder="e.g., Annual ECE Conference"
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <Label htmlFor="groupCategory">ECE Category</Label>
@@ -699,7 +698,7 @@ export default function EceHoursTracker() {
                               </SelectContent>
                             </Select>
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="groupDuration">Hours</Label>
                             <Input
@@ -714,7 +713,7 @@ export default function EceHoursTracker() {
                             />
                           </div>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor="groupLocation">Training Location</Label>
                           <Input
@@ -724,7 +723,7 @@ export default function EceHoursTracker() {
                             placeholder="e.g., Phoenix Convention Center"
                           />
                         </div>
-                        
+
                         <Button
                           onClick={() => {
                             if (selectedUserIds.length === 0 || !manualTrainingForm.trainingTitle || !manualTrainingForm.category || !manualTrainingForm.duration) {
@@ -977,6 +976,15 @@ export default function EceHoursTracker() {
                 >
                   <Send className="h-4 w-4" />
                   <span>{sendTestReportMutation.isPending ? "Sending..." : "Send Test Report"}</span>
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => sendMonthlyReportMutation.mutate()}
+                  disabled={sendMonthlyReportMutation.isPending}
+                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>{sendMonthlyReportMutation.isPending ? "Sending..." : "Send Monthly Report"}</span>
                 </Button>
               </div>
             </CardContent>
