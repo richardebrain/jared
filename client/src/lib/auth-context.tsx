@@ -87,12 +87,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize from storage first, then fetch if needed
   const [user, setUser] = useState<User | null>(() => {
-    const cached = AuthStorage.getAuthData();
-    if (cached) {
-      // Set in query cache immediately
-      queryClient.setQueryData(['/api/auth/me'], cached);
+    try {
+      const cached = AuthStorage.getAuthData();
+      if (cached) {
+        // Set in query cache immediately
+        queryClient.setQueryData(['/api/auth/me'], cached);
+        return cached;
+      }
+    } catch (error) {
+      console.warn('Failed to load cached auth:', error);
     }
-    return cached;
+    return null;
   });
   
   const { 
@@ -111,21 +116,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: false, // Disabled by default - only fetch when needed
   });
 
-  // Only validate auth when accessing protected routes
+  // Smart auth validation - minimize server calls
   useEffect(() => {
     const currentPath = window.location.pathname;
     const isProtectedRoute = !isOnPublicPage();
     
+    // Only validate on protected routes and when we don't have user data
     if (isProtectedRoute && !user && !authFailed && !isLoading) {
-      // Try to get from cache first
-      const cachedAuth = AuthStorage.getAuthData();
-      if (cachedAuth) {
-        setUser(cachedAuth);
-        queryClient.setQueryData(['/api/auth/me'], cachedAuth);
-      } else {
-        // Only fetch from server if absolutely necessary
-        refetchUser();
+      // Double-check cache before server call
+      try {
+        const cachedAuth = AuthStorage.getAuthData();
+        if (cachedAuth) {
+          setUser(cachedAuth);
+          queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+          return;
+        }
+      } catch (error) {
+        console.warn('Cache check failed:', error);
       }
+      
+      // Only fetch from server if no cache available
+      refetchUser();
     }
   }, [window.location.pathname, user, authFailed, isLoading, refetchUser]);
 
@@ -364,7 +375,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: currentUser,
-        isLoading: false, // Always false with persistent storage
+        isLoading: false, // Always false - instant auth with persistent storage
         isAuthenticated,
         isAdmin,
         isSchoolAdmin,

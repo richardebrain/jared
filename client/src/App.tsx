@@ -12,6 +12,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
+import LoginSimple from "@/pages/login-simple";
 import Register from "@/pages/register";
 import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
@@ -108,17 +109,8 @@ function AuthenticatedRouter() {
     // This component safely uses useAuth inside the AuthProvider
     const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
 
-    // Simplified loading state - no auto-redirects
-    if (isLoading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      );
-    }
+    // No loading states - immediate rendering with cached auth
+    // Loading is always false with persistent storage
 
     return (
       <Router
@@ -174,13 +166,17 @@ function Router(props: {
   
   return (
     <Switch>
-      {/* Public routes */}
+      {/* Public routes - always load immediately */}
       <Route path="/login">
-        {isAuthenticated ? <Dashboard /> : <Login />}
+        <LoginSimple />
+      </Route>
+      
+      <Route path="/login-full">
+        <Login />
       </Route>
 
       <Route path="/register">
-        {isAuthenticated ? <Redirect to="/dashboard" /> : <Register />}
+        <Register />
       </Route>
 
       <Route path="/business-signup">
@@ -195,7 +191,7 @@ function Router(props: {
       {/* Temporary public route for testing state synchronization fix */}
       
 
-      {/* Root path - direct routing without loading delays */}
+      {/* Root path - show landing page or dashboard based on cached auth */}
       <Route path="/">
         {isAuthenticated ? <Dashboard /> : <LandingPage />}
       </Route>
