@@ -35,23 +35,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Safely get auth context with fallback
-  let authContext;
-  try {
-    authContext = useAuth();
-  } catch (error) {
-    // If auth context is not available, use fallback values
-    authContext = {
-      isAuthenticated: false,
-      isLoading: false,
-      login: async () => {
-        // Fallback login function that makes direct API call
-        throw new Error("Auth context not available");
-      }
-    };
-  }
-  
-  const { isAuthenticated, isLoading, login } = authContext;
+  const { login, isLoading: authLoading } = useSimpleAuth();
   
   const navigate = (path: string) => {
     setLocation(path);
