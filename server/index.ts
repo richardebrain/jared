@@ -66,7 +66,8 @@ app.use(session({
     httpOnly: true,
     maxAge: SESSION_DURATION, // 24 hours
     sameSite: "lax",
-    path: '/'
+    path: '/',
+    domain: undefined // Let browser handle domain automatically
   },
   store: new PgSession({
     conString: process.env.DATABASE_URL,

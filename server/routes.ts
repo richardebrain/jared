@@ -2011,6 +2011,8 @@ Continue for all 5 questions...
 
 
   app.get("/api/auth/user", async (req, res) => {
+    // Force JSON response
+    res.setHeader('Content-Type', 'application/json');
     console.log("GET /api/auth/user - Session ID:", req.session?.id);
     console.log("GET /api/auth/user - Session data:", req.session);
 

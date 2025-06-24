@@ -25,6 +25,10 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
     const response = await axios.get(path, {
       withCredentials: true, // Important for cookies/sessions
       timeout: timeout,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
     });
     
     return response.data;
