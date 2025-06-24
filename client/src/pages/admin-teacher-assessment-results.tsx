@@ -115,12 +115,24 @@ interface TeacherAssessmentData {
 }
 
 export default function AdminTeacherAssessmentResultsPage() {
+  // ALL HOOKS MUST BE DECLARED AT THE TOP - NO CONDITIONAL HOOKS
+  const { user, isAuthenticated, isSchoolAdmin } = useAuth();
+  const { toast } = useToast();
   const params = useParams<{ teacherId: string }>();
+  const queryClient = useQueryClient();
+  
+  // All useState hooks
+  const [selectedMiniLesson, setSelectedMiniLesson] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
+  
   const teacherId = params?.teacherId;
 
   const { data, isLoading, error } = useQuery<TeacherAssessmentData>({
     queryKey: [`/api/admin/teachers/${teacherId}/assessment-results`],
-    enabled: !!teacherId,
+    enabled: !!teacherId && isAuthenticated && isSchoolAdmin,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -157,6 +169,40 @@ export default function AdminTeacherAssessmentResultsPage() {
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  // Auth checks - after all hooks
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Please log in</h2>
+          <p>You need to be logged in to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSchoolAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Access denied</h2>
+          <p>School admin privileges required.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!teacherId) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Invalid request</h2>
+          <p>Teacher ID not provided.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -197,9 +243,6 @@ export default function AdminTeacherAssessmentResultsPage() {
   }
 
   const { teacher, assessment, results, learningPath } = data;
-
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch teacher's modules progress
   const { data: teacherModules, isLoading: modulesLoading } = useQuery({
