@@ -681,7 +681,7 @@ function Router(props: {
 
       <Route path="/admin/teachers/:teacherId/assessment-results">
         <ProtectedRoute schoolAdminOnly={true}>
-          <AdminTeacherAssessmentResultsPage />
+          <AdminTeacherAssessmentResultsSimple />
         </ProtectedRoute>
       </Route>
 
