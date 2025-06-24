@@ -4,6 +4,7 @@ import { queryClient, apiRequest } from './queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { User as BaseUser } from '@shared/schema';
 import { User, ensureUserDefaults } from '@/types/user';
+import { AuthStorage } from './auth-storage';
 import { 
   saveAuthState, 
   clearAuthState, 
