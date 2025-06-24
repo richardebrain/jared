@@ -54,26 +54,33 @@ export default function LoginSimple() {
     try {
       setIsLoading(true);
       
-      const response = await apiRequest('/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
-        data: {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
           username: values.username.trim(),
           password: values.password.trim()
-        }
+        })
       });
       
-      if (response) {
+      const data = await response.json();
+      
+      if (response.ok && data) {
         // Store auth data and redirect
-        AuthStorage.setAuthData(response);
+        AuthStorage.setAuthData(data);
         toast({
           title: "Login successful",
-          description: `Welcome back, ${response.firstName || response.username}!`,
+          description: `Welcome back, ${data.firstName || data.first_name || data.username}!`,
         });
         
-        // Small delay to show success message, then redirect
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 500);
+        // Force page reload to establish session
+        window.location.href = '/';
+      } else {
+        throw new Error(data.message || 'Login failed');
       }
     } catch (error: any) {
       console.error("Login error:", error);
