@@ -2329,6 +2329,7 @@ Continue for all 5 questions...
         console.error("Error during user data cleanup:", cleanupError);
         // Continue with user deletion even if some cleanup fails
         await db.delete(users).where(eq(users.id, targetUserId));
+      }rId));
       }
 
       res.json({ 

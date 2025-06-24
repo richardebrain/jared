@@ -77,7 +77,7 @@ import ModuleCreationWorkflow from "@/components/ModuleCreationWorkflow";
 import EmailServiceDemo from "@/pages/EmailServiceDemo";
 import DirectorToolkit from "@/pages/director-toolkit";
 import AdminTeachersPage from "@/pages/admin-teachers";
-import AdminTeacherAssessmentResultsPage from "@/pages/admin-teacher-assessment-results";
+import AdminTeacherAssessmentResultsSimple from "@/pages/admin-teacher-assessment-results-simple";
 import AdminAssignModulesPage from "@/pages/admin-assign-modules";
 import AdminMessagingPage from "@/pages/admin-messaging";
 import AdminBearBucksPage from "@/pages/admin-bear-bucks";
