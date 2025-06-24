@@ -1336,9 +1336,22 @@ export default function ComprehensiveModuleCreator() {
       }
     } catch (error) {
       console.error('Error generating quiz question:', error);
+      
+      // Enhanced error handling with specific messages
+      const errorMessage = error.message || 'Unknown error occurred';
+      let userMessage = "Unable to generate quiz question. Please create manually.";
+      
+      if (errorMessage.includes('AI service')) {
+        userMessage = "AI service is temporarily unavailable. Please try again in a few minutes.";
+      } else if (errorMessage.includes('rate limit')) {
+        userMessage = "Too many requests. Please wait a moment and try again.";
+      } else if (errorMessage.includes('timeout')) {
+        userMessage = "Request timed out. Please try again with simpler requirements.";
+      }
+      
       toast({
         title: "Generation Failed",
-        description: "Unable to generate quiz question. Please create manually.",
+        description: userMessage,
         variant: "destructive",
       });
     } finally {

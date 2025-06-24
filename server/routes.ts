@@ -592,65 +592,71 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
 }
 `;
 
-      try {
-        const openai = new (await import("openai")).default({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
+      const questionData = await monitoredAIRequest(
+        'quiz-question-generation',
+        async () => {
+          const openai = new (await import("openai")).default({
+            apiKey: process.env.OPENAI_API_KEY,
+          });
 
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: prompt }],
-          response_format: { type: "json_object" },
-          temperature: 0.7,
-          max_tokens: 1000,
-        });
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
+            temperature: 0.7,
+            max_tokens: 1000,
+          });
 
-        const content = response.choices[0].message.content;
-        if (!content) {
-          throw new Error("No content received from AI service");
-        }
-
-        const questionData = JSON.parse(content);
-        
-        // Validate the response structure
-        if (!questionData.question || !questionData.answers || !Array.isArray(questionData.answers)) {
-          throw new Error("Invalid response format from AI service");
-        }
-
-        // Ensure correctAnswer is within valid range
-        if (typeof questionData.correctAnswer !== 'number' || 
-            questionData.correctAnswer < 0 || 
-            questionData.correctAnswer >= questionData.answers.length) {
-          questionData.correctAnswer = 0; // Default to first answer if invalid
-        }
-
-        res.json({ question: questionData });
-      } catch (aiError) {
-        console.error("AI service error:", aiError);
-        // Return a fallback response instead of failing
-        res.json({
-          question: {
-            question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
-            answers: [
-              "Regular safety inspections and maintenance",
-              "Ignoring minor equipment issues", 
-              "Allowing unsupervised play",
-              "Using damaged equipment"
-            ],
-            correctAnswer: 0,
-            explanation: "Regular safety inspections help identify and prevent potential hazards before accidents occur."
+          const content = response.choices[0].message.content;
+          if (!content) {
+            throw new Error("No content received from AI service");
           }
-        });
-      }
+
+          const questionData = JSON.parse(content);
+          
+          // Validate the response structure
+          if (!questionData.question || !questionData.answers || !Array.isArray(questionData.answers)) {
+            throw new Error("Invalid response format from AI service");
+          }
+
+          // Ensure correctAnswer is within valid range
+          if (typeof questionData.correctAnswer !== 'number' || 
+              questionData.correctAnswer < 0 || 
+              questionData.correctAnswer >= questionData.answers.length) {
+            questionData.correctAnswer = 0; // Default to first answer if invalid
+          }
+
+          return questionData;
+        },
+        () => ({
+          question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
+          answers: [
+            "Regular safety inspections and maintenance",
+            "Ignoring minor equipment issues", 
+            "Allowing unsupervised play",
+            "Using damaged equipment"
+          ],
+          correctAnswer: 0,
+          explanation: "Regular safety inspections help identify and prevent potential hazards before accidents occur."
+        })
+      );
+
+      res.json({ question: questionData });
     } catch (error) {
       console.error("Single quiz question generation error:", error);
+      const errorResponse = enhancedErrorHandler(error, 'ai-quiz-generation', {
+        moduleTitle,
+        sectionTitle,
+        difficulty
+      });
+      
       res.status(500).json({
-        error: "Failed to generate quiz question",
+        ...errorResponse,
         question: {
           question: "What is an important aspect of early childhood education?",
           answers: [
             "Professional development",
-            "Classroom management",
+            "Classroom management", 
             "Child safety",
             "All of the above",
           ],
@@ -782,8 +788,14 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
       });
     } catch (error) {
       console.error("Error generating activity:", error);
+      const errorResponse = enhancedErrorHandler(error, 'ai-activity-generation', {
+        moduleTitle,
+        sectionTitle,
+        activityType
+      });
+      
       res.status(500).json({
-        error: "Failed to generate activity",
+        ...errorResponse,
         activity: {
           activityType: "drag-and-match",
           title: "Classroom Management Strategies",
@@ -792,7 +804,7 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
           promptItems: [
             "Positive reinforcement",
             "Clear expectations",
-            "Consistent routines",
+            "Consistent routines", 
             "Redirect behavior",
           ],
           answerKey: [
@@ -903,7 +915,10 @@ Continue for all 5 questions...
   // Register credential management routes
   app.use("/api/credentials", credentialRoutes);
 
-  // Register AI suggestion routes
+  // Register AI health monitoring middleware
+  app.use(aiHealthCheck);
+
+  // Register AI suggestion routes with monitoring
   app.use("/api/ai", aiSuggestionRoutes);
   app.use("/api/ai-suggestions", aiSuggestionRoutes);
 
