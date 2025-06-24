@@ -62,7 +62,7 @@ export default function Login() {
       };
       
       // Use the auth context's login function
-      await login(trimmedValues);
+      await login(trimmedValues.username,trimmedValues.password);
       
       // Navigation will be handled by the useEffect below when isAuthenticated changes
     } catch (error: any) {
