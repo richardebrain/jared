@@ -104,7 +104,7 @@ export async function sendEceMonthlyReport(
       try {
         await mailService.send({
           to: recipient,
-          from: 'noreply@mentorme.edu',
+          from: 'jared@mentormeprek.com',
           subject,
           html: htmlContent,
         });
@@ -3500,6 +3500,7 @@ Continue for all 5 questions...
   // Send actual monthly ECE report with real data
   app.post("/api/school/ece-monthly-report", requireAuth, async (req, res) => {
     try {
+      
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
 
@@ -3515,6 +3516,7 @@ Continue for all 5 questions...
       // Get reporting settings
       const [settings] = await db.select().from(eceReportingSettings)
         .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
+      
 
       if (!settings) {
         return res.status(400).json({ 

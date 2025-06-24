@@ -55,8 +55,6 @@ import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 16.11.11
 import teacherManagementScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.17_1749935001943.png";
 import videoLibraryScreenshot from "@assets/Screenshot 2025-06-14 at 12.29.16_1749900559890.png";
 import eceTrackingScreenshot from "@assets/Screenshot 2025-06-15 at 14.39.44_1749994787827.png";
-// Use moduleOutlineScreenshot for modules section as it shows the module interface
-const modulesScreenshot = moduleOutlineScreenshot;
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -84,7 +82,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Interactive Learning Modules',
     description: 'Explore our comprehensive library of training modules organized by topic and duration. From quick 5-minute micro-modules to comprehensive courses.',
     icon: <BookOpen className="h-6 w-6 text-purple-600" />,
-    screenshot: modulesScreenshot,
+    screenshot: moduleOutlineScreenshot,
     action: {
       text: 'Browse Modules',
       href: '/modules'
@@ -128,7 +126,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Professional Video Library',
     description: 'Access curated professional development videos with integrated quizzes and ECE hour tracking for comprehensive learning experiences.',
     icon: <Play className="h-6 w-6 text-red-600" />,
-    screenshot: modulesScreenshot,
+    screenshot: videoLibraryScreenshot,
     action: {
       text: 'Browse Videos',
       href: '/videos'
@@ -176,7 +174,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Create Custom Modules',
     description: 'Build your own training modules using AI assistance, manual creation, or PowerPoint import. Share with your team or the community.',
     icon: <Zap className="h-6 w-6 text-violet-600" />,
-    screenshot: modulesScreenshot,
+    screenshot: moduleCreatorScreenshot,
     action: {
       text: 'Create Module',
       href: '/new-module-creator'
