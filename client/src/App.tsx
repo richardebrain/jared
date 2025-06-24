@@ -191,9 +191,13 @@ function Router(props: {
       {/* Temporary public route for testing state synchronization fix */}
       
 
-      {/* Root path - show landing page or dashboard based on cached auth */}
+      {/* Root path - show landing page or dashboard based on auth */}
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <LandingPage />}
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+          </div>
+        ) : isAuthenticated ? <Dashboard /> : <LandingPage />}
       </Route>
 
       {/* Protected routes */}
@@ -1074,9 +1078,7 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
-        <AuthProvider>
           <AuthenticatedRouter />
-        </AuthProvider>
       </ErrorBoundary>
     </TooltipProvider>
   );
