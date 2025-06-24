@@ -77,6 +77,7 @@ if (process.env.SENDGRID_API_KEY) {
 //   }
 // }
 
+// SendGrid email service for ECE monthly reports
 export async function sendEceMonthlyReport(
   recipients: string[],
   schoolName: string,
@@ -136,6 +137,8 @@ export async function sendEceMonthlyReport(
   }
 }
 
+// export { sendEceMonthlyReport };
+
 function generateEceReportHTML(
   schoolName: string,
   reportPeriod: string,
@@ -172,7 +175,7 @@ function generateEceReportHTML(
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
       ${testBanner}
-      
+
       <div style="background-color: #1e40af; color: white; padding: 24px; border-radius: 8px; margin-bottom: 24px;">
         <h1 style="margin: 0; font-size: 24px;">Early Childhood Education Training Report</h1>
         <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">${schoolName} • ${reportPeriod}</p>
@@ -213,35 +216,66 @@ function generateTrainingDataHTML(trainingData: any[]): string {
     `;
   }
 
-  const teacherRows = trainingData.map(teacher => `
-    <tr>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 500;">${teacher.name}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${teacher.hoursThisMonth}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${teacher.totalHours}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-        ${teacher.categories.map((cat: any) => `<span style="background-color: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 4px; white-space: nowrap;">${cat}</span>`).join('')}
-      </td>
-    </tr>
-  `).join('');
+  // Generate individual teacher summaries
+  const teacherSummaries = trainingData.map(teacher => {
+    const categoryDetails = Object.entries(teacher.hoursByCategory)
+      .map(([category, hours]) => {
+        const categoryDisplay = category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return `${hours} hour${hours === 1 ? '' : 's'} in ${categoryDisplay}`;
+      })
+      .join(', ');
+
+    return `
+      <div style="background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+        <h3 style="margin: 0 0 8px 0; color: #1e40af; font-size: 16px; font-weight: 600;">
+          ${teacher.name}
+        </h3>
+        <p style="margin: 0 0 8px 0; color: #374151; font-size: 14px; line-height: 1.5;">
+          <strong>This month:</strong> ${categoryDetails}
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280;">
+          <span><strong>Total this month:</strong> ${teacher.hoursThisMonth} hours</span>
+          <span><strong>YTD Total:</strong> ${teacher.totalHours} hours</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Generate summary statistics
+  const totalTeachers = trainingData.length;
+  const totalHoursThisMonth = trainingData.reduce((sum, teacher) => sum + teacher.hoursThisMonth, 0);
+  const totalHoursYTD = trainingData.reduce((sum, teacher) => sum + teacher.totalHours, 0);
 
   return `
+    <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
+      <div style="background-color: #f8fafc; padding: 16px; border-bottom: 1px solid #e5e7eb;">
+        <h2 style="margin: 0; color: #1e40af; font-size: 18px;">Monthly Training Summary</h2>
+      </div>
+      <div style="padding: 16px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div style="text-align: center; padding: 12px; background-color: #f0f9ff; border-radius: 6px;">
+            <div style="font-size: 24px; font-weight: bold; color: #0369a1;">${totalTeachers}</div>
+            <div style="font-size: 12px; color: #64748b;">Teachers with Training</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background-color: #f0fdf4; border-radius: 6px;">
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${totalHoursThisMonth.toFixed(1)}</div>
+            <div style="font-size: 12px; color: #64748b;">Hours This Month</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background-color: #fef3c7; border-radius: 6px;">
+            <div style="font-size: 24px; font-weight: bold; color: #d97706;">${totalHoursYTD.toFixed(1)}</div>
+            <div style="font-size: 12px; color: #64748b;">Total YTD Hours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       <div style="background-color: #f8fafc; padding: 16px; border-bottom: 1px solid #e5e7eb;">
-        <h2 style="margin: 0; color: #1e40af; font-size: 18px;">Training Summary</h2>
+        <h2 style="margin: 0; color: #1e40af; font-size: 18px;">Individual Teacher Reports</h2>
       </div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr style="background-color: #f8fafc;">
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Teacher</th>
-            <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">This Month</th>
-            <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">YTD Total</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">ECE Categories</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${teacherRows}
-        </tbody>
-      </table>
+      <div style="padding: 16px;">
+        ${teacherSummaries}
+      </div>
     </div>
   `;
 }

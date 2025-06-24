@@ -100,9 +100,6 @@ import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 import EmergencyLogin from "@/pages/emergency-login";
 
-// Permanent auth system with validation
-import { AuthValidator } from "@/lib/auth-validator";
-
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
   try {
@@ -168,7 +165,7 @@ function Router(props: {
     <Switch>
       {/* Public routes - always load immediately */}
       <Route path="/login">
-        <LoginSimple />
+        <Login />
       </Route>
       
       <Route path="/login-full">
@@ -1071,12 +1068,14 @@ function Router(props: {
 
 function App() {
   return (
+    <AuthProvider>
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
         <AuthenticatedRouter />
       </ErrorBoundary>
     </TooltipProvider>
+    </AuthProvider>
   );
 }
 

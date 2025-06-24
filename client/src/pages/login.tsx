@@ -39,6 +39,7 @@ export default function Login() {
   let authContext;
   try {
     authContext = useAuth();
+    console.log("Auth context in login:", authContext)
   } catch (error) {
     // If auth context is not available, use fallback values
     authContext = {

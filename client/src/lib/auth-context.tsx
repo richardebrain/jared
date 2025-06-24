@@ -78,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set initial load complete after first render
     setInitialLoadComplete(true);
   }, []);
+  console.log('Auth provider initialized')
 
   // Check if we're on a public page where auth queries should be disabled
   const isOnPublicPage = () => {
@@ -396,7 +397,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  
+  console.log('useAuth context:', context)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

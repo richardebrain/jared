@@ -5,7 +5,6 @@ import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { ThemeProvider } from "next-themes";
-import Login from "./pages/login";
 import { AuthProvider } from "./lib/auth-context";
 
 // CRITICAL FIX FOR DEPLOYED VERSION
@@ -98,9 +97,9 @@ createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light">
-        <AuthProvider>
+        {/* <AuthProvider> */}
           <App />
-        </AuthProvider>
+        {/* </AuthProvider> */}
       </ThemeProvider>
     </QueryClientProvider>
    </ErrorBoundary>
