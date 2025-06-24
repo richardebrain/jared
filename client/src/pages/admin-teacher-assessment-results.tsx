@@ -42,6 +42,7 @@ import {
   Flame,
   Timer
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface TeacherInfo {
   id: number;
