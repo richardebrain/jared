@@ -7,6 +7,9 @@ interface User {
   first_name?: string;
   email: string;
   isAdmin?: boolean;
+  is_admin?: boolean;
+  isOwner?: boolean;
+  is_owner?: boolean;
   points?: number;
   bearBucks?: number;
   streak?: number;

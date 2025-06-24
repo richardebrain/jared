@@ -103,11 +103,13 @@ import EmergencyLogin from "@/pages/emergency-login";
 // Permanent auth system with validation
 import { AuthValidator } from "@/lib/auth-validator";
 
-// Create a wrapper component that uses AuthProvider internally
+// Create a wrapper component that uses SimpleAuth
 function AuthenticatedRouter() {
   try {
-    // This component safely uses useAuth inside the AuthProvider
-    const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
+    // This component safely uses useSimpleAuth
+    const { isAuthenticated, isLoading, user } = useSimpleAuth();
+    const isAdmin = user?.isAdmin || user?.is_admin || false;
+    const isOwner = user?.isOwner || user?.is_owner || false;
 
     // No loading states - immediate rendering with cached auth
     // Loading is always false with persistent storage
