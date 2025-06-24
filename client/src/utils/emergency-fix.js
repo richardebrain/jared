@@ -1,13 +1,8 @@
 // Emergency authentication bypass
 console.log('Emergency fix loaded. Navigate to /emergency for direct login.');
 
-// Auto-redirect if stuck loading for more than 2 seconds
-let loadingTimer = setTimeout(() => {
-  if (window.location.pathname === '/login' || window.location.pathname === '/') {
-    console.log('Auto-redirecting to emergency login due to loading issues');
-    window.location.href = '/emergency';
-  }
-}, 2000);
+// Disable auto-redirect for permanent fix testing
+// Auto-redirect disabled - permanent fix should resolve loading issues
 
 // Clear timer if page loads successfully
 window.addEventListener('load', () => {

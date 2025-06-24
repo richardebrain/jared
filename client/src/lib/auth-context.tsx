@@ -101,13 +101,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: false, // Disabled by default - only fetch when needed
   });
 
-  // Manual auth check on protected routes
+  // Smart auth checking - only when needed
   useEffect(() => {
-    if (!isOnPublicPage() && !userData && !authFailed && !isLoading) {
-      // Only fetch auth data when accessing protected routes
-      refetchUser();
+    const currentPath = window.location.pathname;
+    const needsAuth = !isOnPublicPage() && !user && !authFailed && !isLoading;
+    
+    if (needsAuth) {
+      // Check if we have cached auth first
+      const cachedAuth = AuthStorage.getAuthData();
+      if (cachedAuth) {
+        setUser(cachedAuth);
+        queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+      } else {
+        // Only fetch from server if no cached data
+        refetchUser();
+      }
     }
-  }, [window.location.pathname, userData, authFailed, isLoading, refetchUser]);
+  }, [window.location.pathname, user, authFailed, isLoading, refetchUser]);
 
   // Force redirect after successful authentication
   useEffect(() => {
@@ -289,13 +299,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       console.log("Logout successful");
-      // Clear the user from the cache
+      // Clear all auth data
+      AuthStorage.clearAuthData();
+      setUser(null);
       queryClient.setQueryData(['/api/auth/me'], null);
       setAuthFailed(false);
-      // Clear any cached queries when logging out
       queryClient.clear();
-      
-      // Clear auth state
       clearAuthState();
       
       toast({

@@ -99,8 +99,10 @@ import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 import EmergencyLogin from "@/pages/emergency-login";
 
-// Emergency fix utility
+// Emergency fix utility and auth testing
 import "@/utils/emergency-fix.js";
+import "@/utils/auth-test.js";
+import { AuthValidator } from "@/lib/auth-validator";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
