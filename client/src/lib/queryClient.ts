@@ -20,8 +20,8 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
   const path = queryKey[0] as string;
   
   try {
-    // Normal API request - use shorter timeout for faster responses
-    const timeout = path.includes('/api/ai') || path.includes('/generate') ? 60000 : 5000; // 60s for AI/generation, 5s for others
+    // Optimized timeouts for faster login performance
+    const timeout = path.includes('/api/ai') || path.includes('/generate') ? 60000 : 3000; // 60s for AI/generation, 3s for others
     const response = await axios.get(path, {
       withCredentials: true, // Important for cookies/sessions
       timeout: timeout,

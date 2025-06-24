@@ -1540,7 +1540,7 @@ Continue for all 5 questions...
       console.log("=== LOGIN ROUTE HIT ===");
       console.log("Request body:", req.body);
 
-      // Set timeout for login operations
+      // Set timeout for login operations - reduced for faster response
       const loginTimeout = setTimeout(() => {
         console.error("Login timeout - operation took too long");
         if (!res.headersSent) {
@@ -1549,7 +1549,7 @@ Continue for all 5 questions...
             details: "The login operation took too long. Please try again." 
           });
         }
-      }, 30000); // 30 second timeout
+      }, 10000); // 10 second timeout - much faster
 
       try {
         // Extract and trim credentials for consistency
@@ -1631,25 +1631,21 @@ Continue for all 5 questions...
         console.log(`Stored password hash: ${user.password}`);
         console.log(`Password provided length: ${password.length}`);
 
-        // Check password - either demo user or normal validation with bcrypt
+        // Check password - optimized for speed
         let passwordValid = false;
-        console.log("Starting password verification...");
-        const passwordStartTime = Date.now();
 
         if (isDemoUser) {
           passwordValid = true;
-          console.log(`Demo user authentication: SUCCESS`);
         } else {
           try {
+            // Faster bcrypt comparison with timeout
             passwordValid = await Promise.race([
               bcrypt.compare(password, user.password),
               new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Password verification timeout')), 5000)
+                setTimeout(() => reject(new Error('Password verification timeout')), 3000)
               )
             ]);
-            console.log(`Bcrypt comparison result: ${passwordValid} (${Date.now() - passwordStartTime}ms)`);
           } catch (error) {
-            console.error(`Bcrypt comparison error:`, error);
             if (error.message === 'Password verification timeout') {
               clearTimeout(loginTimeout);
               return res.status(408).json({
