@@ -1577,34 +1577,19 @@ Continue for all 5 questions...
         const isDemoUser = username === "jlcookie20" && password === "password";
 
         // Try to find user by username first, then by email for dual login support
-        // Optimized database lookup with timeout
+        // Fast database lookup with fallback
         let user;
         try {
-          user = await Promise.race([
-            storage.getUserByUsername(username),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Database lookup timeout')), 2000)
-            )
-          ]);
+          // Try username lookup first
+          user = await storage.getUserByUsername(username);
           
-          // If not found by username, try email quickly
+          // If not found by username, try email
           if (!user) {
-            user = await Promise.race([
-              storage.getUserByEmail(username),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Email lookup timeout')), 1000)
-              )
-            ]);
+            user = await storage.getUserByEmail(username);
           }
         } catch (error) {
           console.error("Database lookup error:", error);
           clearTimeout(loginTimeout);
-          if (error.message.includes('timeout')) {
-            return res.status(408).json({
-              message: "Login timeout",
-              details: "Database lookup took too long. Please try again."
-            });
-          }
           return res.status(503).json({
             message: "Database connection error",
             details: "Unable to connect to database. Please try again in a moment."

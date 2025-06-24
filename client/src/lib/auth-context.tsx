@@ -84,7 +84,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return path === '/login' || path === '/register' || path === '/business-signup' || path === '/' || path === '/emergency';
   };
 
-  // Simplified auth check - only fetch when explicitly needed
+  // Initialize from storage first, then fetch if needed
+  const [user, setUser] = useState<User | null>(() => {
+    const cached = AuthStorage.getAuthData();
+    if (cached) {
+      // Set in query cache immediately
+      queryClient.setQueryData(['/api/auth/me'], cached);
+    }
+    return cached;
+  });
+  
   const { 
     data: userData,
     isLoading,
@@ -101,19 +110,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: false, // Disabled by default - only fetch when needed
   });
 
-  // Smart auth checking - only when needed
+  // Only validate auth when accessing protected routes
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const needsAuth = !isOnPublicPage() && !user && !authFailed && !isLoading;
+    const isProtectedRoute = !isOnPublicPage();
     
-    if (needsAuth) {
-      // Check if we have cached auth first
+    if (isProtectedRoute && !user && !authFailed && !isLoading) {
+      // Try to get from cache first
       const cachedAuth = AuthStorage.getAuthData();
       if (cachedAuth) {
         setUser(cachedAuth);
         queryClient.setQueryData(['/api/auth/me'], cachedAuth);
       } else {
-        // Only fetch from server if no cached data
+        // Only fetch from server if absolutely necessary
         refetchUser();
       }
     }
@@ -214,12 +223,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear any stuck session flags
       sessionStorage.removeItem('loginRedirecting');
       
-      // Store auth data persistently
+      // Store auth data persistently and update state immediately
       AuthStorage.setAuthData(enhancedUser);
       setUser(enhancedUser);
-      
-      // Set user data in cache for immediate access
       queryClient.setQueryData(['/api/auth/me'], enhancedUser);
+      setAuthFailed(false);
       
       // Immediate redirect
       window.location.replace('/dashboard');
