@@ -104,11 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoading && !userData && !isError && !isOnPublicPage()) {
-        console.log('Auth timeout reached, redirecting to login');
+        console.log('Auth timeout reached, redirecting to emergency login');
         setAuthFailed(true);
-        window.location.replace('/login');
+        window.location.replace('/emergency');
       }
-    }, 2000); // 2 second timeout - faster response
+    }, 1500); // 1.5 second timeout - even faster
 
     return () => clearTimeout(timeout);
   }, [isLoading, userData, isError]);

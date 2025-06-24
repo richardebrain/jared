@@ -97,8 +97,10 @@ import SchoolECETracking from "@/pages/school-ece-tracking";
 import EceHoursTracker from "@/pages/ece-hours-tracker";
 import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
+import EmergencyLogin from "@/pages/emergency-login";
 
-// Auth utilities removed after optimization completion
+// Emergency fix utility
+import "@/utils/emergency-fix.js";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
