@@ -592,22 +592,56 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
 }
 `;
 
-      const openai = new (await import("openai")).default({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+      try {
+        const openai = new (await import("openai")).default({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-      });
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+          temperature: 0.7,
+          max_tokens: 1000,
+        });
 
-      const questionData = JSON.parse(
-        response.choices[0].message.content || "{}",
-      );
+        const content = response.choices[0].message.content;
+        if (!content) {
+          throw new Error("No content received from AI service");
+        }
 
-      res.json({ question: questionData });
+        const questionData = JSON.parse(content);
+        
+        // Validate the response structure
+        if (!questionData.question || !questionData.answers || !Array.isArray(questionData.answers)) {
+          throw new Error("Invalid response format from AI service");
+        }
+
+        // Ensure correctAnswer is within valid range
+        if (typeof questionData.correctAnswer !== 'number' || 
+            questionData.correctAnswer < 0 || 
+            questionData.correctAnswer >= questionData.answers.length) {
+          questionData.correctAnswer = 0; // Default to first answer if invalid
+        }
+
+        res.json({ question: questionData });
+      } catch (aiError) {
+        console.error("AI service error:", aiError);
+        // Return a fallback response instead of failing
+        res.json({
+          question: {
+            question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
+            answers: [
+              "Regular safety inspections and maintenance",
+              "Ignoring minor equipment issues", 
+              "Allowing unsupervised play",
+              "Using damaged equipment"
+            ],
+            correctAnswer: 0,
+            explanation: "Regular safety inspections help identify and prevent potential hazards before accidents occur."
+          }
+        });
+      }
     } catch (error) {
       console.error("Single quiz question generation error:", error);
       res.status(500).json({
@@ -7867,53 +7901,59 @@ Please provide empathy coaching guidance to help this director implement the man
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      // Call OpenAI API instead of Perplexity
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
+      try {
+        // Call OpenAI API instead of Perplexity
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-4o",
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are a creative assistant that writes in the style of Dr. Seuss. Create short, simple, rhyming poems for preschool children. Keep poems to 4-8 lines maximum, use simple vocabulary, and make them fun and positive.",
+                },
+                {
+                  role: "user",
+                  content: prompt.trim(),
+                },
+              ],
+              max_tokens: 200,
+              temperature: 0.8,
+            }),
           },
-          body: JSON.stringify({
-            model: "gpt-4o",
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are a creative assistant that writes in the style of Dr. Seuss. Create short, simple, rhyming poems for preschool children. Keep poems to 4-8 lines maximum, use simple vocabulary, and make them fun and positive.",
-              },
-              {
-                role: "user",
-                content: prompt,
-              },
-            ],
-            max_tokens: 200,
-            temperature: 0.8,
-          }),
-        },
-      );
+        );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("OpenAI API error:", errorData);
-        throw new Error(`API request failed with status ${response.status}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("OpenAI API error:", errorData);
+          throw new Error(`AI service returned status ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.choices || !data.choices[0]?.message?.content) {
+          console.error("Invalid AI response:", data);
+          throw new Error("No content received from AI service");
+        }
+
+        // Return the generated content
+        res.status(200).json({
+          content: data.choices[0].message.content,
+        });
+      } catch (aiError) {
+        console.error("AI service error:", aiError);
+        // Return a fallback response instead of failing
+        res.status(200).json({
+          content: `Oh my, oh me!\nWhat a day it will be!\nWith learning and fun,\nFor everyone!`
+        });
       }
-
-      const data = await response.json();
-
-      if (!data.choices || !data.choices[0]?.message?.content) {
-        console.error("Invalid Perplexity API response:", data);
-        return res
-          .status(500)
-          .json({ message: "Invalid response from AI service" });
-      }
-
-      // Return the generated content
-      res.status(200).json({
-        content: data.choices[0].message.content,
-      });
     } catch (error) {
       console.error("Error generating content with Perplexity:", error);
       res.status(500).json({ message: "Failed to generate content" });
