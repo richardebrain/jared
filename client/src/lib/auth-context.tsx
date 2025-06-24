@@ -117,7 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userData && !isLoading && window.location.pathname === '/login') {
       console.log('User authenticated, redirecting from login page');
-      window.location.replace('/dashboard');
+      setTimeout(() => {
+        window.location.replace('/dashboard');
+      }, 50); // Small delay to ensure state is set
     }
   }, [userData, isLoading]);
 

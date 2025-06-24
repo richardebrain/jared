@@ -100,6 +100,7 @@ import TestPage from "@/pages/test-page";
 
 // Import auth fix utility
 import "@/utils/auth-fix.js";
+import "@/utils/fast-login.js";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
