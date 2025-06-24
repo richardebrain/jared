@@ -191,44 +191,43 @@ export default function EceHoursTracker() {
   const sendTestReportMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('/api/school/ece-test-report', {
-        method: 'POST',
-        data: {}
+        method: 'POST'
       });
     },
-    onSuccess: (data: any) => {
-      const isSimulated = data.note && data.note.includes("SendGrid API key");
+    onSuccess: () => {
       toast({
-        title: isSimulated ? "Test Email Simulated" : "Test Email Sent",
-        description: isSimulated 
-          ? `${data.message} - ${data.note}`
-          : `Test report sent to ${data.recipients?.length || 0} email(s)`,
-        variant: isSimulated ? "default" : "default",
+        title: "Test Report Sent",
+        description: "Test ECE report has been sent to your configured email addresses",
       });
     },
     onError: (error: any) => {
-      // Parse specific error types for better user guidance
-      let errorMessage = "Failed to send test email";
-      
-      if (error.message?.includes("No ECE reporting settings found")) {
-        errorMessage = "Please save your email settings first before sending a test report.";
-      } else if (error.message?.includes("ECE reporting is disabled")) {
-        errorMessage = "Email reports are disabled. Please enable them in settings.";
-      } else if (error.message?.includes("No email recipients")) {
-        errorMessage = "Please add at least one email address before sending test reports.";
-      } else if (error.message?.includes("EMAIL_SEND_FAILED")) {
-        errorMessage = "Email service temporarily unavailable. Please try again in a few minutes.";
-      } else if (error.message?.includes("check your email configuration")) {
-        errorMessage = "Email configuration issue detected. Please contact support if this persists.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
       toast({
-        title: "Test Email Failed",
-        description: errorMessage,
-        variant: "destructive",
+        title: "Failed to Send Test Report",
+        description: error.message || "Failed to send test report",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sendMonthlyReportMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/school/ece-monthly-report', {
+        method: 'POST'
       });
     },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Monthly Report Sent",
+        description: `Monthly ECE report sent to ${data.recipients?.length || 0} recipient(s)`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Send Monthly Report",
+        description: error.message || "Failed to send monthly report",
+        variant: "destructive"
+      });
+    }
   });
 
   const updateRenewalDateMutation = useMutation({
@@ -977,6 +976,15 @@ export default function EceHoursTracker() {
                 >
                   <Send className="h-4 w-4" />
                   <span>{sendTestReportMutation.isPending ? "Sending..." : "Send Test Report"}</span>
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => sendMonthlyReportMutation.mutate()}
+                  disabled={sendMonthlyReportMutation.isPending}
+                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>{sendMonthlyReportMutation.isPending ? "Sending..." : "Send Monthly Report"}</span>
                 </Button>
               </div>
             </CardContent>

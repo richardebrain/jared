@@ -18,7 +18,7 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 // SendGrid email service for ECE monthly reports
-async function sendEceMonthlyReport(
+export async function sendEceMonthlyReport(
   recipients: string[],
   schoolName: string,
   reportPeriod: string,
@@ -76,6 +76,8 @@ async function sendEceMonthlyReport(
     return false;
   }
 }
+
+// export { sendEceMonthlyReport };
 
 function generateEceReportHTML(
   schoolName: string,
@@ -154,35 +156,66 @@ function generateTrainingDataHTML(trainingData: any[]): string {
     `;
   }
 
-  const teacherRows = trainingData.map(teacher => `
-    <tr>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-weight: 500;">${teacher.name}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${teacher.hoursThisMonth}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${teacher.totalHours}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-        ${teacher.categories.map((cat: any) => `<span style="background-color: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 4px; white-space: nowrap;">${cat}</span>`).join('')}
-      </td>
-    </tr>
-  `).join('');
+  // Generate individual teacher summaries
+  const teacherSummaries = trainingData.map(teacher => {
+    const categoryDetails = Object.entries(teacher.hoursByCategory)
+      .map(([category, hours]) => {
+        const categoryDisplay = category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return `${hours} hour${hours === 1 ? '' : 's'} in ${categoryDisplay}`;
+      })
+      .join(', ');
+
+    return `
+      <div style="background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+        <h3 style="margin: 0 0 8px 0; color: #1e40af; font-size: 16px; font-weight: 600;">
+          ${teacher.name}
+        </h3>
+        <p style="margin: 0 0 8px 0; color: #374151; font-size: 14px; line-height: 1.5;">
+          <strong>This month:</strong> ${categoryDetails}
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280;">
+          <span><strong>Total this month:</strong> ${teacher.hoursThisMonth} hours</span>
+          <span><strong>YTD Total:</strong> ${teacher.totalHours} hours</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Generate summary statistics
+  const totalTeachers = trainingData.length;
+  const totalHoursThisMonth = trainingData.reduce((sum, teacher) => sum + teacher.hoursThisMonth, 0);
+  const totalHoursYTD = trainingData.reduce((sum, teacher) => sum + teacher.totalHours, 0);
 
   return `
+    <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
+      <div style="background-color: #f8fafc; padding: 16px; border-bottom: 1px solid #e5e7eb;">
+        <h2 style="margin: 0; color: #1e40af; font-size: 18px;">Monthly Training Summary</h2>
+      </div>
+      <div style="padding: 16px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div style="text-align: center; padding: 12px; background-color: #f0f9ff; border-radius: 6px;">
+            <div style="font-size: 24px; font-weight: bold; color: #0369a1;">${totalTeachers}</div>
+            <div style="font-size: 12px; color: #64748b;">Teachers with Training</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background-color: #f0fdf4; border-radius: 6px;">
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${totalHoursThisMonth.toFixed(1)}</div>
+            <div style="font-size: 12px; color: #64748b;">Hours This Month</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background-color: #fef3c7; border-radius: 6px;">
+            <div style="font-size: 24px; font-weight: bold; color: #d97706;">${totalHoursYTD.toFixed(1)}</div>
+            <div style="font-size: 12px; color: #64748b;">Total YTD Hours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       <div style="background-color: #f8fafc; padding: 16px; border-bottom: 1px solid #e5e7eb;">
-        <h2 style="margin: 0; color: #1e40af; font-size: 18px;">Training Summary</h2>
+        <h2 style="margin: 0; color: #1e40af; font-size: 18px;">Individual Teacher Reports</h2>
       </div>
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr style="background-color: #f8fafc;">
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">Teacher</th>
-            <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">This Month</th>
-            <th style="padding: 12px; text-align: center; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">YTD Total</th>
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb;">ECE Categories</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${teacherRows}
-        </tbody>
-      </table>
+      <div style="padding: 16px;">
+        ${teacherSummaries}
+      </div>
     </div>
   `;
 }
@@ -3489,6 +3522,175 @@ Continue for all 5 questions...
     }
   });
 
+  // Send actual monthly ECE report with real data
+  app.post("/api/school/ece-monthly-report", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user is a school admin/director
+      if (!user.isSchoolAdmin && !user.isAdmin) {
+        return res.status(403).json({ message: "Director access required" });
+      }
+
+      // Get reporting settings
+      const [settings] = await db.select().from(eceReportingSettings)
+        .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
+
+      if (!settings) {
+        return res.status(400).json({ 
+          message: "No ECE reporting settings found. Please configure email settings first.",
+          errorType: "NO_SETTINGS"
+        });
+      }
+
+      if (!settings.isActive) {
+        return res.status(400).json({ 
+          message: "ECE reporting is disabled. Please enable email reports in settings.",
+          errorType: "SETTINGS_DISABLED"
+        });
+      }
+
+      if (!settings.reportingEmails || settings.reportingEmails.length === 0) {
+        return res.status(400).json({ 
+          message: "No email recipients configured. Please add email addresses in settings.",
+          errorType: "NO_RECIPIENTS"
+        });
+      }
+
+      // Get school name
+      const [school] = await db.select().from(schools)
+        .where(eq(schools.id, user.schoolId || 1));
+
+      // Calculate date range for this month
+      const currentDate = new Date();
+      const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+
+      // Get all employees in the school
+      const employees = await db.select().from(users)
+        .where(eq(users.schoolId, user.schoolId || 1))
+        .orderBy(users.firstName, users.lastName);
+
+      // Get ECE hours for each employee for this month
+      const employeeTrainingData = await Promise.all(employees.map(async (employee) => {
+        // Get ECE hours for this month
+        const monthlyHours = await db.select().from(eceHours)
+          .where(
+            and(
+              eq(eceHours.userId, employee.id),
+              sql`${eceHours.completedAt} >= ${startOfMonth.toISOString()}`,
+              sql`${eceHours.completedAt} <= ${endOfMonth.toISOString()}`
+            )
+          )
+          .orderBy(desc(eceHours.completedAt));
+
+        // Group hours by category
+        const hoursByCategory = monthlyHours.reduce((acc, hour) => {
+          const category = hour.category;
+          const durationHours = hour.duration / 60; // Convert minutes to hours
+          acc[category] = (acc[category] || 0) + durationHours;
+          return acc;
+        }, {} as Record<string, number>);
+
+        // Calculate total hours this month
+        const totalHoursThisMonth = monthlyHours.reduce((sum, h) => sum + (h.duration / 60), 0);
+
+        // Get total hours for the year (from employee's renewal period)
+        const renewalDate = employee.eceHoursRenewalDate || employee.lastActive || employee.createdAt;
+        const renewalYear = new Date(renewalDate);
+        let periodStart = new Date(renewalYear);
+        let periodEnd = new Date(renewalYear);
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        
+        // If we're past the renewal date, move to current cycle
+        while (periodEnd < currentDate) {
+          periodStart.setFullYear(periodStart.getFullYear() + 1);
+          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        }
+
+        const yearlyHours = await db.select().from(eceHours)
+          .where(
+            and(
+              eq(eceHours.userId, employee.id),
+              sql`${eceHours.completedAt} >= ${periodStart.toISOString()}`,
+              sql`${eceHours.completedAt} <= ${periodEnd.toISOString()}`
+            )
+          );
+
+        const totalYearlyHours = yearlyHours.reduce((sum, h) => sum + (h.duration / 60), 0);
+
+        return {
+          id: employee.id,
+          name: `${employee.firstName} ${employee.lastName}`,
+          email: employee.email,
+          hoursThisMonth: Math.round(totalHoursThisMonth * 10) / 10,
+          totalHours: Math.round(totalYearlyHours * 10) / 10,
+          categories: Object.keys(hoursByCategory),
+          hoursByCategory,
+          monthlyTrainings: monthlyHours.map(h => ({
+            title: h.trainingTitle,
+            category: h.category,
+            hours: Math.round((h.duration / 60) * 10) / 10,
+            completedAt: h.completedAt?.toISOString().split('T')[0]
+          }))
+        };
+      }));
+
+      // Filter out employees with no training this month
+      const employeesWithTraining = employeeTrainingData.filter(emp => emp.hoursThisMonth > 0);
+
+      // Generate report period string
+      const reportPeriod = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      // Check if SendGrid is configured
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ 
+          message: "Email service not configured. Please contact administrator.",
+          errorType: "EMAIL_NOT_CONFIGURED"
+        });
+      }
+
+      // Send the actual monthly report
+      const emailSent = await sendEceMonthlyReport(
+        settings.reportingEmails,
+        school?.name || 'Your School',
+        reportPeriod,
+        employeesWithTraining,
+        false // Not a test email
+      );
+
+      if (!emailSent) {
+        return res.status(500).json({ 
+          message: "Failed to send monthly report. Please check email configuration.",
+          errorType: "EMAIL_SEND_FAILED"
+        });
+      }
+
+      // Update last report sent timestamp
+      await db.update(eceReportingSettings)
+        .set({ lastReportSent: new Date() })
+        .where(eq(eceReportingSettings.id, settings.id));
+
+      res.json({ 
+        success: true, 
+        message: `Monthly ECE report sent to ${settings.reportingEmails.length} recipient(s)`,
+        recipients: settings.reportingEmails,
+        reportPeriod,
+        employeesWithTraining: employeesWithTraining.length,
+        totalEmployees: employees.length
+      });
+
+    } catch (error) {
+      console.error("Error sending monthly ECE report:", error);
+      res.status(500).json({ message: "Failed to send monthly report" });
+    }
+  });
+
   // Update employee's ECE renewal date
   app.put("/api/employee/:employeeId/ece-renewal-date", requireAuth, async (req, res) => {
     try {
@@ -5944,7 +6146,37 @@ Continue for all 5 questions...
     }
   });
 
-  // We have a different endpoint for bonus games rewards at line 900, so this duplicate was removed
+  // Manual trigger for monthly ECE report (for testing)
+  app.post("/api/school/ece-trigger-monthly-report", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Only allow admins to trigger manual reports
+      if (!user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Import the scheduled task service
+      const { scheduledTaskService } = await import('./services/scheduledTasks.js');
+      
+      // Trigger the monthly report
+      await scheduledTaskService.triggerMonthlyReport();
+
+      res.json({ 
+        success: true, 
+        message: "Monthly ECE report task triggered successfully"
+      });
+
+    } catch (error) {
+      console.error("Error triggering monthly ECE report:", error);
+      res.status(500).json({ message: "Failed to trigger monthly report" });
+    }
+  });
 
   // Add the new endpoint to match client expectations
   app.post("/api/core-values-shoutouts", requireAuth, async (req, res) => {
