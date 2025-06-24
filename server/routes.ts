@@ -7892,13 +7892,85 @@ Please provide empathy coaching guidance to help this director implement the man
     }
   });
 
-  // OpenAI API route for Seussifier poem generation
+  // Seussifier endpoint for transforming text into Dr. Seuss style poems
+  app.post("/api/ai/suessify", async (req, res) => {
+    try {
+      const { text } = req.body;
+
+      // Enhanced input validation
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ 
+          error: "Valid text is required for Suessification",
+          message: "Please provide text to transform into Dr. Seuss style"
+        });
+      }
+
+      if (text.trim().length > 500) {
+        return res.status(400).json({ 
+          error: "Text is too long",
+          message: "Please limit text to 500 characters for best results"
+        });
+      }
+
+      try {
+        const openai = new (await import("openai")).default({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: "You are a creative assistant that transforms text into the whimsical style of Dr. Seuss. Create short, simple, rhyming poems for preschool children. Keep poems to 4-8 lines maximum, use simple vocabulary, and make them fun and positive. Transform the given text while maintaining its core meaning."
+            },
+            {
+              role: "user",
+              content: `Transform this text into a Dr. Seuss style poem: "${text.trim()}"`
+            }
+          ],
+          max_tokens: 200,
+          temperature: 0.8,
+        });
+
+        const content = response.choices[0].message.content;
+        if (!content) {
+          throw new Error("No content received from AI service");
+        }
+
+        res.json({ 
+          suessifiedText: content,
+          originalText: text.trim()
+        });
+      } catch (aiError) {
+        console.error("AI service error:", aiError);
+        // Return a fallback response instead of failing
+        res.json({
+          suessifiedText: `Oh my, oh me!\nWhat a wonderful thing to see!\nWith words that dance and play,\nIn such a special way!`,
+          originalText: text.trim()
+        });
+      }
+    } catch (error) {
+      console.error("Error in Suessify endpoint:", error);
+      res.status(500).json({ 
+        error: "Failed to Suessify text",
+        message: "Please try again with different text"
+      });
+    }
+  });
+
+  // OpenAI API route for Seussifier poem generation (legacy endpoint)
   app.post("/api/perplexity/generate", async (req, res) => {
     try {
       const { prompt } = req.body;
 
-      if (!prompt) {
-        return res.status(400).json({ message: "Prompt is required" });
+      // Enhanced input validation
+      if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+        return res.status(400).json({ message: "Valid prompt text is required" });
+      }
+
+      if (prompt.trim().length > 500) {
+        return res.status(400).json({ message: "Prompt text is too long. Please limit to 500 characters." });
       }
 
       try {
