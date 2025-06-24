@@ -2010,7 +2010,7 @@ Continue for all 5 questions...
 
 
 
-  app.get("/api/auth/me", async (req, res) => {
+  app.get("/api/auth/user", async (req, res) => {
     console.log("GET /api/auth/me - Session ID:", req.session.id);
     console.log("GET /api/auth/me - Session data:", req.session);
 

@@ -74,13 +74,4 @@ export const checkAuthStatus = async () => {
   }
 };
 
-// Make these available globally for debugging
-if (typeof window !== 'undefined') {
-  (window as any).authUtils = {
-    resetAuthState,
-    forceLogout,
-    checkAuthStatus
-  };
-  
-  console.log('Auth utilities available at window.authUtils');
-} 
+// Debug utilities removed for production 

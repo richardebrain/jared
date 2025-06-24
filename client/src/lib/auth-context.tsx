@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       toast({
         title: "Login successful",
-        description: `Welcome back, ${enhancedUser.firstName}!`,
+        description: `Welcome back, ${enhancedUser.firstName || enhancedUser.username}!`,
       });
       
       console.log("Login successful! Redirecting to dashboard...");

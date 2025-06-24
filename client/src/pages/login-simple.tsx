@@ -67,7 +67,7 @@ export default function LoginSimple() {
         AuthStorage.setAuthData(response);
         toast({
           title: "Login successful",
-          description: `Welcome back, ${response.firstName}!`,
+          description: `Welcome back, ${response.firstName || response.username}!`,
         });
         
         // Small delay to show success message, then redirect
