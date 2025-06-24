@@ -10,8 +10,12 @@ export class AuthStorage {
         timestamp: Date.now(),
         sessionId: Math.random().toString(36).substring(7)
       };
-      localStorage.setItem(this.AUTH_KEY, JSON.stringify(authData));
-      sessionStorage.setItem(this.SESSION_KEY, 'active');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.AUTH_KEY, JSON.stringify(authData));
+      }
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(this.SESSION_KEY, 'active');
+      }
     } catch (error) {
       console.warn('Failed to store auth data:', error);
     }
@@ -19,6 +23,10 @@ export class AuthStorage {
 
   static getAuthData() {
     try {
+      if (typeof localStorage === 'undefined' || typeof sessionStorage === 'undefined') {
+        return null;
+      }
+      
       const authDataStr = localStorage.getItem(this.AUTH_KEY);
       const sessionActive = sessionStorage.getItem(this.SESSION_KEY);
       
@@ -38,8 +46,12 @@ export class AuthStorage {
 
   static clearAuthData() {
     try {
-      localStorage.removeItem(this.AUTH_KEY);
-      sessionStorage.removeItem(this.SESSION_KEY);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(this.AUTH_KEY);
+      }
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(this.SESSION_KEY);
+      }
     } catch (error) {
       console.warn('Failed to clear auth data:', error);
     }

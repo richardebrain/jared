@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userData, isLoading]);
 
   // Apply data normalization to all users
-  const user = userData ? ensureUserDefaults(userData) : null;
+  const normalizedUser = userData ? ensureUserDefaults(userData) : null;
 
   // Mark initial load as complete after first query
   useEffect(() => {
@@ -336,11 +336,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Determine authentication state
-  const isAuthenticated = !!user && !authFailed;
-  const isAdmin = user?.isAdmin || false;
-  const isSchoolAdmin = user?.isSchoolAdmin || false;
-  const isOwner = user?.isOwner || false;
+  // Determine authentication state using the stored user state
+  const currentUser = user || normalizedUser;
+  const isAuthenticated = !!currentUser && !authFailed;
+  const isAdmin = currentUser?.isAdmin || false;
+  const isSchoolAdmin = currentUser?.isSchoolAdmin || false;
+  const isOwner = currentUser?.isOwner || false;
 
   // Login function
   const login = async (credentials: { username: string; password: string }): Promise<void> => {
@@ -361,8 +362,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isLoading: isLoading && !authFailed,
+        user: currentUser,
+        isLoading: false, // Always false with persistent storage
         isAuthenticated,
         isAdmin,
         isSchoolAdmin,
