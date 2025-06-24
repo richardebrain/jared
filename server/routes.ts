@@ -1734,8 +1734,9 @@ Continue for all 5 questions...
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
 
-        // Simplified streak calculation - defer complex operations for faster login
+        // Skip complex streak calculations during login for speed
         let currentStreak = user.streak || 0;
+        let streakUpdated = false; // Set to false to skip all streak processing during login
         
         // Defer all non-essential operations for faster login
         // Move all database operations to background processing
@@ -1748,88 +1749,42 @@ Continue for all 5 questions...
           }
         });
 
-        // If streak was updated, check for achievements or rewards
-        if (streakUpdated) {
+        // Move all streak processing to background for faster login
+        setImmediate(async () => {
           try {
-            // Reload user to get updated streak count
-            const updatedUser = await storage.getUser(user.id);
-            const streak = updatedUser?.streak || 0;
-
-            // Award points based on streak milestones
-            if (streak === 7) {
-              // Weekly milestone - bonus points
-              await storage.updateUser(user.id, {
-                points: (updatedUser?.points || 0) + 25,
-              });
-              console.log(
-                `User ${user.id} awarded 25 points for 7-day streak milestone`,
-              );
-            } else if (streak === 30) {
-              // Monthly milestone - bigger bonus
-              await storage.updateUser(user.id, {
-                points: (updatedUser?.points || 0) + 100,
-              });
-              console.log(
-                `User ${user.id} awarded 100 points for 30-day streak milestone`,
-              );
-            } else if (streak % 5 === 0) {
-              // Every 5 days milestone
-              await storage.updateUser(user.id, {
-                points: (updatedUser?.points || 0) + 15,
-              });
-              console.log(
-                `User ${user.id} awarded 15 points for ${streak}-day streak milestone`,
-              );
-            } else {
-              // Regular daily streak points
-              await storage.updateUser(user.id, {
-                points: (updatedUser?.points || 0) + 5,
-              });
-              console.log(`User ${user.id} awarded 5 points for daily login`);
+            // Background streak calculation and rewards
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const calculatedStreak = await calculateUserStreakRobust(user.id, today);
+            
+            if (calculatedStreak !== currentStreak) {
+              await storage.updateUser(user.id, { streak: calculatedStreak });
+              console.log(`Background: User ${user.id} streak updated to ${calculatedStreak}`);
+              
+              // Award streak rewards
+              if (calculatedStreak === 5 || calculatedStreak === 7 || calculatedStreak % 5 === 0) {
+                const pointsToAdd = calculatedStreak === 30 ? 100 : calculatedStreak === 7 ? 25 : 15;
+                await storage.updateUser(user.id, {
+                  points: (user.points || 0) + pointsToAdd
+                });
+                console.log(`Background: User ${user.id} awarded ${pointsToAdd} points for ${calculatedStreak}-day streak`);
+              }
             }
-          } catch (rewardError) {
-            console.error(
-              `Error processing streak rewards for user ${user.id}:`,
-              rewardError,
-            );
-            // Non-critical error, continue with login process
+          } catch (backgroundError) {
+            console.error(`Background processing error for user ${user.id}:`, backgroundError);
           }
-        }
+        });
 
-        // Force session save to ensure it's properly written to the database
-        console.log("Starting session save...");
-        const sessionStartTime = Date.now();
-        
-        try {
-          await Promise.race([
-            new Promise<void>((resolve, reject) => {
-              req.session.save((err) => {
-                if (err) {
-                  console.error("Session save error:", err);
-                  reject(err);
-                } else {
-                  console.log(`Session saved successfully with userId: ${user.id} (${Date.now() - sessionStartTime}ms)`);
-                  resolve();
-                }
-              });
-            }),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Session save timeout')), 5000)
-            )
-          ]);
-        } catch (saveErr) {
-          console.error("Failed to save session:", saveErr);
-          clearTimeout(loginTimeout);
-          if (saveErr.message === 'Session save timeout') {
-            return res.status(408).json({
-              message: "Login timeout",
-              details: "Session creation took too long. Please try again."
-            });
+        // Optimized session save - non-blocking for faster response
+        console.log("Saving session...");
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error:", err);
+          } else {
+            console.log(`Session saved for user: ${user.id}`);
           }
-          return res.status(500).json({
-            message: "Authentication succeeded but failed to create session",
-          });
-        }
+        });
 
         console.log(
           `Login successful for user: "${username}" (ID: ${user.id})`,

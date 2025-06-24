@@ -94,9 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/auth/me'],
     retry: false, // Disable retries to prevent session clearing loops
     refetchOnWindowFocus: false, // Disable refetch on window focus to prevent loops
-    refetchOnMount: true, // Enable refetch on mount for proper session verification
-    staleTime: 30000, // 30 seconds - faster auth checks
-    gcTime: 180000, // 3 minutes - faster cleanup
+    refetchOnMount: false, // Disable for faster initial load
+    staleTime: 15000, // 15 seconds - even faster auth checks
+    gcTime: 120000, // 2 minutes - faster cleanup
     enabled: !isOnPublicPage() && !authFailed, // Only fetch if not on public page and auth hasn't failed
   });
 
@@ -208,8 +208,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear any stuck session flags
       sessionStorage.removeItem('loginRedirecting');
       
-      // Immediate redirect - no delay needed
-      window.location.replace('/dashboard');
+      // Fast redirect with minimal delay
+      setTimeout(() => {
+        window.location.replace('/dashboard');
+      }, 10);
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);

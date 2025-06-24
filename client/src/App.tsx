@@ -98,9 +98,7 @@ import EceHoursTracker from "@/pages/ece-hours-tracker";
 import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 
-// Import auth fix utility
-import "@/utils/auth-fix.js";
-import "@/utils/fast-login.js";
+// Auth utilities removed after optimization completion
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
