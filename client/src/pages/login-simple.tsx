@@ -69,7 +69,11 @@ export default function LoginSimple() {
           title: "Login successful",
           description: `Welcome back, ${response.firstName}!`,
         });
-        window.location.replace('/dashboard');
+        
+        // Small delay to show success message, then redirect
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
       }
     } catch (error: any) {
       console.error("Login error:", error);
