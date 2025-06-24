@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { User } from "@shared/schema";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { toast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -443,7 +443,7 @@ export default function ArizonaEarlyLearningStandards({
 }: ArizonaEarlyLearningStandardsProps) {
   const [selectedDomain, setSelectedDomain] = useState<keyof typeof azStandards>(defaultDomain);
   const [completedGames, setCompletedGames] = useState<string[]>([]);
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const queryClient = useQueryClient();
   
   // Update user points

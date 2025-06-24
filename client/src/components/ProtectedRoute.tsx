@@ -102,7 +102,7 @@ export function PublicRoute({
   children,
   redirectAuthenticated = false 
 }: PublicRouteProps): JSX.Element {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useSimpleAuth();
   
   // Check for force login parameter to bypass auto-login
   const urlParams = new URLSearchParams(window.location.search);

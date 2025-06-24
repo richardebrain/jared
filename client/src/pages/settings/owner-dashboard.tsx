@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SettingsLayout from '@/components/SettingsLayout';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -164,7 +164,7 @@ const mockFinancial: FinancialData = {
 };
 
 export default function OwnerDashboardPage() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [_, setLocation] = useLocation();

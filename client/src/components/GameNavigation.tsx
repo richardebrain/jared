@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { 
   Home, 
   Briefcase, 
@@ -30,7 +30,7 @@ interface NavigationItem {
 export default function GameNavigation() {
   const [location, setLocation] = useLocation();
   const [showSparkle, setShowSparkle] = useState<number | null>(null);
-  const { isOwner, isSchoolAdmin, isAdmin } = useAuth();
+  const { isOwner, isSchoolAdmin, isAdmin } = useSimpleAuth();
   
   // Define main navigation items
   const navigationItems: NavigationItem[] = [

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
@@ -106,7 +106,7 @@ interface ModuleSection {
 }
 
 export default function NewModuleManual() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useSimpleAuth();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 

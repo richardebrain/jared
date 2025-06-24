@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +34,7 @@ interface SpinGameProps {
 }
 
 export default function SpinGame({ canSpin = true, onSpinComplete }: SpinGameProps) {
-  const { user: baseUser } = useAuth();
+  const { user: baseUser } = useSimpleAuth();
   const user = ensureUserDefaults(baseUser);
   const queryClient = useQueryClient();
   const [spinning, setSpinning] = useState(false);

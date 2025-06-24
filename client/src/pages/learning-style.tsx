@@ -1,10 +1,10 @@
 import Header from "@/components/Header";
 import LearningStyleAssessment from "@/components/LearningStyleAssessment";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { Redirect } from "wouter";
 
 export default function LearningStylePage() {
-  const { isLoading, user } = useAuth();
+  const { isLoading, user } = useSimpleAuth();
   
   if (isLoading) {
     return (

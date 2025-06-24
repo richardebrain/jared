@@ -9,7 +9,7 @@ import {
 import { Trophy, Medal, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Define teacher ranks and their icons
@@ -30,7 +30,7 @@ const TEACHER_RANKS = [
 
 export default function SimpleLeaderboard({teachers,userId,isLoading}:{ teachers?: any[], userId: number,isLoading?: boolean }) {
   const [timeframe, setTimeframe] = React.useState("all");
-  // const { user } = useAuth();
+  // const { user } = useSimpleAuth();
 
   // // Fetch all users for the leaderboard
   // const { data: teachers, isLoading } = useQuery({

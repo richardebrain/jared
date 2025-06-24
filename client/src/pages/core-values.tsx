@@ -1,10 +1,10 @@
 import Header from "@/components/Header";
 import { CoreValuesTraining } from "@/components/CoreValuesTraining";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import BearAssistant from "@/components/BearAssistant";
 
 export default function CoreValuesPage() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col">

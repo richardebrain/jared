@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -153,7 +153,7 @@ const quizQuestions = [
 ];
 
 export default function ChapterOneQuiz({ moduleId, onComplete }: ChapterOneQuizProps) {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   

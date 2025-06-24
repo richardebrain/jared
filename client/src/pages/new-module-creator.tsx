@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Badge } from "@/components/ui/badge";
@@ -120,7 +120,7 @@ const moduleTemplates = [
 ];
 
 export default function NewModuleCreator() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useSimpleAuth();
   const [location, setLocation] = useLocation();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 

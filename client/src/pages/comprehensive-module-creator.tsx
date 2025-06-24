@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
@@ -142,7 +142,7 @@ interface Module {
 }
 
 export default function ComprehensiveModuleCreator() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

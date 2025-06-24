@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Confetti } from "../components/ui/confetti";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -137,7 +137,7 @@ const getTotalProbability = () => PRIZES.reduce((acc, prize) => acc + prize.prob
 
 export function SpinWheel({ onClose }: SpinWheelProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [spinning, setSpinning] = useState(false);
   // FORCE SPIN WHEEL ENABLED FOR LAURA - direct fix at component load
   const [spinEnabled, setSpinEnabled] = useState(true);

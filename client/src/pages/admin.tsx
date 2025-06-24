@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { useLocation } from 'wouter';
 import AdminTools from '@/components/AdminTools';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +46,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminPage({ skipPasswordCheck = false }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

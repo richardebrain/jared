@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { useToast } from "@/hooks/use-toast";
 import {
   Wind,
@@ -43,7 +43,7 @@ interface Affirmation {
 }
 
 export function MindfulMorningsTraining() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedBreathingExercise, setSelectedBreathingExercise] = useState<string | null>(null);

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { queryClient } from '@/lib/queryClient';
 import { 
   Clock, 
@@ -218,7 +218,7 @@ const transitionScenarios: TransitionScenario[] = [
 ];
 
 export default function TransitionMaster() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'complete'>('menu');
   const [currentScenario, setCurrentScenario] = useState(0);

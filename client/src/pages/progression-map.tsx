@@ -20,7 +20,7 @@ import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { Badge } from "@/components/ui/badge";
 import {
   Tabs,
@@ -54,7 +54,7 @@ interface LevelRequirement {
 }
 
 export default function ProgressionMap() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   
   // Also fetch user data directly to ensure we have the most current points

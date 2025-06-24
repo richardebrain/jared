@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,7 @@ interface UserAvatarItem {
 
 export default function AvatarStablePage() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("my-avatars");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);

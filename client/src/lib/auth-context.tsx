@@ -394,11 +394,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 /**
  * Hook to use the authentication context
  */
-export function useAuth(): AuthContextType {
+export function useSimpleAuth(): AuthContextType {
   const context = useContext(AuthContext);
   
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useSimpleAuth must be used within an AuthProvider');
   }
   
   return context;
@@ -411,7 +411,7 @@ export function withAuth<P extends object>(
   Component: React.ComponentType<P>
 ): React.FC<P> {
   return function AuthenticatedComponent(props: P) {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading } = useSimpleAuth();
     
     if (isLoading) {
       return (

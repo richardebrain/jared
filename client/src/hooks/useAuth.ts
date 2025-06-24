@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-export function useAuth() {
+export function useSimpleAuth() {
   const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false, // Don't retry auth errors

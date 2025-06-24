@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { Switch, Route, Redirect } from 'wouter';
 import { ProtectedRoute, PublicRoute } from '@/components/ProtectedRoute';
 import NotFound from '@/pages/not-found';
@@ -64,7 +64,7 @@ import MyGameStats from '@/pages/my-game-stats';
  */
 const AuthWrapper: React.FC = () => {
   // We still need these since the app is in transition
-  const { isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin, isOwner } = useSimpleAuth();
 
   return (
     <Switch>

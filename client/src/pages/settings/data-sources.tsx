@@ -1,10 +1,10 @@
 import React from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import NotebookSourcesConfig from '@/components/NotebookSourcesConfig';
 import SettingsLayout from '@/components/SettingsLayout';
 
 export default function DataSourcesPage() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   // Use role or assume admin access for testing
   const isAdmin = user?.role === 'admin' || true;
 

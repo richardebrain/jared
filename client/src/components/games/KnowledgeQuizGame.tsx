@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -69,7 +69,7 @@ interface GameCompletion {
 
 export default function KnowledgeQuizGame({ game, onClose }: GameProps): React.ReactNode {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
   const [totalQuestions, setTotalQuestions] = useState<number>(0);
   const [timer, setTimer] = useState<number>(0);

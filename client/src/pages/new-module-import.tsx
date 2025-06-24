@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ interface ParsedSlide {
 }
 
 export default function NewModuleImport() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useSimpleAuth();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);

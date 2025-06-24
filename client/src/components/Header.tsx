@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
 // Import the MentorMe logo using the correct asset path
 import mentormeLogo from "@assets/221033113.png";
@@ -69,7 +69,7 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // const { isOwner, isAdmin, isSchoolAdmin } = useAuth();
+  // const { isOwner, isAdmin, isSchoolAdmin } = useSimpleAuth();
   
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]

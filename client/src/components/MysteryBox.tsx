@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { Sparkles, Gift, Package, History, Coins, Award, ShieldCheck, Zap } from "lucide-react";
@@ -116,7 +116,7 @@ const REWARDS = {
 };
 
 export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = true }: MysteryBoxProps) {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dailyBoxesLeft, setDailyBoxesLeft] = useState(maxDailyBoxes);

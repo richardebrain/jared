@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-// import { useAuth } from '@/contexts/AuthContext';
+// import { useSimpleAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 // Enhanced game constants
@@ -106,7 +106,7 @@ const safetyQuestions: SafetyQuestion[] = [
 ];
 
 export default function FroggerGame(): JSX.Element {
-  // const { user } = useAuth();
+  // const { user } = useSimpleAuth();
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>();

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 
 // Learning style assessment questions
 const learningStyleQuestions = [
@@ -117,7 +117,7 @@ export default function LearningStyleAssessment() {
   const [isComplete, setIsComplete] = useState(false);
   const [results, setResults] = useState<LearningStyleResults>(initialResults);
   
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [, setLocation] = useLocation();

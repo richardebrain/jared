@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import Header from "@/components/Header";
 import { 
   Card, 
@@ -32,7 +32,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 
 export default function ModuleManagement() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

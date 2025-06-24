@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import { Loader2 } from 'lucide-react';
@@ -66,7 +66,7 @@ interface AnswerResponse {
 
 export default function AssessmentQuestions() {
   const [, setLocation] = useLocation();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useSimpleAuth();
   const { toast } = useToast();
 
   // Session and question state

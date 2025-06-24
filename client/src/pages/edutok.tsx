@@ -1,13 +1,13 @@
 import React from "react";
 import Header from "@/components/Header";
 import EduTokFeed from "@/components/EduTokFeed";
-import { useAuth } from "@/lib/auth-context";
+import { useSimpleAuth } from "@/lib/simple-auth";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
 export default function EduTokPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
   const [, navigate] = useLocation();
 
   if (isLoading) {

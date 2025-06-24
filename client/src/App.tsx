@@ -52,7 +52,8 @@ import TestPage from "@/pages/test-page";
 import EmergencyLogin from "@/pages/emergency-login";
 
 // Import other components
-import { AuthValidator } from "@/lib/auth-validator";
+// Import other components
+// import { AuthValidator } from "@/lib/auth-validator";
 
 // Main App component
 function App() {

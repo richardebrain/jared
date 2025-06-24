@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, Mail, School, Users } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useAuth } from '@/lib/auth-context';
+import { useSimpleAuth } from '@/lib/simple-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,7 +82,7 @@ const timeSlots = [
 ];
 
 export function MeetingScheduler() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
   
