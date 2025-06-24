@@ -1716,7 +1716,7 @@ Continue for all 5 questions...
           req.session.userId = undefined;
           req.session.loginTime = undefined;
           (req.session as any).lastActivity = undefined;
-          res.clearCookie("connect.sid");
+          res.clearCookie("mentorme.sid");
           console.log("Session data cleared successfully");
         }
 
@@ -1916,7 +1916,7 @@ Continue for all 5 questions...
         console.log("Logout successful - Session destroyed");
 
         // Clear cookies by setting expiration in the past
-        res.clearCookie("connect.sid");
+        res.clearCookie("mentorme.sid");
 
         res.status(200).json({
           message: "Logged out successfully",
@@ -1991,7 +1991,7 @@ Continue for all 5 questions...
           console.log("Session cleared successfully");
 
           // Clear cookies by setting expiration in the past
-          res.clearCookie("connect.sid");
+          res.clearCookie("mentorme.sid");
 
           return res.status(200).json({
             message: "Session cleared successfully",
