@@ -103,15 +103,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Add timeout to prevent infinite loading states
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (isLoading && !userData && !isError) {
+      if (isLoading && !userData && !isError && !isOnPublicPage()) {
         console.log('Auth timeout reached, redirecting to login');
         setAuthFailed(true);
-        window.location.href = '/login';
+        window.location.replace('/login');
       }
-    }, 5000); // 5 second timeout
+    }, 3000); // 3 second timeout
 
     return () => clearTimeout(timeout);
   }, [isLoading, userData, isError]);
+
+  // Force redirect after successful authentication
+  useEffect(() => {
+    if (userData && !isLoading && window.location.pathname === '/login') {
+      console.log('User authenticated, redirecting from login page');
+      window.location.replace('/dashboard');
+    }
+  }, [userData, isLoading]);
 
   // Apply data normalization to all users
   const user = userData ? ensureUserDefaults(userData) : null;
@@ -195,8 +203,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("Login successful! Redirecting to dashboard...");
       
+      // Clear any stuck session flags
+      sessionStorage.removeItem('loginRedirecting');
+      
       // Immediate redirect without waiting for queries
-      window.location.replace('/dashboard');
+      setTimeout(() => {
+        window.location.replace('/dashboard');
+      }, 100);
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);

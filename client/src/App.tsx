@@ -98,6 +98,9 @@ import EceHoursTracker from "@/pages/ece-hours-tracker";
 import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 
+// Import auth fix utility
+import "@/utils/auth-fix.js";
+
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
   try {
@@ -189,7 +192,14 @@ function Router(props: {
 
       {/* Root path shows landing page for public users or dashboard for authenticated users */}
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <LandingPage />}
+        {isLoading ? (
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600">Loading MentorMe...</p>
+            </div>
+          </div>
+        ) : isAuthenticated ? <Dashboard /> : <LandingPage />}
       </Route>
 
       {/* Protected routes */}
