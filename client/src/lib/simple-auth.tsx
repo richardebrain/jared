@@ -98,14 +98,12 @@ export function SimpleAuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Check if we recently checked auth to avoid excessive requests
-    const lastCheck = localStorage.getItem('auth_check_time');
-    const now = Date.now();
-    
-    if (!lastCheck || now - parseInt(lastCheck) > 30000) { // 30 seconds
+    // Only check auth once on component mount
+    const authChecked = sessionStorage.getItem('auth_checked');
+    if (!authChecked) {
+      sessionStorage.setItem('auth_checked', 'true');
       checkAuth();
     } else {
-      // Skip auth check but still set loading to false
       setIsLoading(false);
     }
   }, []);

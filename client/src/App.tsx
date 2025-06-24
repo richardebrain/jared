@@ -125,7 +125,23 @@ function AuthenticatedRouter() {
       );
     }
 
-    return <AppRouter />;
+    return (
+      <Router>
+        <Switch>
+          {isAuthenticated ? (
+            <Route path="/" component={Dashboard} />
+          ) : (
+            <>
+              <Route path="/login" component={Login} />
+              <Route component={() => {
+                window.location.href = "/login";
+                return null;
+              }} />
+            </>
+          )}
+        </Switch>
+      </Router>
+    );
   } catch (error) {
     console.error("Auth router error:", error);
     // Fallback to a simplified router with no auth
@@ -1084,6 +1100,7 @@ function App() {
       <ErrorBoundary>
         <AuthenticatedRouter />
       </ErrorBoundary>
+      <Toaster />
     </TooltipProvider>
   );
 }
