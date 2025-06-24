@@ -110,10 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['/api/auth/user'],
     retry: false,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    staleTime: 300000, // 5 minutes - much longer cache
-    gcTime: 600000, // 10 minutes - longer cleanup
-    enabled: false, // Disabled by default - only fetch when needed
+    refetchOnMount: true, // Enable mount fetching
+    staleTime: 60000, // 1 minute cache
+    gcTime: 120000, // 2 minutes cleanup
+    enabled: true, // Enable by default
   });
 
   // Smart auth validation - minimize server calls
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const cachedAuth = AuthStorage.getAuthData();
         if (cachedAuth) {
           setUser(cachedAuth);
-          queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+          queryClient.setQueryData(['/api/auth/user'], cachedAuth);
           return;
         }
       } catch (error) {
