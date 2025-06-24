@@ -114,15 +114,15 @@ function AuthenticatedRouter() {
     // No loading states - immediate rendering with cached auth
     // Loading is always false with persistent storage
 
-    return (
-      <Router
-        isAuthenticated={isAuthenticated}
-        isLoading={isLoading}
-        user={user}
-        isAdmin={isAdmin}
-        isOwner={isOwner}
-      />
-    );
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        </div>
+      );
+    }
+
+    return <AppRouter />;
   } catch (error) {
     console.error("Auth router error:", error);
     // Fallback to a simplified router with no auth
@@ -1075,12 +1075,13 @@ function Router(props: {
   );
 }
 
+import SimpleApp from "@/components/SimpleApp";
+
 function App() {
   return (
     <TooltipProvider>
-      <Toaster />
       <ErrorBoundary>
-          <AuthenticatedRouter />
+        <SimpleApp />
       </ErrorBoundary>
     </TooltipProvider>
   );
