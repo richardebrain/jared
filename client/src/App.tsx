@@ -1074,9 +1074,7 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <ErrorBoundary>
-        <AuthProvider>
-          <AuthenticatedRouter />
-        </AuthProvider>
+        <AuthenticatedRouter />
       </ErrorBoundary>
     </TooltipProvider>
   );

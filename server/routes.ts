@@ -916,7 +916,7 @@ Continue for all 5 questions...
   app.use("/api/credentials", credentialRoutes);
 
   // Register AI health monitoring middleware
-  app.use(aiHealthCheck);
+  // app.use(aiHealthCheck); // Commented out - aiHealthCheck not defined
 
   // Register AI suggestion routes with monitoring
   app.use("/api/ai", aiSuggestionRoutes);
