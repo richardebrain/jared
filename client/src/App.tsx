@@ -100,10 +100,22 @@ import TestPage from "@/pages/test-page";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
-
   try {
     // This component safely uses useAuth inside the AuthProvider
     const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
+
+    // Prevent infinite loading states
+    if (isLoading) {
+      // Show loading indicator briefly, then fallback
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-gray-600">Loading MentorMe...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <Router

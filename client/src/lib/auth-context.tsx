@@ -100,6 +100,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: !isOnPublicPage() && !authFailed, // Only fetch if not on public page and auth hasn't failed
   });
 
+  // Add timeout to prevent infinite loading states
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading && !userData && !isError) {
+        console.log('Auth timeout reached, redirecting to login');
+        setAuthFailed(true);
+        window.location.href = '/login';
+      }
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [isLoading, userData, isError]);
+
   // Apply data normalization to all users
   const user = userData ? ensureUserDefaults(userData) : null;
 
@@ -182,15 +195,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("Login successful! Redirecting to dashboard...");
       
-      // Force invalidate all queries and refetch user data
-      queryClient.invalidateQueries();
-      
-      // Use setTimeout to ensure state updates before redirect
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
-        // Force redirect after state is updated
-        window.location.href = '/dashboard';
-      }, 200);
+      // Immediate redirect without waiting for queries
+      window.location.replace('/dashboard');
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);
