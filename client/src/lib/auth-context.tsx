@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const cached = AuthStorage.getAuthData();
       if (cached) {
         // Set in query cache immediately
-        queryClient.setQueryData(['/api/auth/me'], cached);
+        queryClient.setQueryData(['/api/auth/user'], cached);
         return cached;
       }
     } catch (error) {
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     refetch: refetchUser
   } = useQuery<BaseUser>({
-    queryKey: ['/api/auth/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,

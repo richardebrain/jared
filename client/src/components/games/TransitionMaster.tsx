@@ -282,7 +282,7 @@ export default function TransitionMaster() {
         })
       });
 
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
       toast({
         title: "Transition Master Complete!",
