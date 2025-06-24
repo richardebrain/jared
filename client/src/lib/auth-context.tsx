@@ -84,34 +84,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return path === '/login' || path === '/register' || path === '/business-signup' || path === '/' || path === '/emergency';
   };
 
-  // Get user data from API - but disable on public pages if auth has failed
+  // Simplified auth check - only fetch when explicitly needed
   const { 
     data: userData,
     isLoading,
     isError, 
-    error 
+    error,
+    refetch: refetchUser
   } = useQuery<BaseUser>({
     queryKey: ['/api/auth/me'],
-    retry: false, // Disable retries to prevent session clearing loops
-    refetchOnWindowFocus: false, // Disable refetch on window focus to prevent loops
-    refetchOnMount: false, // Disable for faster initial load
-    staleTime: 15000, // 15 seconds - even faster auth checks
-    gcTime: 120000, // 2 minutes - faster cleanup
-    enabled: !isOnPublicPage() && !authFailed, // Only fetch if not on public page and auth hasn't failed
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    staleTime: 300000, // 5 minutes - much longer cache
+    gcTime: 600000, // 10 minutes - longer cleanup
+    enabled: false, // Disabled by default - only fetch when needed
   });
 
-  // Add timeout to prevent infinite loading states
+  // Manual auth check on protected routes
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (isLoading && !userData && !isError && !isOnPublicPage()) {
-        console.log('Auth timeout reached, redirecting to emergency login');
-        setAuthFailed(true);
-        window.location.replace('/emergency');
-      }
-    }, 1500); // 1.5 second timeout - even faster
-
-    return () => clearTimeout(timeout);
-  }, [isLoading, userData, isError]);
+    if (!isOnPublicPage() && !userData && !authFailed && !isLoading) {
+      // Only fetch auth data when accessing protected routes
+      refetchUser();
+    }
+  }, [window.location.pathname, userData, authFailed, isLoading, refetchUser]);
 
   // Force redirect after successful authentication
   useEffect(() => {
@@ -208,10 +204,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear any stuck session flags
       sessionStorage.removeItem('loginRedirecting');
       
-      // Fast redirect with minimal delay
-      setTimeout(() => {
-        window.location.replace('/dashboard');
-      }, 10);
+      // Store auth data persistently
+      AuthStorage.setAuthData(enhancedUser);
+      setUser(enhancedUser);
+      
+      // Set user data in cache for immediate access
+      queryClient.setQueryData(['/api/auth/me'], enhancedUser);
+      
+      // Immediate redirect
+      window.location.replace('/dashboard');
     },
     onError: (error: Error) => {
       console.error("Authentication error in context:", error);
