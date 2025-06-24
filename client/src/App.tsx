@@ -108,14 +108,27 @@ function AuthenticatedRouter() {
     // This component safely uses useAuth inside the AuthProvider
     const { isAuthenticated, isLoading, user, isAdmin, isOwner } = useAuth();
 
-    // Prevent infinite loading states
+    // Handle loading states with emergency fallback
     if (isLoading) {
-      // Show loading indicator briefly, then fallback
+      // Auto-redirect to emergency login after 2 seconds of loading
+      setTimeout(() => {
+        if (window.location.pathname !== '/emergency') {
+          console.log('Loading timeout, redirecting to emergency login');
+          window.location.href = '/emergency';
+        }
+      }, 2000);
+      
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="text-gray-600">Loading MentorMe...</p>
+            <button 
+              onClick={() => window.location.href = '/emergency'}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Emergency Login
+            </button>
           </div>
         </div>
       );
@@ -186,6 +199,11 @@ function Router(props: {
 
       <Route path="/business-signup">
         <BusinessSignup />
+      </Route>
+
+      {/* Emergency login route - bypasses auth context completely */}
+      <Route path="/emergency">
+        <EmergencyLogin />
       </Route>
 
       {/* Temporary public route for testing state synchronization fix */}

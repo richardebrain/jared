@@ -23,8 +23,10 @@ export default function EmergencyLogin() {
       
       if (response) {
         console.log("Emergency login successful");
+        // Store auth success flag
+        sessionStorage.setItem('emergencyAuthSuccess', 'true');
         // Force immediate redirect
-        window.location.href = "/dashboard";
+        window.location.replace("/dashboard");
       }
     } catch (err: any) {
       console.error("Emergency login failed:", err);

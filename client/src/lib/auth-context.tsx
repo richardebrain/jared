@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if we're on a public page where auth queries should be disabled
   const isOnPublicPage = () => {
     const path = window.location.pathname;
-    return path === '/login' || path === '/register' || path === '/business-signup' || path === '/';
+    return path === '/login' || path === '/register' || path === '/business-signup' || path === '/' || path === '/emergency';
   };
 
   // Get user data from API - but disable on public pages if auth has failed
