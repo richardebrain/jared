@@ -31,6 +31,7 @@ const loginSchema = z.object({
 
 export default function LoginSimple() {
   const { toast } = useToast();
+  const { login } = useSimpleAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -54,33 +55,18 @@ export default function LoginSimple() {
     try {
       setIsLoading(true);
       
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          username: values.username.trim(),
-          password: values.password.trim()
-        })
-      });
+      const success = await login(values.username.trim(), values.password.trim());
       
-      const data = await response.json();
-      
-      if (response.ok && data) {
-        // Store auth data and redirect
-        AuthStorage.setAuthData(data);
+      if (success) {
         toast({
           title: "Login successful",
-          description: `Welcome back, ${data.firstName || data.first_name || data.username}!`,
+          description: "Welcome back!",
         });
         
-        // Force page reload to establish session
+        // Redirect to home
         window.location.href = '/';
       } else {
-        throw new Error(data.message || 'Login failed');
+        throw new Error('Invalid username or password');
       }
     } catch (error: any) {
       console.error("Login error:", error);
