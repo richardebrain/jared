@@ -3,7 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { SimpleAuthProvider, useSimpleAuth } from "@/lib/simple-auth";
 import { Router, Switch, Route } from "wouter";
-import SimpleLogin from "@/components/SimpleLogin";
+import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 
 const queryClient = new QueryClient({
@@ -43,7 +43,7 @@ function AppContent() {
           <Route path="/" component={Dashboard} />
         ) : (
           <>
-            <Route path="/login" component={SimpleLogin} />
+            <Route path="/login" component={Login} />
             <Route component={() => {
               window.location.href = "/login";
               return null;
