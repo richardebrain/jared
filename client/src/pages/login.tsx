@@ -35,7 +35,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login, isLoading: authLoading } = useSimpleAuth();
+  const { login, isLoading, isAuthenticated } = useSimpleAuth();
   
   const navigate = (path: string) => {
     setLocation(path);
