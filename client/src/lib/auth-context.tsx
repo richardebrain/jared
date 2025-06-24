@@ -405,6 +405,13 @@ export function useSimpleAuth(): AuthContextType {
 }
 
 /**
+ * Legacy hook alias for backward compatibility
+ */
+export function useAuth(): AuthContextType {
+  return useSimpleAuth();
+}
+
+/**
  * Higher order component for protected routes
  */
 export function withAuth<P extends object>(
