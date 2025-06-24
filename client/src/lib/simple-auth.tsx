@@ -123,7 +123,16 @@ export function SimpleAuthProvider({ children }: { children: ReactNode }) {
 export function useSimpleAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useSimpleAuth must be used within a SimpleAuthProvider');
+    console.error('Auth context not available - provider not found');
+    // Return a default context instead of throwing to prevent crashes
+    return {
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      login: async () => false,
+      logout: async () => {},
+      refetch: async () => {}
+    };
   }
   return context;
 }

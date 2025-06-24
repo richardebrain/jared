@@ -144,10 +144,9 @@ function AuthenticatedRouter() {
     );
   } catch (error) {
     console.error("Auth router error:", error);
-    // Fallback to a simplified router with no auth
-    // Clear any stored auth data to ensure fresh login
-    sessionStorage.removeItem("laura_login_success");
-    localStorage.removeItem("isAuthenticated");
+    // Fallback to login page if auth system fails
+    sessionStorage.removeItem("auth_checked");
+    localStorage.removeItem("auth_check_time");
 
     return (
       <Switch>
@@ -188,9 +187,9 @@ function Router(props: {
   return (
     <Switch>
       {/* Public routes - always load immediately */}
-      <Route path="/login">
+      {/* <Route path="/login">
         <LoginSimple />
-      </Route>
+      </Route> */}
       
       <Route path="/login-full">
         <Login />
