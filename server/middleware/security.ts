@@ -41,9 +41,9 @@ export function setupSecurityMiddleware(app: Express) {
     res.json({ message: 'Rate limiting cleared successfully' });
   });
   
-  // Apply rate limiting specifically to login endpoint (temporarily disabled for reset)
+  // Apply rate limiting specifically to login endpoint (completely disabled to fix deployment issue)
   const rateLimitLogin = (req: Request, res: Response, next: NextFunction) => {
-    // Temporarily bypassing rate limiting to clear stuck state
+    // Completely bypassing rate limiting to fix deployment login issues
     next();
     return;
     
