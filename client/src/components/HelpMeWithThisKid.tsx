@@ -22,6 +22,7 @@ interface BehaviorPlan {
 
 export function HelpMeWithThisKid() {
   const [childAge, setChildAge] = useState("");
+  const [childName, setChildName] = useState("");
   const [behavior, setBehavior] = useState("");
   const [context, setContext] = useState("");
   const [frequency, setFrequency] = useState("");
@@ -66,6 +67,7 @@ export function HelpMeWithThisKid() {
         },
         body: JSON.stringify({
           childAge,
+          childName,
           behavior,
           context,
           frequency
@@ -112,21 +114,37 @@ export function HelpMeWithThisKid() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="age">Child's Age</Label>
+              <Label htmlFor="age">Child's Age *</Label>
               <Select value={childAge} onValueChange={setChildAge}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select age" />
+                  <SelectValue placeholder="Select age range" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1-2">1-2 years old</SelectItem>
                   <SelectItem value="2-3">2-3 years old</SelectItem>
                   <SelectItem value="3-4">3-4 years old</SelectItem>
                   <SelectItem value="4-5">4-5 years old</SelectItem>
                   <SelectItem value="5-6">5-6 years old</SelectItem>
+                  <SelectItem value="6-7">6-7 years old</SelectItem>
+                  <SelectItem value="7-8">7-8 years old</SelectItem>
+                  <SelectItem value="8-9">8-9 years old</SelectItem>
+                  <SelectItem value="9-10">9-10 years old</SelectItem>
+                  <SelectItem value="10-11">10-11 years old</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="childName">Child's Name (Optional)</Label>
+              <Input
+                id="childName"
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="e.g., Emma, Michael"
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">Personalizes the advice for this specific child</p>
             </div>
 
             <div className="space-y-2">

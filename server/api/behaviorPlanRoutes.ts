@@ -18,6 +18,7 @@ const openai = new OpenAI({
 
 interface BehaviorPlanRequest {
   childAge: string;
+  childName?: string;
   behavior: string;
   context?: string;
   frequency?: string;
@@ -40,7 +41,7 @@ router.post('/generate', async (req, res) => {
   
   try {
     
-    const { childAge, behavior, context, frequency }: BehaviorPlanRequest = req.body;
+    const { childAge, childName, behavior, context, frequency }: BehaviorPlanRequest = req.body;
 
     if (!childAge || !behavior) {
       console.log('Missing required fields:', { childAge, behavior });
@@ -60,8 +61,11 @@ router.post('/generate', async (req, res) => {
 
     console.log('Calling OpenAI API...');
     
-    // Create a shorter prompt for faster response
-    const shortPrompt = `Create a behavior plan for a ${childAge} year old child who is ${behavior.toLowerCase()}. 
+    // Create a personalized prompt
+    const childRef = childName ? childName : `this ${childAge} year old child`;
+    const shortPrompt = `Create a behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} ${frequency ? `Frequency: ${frequency}` : ''}
+
+${childName ? `Use the child's name "${childName}" throughout the advice to make it personal and specific.` : ''}
 
 Respond only in valid JSON with these exact fields:
 {
