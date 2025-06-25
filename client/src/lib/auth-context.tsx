@@ -62,10 +62,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
   
-  // Initialize component and completely disable automatic queries
+  // Initialize component with smart authentication handling
   useEffect(() => {
-    // Always disable automatic auth queries to prevent loop
-    setAuthFailed(true);
+    const currentPath = window.location.pathname;
+    
+    // On login page, force clear everything to prevent loops
+    if (currentPath === '/login') {
+      console.log('Login page detected - clearing all auth data');
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        AuthStorage.clearAuthData();
+        setUser(null);
+        queryClient.clear();
+        setAuthFailed(true);
+      } catch (e) {
+        console.warn('Auth clear error:', e);
+      }
+      setInitialLoadComplete(true);
+      return;
+    }
+    
+    // For other pages, try to load cached auth but don't query server
+    setAuthFailed(true); // Prevent automatic server queries
     setInitialLoadComplete(true);
   }, []);
   console.log('Auth provider initialized')
@@ -99,46 +118,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetch: refetchUser
   } = useQuery<BaseUser>({
     queryKey: ['/api/auth/me'],
+    queryFn: async (): Promise<BaseUser> => {
+      throw new Error('Auth query disabled to prevent loops');
+    },
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: 300000, // 5 minutes - much longer cache
-    gcTime: 600000, // 10 minutes - longer cleanup
-    enabled: false, // Disabled by default - manual control only
+    refetchOnReconnect: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    enabled: false, // Permanently disabled
   });
 
-  // Check for force logout flag and clear everything if needed
+  // Load cached auth data without server queries
   useEffect(() => {
-    // Check if we need to force clear everything
-    if (window.location.search.includes('forceLogout=true')) {
-      console.log('Force logout detected - clearing all data');
+    // Only load cached auth on non-login pages
+    if (window.location.pathname !== '/login') {
       try {
-        localStorage.clear();
-        sessionStorage.clear();
-        AuthStorage.clearAuthData();
-        setUser(null);
-        queryClient.clear();
-        setAuthFailed(false);
-        
-        // Clear URL parameter and redirect to login
-        window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = '/login';
-        return;
+        const cachedAuth = AuthStorage.getAuthData();
+        if (cachedAuth) {
+          setUser(cachedAuth);
+          queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+          setAuthFailed(false);
+        }
       } catch (error) {
-        console.warn('Force logout clear failed:', error);
+        console.warn('Failed to load cached auth:', error);
       }
-    }
-    
-    // Normal cached auth loading
-    try {
-      const cachedAuth = AuthStorage.getAuthData();
-      if (cachedAuth) {
-        setUser(cachedAuth);
-        queryClient.setQueryData(['/api/auth/me'], cachedAuth);
-        setAuthFailed(false);
-      }
-    } catch (error) {
-      console.warn('Failed to load cached auth:', error);
     }
   }, []);
 

@@ -35,12 +35,28 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Clear any stuck authentication data on login page load
+  // Force complete authentication cleanup on login page
   useEffect(() => {
+    console.log('Login page mounted - clearing all authentication data');
     try {
-      localStorage.removeItem('authState');
-      localStorage.removeItem('user');
-      sessionStorage.removeItem('authData');
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear specific auth keys that might persist
+      ['authState', 'user', 'authData', 'isAuthenticated'].forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+      
+      // Clear cookies
+      document.cookie.split(";").forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      });
+      
+      console.log('Login page cleanup complete');
     } catch (e) {
       console.warn("Auth cleanup error:", e);
     }
