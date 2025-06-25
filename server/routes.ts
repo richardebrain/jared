@@ -17,6 +17,7 @@ if (process.env.SENDGRID_API_KEY) {
   mailService.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
+
 // SendGrid email service for ECE monthly reports
 // async function sendEceMonthlyReport(
 //   recipients: string[],
