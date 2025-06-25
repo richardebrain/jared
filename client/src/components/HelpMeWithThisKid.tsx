@@ -59,17 +59,26 @@ export function HelpMeWithThisKid() {
 
     setIsLoading(true);
     try {
-      const response = await apiRequest("/api/behavior-plan/generate", {
-        method: "POST",
-        body: {
+      const response = await fetch('/api/behavior-plan/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           childAge,
           behavior,
           context,
           frequency
-        }
+        }),
       });
 
-      setPlan(response.plan);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || 'Failed to generate behavior plan');
+      }
+
+      const data = await response.json();
+      setPlan(data.plan);
       toast({
         title: "Behavior Plan Generated",
         description: "Your personalized strategy plan is ready!",
@@ -78,7 +87,7 @@ export function HelpMeWithThisKid() {
       console.error("Error generating behavior plan:", error);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate behavior plan. Please try again.",
+        description: error.message || "Unable to generate behavior plan. Please try again.",
         variant: "destructive",
       });
     } finally {
