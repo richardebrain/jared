@@ -7,13 +7,14 @@ import { MeetingScheduler } from "@/components/MeetingScheduler";
 import LessonPlanMaker from "@/components/LessonPlanMaker";
 import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
 import TransitionTimerTool from "@/components/TransitionTimerTool";
+import { HelpMeWithThisKid } from "@/components/HelpMeWithThisKid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Smartphone, Heart, Sparkles
+  Heart, Sparkles, UserCheck
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -96,7 +97,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, 
 };
 
 export default function ToolsPage() {
-  const [activeTab, setActiveTab] = useState("parent-responses");
+  const [activeTab, setActiveTab] = useState("help-me-with-this-kid");
   const [viewMode, setViewMode] = useState<"cards" | "tabs">("tabs");
 
   // Tools definitions
