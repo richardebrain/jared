@@ -213,31 +213,11 @@ export default function ToolsPage() {
       )
     },
     {
-      id: "edutok",
-      title: "EduTok",
-      description: "Quick teaching tips in TikTok-style short videos",
-      icon: <Smartphone className="h-6 w-6" />,
-      component: (
-        <div className="flex flex-col items-center justify-center py-8">
-          <h3 className="text-xl font-semibold mb-4">EduTok - Teaching Wisdom in Shorts</h3>
-          <div className="text-center mb-6">
-            <div className="mb-3 inline-block py-1 px-3 bg-amber-100 text-amber-700 border border-amber-200 rounded-full text-sm font-medium">
-              Coming Soon
-            </div>
-            <p className="text-muted-foreground max-w-lg">
-              Swipe through bite-sized teaching tips, classroom management ideas, and quick activities in a fun, easy-to-consume format.
-            </p>
-          </div>
-          <Button 
-            size="lg" 
-            className="gap-2"
-            disabled
-          >
-            <Smartphone className="h-5 w-5" />
-            EduTok Experience Coming Soon
-          </Button>
-        </div>
-      )
+      id: "help-me-with-this-kid",
+      title: "Help Me With This Kid",
+      description: "Expert strategies for challenging behaviors",
+      icon: <UserCheck className="h-6 w-6" />,
+      component: <HelpMeWithThisKid />
     },
     {
       id: "personalized-stories",

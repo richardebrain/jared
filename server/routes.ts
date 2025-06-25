@@ -8389,6 +8389,10 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   // Register image generation routes for lesson plan visualization
   app.use("/api/ai", imageGenerationRoutes);
 
+  // Behavior plan routes for "Help Me With This Kid" feature
+  const behaviorPlanRoutes = (await import('./api/behaviorPlanRoutes.js')).default;
+  app.use("/api/behavior-plan", behaviorPlanRoutes);
+
   // Module drafts API endpoints
   app.get("/api/module-drafts", requireAuth, async (req, res) => {
     try {
