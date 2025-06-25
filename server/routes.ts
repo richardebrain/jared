@@ -3222,6 +3222,70 @@ Continue for all 5 questions...
     },
   );
 
+  // Delete learning module with app owner privileges
+  app.delete("/api/modules/:id", requireAuth, async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const userId = req.session.userId;
+
+      if (!moduleId || isNaN(moduleId)) {
+        return res.status(400).json({ error: "Invalid module ID" });
+      }
+
+      // Get the module to check ownership
+      const moduleResult = await db.execute(sql`
+        SELECT id, title, creator_id 
+        FROM learning_modules 
+        WHERE id = ${moduleId}
+      `);
+
+      if (moduleResult.rows.length === 0) {
+        return res.status(404).json({ error: "Module not found" });
+      }
+
+      const module = moduleResult.rows[0];
+      
+      // Get current user to check ownership and app owner status
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      // Check permissions: user owns the module OR user is app owner
+      const canDelete = module.creator_id === userId || user.isOwner;
+      
+      if (!canDelete) {
+        return res.status(403).json({ 
+          error: "Access denied. You can only delete your own modules." 
+        });
+      }
+
+      console.log(`[DELETE] User ${userId} (${user.isOwner ? 'APP OWNER' : 'REGULAR USER'}) deleting module ${moduleId}: "${module.title}"`);
+
+      // Delete the module
+      await db.execute(sql`
+        DELETE FROM learning_modules 
+        WHERE id = ${moduleId}
+      `);
+
+      console.log(`[DELETE] Successfully deleted module ${moduleId}`);
+
+      res.status(200).json({ 
+        success: true, 
+        message: "Module deleted successfully",
+        moduleId: moduleId,
+        title: module.title
+      });
+
+    } catch (error) {
+      console.error("Error deleting module:", error);
+      res.status(500).json({ 
+        error: "Failed to delete module",
+        details: error.message 
+      });
+    }
+  });
+
   // Admin middleware
   const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
     // Simple password-based admin authentication
