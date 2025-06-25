@@ -89,6 +89,8 @@ router.post('/generate', async (req, res) => {
     if (isPreschool) {
       ageSpecificPrompt = `Create a preschool behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
 
+PRESCHOOL NORMALITY ASSESSMENT: For ages 2-5, many behaviors are normal as children develop emotional regulation, language skills, and social awareness. Tantrums, crying, hitting, biting are often developmentally appropriate.
+
 Use these PRESCHOOL strategies:
 - Simple language and immediate responses
 - Visual cues and picture schedules
@@ -99,6 +101,8 @@ Use these PRESCHOOL strategies:
     } else if (isSchoolAge) {
       ageSpecificPrompt = `Create a school-age behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
 
+SCHOOL-AGE NORMALITY ASSESSMENT: For ages 6-8, children should have better emotional control and communication skills. Excessive crying, tantrums, or aggressive behaviors may indicate underlying needs or skill gaps that require intervention.
+
 Use these SCHOOL-AGE strategies:
 - Problem-solving discussions
 - Logical explanations and reasoning
@@ -108,6 +112,8 @@ Use these SCHOOL-AGE strategies:
 - Privilege-based reward systems`;
     } else {
       ageSpecificPrompt = `Create a pre-teen behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
+
+PRE-TEEN NORMALITY ASSESSMENT: For ages 9-11, emotional outbursts like excessive crying when things don't go their way are typically NOT normal and may indicate emotional regulation difficulties, anxiety, or other concerns that need targeted intervention.
 
 Use these PRE-TEEN strategies:
 - Emotional intelligence development
