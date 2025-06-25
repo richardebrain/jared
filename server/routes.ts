@@ -3270,7 +3270,7 @@ Continue for all 5 questions...
         WHERE module_id = ${moduleId}
       `);
       
-      // 2. Delete from community_module_awards table
+      // 2. Delete from community_module_awards table  
       await db.execute(sql`
         DELETE FROM community_module_awards 
         WHERE module_id = ${moduleId}
@@ -3285,12 +3285,6 @@ Continue for all 5 questions...
       // 4. Delete from module_ratings table
       await db.execute(sql`
         DELETE FROM module_ratings 
-        WHERE module_id = ${moduleId}
-      `);
-      
-      // 5. Delete from module_drafts table
-      await db.execute(sql`
-        DELETE FROM module_drafts 
         WHERE module_id = ${moduleId}
       `);
 
