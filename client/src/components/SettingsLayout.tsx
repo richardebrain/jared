@@ -38,11 +38,7 @@ export default function SettingsLayout({
       href: '/settings/content',
       icon: <BookCopy className="h-4 w-4" />,
     },
-    {
-      title: 'Admin',
-      href: '/settings/admin',
-      icon: <Shield className="h-4 w-4" />,
-    },
+
   ];
 
   return (
