@@ -1,7 +1,14 @@
 import express from 'express';
 import OpenAI from 'openai';
 
+console.log('Loading behavior plan routes...');
+
 const router = express.Router();
+
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({ message: 'Behavior plan routes working' });
+});
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -28,8 +35,10 @@ interface BehaviorPlan {
 }
 
 router.post('/generate', async (req, res) => {
+  console.log('=== BEHAVIOR PLAN GENERATE ENDPOINT HIT ===');
+  console.log('Request body:', req.body);
+  
   try {
-    console.log('Behavior plan request received:', req.body);
     
     const { childAge, behavior, context, frequency }: BehaviorPlanRequest = req.body;
 
@@ -69,7 +78,13 @@ Please provide a comprehensive behavior plan in JSON format with these sections:
 Make all explanations simple enough for a 12-year-old to understand, but practical enough for immediate classroom use. Focus on creative, fresh approaches the teacher might not have thought of. Be specific and actionable.`;
 
     console.log('Calling OpenAI API...');
-    const response = await openai.chat.completions.create({
+    
+    // Add timeout handling
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('OpenAI request timeout')), 25000);
+    });
+    
+    const apiPromise = openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
@@ -83,9 +98,10 @@ Make all explanations simple enough for a 12-year-old to understand, but practic
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 2000
+      max_tokens: 1500
     });
     
+    const response = await Promise.race([apiPromise, timeoutPromise]);
     console.log('OpenAI API response received');
 
     const planText = response.choices[0].message.content;

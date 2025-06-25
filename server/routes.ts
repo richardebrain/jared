@@ -8390,8 +8390,13 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   app.use("/api/ai", imageGenerationRoutes);
 
   // Behavior plan routes for "Help Me With This Kid" feature
-  const behaviorPlanRoutes = (await import('./api/behaviorPlanRoutes.js')).default;
-  app.use("/api/behavior-plan", behaviorPlanRoutes);
+  try {
+    const behaviorPlanRoutes = (await import('./api/behaviorPlanRoutes.js')).default;
+    app.use("/api/behavior-plan", behaviorPlanRoutes);
+    console.log('Behavior plan routes registered successfully');
+  } catch (error) {
+    console.error('Failed to register behavior plan routes:', error);
+  }
 
   // Module drafts API endpoints
   app.get("/api/module-drafts", requireAuth, async (req, res) => {
