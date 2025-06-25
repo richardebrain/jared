@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await response.json();
         console.log('Manual auth successful:', userData);
         const normalizedUser = normalizeUserData(userData as User);
-        setUser(normalizedUser);
+        setCurrentUser(normalizedUser);
         AuthStorage.setAuthData(normalizedUser);
         setAuthFailed(false);
         return userData;
@@ -188,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnReconnect: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    enabled: !isOnPublicPage() && initialLoadComplete, // Always enable auth check on protected pages
+    enabled: !isOnPublicPage() && initialLoadComplete, // Always check auth on protected pages
   });
 
   // Handle successful auth data from server query
