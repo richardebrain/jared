@@ -626,12 +626,11 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
 }
 `;
 
-      const questionData = await monitoredAIRequest(
-        'quiz-question-generation',
-        async () => {
-          const openai = new (await import("openai")).default({
-            apiKey: process.env.OPENAI_API_KEY,
-          });
+      const openai = new (await import("openai")).default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const questionData = await (async () => {
 
           const response = await openai.chat.completions.create({
             model: "gpt-4o",
