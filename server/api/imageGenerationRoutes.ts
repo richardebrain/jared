@@ -61,13 +61,15 @@ router.post('/generate-image', async (req, res) => {
     console.log(`Generating high-quality image with enhanced prompt: ${enhancedPrompt.substring(0, 100)}...`);
 
     // Generate image using OpenAI DALL-E 3 with enhanced settings
+    const validStyle = style === 'cartoon' ? 'vivid' : (style === 'natural' ? 'natural' : 'vivid');
+    
     const response = await openai.images.generate({
       model: "dall-e-3", // Using DALL-E 3 for best image generation quality
       prompt: enhancedPrompt,
       n: 1,
       size: size,
       quality: quality, // Default to 'hd' for better quality
-      style: style,
+      style: validStyle,
     });
 
     const imageUrl = response.data[0]?.url;
