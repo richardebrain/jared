@@ -3262,7 +3262,33 @@ Continue for all 5 questions...
 
       console.log(`[DELETE] User ${userId} (${user.isOwner ? 'APP OWNER' : 'REGULAR USER'}) deleting module ${moduleId}: "${module.title}"`);
 
-      // Delete the module
+      // Delete related records first to avoid foreign key constraint violations
+      
+      // 1. Delete from community_modules table if exists
+      await db.execute(sql`
+        DELETE FROM community_modules 
+        WHERE module_id = ${moduleId}
+      `);
+      
+      // 2. Delete from user_progress table if exists
+      await db.execute(sql`
+        DELETE FROM user_progress 
+        WHERE module_id = ${moduleId}
+      `);
+      
+      // 3. Delete from module_ratings table if exists
+      await db.execute(sql`
+        DELETE FROM module_ratings 
+        WHERE module_id = ${moduleId}
+      `);
+      
+      // 4. Delete from learning_progress table if exists
+      await db.execute(sql`
+        DELETE FROM learning_progress 
+        WHERE module_id = ${moduleId}
+      `);
+
+      // 5. Finally delete the module itself
       await db.execute(sql`
         DELETE FROM learning_modules 
         WHERE id = ${moduleId}
