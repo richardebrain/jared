@@ -62,20 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
   
-  // Clear any stored auth data on initial component mount
+  // Initialize component and completely disable automatic queries
   useEffect(() => {
-    // Only clear auth state on the landing page if explicitly requested
-    if (window.location.pathname === "/" && window.location.search.includes('clear=true')) {
-      console.log("Clearing auth state on initial page load");
-      try {
-        localStorage.removeItem('isAuthenticated');
-        sessionStorage.removeItem('laura_login_success');
-      } catch (e) {
-        console.warn("Could not clear storage:", e);
-      }
-    }
-    
-    // Set initial load complete after first render
+    // Always disable automatic auth queries to prevent loop
+    setAuthFailed(true);
     setInitialLoadComplete(true);
   }, []);
   console.log('Auth provider initialized')
@@ -117,17 +107,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: false, // Disabled by default - manual control only
   });
 
-  // Minimal auth validation - only when absolutely necessary
+  // Load cached auth data only - no server calls
   useEffect(() => {
-    // Only check auth when manually requested or on login page
-    if (window.location.pathname === '/login' || window.location.pathname === '/dashboard') {
+    try {
       const cachedAuth = AuthStorage.getAuthData();
-      if (cachedAuth && !authFailed) {
+      if (cachedAuth) {
         setUser(cachedAuth);
         queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+        setAuthFailed(false);
       }
+    } catch (error) {
+      console.warn('Failed to load cached auth:', error);
     }
-  }, [authFailed]);
+  }, []);
 
   // Force redirect after successful authentication
   useEffect(() => {
@@ -337,12 +329,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Determine authentication state using the stored user state
+  // Determine authentication state using the stored user state with proper admin detection
   const currentUser = user || normalizedUser;
   const isAuthenticated = !!currentUser && !authFailed;
-  const isAdmin = currentUser?.isAdmin || false;
-  const isSchoolAdmin = currentUser?.isSchoolAdmin || false;
-  const isOwner = currentUser?.isOwner || false;
+  const isAdmin = currentUser?.isAdmin || currentUser?.is_admin || false;
+  const isSchoolAdmin = currentUser?.isSchoolAdmin || currentUser?.is_school_admin || false;
+  const isOwner = currentUser?.isOwner || currentUser?.is_owner || false;
 
   // Login function
   const login = async (credentials: { username: string; password: string }): Promise<void> => {
