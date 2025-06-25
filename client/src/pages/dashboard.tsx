@@ -48,6 +48,18 @@ import { useTutorial } from "@/hooks/useTutorial";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
+  
+  // Force auth context refresh on dashboard mount
+  useEffect(() => {
+    console.log('Dashboard mounted, checking auth state');
+    // Small delay to ensure auth context has loaded
+    const timer = setTimeout(() => {
+      // This will trigger auth context to reload if needed
+      window.dispatchEvent(new Event('auth-refresh'));
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
   const [showAchievement, setShowAchievement] = useState(false);
   const [lastCompletedModule, setLastCompletedModule] = useState<string | null>(null);
   const { showTutorial, openTutorial, closeTutorial, completeTutorial, userRole, isNewUser } = useTutorial();

@@ -130,22 +130,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: false, // Permanently disabled
   });
 
-  // Load cached auth data without server queries
+  // Load cached auth data without server queries - enhanced navigation handling
   useEffect(() => {
     // Only load cached auth on non-login pages
     if (window.location.pathname !== '/login') {
       try {
         const cachedAuth = AuthStorage.getAuthData();
         if (cachedAuth) {
+          console.log('Loading cached auth for navigation');
           setUser(cachedAuth);
           queryClient.setQueryData(['/api/auth/me'], cachedAuth);
           setAuthFailed(false);
+        } else {
+          console.log('No cached auth found');
+          setAuthFailed(true);
         }
       } catch (error) {
         console.warn('Failed to load cached auth:', error);
+        setAuthFailed(true);
       }
     }
+    setInitialLoadComplete(true);
   }, []);
+
+  // Handle navigation events to refresh auth state
+  useEffect(() => {
+    const handleNavigation = () => {
+      console.log('Navigation detected, refreshing auth state');
+      if (window.location.pathname !== '/login') {
+        try {
+          const cachedAuth = AuthStorage.getAuthData();
+          if (cachedAuth && !user) {
+            console.log('Restoring user auth after navigation');
+            setUser(cachedAuth);
+            queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+            setAuthFailed(false);
+          }
+        } catch (error) {
+          console.warn('Navigation auth refresh failed:', error);
+        }
+      }
+    };
+
+    // Listen for popstate events (back/forward navigation)
+    window.addEventListener('popstate', handleNavigation);
+    
+    // Listen for custom auth refresh events
+    const handleAuthRefresh = () => {
+      console.log('Auth refresh event received');
+      handleNavigation();
+    };
+    
+    window.addEventListener('auth-refresh', handleAuthRefresh);
+    
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('auth-refresh', handleAuthRefresh);
+    };
+  }, [user, queryClient]);
 
   // Force redirect after successful authentication
   useEffect(() => {
