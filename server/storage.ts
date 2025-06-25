@@ -1478,13 +1478,18 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       const result = await db.execute(sql`
-        SELECT id, school_id, username, password, first_name, last_name, email, 
-               language, native_language, time_zone, profile_picture, is_admin, 
-               is_school_admin, is_owner, job_title, designations, points, bear_bucks, 
-               level, streak, last_active, achievement_count, lifetime_points, 
-               learning_style, active_avatar_id, cpr_expiration, first_aid_expiration, 
-               food_handler_expiration, fingerprint_expiration, has_unread_messages, 
-               song_requests_this_week, last_song_week, created_at
+        SELECT id, school_id as "schoolId", username, password, first_name as "firstName", 
+               last_name as "lastName", email, language, native_language as "nativeLanguage", 
+               time_zone as "timeZone", profile_picture as "profilePicture", is_admin as "isAdmin", 
+               is_school_admin as "isSchoolAdmin", is_owner as "isOwner", job_title as "jobTitle", 
+               designations, points, bear_bucks as "bearBucks", level, streak, last_active as "lastActive", 
+               achievement_count as "achievementCount", lifetime_points as "lifetimePoints", 
+               learning_style as "learningStyle", active_avatar_id as "activeAvatarId", 
+               cpr_expiration as "cprExpiration", first_aid_expiration as "firstAidExpiration", 
+               food_handler_expiration as "foodHandlerExpiration", fingerprint_expiration as "fingerprintExpiration", 
+               has_unread_messages as "hasUnreadMessages", song_requests_this_week as "songRequestsThisWeek", 
+               last_song_week as "lastSongWeek", created_at as "createdAt",
+               has_completed_tutorial as "hasCompletedTutorial"
         FROM users WHERE username = ${username} LIMIT 1
       `);
       return result.rows[0] as User || undefined;
