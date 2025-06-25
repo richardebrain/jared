@@ -757,8 +757,10 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       try {
         if (typeof rawModule.content === 'string') {
           const parsedContent = JSON.parse(rawModule.content);
+          console.log('parsedC Content',parsedContent)
           return parsedContent.sections || [];
         }
+        console.log(rawModule,'raw module')
         return rawModule.content?.sections || [];
       } catch (error) {
         console.error('Error parsing module content:', error);
@@ -766,7 +768,8 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
       }
     })()
   } : null;
-  
+
+  console.log(module,'module loaded')
 
   // Award points mutation
   const awardPointsMutation = useMutation({
@@ -1188,41 +1191,30 @@ console.log('Rendering section content:', currentSection)
           // Debug log to see the actual content structure
           console.log('Quiz section content:', currentSection.content);
           console.log('Quiz section content type:', typeof currentSection.content);
-          
-          // The content might be already parsed as an array or a JSON string
-          if (currentSection.content) {
-            if (Array.isArray(currentSection.content)) {
-              // Content is already an array of questions
-              questions = currentSection.content;
-            } else if (typeof currentSection.content === 'string') {
-              // Content is a JSON string that needs parsing
-              const parsedContent = JSON.parse(currentSection.content);
-              if (Array.isArray(parsedContent)) {
-                questions = parsedContent;
-              } else if (parsedContent.blocks && Array.isArray(parsedContent.blocks)) {
-                questions = parsedContent.blocks;
-              } else if (parsedContent.questions && Array.isArray(parsedContent.questions)) {
-                questions = parsedContent.questions;
-              }
-            } else if (typeof currentSection.content === 'object') {
-              // Handle object content structure from AI generation
-              if (currentSection.content.questions && Array.isArray(currentSection.content.questions)) {
-                questions = currentSection.content.questions;
-              } else if (currentSection.content.blocks && Array.isArray(currentSection.content.blocks)) {
-                // Check if blocks contain quiz content
-                const quizBlock = currentSection.content.blocks.find(block => block.type === 'quiz');
-                if (quizBlock && Array.isArray(quizBlock.content)) {
-                  questions = quizBlock.content;
-                } else if (currentSection.content.blocks[0] && Array.isArray(currentSection.content.blocks[0].content)) {
-                  questions = currentSection.content.blocks[0].content;
-                }
-              } else if (Array.isArray(currentSection.content.content)) {
-                // Direct content array
-                questions = currentSection.content.content;
-              }
+          const tryParse = (val: any) => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            if (typeof val === 'string') {
+              try {
+                const parsed = JSON.parse(val);
+                return tryParse(parsed);
+              } catch { return []; }
             }
-          }
-          
+            if (typeof val === 'object') {
+              if (Array.isArray(val.questions)) return val.questions;
+              if (val.blocks && Array.isArray(val.blocks)) {
+                // Find a quiz block
+                const quizBlock = val.blocks.find((b: any) => b.type === 'quiz');
+                if (quizBlock) return tryParse(quizBlock.content);
+                // Or just use first block
+                if (val.blocks[0]) return tryParse(val.blocks[0].content);
+              }
+              if (Array.isArray(val.content)) return val.content;
+              if (typeof val.content === 'string') return tryParse(val.content);
+            }
+            return [];
+          };
+          questions = tryParse(currentSection.content);
           console.log('Parsed questions:', questions);
           
           if (questions.length === 0) {
@@ -1351,72 +1343,57 @@ console.log('Rendering section content:', currentSection)
         // );
 
       case 'scenario-match':
-        try {
-          console.log('Scenario match content:', currentSection.content);
-          let scenarioData;
-          
-          // Handle different content formats
-          if (typeof currentSection.content === 'string') {
-            try {
-              scenarioData = JSON.parse(currentSection.content);
-            } catch {
-              // If JSON parsing fails, treat as plain text and create a basic structure
-              scenarioData = {
-                title: currentSection.title || "Scenario Challenge",
-                scenario: currentSection.content,
-                options: ["Option A", "Option B", "Option C"],
-                correctAnswer: "Option A",
-                correctFeedback: "Great choice!",
-                incorrectFeedback: "Consider a different approach."
-              };
-            }
-          } else if (typeof currentSection.content === 'object') {
-            scenarioData = currentSection.content;
-          } else {
-            throw new Error('Invalid content format');
-          }
-          
-          console.log('Parsed scenario data:', scenarioData);
-          
-          // Handle array of scenarios vs single scenario
-          if (Array.isArray(scenarioData)) {
-            // Multiple scenarios - use the multi-scenario component
-            return (
-              <MultiScenarioMatchComponent
-                scenarios={scenarioData}
-                onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
-              />
-            );
-          } else {
-            // Single scenario object
-            return (
-              <ScenarioMatchComponent
-                scenario={scenarioData}
-                onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
-              />
-            );
-          }
-        } catch (error) {
-          console.error('Error parsing scenario match content:', error);
-          console.log('Raw content:', currentSection.content);
-          return (
-            <Card>
-              <CardContent>
-                <p className="text-red-500">Error loading scenario content</p>
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-sm text-gray-600">Debug Info</summary>
-                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
-                    {JSON.stringify({ 
-                      content: currentSection.content, 
-                      type: typeof currentSection.content,
-                      error: error.message 
-                    }, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-          );
+      try {
+        let scenarioData;
+
+        if (typeof currentSection.content === 'string') {
+          scenarioData = JSON.parse(currentSection.content);
+        } else if (Array.isArray(currentSection.content)) {
+          scenarioData = currentSection.content;
+        } else if (currentSection.content && currentSection.content.blocks && Array.isArray(currentSection.content.blocks) && currentSection.content.blocks[0]?.content) {
+          scenarioData = currentSection.content.blocks[0].content;
+        } else {
+          throw new Error('Scenario-match content is not a valid array, JSON string, or blocks wrapper');
         }
+
+        if (!Array.isArray(scenarioData) || scenarioData.length === 0) {
+          throw new Error('Scenario-match content is not a non-empty array');
+        }
+
+        // Validate structure (optional, but helpful for debugging)
+        const valid = scenarioData.every(item =>
+          typeof item === 'object' &&
+          typeof item.id === 'string' &&
+          typeof item.scenario === 'string' &&
+          Array.isArray(item.options) &&
+          typeof item.correctAnswer !== 'undefined'
+        );
+        if (!valid) {
+          throw new Error('Scenario-match array items are not in the expected format');
+        }
+
+        return (
+          <MultiScenarioMatchComponent
+            scenarios={scenarioData}
+            onComplete={() => handleSectionComplete(currentSectionIndex, 0)}
+          />
+        );
+      } catch (error) {
+        console.error('Error parsing scenario match content:', error);
+        return (
+          <Card>
+            <CardContent>
+              <p className="text-red-500">Error loading scenario matching activity: {error.message}</p>
+              <details className="mt-2">
+                <summary className="cursor-pointer text-sm text-gray-600">Debug Info</summary>
+                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded">
+                  {JSON.stringify({ content: currentSection.content, type: typeof currentSection.content, error: error.message }, null, 2)}
+                </pre>
+              </details>
+            </CardContent>
+          </Card>
+        );
+      }
 
       default:
         return (
