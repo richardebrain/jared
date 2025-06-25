@@ -161,22 +161,6 @@ const directorTools: ToolkitTool[] = [
     icon: Settings,
     route: '/school-settings',
     category: 'analytics'
-  },
-  {
-    id: 'goals-tracker',
-    title: 'Professional Goals Tracker',
-    description: 'Set and monitor professional development goals for your team',
-    icon: Target,
-    route: '/admin/goals',
-    category: 'analytics'
-  },
-  {
-    id: 'admin-settings',
-    title: 'School Settings',
-    description: 'Configure school-wide policies, requirements, and customizations',
-    icon: Settings,
-    route: '/admin/settings',
-    category: 'analytics'
   }
 ];
 
