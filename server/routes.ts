@@ -2676,7 +2676,7 @@ Continue for all 5 questions...
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Get modules created by this user with comprehensive data
+      // Get ALL modules created by this user with comprehensive data
       const modules = await db.execute(sql`
         SELECT id, title, description, duration, difficulty, category, 
                average_rating as "averageRating", rating_count as "ratingCount", 
