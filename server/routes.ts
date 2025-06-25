@@ -2667,7 +2667,7 @@ Continue for all 5 questions...
   });
 
   // Get user's own modules
-  app.get("/api/modules/user/:userId", async (req, res) => {
+  app.get("/api/modules/user/:userId", requireAuth, async (req, res) => {
     try {
       const { userId } = req.session;
       const requestedUserId = parseInt(req.params.userId);
@@ -2676,17 +2676,30 @@ Continue for all 5 questions...
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Get modules created by this user
+      // Get modules created by this user with comprehensive data
       const modules = await db.execute(sql`
         SELECT id, title, description, duration, difficulty, category, 
-               average_rating, rating_count, created_at, image_url
+               average_rating as "averageRating", rating_count as "ratingCount", 
+               created_at as "createdAt", image_url as "imageUrl",
+               creator_id as "creatorId", point_value as "pointValue",
+               is_shared_to_community as "isSharedToCommunity",
+               ece_hours as "eceHours", ece_category as "eceCategory"
         FROM learning_modules 
         WHERE creator_id = ${userId}
         ORDER BY created_at DESC
-        LIMIT 10
       `);
 
-      res.status(200).json(modules.rows);
+      // Transform the results to ensure consistent data format
+      const userModules = modules.rows.map((row) => ({
+        ...row,
+        pointValue: row.pointValue || 5,
+        averageRating: row.averageRating || 0,
+        ratingCount: row.ratingCount || 0,
+        isSharedToCommunity: row.isSharedToCommunity || false,
+        creatorId: row.creatorId || userId,
+      }));
+
+      res.status(200).json(userModules);
     } catch (error) {
       console.error("Error fetching user modules:", error);
       res.status(500).json({ message: "Internal server error" });

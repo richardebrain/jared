@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye, User, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
@@ -746,6 +746,35 @@ export default function AllModules() {
           )}
         </TabsContent>
         
+        <TabsContent value="my" className="mt-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <User className="mr-2 h-5 w-5 text-blue-500" />
+              My Modules <span className="text-sm font-normal ml-2 text-muted-foreground">({userModules.length} modules)</span>
+            </h2>
+            <p className="text-muted-foreground mb-4">
+              Manage your created modules. {user?.isOwner ? "As app owner, you can edit or delete any module." : "You can edit and delete your own modules."}
+            </p>
+          </div>
+          
+          {userModules.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <BookOpen className="w-12 h-12 text-gray-400" />
+              </div>
+              <p className="text-gray-500 mb-4">You haven't created any modules yet.</p>
+              <Button onClick={() => setLocation('/new-module-creator')} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Module
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userModules.map(renderUserModuleCard)}
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="community" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {communityModules.map(renderCommunityModuleCard)}
