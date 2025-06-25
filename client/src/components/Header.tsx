@@ -107,40 +107,43 @@ export default function Header() {
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   console.log(user,'user from header')
   const performLogout = async () => {
-    console.log("Starting logout process...");
+    console.log("Starting force logout process...");
     
     // Immediately clear all client-side data
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Specifically clear welcome session keys for all users to ensure welcome shows on next login
-    const sessionKeys = Object.keys(sessionStorage);
-    sessionKeys.forEach(key => {
-      if (key.includes('welcomeShown_')) {
-        sessionStorage.removeItem(key);
-      }
-    });
-    
-    queryClient.clear();
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear all cookies by setting them to expire
+      document.cookie.split(";").forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      });
+      
+      queryClient.clear();
+    } catch (error) {
+      console.warn("Client data clear error:", error);
+    }
     
     try {
-      // Call server endpoints to clear session
+      // Clear server sessions
+      await fetch("/api/auth/clear-all-sessions", { method: "POST", credentials: "include" });
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      await fetch("/api/auth/clear-session", { method: "GET", credentials: "include" });
       console.log("Server logout completed");
     } catch (error) {
-      console.error("Server logout error:", error);
+      console.warn("Server logout error (continuing anyway):", error);
     }
     
     // Show success message
     toast({
       title: "Logged out",
-      description: "Redirecting to login page...",
+      description: "Session cleared, redirecting to login...",
     });
     
     // Force complete navigation to login page
     setTimeout(() => {
-      window.location.replace("/login");
+      window.location.href = "/login";
     }, 500);
   };
 

@@ -35,6 +35,17 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
+  // Clear any stuck authentication data on login page load
+  useEffect(() => {
+    try {
+      localStorage.removeItem('authState');
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('authData');
+    } catch (e) {
+      console.warn("Auth cleanup error:", e);
+    }
+  }, []);
+  
   // Safely get auth context with fallback
   let authContext;
   try {
