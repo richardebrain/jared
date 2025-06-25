@@ -114,32 +114,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnMount: false,
     staleTime: 300000, // 5 minutes - much longer cache
     gcTime: 600000, // 10 minutes - longer cleanup
-    enabled: false, // Disabled by default - only fetch when needed
+    enabled: false, // Disabled by default - manual control only
   });
 
-  // Smart auth validation - minimize server calls
+  // Minimal auth validation - only when absolutely necessary
   useEffect(() => {
-    const currentPath = window.location.pathname;
-    const isProtectedRoute = !isOnPublicPage();
-    
-    // Only validate on protected routes and when we don't have user data
-    if (isProtectedRoute && !user && !authFailed && !isLoading) {
-      // Double-check cache before server call
-      try {
-        const cachedAuth = AuthStorage.getAuthData();
-        if (cachedAuth) {
-          setUser(cachedAuth);
-          queryClient.setQueryData(['/api/auth/me'], cachedAuth);
-          return;
-        }
-      } catch (error) {
-        console.warn('Cache check failed:', error);
+    // Only check auth when manually requested or on login page
+    if (window.location.pathname === '/login' || window.location.pathname === '/dashboard') {
+      const cachedAuth = AuthStorage.getAuthData();
+      if (cachedAuth && !authFailed) {
+        setUser(cachedAuth);
+        queryClient.setQueryData(['/api/auth/me'], cachedAuth);
       }
-      
-      // Only fetch from server if no cache available
-      refetchUser();
     }
-  }, [window.location.pathname, user, authFailed, isLoading, refetchUser]);
+  }, [authFailed]);
 
   // Force redirect after successful authentication
   useEffect(() => {
