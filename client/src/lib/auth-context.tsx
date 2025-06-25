@@ -83,8 +83,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    // For other pages, try to load cached auth but don't query server
-    setAuthFailed(true); // Prevent automatic server queries
+    // For other pages, try to load cached auth first
+    try {
+      const cachedAuth = AuthStorage.getAuthData();
+      if (cachedAuth) {
+        console.log('Found cached auth data on initialization');
+        setUser(cachedAuth);
+        queryClient.setQueryData(['/api/auth/me'], cachedAuth);
+        setAuthFailed(false);
+      } else {
+        console.log('No cached auth found, will attempt server check');
+        setAuthFailed(false); // Allow server query attempt
+      }
+    } catch (error) {
+      console.warn('Error loading cached auth:', error);
+      setAuthFailed(false); // Still allow server query attempt
+    }
+    
     setInitialLoadComplete(true);
   }, []);
   console.log('Auth provider initialized')
@@ -119,39 +134,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<BaseUser>({
     queryKey: ['/api/auth/me'],
     queryFn: async (): Promise<BaseUser> => {
-      throw new Error('Auth query disabled to prevent loops');
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Authentication failed');
+      }
+      
+      const userData = await response.json();
+      console.log('Auth query successful:', userData);
+      
+      // Cache the successful auth data
+      AuthStorage.saveAuthData(userData);
+      
+      return userData;
     },
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    enabled: false, // Permanently disabled
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !isOnPublicPage() && !authFailed && initialLoadComplete && !user, // Enable when we need to check auth
   });
 
-  // Load cached auth data without server queries - enhanced navigation handling
+  // Handle successful auth data from server query
   useEffect(() => {
-    // Only load cached auth on non-login pages
-    if (window.location.pathname !== '/login') {
-      try {
-        const cachedAuth = AuthStorage.getAuthData();
-        if (cachedAuth) {
-          console.log('Loading cached auth for navigation');
-          setUser(cachedAuth);
-          queryClient.setQueryData(['/api/auth/me'], cachedAuth);
-          setAuthFailed(false);
-        } else {
-          console.log('No cached auth found');
-          setAuthFailed(true);
-        }
-      } catch (error) {
-        console.warn('Failed to load cached auth:', error);
-        setAuthFailed(true);
-      }
+    if (userData && !isError) {
+      console.log('Server auth query successful, updating user state:', userData);
+      const normalizedUser = normalizeUserData(userData as User);
+      setUser(normalizedUser);
+      AuthStorage.saveAuthData(normalizedUser);
+      setAuthFailed(false);
+    } else if (isError) {
+      console.log('Server auth query failed:', error);
+      setUser(null);
+      AuthStorage.clearAuthData();
+      setAuthFailed(true);
     }
-    setInitialLoadComplete(true);
-  }, []);
+  }, [userData, isError, error]);
 
   // Handle navigation events to refresh auth state
   useEffect(() => {
