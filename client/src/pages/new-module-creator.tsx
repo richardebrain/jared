@@ -123,6 +123,8 @@ export default function NewModuleCreator() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
 
   // Fetch user's modules
@@ -133,10 +135,36 @@ export default function NewModuleCreator() {
 
   // Type the modules data properly
   const modules = Array.isArray(userModules) ? userModules : [];
-  
 
-
-
+  // Delete module mutation
+  const deleteModuleMutation = useMutation({
+    mutationFn: async (moduleId: number) => {
+      console.log(`[DELETE] Attempting to delete module ${moduleId}`);
+      const result = await apiRequest(`/api/modules/${moduleId}`, {
+        method: 'DELETE'
+      });
+      console.log(`[DELETE] Delete result:`, result);
+      return result;
+    },
+    onSuccess: (data, moduleId) => {
+      console.log(`[DELETE] Successfully deleted module ${moduleId}`);
+      // Invalidate multiple query keys to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/modules/user/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      toast({
+        title: "Module Deleted",
+        description: "The module has been successfully deleted.",
+      });
+    },
+    onError: (error: any, moduleId) => {
+      console.error(`[DELETE] Failed to delete module ${moduleId}:`, error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || error.message || "Failed to delete module",
+        variant: "destructive",
+      });
+    }
+  });
 
   if (!isAuthenticated) {
     setLocation('/login');
@@ -157,29 +185,6 @@ export default function NewModuleCreator() {
   const handleViewModule = (moduleId: number) => {
     setLocation(`/modules/${moduleId}`);
   };
-
-  // Delete module mutation
-  const deleteModuleMutation = useMutation({
-    mutationFn: async (moduleId: number) => {
-      return apiRequest(`/api/modules/${moduleId}`, {
-        method: 'DELETE'
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/modules/user/${user?.id}`] });
-      toast({
-        title: "Module Deleted",
-        description: "The module has been successfully deleted.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.response?.data?.error || "Failed to delete module",
-        variant: "destructive",
-      });
-    }
-  });
 
   const handleDeleteModule = (moduleId: number) => {
     deleteModuleMutation.mutate(moduleId);
@@ -215,9 +220,19 @@ export default function NewModuleCreator() {
           </div>
         ) : modules && modules.length > 0 ? (
           <>
-            <p className="text-gray-600 mb-4">
-              Your recently created modules - click to view or edit
-            </p>
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-gray-600">
+                Your recently created modules - click to view or edit
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation('/modules?tab=my')}
+                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View All My Modules ({modules.length})
+              </Button>
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {modules.slice(0, 6).map((module: any) => (
               <Card 
