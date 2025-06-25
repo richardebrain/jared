@@ -61,9 +61,66 @@ router.post('/generate', async (req, res) => {
 
     console.log('Calling OpenAI API...');
     
-    // Create a personalized prompt
+    // Create age-appropriate developmental context
+    const getAgeAppropriateContext = (age: string) => {
+      const ageNum = parseInt(age.split('-')[0]);
+      if (ageNum <= 3) {
+        return "toddler developing emotional regulation, language skills, and basic social awareness";
+      } else if (ageNum <= 5) {
+        return "preschooler learning social skills, following rules, and expressing emotions appropriately";
+      } else if (ageNum <= 8) {
+        return "school-age child developing peer relationships, academic skills, and greater emotional understanding";
+      } else {
+        return "pre-teen developing independence, complex social dynamics, and emotional maturity";
+      }
+    };
+
+    const ageContext = getAgeAppropriateContext(childAge);
     const childRef = childName ? childName : `this ${childAge} year old child`;
-    const shortPrompt = `Create a behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} ${frequency ? `Frequency: ${frequency}` : ''}
+    
+    // Create completely different prompts for different age groups
+    const ageNum = parseInt(childAge.split('-')[0]);
+    const isPreschool = ageNum <= 5;
+    const isSchoolAge = ageNum >= 6 && ageNum <= 8;
+    const isPreTeen = ageNum >= 9;
+
+    let ageSpecificPrompt;
+    
+    if (isPreschool) {
+      ageSpecificPrompt = `Create a preschool behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
+
+Use these PRESCHOOL strategies:
+- Simple language and immediate responses
+- Visual cues and picture schedules
+- Sensory tools and comfort items
+- Adult-guided solutions
+- Tangible rewards like stickers
+- Redirection and distraction`;
+    } else if (isSchoolAge) {
+      ageSpecificPrompt = `Create a school-age behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
+
+Use these SCHOOL-AGE strategies:
+- Problem-solving discussions
+- Logical explanations and reasoning
+- Peer interaction coaching
+- Academic skill connections
+- Beginning self-regulation tools
+- Privilege-based reward systems`;
+    } else {
+      ageSpecificPrompt = `Create a pre-teen behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
+
+Use these PRE-TEEN strategies:
+- Emotional intelligence development
+- Self-reflection and journaling
+- Independence and decision-making
+- Peer relationship navigation
+- Future planning and goal setting
+- Natural consequences and responsibility
+- Self-advocacy and communication skills
+- AVOID: sticker charts, visual schedules, comfort objects, simple redirection`;
+    }
+
+    const shortPrompt = `${ageSpecificPrompt}
 
 ${childName ? `Use the child's name "${childName}" throughout the advice to make it personal and specific.` : ''}
 
@@ -85,7 +142,7 @@ Respond only in valid JSON with these exact fields:
         messages: [
           {
             role: "system",
-            content: "You are an expert early childhood educator. Respond only with valid JSON. Be concise but practical."
+            content: "You are an expert educator and child development specialist. CRITICAL: Age-appropriate strategies are essential. Ages 2-5 need basic guidance and visual tools. Ages 6-8 need logical reasoning and peer coaching. Ages 9-11 need emotional intelligence, independence, and self-advocacy - they should NOT receive preschool strategies like sticker charts or visual schedules. Match your response exactly to the child's developmental stage. Respond only with valid JSON."
           },
           {
             role: "user",
