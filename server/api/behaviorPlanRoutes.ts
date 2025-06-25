@@ -13,7 +13,7 @@ router.get('/test', (req, res) => {
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 30000 // 30 second timeout
+  timeout: 60000 // 60 second timeout for comprehensive behavior plans
 });
 
 interface BehaviorPlanRequest {
@@ -56,52 +56,46 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    const prompt = `You are an expert early childhood educator and child development specialist. A teacher needs help with a challenging behavior.
 
-CHILD DETAILS:
-- Age: ${childAge}
-- Behavior: ${behavior}
-- Context: ${context || 'Not provided'}
-- Frequency: ${frequency || 'Not specified'}
-
-Please provide a comprehensive behavior plan in JSON format with these sections:
-
-1. isNormal: boolean (true if this behavior is typical for this age)
-2. developmentalContext: A simple explanation (that a 12-year-old could understand) about whether this behavior is normal for this age and the developmental science behind why children this age might do this
-3. rootCauses: Array of 3-5 possible underlying reasons for this behavior (look beyond the surface)
-4. immediateStrategies: Array of 5-7 specific, practical classroom strategies to use right when the behavior happens
-5. longTermPlan: Array of 4-6 steps for gradually reducing this behavior over weeks/months
-6. preventionTips: Array of 4-5 proactive strategies to prevent the behavior from happening
-7. positiveReinforcement: Array of 4-5 specific ways to reward and encourage positive alternative behaviors
-8. redFlags: Array of 2-4 warning signs that would indicate this behavior needs professional intervention (speech therapist, behavioral specialist, etc.)
-
-Make all explanations simple enough for a 12-year-old to understand, but practical enough for immediate classroom use. Focus on creative, fresh approaches the teacher might not have thought of. Be specific and actionable.`;
 
     console.log('Calling OpenAI API...');
     
-    // Add timeout handling
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI request timeout')), 25000);
-    });
-    
-    const apiPromise = openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert early childhood educator and behavioral specialist. Provide practical, evidence-based strategies in simple language. Always respond with valid JSON."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      max_tokens: 1500
-    });
-    
-    const response = await Promise.race([apiPromise, timeoutPromise]);
+    // Create a shorter prompt for faster response
+    const shortPrompt = `Create a behavior plan for a ${childAge} year old child who is ${behavior.toLowerCase()}. 
+
+Respond only in valid JSON with these exact fields:
+{
+  "isNormal": boolean,
+  "developmentalContext": "Simple explanation in 1-2 sentences",
+  "rootCauses": ["cause1", "cause2", "cause3"],
+  "immediateStrategies": ["strategy1", "strategy2", "strategy3", "strategy4", "strategy5"],
+  "longTermPlan": ["step1", "step2", "step3", "step4"],
+  "preventionTips": ["tip1", "tip2", "tip3", "tip4"],
+  "positiveReinforcement": ["idea1", "idea2", "idea3", "idea4"],
+  "redFlags": ["flag1", "flag2"]
+}`;
+
+    const response = await Promise.race([
+      openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert early childhood educator. Respond only with valid JSON. Be concise but practical."
+          },
+          {
+            role: "user",
+            content: shortPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+        max_tokens: 1500
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Creating the best behavior plan takes time - please wait...')), 55000)
+      )
+    ]);
     console.log('OpenAI API response received');
 
     const planText = response.choices[0].message.content;
