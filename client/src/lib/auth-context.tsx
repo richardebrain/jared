@@ -110,6 +110,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return path === '/login' || path === '/register' || path === '/business-signup' || path === '/' || path === '/emergency';
   };
 
+  // Manual auth refresh function for debugging
+  const manualAuthRefresh = async () => {
+    console.log('Manual auth refresh triggered');
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('Manual auth successful:', userData);
+        const normalizedUser = normalizeUserData(userData as User);
+        setUser(normalizedUser);
+        AuthStorage.saveAuthData(normalizedUser);
+        setAuthFailed(false);
+        return userData;
+      } else {
+        console.log('Manual auth failed:', response.status);
+        return null;
+      }
+    } catch (error) {
+      console.error('Manual auth error:', error);
+      return null;
+    }
+  };
+
   // Initialize from storage first, then fetch if needed
   const [user, setUser] = useState<User | null>(() => {
     try {
@@ -481,6 +510,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async (): Promise<void> => {
     await logoutMutation.mutateAsync();
   };
+
+  // Make manual refresh available globally for debugging
+  useEffect(() => {
+    (window as any).authUtils = {
+      manualRefresh: manualAuthRefresh,
+      currentUser: currentUser,
+      isAuthenticated,
+      isAdmin,
+      isSchoolAdmin,
+      isOwner
+    };
+    console.log('Auth utilities available at window.authUtils');
+  }, [currentUser, isAuthenticated, isAdmin, isSchoolAdmin, isOwner, manualAuthRefresh]);
 
   // Provide auth context
   return (
