@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('Manual auth successful:', userData);
         const normalizedUser = normalizeUserData(userData as User);
         setUser(normalizedUser);
-        AuthStorage.saveAuthData(normalizedUser);
+        AuthStorage.setAuthData(normalizedUser);
         setAuthFailed(false);
         return userData;
       } else {
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Auth query successful:', userData);
       
       // Cache the successful auth data
-      AuthStorage.saveAuthData(userData);
+      AuthStorage.setAuthData(userData);
       
       return userData;
     },
@@ -188,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnReconnect: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    enabled: !isOnPublicPage() && !authFailed && initialLoadComplete && !user, // Enable when we need to check auth
+    enabled: !isOnPublicPage() && initialLoadComplete, // Always enable auth check on protected pages
   });
 
   // Handle successful auth data from server query
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Server auth query successful, updating user state:', userData);
       const normalizedUser = normalizeUserData(userData as User);
       setUser(normalizedUser);
-      AuthStorage.saveAuthData(normalizedUser);
+      AuthStorage.setAuthData(normalizedUser);
       setAuthFailed(false);
     } else if (isError) {
       console.log('Server auth query failed:', error);
