@@ -35,6 +35,12 @@ export function setupSecurityMiddleware(app: Express) {
   // Rate limiting for sensitive endpoints
   const attemptTracker = new Map<string, { count: number; resetTime: number }>();
   
+  // Add endpoint to clear rate limiting (admin only)
+  app.post('/api/admin/clear-rate-limit', (req: Request, res: Response) => {
+    attemptTracker.clear();
+    res.json({ message: 'Rate limiting cleared successfully' });
+  });
+  
   // Apply rate limiting specifically to login endpoint
   const rateLimitLogin = (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || req.socket.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
