@@ -3264,27 +3264,33 @@ Continue for all 5 questions...
 
       // Delete related records first to avoid foreign key constraint violations
       
-      // 1. Delete from community_modules table if exists
+      // 1. Delete from community_modules table
       await db.execute(sql`
         DELETE FROM community_modules 
         WHERE module_id = ${moduleId}
       `);
       
-      // 2. Delete from user_progress table if exists
+      // 2. Delete from community_module_awards table
+      await db.execute(sql`
+        DELETE FROM community_module_awards 
+        WHERE module_id = ${moduleId}
+      `);
+      
+      // 3. Delete from user_progress table
       await db.execute(sql`
         DELETE FROM user_progress 
         WHERE module_id = ${moduleId}
       `);
       
-      // 3. Delete from module_ratings table if exists
+      // 4. Delete from module_ratings table
       await db.execute(sql`
         DELETE FROM module_ratings 
         WHERE module_id = ${moduleId}
       `);
       
-      // 4. Delete from learning_progress table if exists
+      // 5. Delete from module_drafts table
       await db.execute(sql`
-        DELETE FROM learning_progress 
+        DELETE FROM module_drafts 
         WHERE module_id = ${moduleId}
       `);
 
