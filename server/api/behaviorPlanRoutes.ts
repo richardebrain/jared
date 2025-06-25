@@ -4,7 +4,10 @@ import OpenAI from 'openai';
 const router = express.Router();
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 30000 // 30 second timeout
+});
 
 interface BehaviorPlanRequest {
   childAge: string;
@@ -26,11 +29,21 @@ interface BehaviorPlan {
 
 router.post('/generate', async (req, res) => {
   try {
+    console.log('Behavior plan request received:', req.body);
+    
     const { childAge, behavior, context, frequency }: BehaviorPlanRequest = req.body;
 
     if (!childAge || !behavior) {
+      console.log('Missing required fields:', { childAge, behavior });
       return res.status(400).json({ 
         error: 'Child age and behavior description are required' 
+      });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('OpenAI API key not configured');
+      return res.status(500).json({ 
+        error: 'AI service not configured' 
       });
     }
 
@@ -55,12 +68,13 @@ Please provide a comprehensive behavior plan in JSON format with these sections:
 
 Make all explanations simple enough for a 12-year-old to understand, but practical enough for immediate classroom use. Focus on creative, fresh approaches the teacher might not have thought of. Be specific and actionable.`;
 
+    console.log('Calling OpenAI API...');
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert early childhood educator and behavioral specialist. Provide practical, evidence-based strategies in simple language."
+          content: "You are an expert early childhood educator and behavioral specialist. Provide practical, evidence-based strategies in simple language. Always respond with valid JSON."
         },
         {
           role: "user",
@@ -71,6 +85,8 @@ Make all explanations simple enough for a 12-year-old to understand, but practic
       temperature: 0.7,
       max_tokens: 2000
     });
+    
+    console.log('OpenAI API response received');
 
     const planText = response.choices[0].message.content;
     if (!planText) {
@@ -96,6 +112,23 @@ Make all explanations simple enough for a 12-year-old to understand, but practic
     res.json({ plan });
   } catch (error) {
     console.error('Error generating behavior plan:', error);
+    
+    // Handle timeout or network errors specifically
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      return res.status(503).json({ 
+        error: 'AI service temporarily unavailable',
+        details: 'Please try again in a moment'
+      });
+    }
+    
+    // Handle OpenAI API errors
+    if (error.status === 401) {
+      return res.status(500).json({ 
+        error: 'AI service configuration error',
+        details: 'API authentication failed'
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Failed to generate behavior plan',
       details: error instanceof Error ? error.message : 'Unknown error'
