@@ -63,12 +63,13 @@ router.post('/generate', async (req, res) => {
     
     // Create age-appropriate developmental context
     const getAgeAppropriateContext = (age: string) => {
-      const ageNum = parseInt(age.split('-')[0]);
-      if (ageNum <= 3) {
-        return "toddler developing emotional regulation, language skills, and basic social awareness";
-      } else if (ageNum <= 5) {
+      if (age.includes('months') && parseInt(age.split('-')[0]) < 12) {
+        return "infant developing basic trust, attachment, and sensory awareness";
+      } else if (age.includes('months') || parseInt(age.split('-')[0]) <= 2) {
+        return "toddler exploring independence, developing language, and learning emotional expression";
+      } else if (parseInt(age.split('-')[0]) <= 5) {
         return "preschooler learning social skills, following rules, and expressing emotions appropriately";
-      } else if (ageNum <= 8) {
+      } else if (parseInt(age.split('-')[0]) <= 8) {
         return "school-age child developing peer relationships, academic skills, and greater emotional understanding";
       } else {
         return "pre-teen developing independence, complex social dynamics, and emotional maturity";
@@ -79,14 +80,39 @@ router.post('/generate', async (req, res) => {
     const childRef = childName ? childName : `this ${childAge} year old child`;
     
     // Create completely different prompts for different age groups
-    const ageNum = parseInt(childAge.split('-')[0]);
-    const isPreschool = ageNum <= 5;
-    const isSchoolAge = ageNum >= 6 && ageNum <= 8;
-    const isPreTeen = ageNum >= 9;
+    const isInfant = childAge.includes('months') && parseInt(childAge.split('-')[0]) < 12;
+    const isToddler = (childAge.includes('months') && parseInt(childAge.split('-')[0]) >= 12) || parseInt(childAge.split('-')[0]) <= 2;
+    const isPreschool = !isInfant && !isToddler && parseInt(childAge.split('-')[0]) >= 3 && parseInt(childAge.split('-')[0]) <= 5;
+    const isSchoolAge = parseInt(childAge.split('-')[0]) >= 6 && parseInt(childAge.split('-')[0]) <= 8;
+    const isPreTeen = parseInt(childAge.split('-')[0]) >= 9;
 
     let ageSpecificPrompt;
     
-    if (isPreschool) {
+    if (isInfant) {
+      ageSpecificPrompt = `Create an infant behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
+
+INFANT NORMALITY ASSESSMENT: For ages 0-12 months, behaviors like crying, fussiness, sleep issues, feeding difficulties are normal developmental responses. Focus on caregiver support and environmental adjustments.
+
+Use these INFANT strategies:
+- Environmental modifications (lighting, noise, temperature)
+- Caregiver comfort techniques and bonding
+- Routine establishment and consistency
+- Physical comfort and basic needs assessment
+- Sleep and feeding schedule adjustments
+- Sensory regulation and calming techniques`;
+    } else if (isToddler) {
+      ageSpecificPrompt = `Create a toddler behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
+
+TODDLER NORMALITY ASSESSMENT: For ages 12-24 months, behaviors like tantrums, hitting, biting, throwing are normal as toddlers develop autonomy, language, and emotional regulation. Most challenging behaviors are developmentally appropriate.
+
+Use these TODDLER strategies:
+- Simple one-word directions and redirection
+- Consistent routines and predictable responses
+- Physical environment modifications for safety
+- Comfort objects and sensory tools
+- Basic emotion labeling and validation
+- Immediate, natural consequences`;
+    } else if (isPreschool) {
       ageSpecificPrompt = `Create a preschool behavior plan for ${childRef} who is ${behavior.toLowerCase()}. ${context ? `Context: ${context}` : ''} 
 
 PRESCHOOL NORMALITY ASSESSMENT: For ages 2-5, many behaviors are normal as children develop emotional regulation, language skills, and social awareness. Tantrums, crying, hitting, biting are often developmentally appropriate.

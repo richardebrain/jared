@@ -122,6 +122,10 @@ export function HelpMeWithThisKid() {
                   <SelectValue placeholder="Select age range" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="0-6months">0-6 months (Infant)</SelectItem>
+                  <SelectItem value="6-12months">6-12 months (Infant)</SelectItem>
+                  <SelectItem value="12-18months">12-18 months (Toddler)</SelectItem>
+                  <SelectItem value="18-24months">18-24 months (Toddler)</SelectItem>
                   <SelectItem value="2-3">2-3 years old</SelectItem>
                   <SelectItem value="3-4">3-4 years old</SelectItem>
                   <SelectItem value="4-5">4-5 years old</SelectItem>
