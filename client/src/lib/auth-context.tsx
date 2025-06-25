@@ -107,8 +107,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enabled: false, // Disabled by default - manual control only
   });
 
-  // Load cached auth data only - no server calls
+  // Check for force logout flag and clear everything if needed
   useEffect(() => {
+    // Check if we need to force clear everything
+    if (window.location.search.includes('forceLogout=true')) {
+      console.log('Force logout detected - clearing all data');
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        AuthStorage.clearAuthData();
+        setUser(null);
+        queryClient.clear();
+        setAuthFailed(false);
+        
+        // Clear URL parameter and redirect to login
+        window.history.replaceState({}, document.title, window.location.pathname);
+        window.location.href = '/login';
+        return;
+      } catch (error) {
+        console.warn('Force logout clear failed:', error);
+      }
+    }
+    
+    // Normal cached auth loading
     try {
       const cachedAuth = AuthStorage.getAuthData();
       if (cachedAuth) {
@@ -292,16 +313,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Logout mutation
+  // Logout mutation with force clear capability
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // Use our improved logoutUser helper
-      return await logoutUser();
+      try {
+        // Try normal logout first
+        return await logoutUser();
+      } catch (error) {
+        console.warn("Normal logout failed, forcing logout:", error);
+        // Force logout regardless of server response
+        return { success: true, forced: true };
+      }
     },
-    onSuccess: () => {
-      console.log("Logout successful");
-      // Clear all auth data
-      AuthStorage.clearAuthData();
+    onSuccess: (data) => {
+      console.log("Logout successful", data?.forced ? "(forced)" : "");
+      
+      // Complete auth data clearing
+      try {
+        AuthStorage.clearAuthData();
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear all cookies by setting them to expire
+        document.cookie.split(";").forEach(cookie => {
+          const eqPos = cookie.indexOf("=");
+          const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+          document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        });
+      } catch (e) {
+        console.warn("Storage clear error:", e);
+      }
+      
       setUser(null);
       queryClient.setQueryData(['/api/auth/me'], null);
       setAuthFailed(false);
@@ -310,22 +352,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       toast({
         title: "Logout successful",
-        description: "You have been logged out",
+        description: data?.forced ? "Session cleared and logged out" : "You have been logged out",
       });
       
-      // Perform a complete reload of the application to clear any state
+      // Force complete page reload to clear any remaining state
       setTimeout(() => {
         window.location.href = "/login";
       }, 500);
     },
     onError: (error: Error) => {
       console.error("Logout error:", error);
-      toast({
-        title: "Logout failed",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-      throw error;
+      // Even if logout fails, clear local data
+      try {
+        AuthStorage.clearAuthData();
+        localStorage.clear();
+        sessionStorage.clear();
+        setUser(null);
+        queryClient.clear();
+        
+        toast({
+          title: "Forced logout",
+          description: "Local session cleared, you can now log in again",
+        });
+        
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 500);
+      } catch (clearError) {
+        toast({
+          title: "Logout failed",
+          description: "Please refresh the page to clear your session",
+          variant: "destructive",
+        });
+      }
     }
   });
 
