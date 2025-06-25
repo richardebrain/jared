@@ -136,8 +136,8 @@ const directorTools: ToolkitTool[] = [
   // Analytics & Management
   {
     id: 'certificate-manager',
-    title: 'Certificate Manager',
-    description: 'Track teacher certifications, get 30-day expiration warnings, and send reminders',
+    title: 'CPR and Fingerprint Tracking',
+    description: 'Track and manage teacher certification expiration dates for CPR, First Aid, Fingerprint, and Food Handler certifications',
     icon: Award,
     route: '/certificate-manager',
     badge: 'Essential',

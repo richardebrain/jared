@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Calendar, User, FileText, Shield, Heart, Utensils, CheckCircle, Clock, AlertCircle, Mail } from 'lucide-react';
+import { AlertTriangle, Calendar, User, FileText, Shield, Heart, Utensils, CheckCircle, Clock, AlertCircle, Mail, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { Link } from 'wouter';
 
 interface Teacher {
   id: number;
@@ -267,9 +268,17 @@ export default function CertificateManager() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Certificate Manager</h1>
+        <div className="flex items-center gap-4 mb-4">
+          <Link href="/dashboard">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Return to Dashboard
+            </Button>
+          </Link>
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">CPR and Fingerprint Tracking</h1>
         <p className="text-gray-600">
-          Monitor and manage teacher certification expiration dates for your school
+          Monitor and manage teacher certification expiration dates for CPR, First Aid, Fingerprint, and Food Handler certifications
         </p>
       </div>
 
