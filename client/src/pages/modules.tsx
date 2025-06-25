@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,14 +6,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function AllModules() {
   const [, setLocation] = useLocation();
   const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   // Get URL parameters to determine initial tab
   const urlParams = new URLSearchParams(window.location.search);
@@ -47,6 +64,43 @@ export default function AllModules() {
   // Fetch community modules
   const { data: communityModules = [] } = useQuery<any[]>({
     queryKey: ["/api/community-modules"],
+  });
+
+  // Fetch user's own modules
+  const { data: userModules = [] } = useQuery<any[]>({
+    queryKey: [`/api/modules/user/${user?.id}`],
+    enabled: !!user?.id,
+  });
+
+  // Delete module mutation with app owner privileges
+  const deleteModuleMutation = useMutation({
+    mutationFn: async (moduleId: number) => {
+      console.log(`[DELETE] Attempting to delete module ${moduleId}`);
+      const result = await apiRequest(`/api/modules/${moduleId}`, {
+        method: 'DELETE'
+      });
+      console.log(`[DELETE] Delete result:`, result);
+      return result;
+    },
+    onSuccess: (data, moduleId) => {
+      console.log(`[DELETE] Successfully deleted module ${moduleId}`);
+      // Invalidate multiple query keys to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/modules/user/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/modules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/community-modules'] });
+      toast({
+        title: "Module Deleted",
+        description: "The module has been successfully deleted.",
+      });
+    },
+    onError: (error: any, moduleId) => {
+      console.error(`[DELETE] Failed to delete module ${moduleId}:`, error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || error.message || "Failed to delete module",
+        variant: "destructive",
+      });
+    }
   });
 
   // Group modules by size (duration in minutes)
@@ -101,6 +155,141 @@ export default function AllModules() {
   const isModuleRecommended = (moduleId: number) => {
     const progress = userProgress.find(p => p.moduleId === moduleId);
     return progress ? progress.recommended : false;
+  };
+
+  // Check if user can delete a module (app owner can delete any, others only their own)
+  const canDeleteModule = (module: any) => {
+    return user?.isOwner || module.creator_id === user?.id || module.creatorId === user?.id;
+  };
+
+  // Handle module actions
+  const handleEditModule = (moduleId: number) => {
+    setLocation(`/comprehensive-module-creator?edit=${moduleId}`);
+  };
+
+  const handleViewModule = (moduleId: number) => {
+    setLocation(`/modules/${moduleId}`);
+  };
+
+  const handleDeleteModule = (moduleId: number) => {
+    deleteModuleMutation.mutate(moduleId);
+  };
+
+  // Render user module card with management buttons
+  const renderUserModuleCard = (module: any) => {
+    const progress = getModuleProgress(module.id);
+    const isCompleted = isModuleCompleted(module.id);
+    const isRecommended = isModuleRecommended(module.id);
+    const difficultyStyle = getDifficultyBadgeStyle(module.difficulty || 'Beginner');
+
+    return (
+      <Card key={module.id} className="h-full flex flex-col hover:shadow-md transition-shadow">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-lg font-semibold leading-tight">{module.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              {isCompleted && (
+                <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Completed
+                </Badge>
+              )}
+              {module.isSharedToCommunity && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  Shared
+                </Badge>
+              )}
+            </div>
+          </div>
+          <CardDescription className="line-clamp-2">{module.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="pb-2 flex-grow">
+          <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+            <Clock className="w-4 h-4" />
+            <span>{module.duration} min</span>
+            <Separator orientation="vertical" className="h-4" />
+            <Badge variant="outline" className={`${difficultyStyle.bg} ${difficultyStyle.text} ${difficultyStyle.border} font-medium border py-0 px-1.5 h-5`}>
+              {difficultyStyle.icon}
+              {module.difficulty || 'Beginner'}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 mb-3">
+            <Progress value={progress} className="h-2" />
+            <span className="text-xs text-muted-foreground">{progress}%</span>
+          </div>
+          <div className="flex flex-wrap gap-1 mb-3">
+            <Badge variant="outline" className="bg-gray-50">{module.category || 'General'}</Badge>
+            {module.eceHours && module.eceHours > 0 && (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <GraduationCap className="w-3 h-3 mr-1" />
+                {module.eceHours}h ECE
+              </Badge>
+            )}
+          </div>
+          <div className="text-xs text-gray-500">
+            Created: {new Date(module.createdAt || module.created_at).toLocaleDateString()}
+          </div>
+        </CardContent>
+        <CardFooter className="pt-2">
+          <div className="w-full space-y-2">
+            <Button 
+              onClick={() => handleViewModule(module.id)} 
+              variant="outline" 
+              className="w-full"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              View Module
+            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleEditModule(module.id)}
+                variant="outline"
+                className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <Edit3 className="w-4 h-4 mr-1" />
+                Edit
+              </Button>
+              {canDeleteModule(module) && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                      disabled={deleteModuleMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the module "{module.title}" and remove all associated data.
+                        {user?.isOwner && module.creator_id !== user?.id && (
+                          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded">
+                            <strong>App Owner Notice:</strong> You are deleting a module created by another user.
+                          </div>
+                        )}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteModule(module.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete Module
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
+    );
   };
 
   // Get difficulty badge style
@@ -397,8 +586,9 @@ export default function AllModules() {
       </p>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="all">All Modules ({modules.length})</TabsTrigger>
+          <TabsTrigger value="my">My Modules ({userModules.length})</TabsTrigger>
           <TabsTrigger value="micro">Micro ({microModules.length})</TabsTrigger>
           <TabsTrigger value="mini">Mini ({miniModules.length})</TabsTrigger>
           <TabsTrigger value="standard">Standard ({standardModules.length})</TabsTrigger>
