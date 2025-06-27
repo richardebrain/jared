@@ -478,42 +478,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
             </Card>
           )}
 
-          {/* Assessment History */}
-          {activitySummary.assessmentHistory && activitySummary.assessmentHistory.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  Assessment History
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {activitySummary.assessmentHistory.map((assessment, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{assessment.type}</h4>
-                        <p className="text-sm text-gray-600">
-                          Score: {assessment.overallScore}%
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <Badge 
-                          variant={assessment.status === 'Passed' ? 'default' : 'destructive'}
-                          className="mb-1"
-                        >
-                          {assessment.status}
-                        </Badge>
-                        <p className="text-xs text-gray-500">
-                          {formatDate(assessment.completedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
         </div>
       )}
     </div>
