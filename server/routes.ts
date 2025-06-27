@@ -7104,6 +7104,122 @@ Continue for all 5 questions...
     }
   });
 
+  // Bear Bucks Admin Management Endpoints
+  app.post('/api/admin/bear-bucks/cash-out/:userId', requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const currentUserId = req.session.userId as number;
+      
+      // Verify admin access
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get user's current Bear Bucks balance
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const cashOutAmount = user.bearBucks || 0;
+      if (cashOutAmount === 0) {
+        return res.status(400).json({ message: "No Bear Bucks to cash out" });
+      }
+
+      // Reset Bear Bucks to 0
+      await storage.updateUser(userId, { bearBucks: 0 });
+
+      res.json({ 
+        success: true, 
+        message: `Cashed out ${cashOutAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+        cashedOutAmount: cashOutAmount
+      });
+    } catch (error) {
+      console.error('Error cashing out Bear Bucks:', error);
+      res.status(500).json({ message: 'Failed to cash out Bear Bucks' });
+    }
+  });
+
+  app.post('/api/admin/bear-bucks/zero-out/:userId', requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const currentUserId = req.session.userId as number;
+      
+      // Verify admin access
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get user's current Bear Bucks balance
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const previousAmount = user.bearBucks || 0;
+
+      // Reset Bear Bucks to 0
+      await storage.updateUser(userId, { bearBucks: 0 });
+
+      res.json({ 
+        success: true, 
+        message: `Zeroed out ${previousAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+        previousAmount
+      });
+    } catch (error) {
+      console.error('Error zeroing out Bear Bucks:', error);
+      res.status(500).json({ message: 'Failed to zero out Bear Bucks' });
+    }
+  });
+
+  app.post('/api/admin/bear-bucks/adjust/:userId', requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { adjustment } = req.body;
+      const currentUserId = req.session.userId as number;
+      
+      // Verify admin access
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (typeof adjustment !== 'number') {
+        return res.status(400).json({ message: "Adjustment amount is required and must be a number" });
+      }
+
+      // Get user's current Bear Bucks balance
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const currentAmount = user.bearBucks || 0;
+      const newAmount = Math.max(0, currentAmount + adjustment); // Ensure non-negative
+
+      // Only allow adjustments down (negative values)
+      if (adjustment > 0) {
+        return res.status(400).json({ message: "Can only adjust Bear Bucks downward (negative values)" });
+      }
+
+      // Update Bear Bucks
+      await storage.updateUser(userId, { bearBucks: newAmount });
+
+      res.json({ 
+        success: true, 
+        message: `Adjusted Bear Bucks for ${user.firstName} ${user.lastName} from ${currentAmount} to ${newAmount}`,
+        previousAmount: currentAmount,
+        newAmount,
+        adjustment
+      });
+    } catch (error) {
+      console.error('Error adjusting Bear Bucks:', error);
+      res.status(500).json({ message: 'Failed to adjust Bear Bucks' });
+    }
+  });
+
   // Bonus Box API endpoints
   app.post('/api/bonus-boxes/send', requireAuth, async (req: any, res) => {
     try {

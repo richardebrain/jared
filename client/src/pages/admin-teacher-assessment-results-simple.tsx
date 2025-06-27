@@ -108,9 +108,82 @@ export default function AdminTeacherAssessmentResultsSimple() {
   const { toast } = useToast();
   const params = useParams<{ teacherId: string }>();
   const queryClient = useQueryClient();
+  const [adjustAmount, setAdjustAmount] = useState<number>(-1);
   
   const teacherId = params?.teacherId;
   const hasAdminAccess = isAuthenticated && (isSchoolAdmin || isAdmin || isOwner);
+
+  // Bear Bucks Management Mutations
+  const cashOutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest(`/api/admin/bear-bucks/cash-out/${teacherId}`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Cash Out Successful",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/teachers/${teacherId}/activity-summary`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Cash Out Failed",
+        description: error.message || "Failed to cash out Bear Bucks",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const zeroOutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest(`/api/admin/bear-bucks/zero-out/${teacherId}`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Zero Out Successful",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/teachers/${teacherId}/activity-summary`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Zero Out Failed",
+        description: error.message || "Failed to zero out Bear Bucks",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const adjustMutation = useMutation({
+    mutationFn: async (adjustment: number) => {
+      return await apiRequest(`/api/admin/bear-bucks/adjust/${teacherId}`, {
+        method: 'POST',
+        body: JSON.stringify({ adjustment }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Adjustment Successful",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/teachers/${teacherId}/activity-summary`] });
+      setAdjustAmount(-1); // Reset to default
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Adjustment Failed",
+        description: error.message || "Failed to adjust Bear Bucks",
+        variant: "destructive",
+      });
+    }
+  });
 
   const { data, isLoading, error } = useQuery<TeacherAssessmentData>({
     queryKey: [`/api/admin/teachers/${teacherId}/assessment-results`],
@@ -415,16 +488,29 @@ export default function AdminTeacherAssessmentResultsSimple() {
                       size="sm"
                       variant="outline"
                       className="text-green-600 border-green-300 hover:bg-green-50"
+                      disabled={cashOutMutation.isPending || !activitySummary?.pointsBreakdown?.bearBucks}
                       onClick={() => {
-                        // TODO: Implement cash out functionality
-                        toast({
-                          title: "Cash Out Bear Bucks",
-                          description: "Cash out functionality coming soon",
-                        });
+                        const bearBucksAmount = activitySummary?.pointsBreakdown?.bearBucks || 0;
+                        if (bearBucksAmount === 0) {
+                          toast({
+                            title: "No Bear Bucks",
+                            description: "This teacher has no Bear Bucks to cash out",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        
+                        if (confirm(`Cash out ${bearBucksAmount} Bear Bucks for this teacher?`)) {
+                          cashOutMutation.mutate();
+                        }
                       }}
                     >
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      Cash Out
+                      {cashOutMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <DollarSign className="h-4 w-4 mr-1" />
+                      )}
+                      Cash Out {activitySummary?.pointsBreakdown?.bearBucks ? `(${activitySummary.pointsBreakdown.bearBucks})` : ''}
                     </Button>
                     <Button
                       size="sm"
