@@ -338,90 +338,110 @@ export default function AdminTeacherAssessmentResultsSimple() {
         </div>
       </div>
 
-      {/* Assessment Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Overall Score</p>
-                <p className="text-2xl font-bold text-gray-900">{results.overallScore}%</p>
-              </div>
-              <Target className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Questions Correct</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {results.totalCorrect}/{results.totalQuestions}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Accuracy Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{results.accuracyRate}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {formatDate(assessment.completedAt)}
-                </p>
-              </div>
-              <Award className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Domain Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Domain Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {results.domainBreakdown.map((domain) => (
-              <div key={domain.domainId} className="space-y-2">
+      {/* Assessment Overview - Only show if assessment data exists */}
+      {hasAssessmentData && results && assessment ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-medium">{domain.domainName}</h4>
-                    <Badge 
-                      variant="outline" 
-                      className={getDomainColor(domain.strengthLevel)}
-                    >
-                      {domain.strengthLevel}
-                    </Badge>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Overall Score</p>
+                    <p className="text-2xl font-bold text-gray-900">{results.overallScore}%</p>
                   </div>
-                  <span className="text-sm text-gray-600">
-                    {domain.correctAnswers}/{domain.totalQuestions} ({domain.accuracyRate}%)
-                  </span>
+                  <Target className="h-8 w-8 text-blue-500" />
                 </div>
-                <Progress value={domain.accuracyRate} className="h-2" />
-              </div>
-            ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Questions Correct</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {results.totalCorrect}/{results.totalQuestions}
+                    </p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Accuracy Rate</p>
+                    <p className="text-2xl font-bold text-gray-900">{results.accuracyRate}%</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-purple-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Completed</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {formatDate(assessment.completedAt)}
+                    </p>
+                  </div>
+                  <Award className="h-8 w-8 text-orange-500" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Domain Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Domain Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {results.domainBreakdown.map((domain) => (
+                  <div key={domain.domainId} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-medium">{domain.domainName}</h4>
+                        <Badge 
+                          variant="outline" 
+                          className={getDomainColor(domain.strengthLevel)}
+                        >
+                          {domain.strengthLevel}
+                        </Badge>
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {domain.correctAnswers}/{domain.totalQuestions} ({domain.accuracyRate}%)
+                      </span>
+                    </div>
+                    <Progress value={domain.accuracyRate} className="h-2" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        // Assessment Not Completed Section
+        <Card className="mb-8">
+          <CardContent className="p-8">
+            <div className="text-center">
+              <AlertCircle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Assessment Not Completed</h3>
+              <p className="text-muted-foreground mb-4">
+                This teacher has not completed the initial assessment yet.
+              </p>
+              <Badge variant="outline" className="text-amber-600 border-amber-300">
+                No Assessment Data Available
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Activity Summary */}
       {activitySummary && !activityLoading && (

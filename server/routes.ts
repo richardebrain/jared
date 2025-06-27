@@ -7085,7 +7085,13 @@ Continue for all 5 questions...
         LIMIT 10
       `);
 
+      // Get teacher information
+      const targetUser = await storage.getUser(userId);
+      
       const activitySummary = {
+        firstName: targetUser?.firstName || '',
+        lastName: targetUser?.lastName || '',
+        email: targetUser?.email || '',
         completedModules: completedModules.rows || [],
         eceHoursSummary: eceHoursSummary.rows || [],
         gameCompletions: gameCompletions.rows || [],
