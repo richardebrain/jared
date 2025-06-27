@@ -77,7 +77,8 @@ export default function ModulePublishingDialog({
   module, 
   onPublishSuccess 
 }: PublishingDialogProps) {
-  const [publishingType, setPublishingType] = useState<'individual' | 'group' | 'section' | 'community'>('individual');
+  const [publishingType, setPublishingType] = useState<'individual' | 'group' | 'section' | 'community' | 'onboarding'>('individual');
+  const [onboardingOrder, setOnboardingOrder] = useState<number>(1);
   const [selectedTeachers, setSelectedTeachers] = useState<number[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [customMessage, setCustomMessage] = useState('');
@@ -175,7 +176,9 @@ export default function ModulePublishingDialog({
       includeInLibrary,
       allowComments,
       publishToSection: publishingType === 'section',
-      publishToCommunity: publishingType === 'community'
+      publishToCommunity: publishingType === 'community',
+      publishToOnboarding: publishingType === 'onboarding',
+      onboardingOrder: publishingType === 'onboarding' ? onboardingOrder : null
     };
 
     try {
@@ -224,7 +227,7 @@ export default function ModulePublishingDialog({
 
         <div className="flex-1 overflow-hidden">
           <Tabs value={publishingType} onValueChange={(value: any) => setPublishingType(value)} className="h-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="individual" className="flex items-center gap-2">
                 <UserPlus className="h-4 w-4" />
                 Individual Teachers
@@ -236,6 +239,10 @@ export default function ModulePublishingDialog({
               <TabsTrigger value="section" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
                 Module Section
+              </TabsTrigger>
+              <TabsTrigger value="onboarding" className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                Required Training
               </TabsTrigger>
               <TabsTrigger value="community" className="flex items-center gap-2">
                 <Globe className="h-4 w-4" />
@@ -378,6 +385,61 @@ export default function ModulePublishingDialog({
                             checked={allowComments}
                             onCheckedChange={setAllowComments}
                           />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="onboarding" className="h-full">
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Add to Required Onboarding Training
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 p-4 bg-orange-50 rounded-lg">
+                        <Award className="h-5 w-5 text-orange-600" />
+                        <div>
+                          <div className="font-medium">Required Training Module</div>
+                          <div className="text-sm text-gray-600">
+                            This module will be added to the required onboarding training that all new teachers must complete before starting their role.
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="onboarding-order">Training Order Position</Label>
+                          <Select value={onboardingOrder.toString()} onValueChange={(value) => setOnboardingOrder(parseInt(value))}>
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Select position in training sequence" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  Position {num} - {num === 1 ? 'First module' : num === 10 ? 'Last module' : `${num}${num === 2 ? 'nd' : num === 3 ? 'rd' : 'th'} module`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <div className="text-xs text-gray-500 mt-1">
+                            New teachers will complete modules in this order during onboarding
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                          <div className="text-sm font-medium text-blue-900">What this means:</div>
+                          <ul className="text-sm text-blue-700 mt-1 space-y-1">
+                            <li>• Module becomes mandatory for all new hires</li>
+                            <li>• Appears in "Required Onboarding Training" dashboard section</li>
+                            <li>• Must be completed before teachers can start their role</li>
+                            <li>• Progress tracked by administrators</li>
+                          </ul>
                         </div>
                       </div>
                     </div>

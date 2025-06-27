@@ -2980,6 +2980,8 @@ Continue for all 5 questions...
         allowComments,
         publishToSection,
         publishToCommunity,
+        publishToOnboarding,
+        onboardingOrder,
       } = req.body;
 
       console.log("Publishing module with type:", type);
@@ -3015,6 +3017,8 @@ Continue for all 5 questions...
           }),
           is_visible: includeInLibrary,
           is_shared_to_community: publishToCommunity,
+          isOnboarding: publishToOnboarding,
+          onboardingOrder: publishToOnboarding ? onboardingOrder : null,
           creator_id: userId,
           school_id: user.schoolId,
         };
