@@ -7000,8 +7000,8 @@ Continue for all 5 questions...
   // Bonus Box API endpoints
   app.post('/api/bonus-boxes/send', requireAuth, async (req: any, res) => {
     try {
-      const { recipientId, boxType, message } = req.body;
-      const senderId = req.user.id;
+      const { recipientId, boxType, points, message } = req.body;
+      const senderId = req.session.userId;
 
       if (!recipientId || !boxType) {
         return res.status(400).json({ message: 'Recipient ID and box type are required' });
@@ -7070,7 +7070,7 @@ Continue for all 5 questions...
   app.post('/api/bonus-boxes/:id/open', requireAuth, async (req: any, res) => {
     try {
       const boxId = parseInt(req.params.id);
-      const userId = req.user.id;
+      const userId = req.session.userId;
 
       // Get the bonus box details
       const box = await db.execute(sql`
