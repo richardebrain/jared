@@ -353,4 +353,43 @@ router.get('/songs', async (req, res) => {
   }
 });
 
+// Delete a user's song
+router.delete('/songs/:songId', async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { songId } = req.params;
+    const parsedSongId = parseInt(songId);
+    
+    if (isNaN(parsedSongId)) {
+      return res.status(400).json({ error: 'Invalid song ID' });
+    }
+
+    // Check if song belongs to the user
+    const existingSong = await db.select()
+      .from(songs)
+      .where(eq(songs.id, parsedSongId))
+      .limit(1);
+
+    if (!existingSong.length) {
+      return res.status(404).json({ error: 'Song not found' });
+    }
+
+    if (existingSong[0].userId !== userId) {
+      return res.status(403).json({ error: 'Not authorized to delete this song' });
+    }
+
+    // Delete the song
+    await db.delete(songs).where(eq(songs.id, parsedSongId));
+
+    res.json({ success: true, message: 'Song deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting song:', error);
+    res.status(500).json({ error: 'Failed to delete song' });
+  }
+});
+
 export { router as musicmakerRouter };

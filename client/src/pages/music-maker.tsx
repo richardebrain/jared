@@ -43,6 +43,11 @@ export default function MusicMaker() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [songStatus, setSongStatus] = useState<SongStatus | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [duration, setDuration] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const { toast } = useToast();
 
   // Query to fetch user's saved songs
@@ -163,6 +168,104 @@ export default function MusicMaker() {
     "A friendship song about sharing and caring",
     "A goodbye song for the end of the day"
   ];
+
+  // Audio control functions
+  const playAudio = async (url: string, songId?: string) => {
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+
+    const audio = new Audio(url);
+    setCurrentAudio(audio);
+    setCurrentlyPlaying(songId || url);
+    setIsPlaying(true);
+
+    // Set up audio event handlers
+    audio.addEventListener('loadedmetadata', () => {
+      setDuration(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      setCurrentTime(audio.currentTime);
+    });
+
+    audio.addEventListener('ended', () => {
+      setIsPlaying(false);
+      setCurrentlyPlaying(null);
+      setCurrentTime(0);
+    });
+
+    try {
+      await audio.play();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      toast({
+        title: "Playback Error",
+        description: "Unable to play this song. Please try again.",
+        variant: "destructive"
+      });
+      setIsPlaying(false);
+      setCurrentlyPlaying(null);
+    }
+  };
+
+  const pauseAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const stopAudio = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      setCurrentTime(0);
+      setIsPlaying(false);
+      setCurrentlyPlaying(null);
+    }
+  };
+
+  const deleteSong = async (songId: number) => {
+    try {
+      await apiRequest(`/api/musicmaker/songs/${songId}`, {
+        method: 'DELETE'
+      });
+      
+      // Refresh songs list
+      queryClient.invalidateQueries({ queryKey: ['/api/musicmaker/songs'] });
+      
+      toast({
+        title: "Song Deleted",
+        description: "The song has been removed from your library."
+      });
+    } catch (error) {
+      console.error('Error deleting song:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Unable to delete song. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+    };
+  }, [currentAudio]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
@@ -388,26 +491,82 @@ export default function MusicMaker() {
                         <p className="text-sm text-gray-600 line-clamp-2">{song.prompt}</p>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          {new Date(song.createdAt).toLocaleDateString()}
-                        </span>
-                        
-                        {song.audioUrl && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const audio = new Audio(song.audioUrl);
-                              audio.play().catch(console.error);
-                            }}
-                            className="flex items-center gap-1"
-                          >
-                            <Play className="h-3 w-3" />
-                            Play
-                          </Button>
-                        )}
+                      <div className="text-xs text-gray-500">
+                        {new Date(song.createdAt).toLocaleDateString()}
                       </div>
+                      
+                      {/* Enhanced Audio Controls */}
+                      {song.audioUrl && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            {currentlyPlaying === song.id.toString() && isPlaying ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={pauseAudio}
+                                className="flex items-center gap-1"
+                              >
+                                <span className="h-3 w-3 flex">⏸️</span>
+                                Pause
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => playAudio(song.audioUrl, song.id.toString())}
+                                className="flex items-center gap-1"
+                              >
+                                <Play className="h-3 w-3" />
+                                Play
+                              </Button>
+                            )}
+                            
+                            {currentlyPlaying === song.id.toString() && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={stopAudio}
+                                className="flex items-center gap-1"
+                              >
+                                <span className="h-3 w-3 flex">⏹️</span>
+                                Stop
+                              </Button>
+                            )}
+                            
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (confirm(`Delete "${song.title}"? This cannot be undone.`)) {
+                                  deleteSong(song.id);
+                                }
+                              }}
+                              className="flex items-center gap-1 ml-auto"
+                            >
+                              <span className="h-3 w-3 flex">🗑️</span>
+                              Delete
+                            </Button>
+                          </div>
+                          
+                          {/* Duration and Progress Display */}
+                          {currentlyPlaying === song.id.toString() && (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>{formatTime(currentTime)}</span>
+                                <span>{formatTime(duration)}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1">
+                                <div
+                                  className="bg-purple-600 h-1 rounded-full transition-all duration-100"
+                                  style={{
+                                    width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%'
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </Card>
                 ))}
