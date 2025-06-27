@@ -72,6 +72,16 @@ const directorTools: ToolkitTool[] = [
     badgeVariant: 'outline',
     category: 'staff'
   },
+  {
+    id: 'module-creator',
+    title: 'Module Creator/Editor',
+    description: 'Build onboarding modules, community modules and more with AI',
+    icon: Wand2,
+    route: '/new-module-creator',
+    badge: 'AI Powered',
+    badgeVariant: 'secondary',
+    category: 'staff'
+  },
   
   // Content Creation
   {

@@ -7661,6 +7661,102 @@ Continue for all 5 questions...
     }
   });
 
+  // Bear Bucks Management Endpoints
+  app.post('/api/admin/bear-bucks/cash-out/:userId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Get current user's Bear Bucks
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      const bearBucksAmount = user.bearBucks || 0;
+      if (bearBucksAmount === 0) {
+        return res.status(400).json({ message: 'No Bear Bucks to cash out' });
+      }
+      
+      // Zero out Bear Bucks
+      await storage.updateUser(userId, { bearBucks: 0 });
+      
+      res.json({ 
+        message: `Successfully cashed out ${bearBucksAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+        amount: bearBucksAmount
+      });
+    } catch (error) {
+      console.error('Error cashing out Bear Bucks:', error);
+      res.status(500).json({ message: 'Failed to cash out Bear Bucks' });
+    }
+  });
+
+  app.post('/api/admin/bear-bucks/zero-out/:userId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Get current user's Bear Bucks
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      const bearBucksAmount = user.bearBucks || 0;
+      if (bearBucksAmount === 0) {
+        return res.status(400).json({ message: 'No Bear Bucks to zero out' });
+      }
+      
+      // Zero out Bear Bucks
+      await storage.updateUser(userId, { bearBucks: 0 });
+      
+      res.json({ 
+        message: `Successfully zeroed out ${bearBucksAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+        amount: bearBucksAmount
+      });
+    } catch (error) {
+      console.error('Error zeroing out Bear Bucks:', error);
+      res.status(500).json({ message: 'Failed to zero out Bear Bucks' });
+    }
+  });
+
+  app.post('/api/admin/bear-bucks/adjust/:userId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { adjustment } = req.body;
+      
+      if (typeof adjustment !== 'number') {
+        return res.status(400).json({ message: 'Invalid adjustment amount' });
+      }
+      
+      // Get current user's Bear Bucks
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      const currentBearBucks = user.bearBucks || 0;
+      const newBearBucks = Math.max(0, currentBearBucks + adjustment);
+      
+      // For reductions, ensure we don't reduce below 0
+      if (adjustment < 0 && Math.abs(adjustment) > currentBearBucks) {
+        return res.status(400).json({ message: 'Cannot reduce more Bear Bucks than available' });
+      }
+      
+      // Update Bear Bucks
+      await storage.updateUser(userId, { bearBucks: newBearBucks });
+      
+      const action = adjustment > 0 ? 'added' : 'reduced';
+      const amount = Math.abs(adjustment);
+      
+      res.json({ 
+        message: `Successfully ${action} ${amount} Bear Bucks for ${user.firstName} ${user.lastName}. New balance: ${newBearBucks}`,
+        newBalance: newBearBucks
+      });
+    } catch (error) {
+      console.error('Error adjusting Bear Bucks:', error);
+      res.status(500).json({ message: 'Failed to adjust Bear Bucks' });
+    }
+  });
+
   // Dismiss credential alert endpoint
   app.post(
     "/api/credential-alerts/:id/dismiss",

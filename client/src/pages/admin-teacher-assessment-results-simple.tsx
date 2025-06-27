@@ -162,10 +162,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
     mutationFn: async (adjustment: number) => {
       return await apiRequest(`/api/admin/bear-bucks/adjust/${teacherId}`, {
         method: 'POST',
-        body: JSON.stringify({ adjustment }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        data: { adjustment }
       });
     },
     onSuccess: (data) => {
@@ -516,32 +513,69 @@ export default function AdminTeacherAssessmentResultsSimple() {
                       size="sm"
                       variant="outline"
                       className="text-red-600 border-red-300 hover:bg-red-50"
+                      disabled={zeroOutMutation.isPending || !activitySummary?.pointsBreakdown?.bearBucks}
                       onClick={() => {
-                        // TODO: Implement zero out functionality
-                        toast({
-                          title: "Zero Out Bear Bucks",
-                          description: "Zero out functionality coming soon",
-                        });
+                        const bearBucksAmount = activitySummary?.pointsBreakdown?.bearBucks || 0;
+                        if (bearBucksAmount === 0) {
+                          toast({
+                            title: "No Bear Bucks",
+                            description: "This teacher has no Bear Bucks to zero out",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        
+                        if (confirm(`Zero out ${bearBucksAmount} Bear Bucks for this teacher? This action cannot be undone.`)) {
+                          zeroOutMutation.mutate();
+                        }
                       }}
                     >
-                      <Minus className="h-4 w-4 mr-1" />
+                      {zeroOutMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Minus className="h-4 w-4 mr-1" />
+                      )}
                       Zero Out
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                      onClick={() => {
-                        // TODO: Implement adjust functionality
-                        toast({
-                          title: "Adjust Bear Bucks",
-                          description: "Adjust amount functionality coming soon",
-                        });
-                      }}
-                    >
-                      <RotateCcw className="h-4 w-4 mr-1" />
-                      Adjust
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={adjustAmount === -1 ? '' : adjustAmount}
+                        onChange={(e) => setAdjustAmount(e.target.value ? parseInt(e.target.value) : -1)}
+                        placeholder="Amount"
+                        className="w-16 px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        max={activitySummary?.pointsBreakdown?.bearBucks || 0}
+                        min={1}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                        disabled={adjustMutation.isPending || adjustAmount <= 0 || adjustAmount > (activitySummary?.pointsBreakdown?.bearBucks || 0)}
+                        onClick={() => {
+                          const bearBucksAmount = activitySummary?.pointsBreakdown?.bearBucks || 0;
+                          if (adjustAmount <= 0 || adjustAmount > bearBucksAmount) {
+                            toast({
+                              title: "Invalid Amount",
+                              description: `Amount must be between 1 and ${bearBucksAmount}`,
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          if (confirm(`Remove ${adjustAmount} Bear Bucks from this teacher's account?`)) {
+                            adjustMutation.mutate(-adjustAmount); // Negative for reduction
+                          }
+                        }}
+                      >
+                        {adjustMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                        )}
+                        Adjust
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 
