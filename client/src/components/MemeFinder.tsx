@@ -14,6 +14,7 @@ interface VisualContent {
   title: string;
   type: string;
   description?: string;
+  source?: 'giphy' | 'pixabay';
 }
 
 interface GiphyContent {
@@ -34,6 +35,16 @@ interface GiphyContent {
   };
 }
 
+interface PixabayImage {
+  url: string;
+  description: string;
+  width: number;
+  height: number;
+  tags: string;
+  user: string;
+  source: 'pixabay';
+}
+
 interface VisualContentFinderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -43,7 +54,7 @@ interface VisualContentFinderProps {
 export default function VisualContentFinder({ open, onOpenChange, onMemeSelected }: VisualContentFinderProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [gifResults, setGifResults] = useState<GiphyContent[]>([]);
-  const [imageResults, setImageResults] = useState<GiphyContent[]>([]);
+  const [imageResults, setImageResults] = useState<PixabayImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'gifs' | 'images'>('gifs');
   const [searchKey, setSearchKey] = useState(0); // Force re-render key
@@ -84,10 +95,10 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       // Add timestamp to ensure fresh request
       const timestamp = Date.now();
       
-      // Search both GIFs and Images simultaneously
+      // Search both GIFs (GIPHY) and Images (Pixabay) simultaneously
       const [gifResponse, imageResponse] = await Promise.all([
         fetch(`/api/giphy/gifs?q=${encodeURIComponent(searchQuery)}&limit=20&rating=pg-13&t=${timestamp}`),
-        fetch(`/api/giphy/images?q=${encodeURIComponent(searchQuery)}&limit=20&rating=pg-13&t=${timestamp}`)
+        fetch(`/api/pixabay/images?q=${encodeURIComponent(searchQuery)}&offset=0&t=${timestamp}`)
       ]);
       
       // Process GIF results
@@ -105,19 +116,26 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
         return; // Exit early on rate limit
       }
       
-      // Process Image results  
+      // Process Image results (Pixabay)
       if (imageResponse.ok) {
         const imageData = await imageResponse.json();
-        console.log('GIPHY Image search successful for:', searchQuery);
-        setImageResults(imageData.data || []);
+        console.log('Pixabay Image search successful for:', searchQuery);
+        setImageResults(imageData.images || []);
       } else if (imageResponse.status === 429) {
         const errorData = await imageResponse.json();
         toast({
           title: "Rate Limit Reached",
-          description: errorData.message || "GIPHY API rate limit reached. Please wait a few minutes before searching again.",
+          description: errorData.message || "Image search rate limit reached. Please wait a few minutes before searching again.",
           variant: "destructive"
         });
         return; // Exit early on rate limit
+      } else if (imageResponse.status === 503) {
+        const errorData = await imageResponse.json();
+        toast({
+          title: "Image Search Unavailable",
+          description: errorData.message || "Image search service is being configured. Please try again later.",
+          variant: "destructive"
+        });
       }
       
       if (!gifResponse.ok && !imageResponse.ok) {

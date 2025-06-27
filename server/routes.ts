@@ -355,6 +355,7 @@ import podcastRoutes from "./routes/podcast";
 import { musicmakerRouter } from "./routes/musicmaker";
 import imageGenerationRoutes from "./api/imageGenerationRoutes";
 import giphyRoutes from "./api/giphyRoutes";
+import pixabayRoutes from "./routes/pixabay";
 import { setupSecurityMiddleware } from "./middleware/security";
 
 // For ESM __dirname equivalent
@@ -1021,6 +1022,7 @@ Continue for all 5 questions...
 
   // Register GIPHY search routes
   app.use("/api/giphy", giphyRoutes);
+  app.use("/api/pixabay", pixabayRoutes);
 
   const httpServer = createServer(app);
 
