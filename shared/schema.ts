@@ -661,6 +661,39 @@ export const insertUserAvatarItemSchema = createInsertSchema(userAvatarItems).om
   purchasedAt: true,
 });
 
+// Director bonus boxes schema for rewarding teachers
+export const bonusBoxes = pgTable("bonus_boxes", {
+  id: serial("id").primaryKey(),
+  recipientId: integer("recipient_id").notNull().references(() => users.id),
+  senderId: integer("sender_id").notNull().references(() => users.id), // Director who sent the box
+  boxType: text("box_type").notNull(), // bonus, bronze, silver, gold
+  pointsAwarded: integer("points_awarded").notNull(), // Random points within range
+  message: text("message"), // Optional message from director
+  isOpened: boolean("is_opened").default(false),
+  openedAt: timestamp("opened_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBonusBoxSchema = createInsertSchema(bonusBoxes).omit({
+  id: true,
+  createdAt: true,
+  openedAt: true,
+});
+
+export const bonusBoxesRelations = relations(bonusBoxes, ({ one }) => ({
+  recipient: one(users, {
+    fields: [bonusBoxes.recipientId],
+    references: [users.id]
+  }),
+  sender: one(users, {
+    fields: [bonusBoxes.senderId], 
+    references: [users.id]
+  })
+}));
+
+export type BonusBox = typeof bonusBoxes.$inferSelect;
+export type InsertBonusBox = z.infer<typeof insertBonusBoxSchema>;
+
 // Songs schema for saving generated music
 export const songs = pgTable("songs", {
   id: serial("id").primaryKey(),

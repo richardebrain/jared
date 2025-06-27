@@ -6997,6 +6997,123 @@ Continue for all 5 questions...
     }
   });
 
+  // Bonus Box API endpoints
+  app.post('/api/bonus-boxes/send', requireAuth, async (req: any, res) => {
+    try {
+      const { recipientId, boxType, message } = req.body;
+      const senderId = req.user.id;
+
+      if (!recipientId || !boxType) {
+        return res.status(400).json({ message: 'Recipient ID and box type are required' });
+      }
+
+      // Validate box type and determine point range
+      const pointRanges = {
+        bonus: { min: 1, max: 30 },
+        bronze: { min: 1, max: 20 },
+        silver: { min: 10, max: 30 },
+        gold: { min: 20, max: 50 }
+      };
+
+      if (!pointRanges[boxType as keyof typeof pointRanges]) {
+        return res.status(400).json({ message: 'Invalid box type' });
+      }
+
+      const range = pointRanges[boxType as keyof typeof pointRanges];
+      const pointsAwarded = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
+      // Insert bonus box
+      await db.execute(sql`
+        INSERT INTO bonus_boxes (recipient_id, sender_id, box_type, points_awarded, message)
+        VALUES (${recipientId}, ${senderId}, ${boxType}, ${pointsAwarded}, ${message || null})
+      `);
+
+      res.json({ 
+        success: true, 
+        message: `${boxType.charAt(0).toUpperCase() + boxType.slice(1)} box sent successfully!`,
+        pointsAwarded 
+      });
+    } catch (error) {
+      console.error('Error sending bonus box:', error);
+      res.status(500).json({ message: 'Failed to send bonus box' });
+    }
+  });
+
+  // Get pending bonus boxes for user
+  app.get('/api/bonus-boxes/pending', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      const pendingBoxes = await db.execute(sql`
+        SELECT 
+          bb.id,
+          bb.box_type,
+          bb.points_awarded,
+          bb.message,
+          bb.created_at,
+          u.first_name as sender_first_name,
+          u.last_name as sender_last_name
+        FROM bonus_boxes bb
+        JOIN users u ON bb.sender_id = u.id
+        WHERE bb.recipient_id = ${userId} AND bb.is_opened = false
+        ORDER BY bb.created_at DESC
+      `);
+
+      res.json(pendingBoxes.rows || []);
+    } catch (error) {
+      console.error('Error fetching pending bonus boxes:', error);
+      res.status(500).json({ message: 'Failed to fetch pending boxes' });
+    }
+  });
+
+  // Open a bonus box
+  app.post('/api/bonus-boxes/:id/open', requireAuth, async (req: any, res) => {
+    try {
+      const boxId = parseInt(req.params.id);
+      const userId = req.user.id;
+
+      // Get the bonus box details
+      const box = await db.execute(sql`
+        SELECT * FROM bonus_boxes 
+        WHERE id = ${boxId} AND recipient_id = ${userId} AND is_opened = false
+      `);
+
+      if (!box.rows || box.rows.length === 0) {
+        return res.status(404).json({ message: 'Bonus box not found or already opened' });
+      }
+
+      const bonusBox = box.rows[0];
+
+      // Mark box as opened and award points
+      await db.transaction(async (tx) => {
+        // Mark box as opened
+        await tx.execute(sql`
+          UPDATE bonus_boxes 
+          SET is_opened = true, opened_at = NOW()
+          WHERE id = ${boxId}
+        `);
+
+        // Award points to user
+        await tx.execute(sql`
+          UPDATE users 
+          SET points = COALESCE(points, 0) + ${bonusBox.points_awarded},
+              lifetime_points = COALESCE(lifetime_points, 0) + ${bonusBox.points_awarded}
+          WHERE id = ${userId}
+        `);
+      });
+
+      res.json({
+        success: true,
+        pointsAwarded: bonusBox.points_awarded,
+        boxType: bonusBox.box_type,
+        message: bonusBox.message
+      });
+    } catch (error) {
+      console.error('Error opening bonus box:', error);
+      res.status(500).json({ message: 'Failed to open bonus box' });
+    }
+  });
+
   app.post(
     "/api/admin/update-teacher-certifications",
     requireAuth,
