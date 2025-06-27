@@ -95,6 +95,14 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
         const gifData = await gifResponse.json();
         console.log('GIPHY GIF search successful for:', searchQuery);
         setGifResults(gifData.data || []);
+      } else if (gifResponse.status === 429) {
+        const errorData = await gifResponse.json();
+        toast({
+          title: "Rate Limit Reached",
+          description: errorData.message || "GIPHY API rate limit reached. Please wait a few minutes before searching again.",
+          variant: "destructive"
+        });
+        return; // Exit early on rate limit
       }
       
       // Process Image results  
@@ -102,6 +110,14 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
         const imageData = await imageResponse.json();
         console.log('GIPHY Image search successful for:', searchQuery);
         setImageResults(imageData.data || []);
+      } else if (imageResponse.status === 429) {
+        const errorData = await imageResponse.json();
+        toast({
+          title: "Rate Limit Reached",
+          description: errorData.message || "GIPHY API rate limit reached. Please wait a few minutes before searching again.",
+          variant: "destructive"
+        });
+        return; // Exit early on rate limit
       }
       
       if (!gifResponse.ok && !imageResponse.ok) {
@@ -262,7 +278,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
               <Smile className="h-4 w-4 text-blue-600 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium">Pro Tip:</p>
-                <p>Search results are filtered for educational content and appropriate ratings. Use them to add humor and engagement to your training modules!</p>
+                <p>Search results are filtered for educational content and appropriate ratings. If searches fail due to rate limits, please wait a few minutes and try again!</p>
               </div>
             </div>
           </div>

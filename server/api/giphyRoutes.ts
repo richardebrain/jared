@@ -49,6 +49,13 @@ router.get('/gifs', async (req, res) => {
     const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${limit}&offset=${randomOffset}&rating=${rating}&lang=en`);
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return res.status(429).json({ 
+          error: 'Rate limit exceeded', 
+          message: 'GIPHY API rate limit reached. Please try again in a few minutes.',
+          retryAfter: 60
+        });
+      }
       throw new Error(`GIPHY GIFs API error: ${response.status}`);
     }
 
@@ -82,6 +89,13 @@ router.get('/images', async (req, res) => {
     const response = await fetch(`https://api.giphy.com/v1/stickers/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${limit}&offset=${randomOffset}&rating=${rating}&lang=en`);
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return res.status(429).json({ 
+          error: 'Rate limit exceeded', 
+          message: 'GIPHY API rate limit reached. Please try again in a few minutes.',
+          retryAfter: 60
+        });
+      }
       throw new Error(`GIPHY Images API error: ${response.status}`);
     }
 
