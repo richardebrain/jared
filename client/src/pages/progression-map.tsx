@@ -47,6 +47,7 @@ interface LevelRequirement {
   directorApproval?: boolean;
   inPersonAssessment?: boolean;
   modules?: string[];
+  onboardingRequired?: boolean;
   icon: LucideIcon;
   color: string;
   description: string;
@@ -87,6 +88,7 @@ export default function ProgressionMap() {
       points: 100,
       assessmentScore: 60,
       hoursRequired: 30,
+      onboardingRequired: true,
       icon: Star,
       color: "bg-yellow-500",
       description: "Developing teacher who can lead certain activities under supervision and is building core competencies.",
@@ -252,6 +254,12 @@ export default function ProgressionMap() {
     queryKey: ["/api/assessments"],
     enabled: !!user,
   });
+
+  // Get onboarding progress
+  const { data: onboardingProgress } = useQuery({
+    queryKey: ["/api/onboarding-progress"],
+    enabled: !!user,
+  });
   
   // Calculate highest assessment score
   const getHighestAssessmentScore = () => {
@@ -304,9 +312,10 @@ export default function ProgressionMap() {
     
     const pointsComplete = userPoints >= levelReq.points;
     const hoursComplete = !levelReq.hoursRequired || userECEHours >= levelReq.hoursRequired;
+    const onboardingComplete = !levelReq.onboardingRequired || onboardingProgress?.isOnboardingComplete || false;
     
-    // Level is completed only if BOTH requirements are met
-    if (pointsComplete && hoursComplete) {
+    // Level is completed only if ALL requirements are met
+    if (pointsComplete && hoursComplete && onboardingComplete) {
       if (level === currentLevel) return "active";
       return "completed";
     }

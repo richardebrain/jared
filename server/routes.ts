@@ -3585,6 +3585,55 @@ Continue for all 5 questions...
     }
   });
 
+  // Get onboarding completion progress for a user
+  app.get("/api/onboarding-progress", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Get total onboarding modules count
+      const totalResult = await db.execute(sql`
+        SELECT COUNT(*) as total
+        FROM learning_modules
+        WHERE is_onboarding_module = true
+      `);
+      
+      const totalOnboardingModules = Number(totalResult.rows[0]?.total || 0);
+      
+      // Get completed onboarding modules for this user
+      const completedResult = await db.execute(sql`
+        SELECT COUNT(*) as completed
+        FROM user_progress up
+        JOIN learning_modules lm ON up.module_id = lm.id
+        WHERE up.user_id = ${userId} 
+        AND lm.is_onboarding_module = true
+        AND up.progress >= 100
+      `);
+      
+      const completedOnboardingModules = Number(completedResult.rows[0]?.completed || 0);
+      
+      // Get list of completed onboarding module IDs
+      const completedModulesResult = await db.execute(sql`
+        SELECT lm.id, lm.title, lm.onboarding_order as "onboardingOrder"
+        FROM user_progress up
+        JOIN learning_modules lm ON up.module_id = lm.id
+        WHERE up.user_id = ${userId} 
+        AND lm.is_onboarding_module = true
+        AND up.progress >= 100
+        ORDER BY lm.onboarding_order ASC
+      `);
+      
+      res.json({
+        totalOnboardingModules,
+        completedOnboardingModules,
+        isOnboardingComplete: completedOnboardingModules >= totalOnboardingModules && totalOnboardingModules > 0,
+        completedModules: completedModulesResult.rows
+      });
+    } catch (error) {
+      console.error("Error fetching onboarding progress:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Mark a module as onboarding module
   app.post("/api/modules/:id/set-onboarding", requireAuth, async (req, res) => {
     try {
