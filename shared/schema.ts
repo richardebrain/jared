@@ -90,6 +90,9 @@ export const users = pgTable("users", {
   lastSongWeek: text("last_song_week"), // Format: "YYYY-WW"
   // Tutorial completion tracking
   hasCompletedTutorial: boolean("has_completed_tutorial").default(false),
+  // Password reset fields
+  resetToken: text("reset_token"),
+  resetTokenExpires: timestamp("reset_token_expires"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

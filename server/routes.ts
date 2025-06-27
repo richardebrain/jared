@@ -2013,8 +2013,8 @@ Continue for all 5 questions...
 
         // Send email with reset code
         try {
-          const { sendPasswordResetEmail } = await import('./services/emailService');
-          await sendPasswordResetEmail(user.email, user.firstName || user.username, resetToken);
+          const { sendSimplePasswordResetEmail } = await import('./services/emailService');
+          await sendSimplePasswordResetEmail(user.email, user.firstName || user.username, resetToken);
           
           console.log(`Password reset email sent to ${user.email} for user ${user.id}`);
         } catch (emailError) {

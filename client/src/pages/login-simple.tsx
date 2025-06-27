@@ -167,11 +167,18 @@ export default function LoginSimple() {
           </form>
         </Form>
 
-        <div className="text-center text-sm text-gray-600">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline">
-            Sign up
-          </Link>
+        <div className="text-center text-sm text-gray-600 space-y-2">
+          <div>
+            <Link href="/forgot-password" className="text-blue-600 hover:underline">
+              Forgot your password?
+            </Link>
+          </div>
+          <div>
+            Don't have an account?{" "}
+            <Link href="/register" className="text-blue-600 hover:underline">
+              Sign up
+            </Link>
+          </div>
         </div>
       </div>
     </div>
