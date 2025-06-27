@@ -292,7 +292,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-3">
               <Label>Educational Illustrations</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <input
                   type="file"
                   id="image-upload"
