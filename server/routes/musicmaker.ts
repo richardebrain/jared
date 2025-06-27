@@ -172,6 +172,14 @@ Make it catchy, memorable, and appropriate for educational settings.`,
 
       const result = await response.json();
       
+      // Check for specific credit/quota errors
+      if (result.code === 500 && result.data?.error?.raw_message?.includes('account point quota not enough')) {
+        return res.status(503).json({ 
+          error: 'Music generation service temporarily unavailable due to quota limits. Please try again later.',
+          details: 'Service quota exceeded'
+        });
+      }
+      
       // Update user's usage count using raw SQL
       try {
         const newRequestCount = lastSongWeek === currentWeek ? songRequestsThisWeek + 1 : 1;
