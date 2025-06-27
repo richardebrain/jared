@@ -317,12 +317,6 @@ import {
   eceHours,
   insertEceHoursSchema,
   userProgress,
-  assessmentResponses,
-  gameCompletions,
-  moduleRatings,
-  bearBucksTransactions,
-  coreValuesShoutOuts,
-  communityModules,
 } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
@@ -5812,60 +5806,21 @@ Continue for all 5 questions...
 
       // Start transaction for cascading deletes
       await db.transaction(async (tx) => {
-        // Delete all foreign key constraints in proper order
-
-        // 1. Delete user-related data for all school users
+        // 1. Delete user progress for all school users
         for (const user of schoolUsers) {
-          // Delete user progress
           await tx.delete(userProgress).where(eq(userProgress.userId, user.id));
-          
-          // Delete user assessments
-          await tx.delete(assessmentResponses).where(eq(assessmentResponses.userId, user.id));
-          
-          // Delete user streaks
-          await tx.delete(streaks).where(eq(streaks.userId, user.id));
-          
-          // Delete game completions
-          await tx.delete(gameCompletions).where(eq(gameCompletions.userId, user.id));
-          
-          // Delete teacher messages
-          await tx.delete(teacherMessages).where(eq(teacherMessages.userId, user.id));
-          
-          // Delete learning progress
-          await tx.delete(learningProgress).where(eq(learningProgress.userId, user.id));
-          
-          // Delete module ratings
-          await tx.delete(moduleRatings).where(eq(moduleRatings.userId, user.id));
-          
-          // Delete bear bucks transactions
-          await tx.delete(bearBucksTransactions).where(eq(bearBucksTransactions.userId, user.id));
-
-          // Delete core values shout outs (both sent and received)
-          await tx.delete(coreValuesShoutouts).where(eq(coreValuesShoutouts.fromUserId, user.id));
-          await tx.delete(coreValuesShoutouts).where(eq(coreValuesShoutouts.toUserId, user.id));
-
-          console.log(`Deleted user data for user ${user.id}`);
         }
 
         // 2. Delete school-specific modules
-        const schoolModules = await tx.select().from(learningModules).where(eq(learningModules.schoolId, schoolId));
-        
-        for (const module of schoolModules) {
-          // Delete community modules entries
-          await tx.delete(communityModules).where(eq(communityModules.moduleId, module.id));
-          console.log(`Deleted community module entries for module ${module.id}`);
-        }
-        
         await tx.delete(learningModules).where(eq(learningModules.schoolId, schoolId));
-        console.log(`Deleted ${schoolModules.length} school modules`);
 
         // 3. Delete all users in the school
         await tx.delete(users).where(eq(users.schoolId, schoolId));
-        console.log(`Deleted ${schoolUsers.length} users`);
 
         // 4. Finally delete the school
         await tx.delete(schools).where(eq(schools.id, schoolId));
-        console.log(`Deleted school ${schoolId}`);
+        
+        console.log(`Successfully deleted school ${schoolId} with ${schoolUsers.length} users`);
       });
 
       res.status(200).json({ 
