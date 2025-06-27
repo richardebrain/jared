@@ -771,6 +771,11 @@ export function ModulePlayer({ moduleId }: ModulePlayerProps) {
 
   console.log(module,'module loaded')
 
+  // Scroll to top when module loads or section changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [moduleId, currentSectionIndex]);
+
   // Award points mutation
   const awardPointsMutation = useMutation({
     mutationFn: async (data: { points: number; reason: string }) => {
