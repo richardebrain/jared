@@ -336,6 +336,7 @@ import videoSearchRoutes from "./api/videoSearchRoutes";
 import podcastRoutes from "./routes/podcast";
 import { musicmakerRouter } from "./routes/musicmaker";
 import imageGenerationRoutes from "./api/imageGenerationRoutes";
+import giphyRoutes from "./api/giphyRoutes";
 import { setupSecurityMiddleware } from "./middleware/security";
 
 // For ESM __dirname equivalent
@@ -975,6 +976,9 @@ Continue for all 5 questions...
 
   // Register admin routes for question management
   app.use("/api/admin", adminRoutes);
+
+  // Register GIPHY search routes
+  app.use("/api/giphy", giphyRoutes);
 
   const httpServer = createServer(app);
 
