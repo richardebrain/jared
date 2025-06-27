@@ -299,7 +299,9 @@ export default function ProgressionMap() {
     return {
       pointsNeeded,
       hoursNeeded,
-      hasHourRequirement: !!nextLevelReq.hoursRequired
+      hasHourRequirement: !!nextLevelReq.hoursRequired,
+      onboardingRequired: nextLevelReq.onboardingRequired || false,
+      onboardingProgress: onboardingProgress || null
     };
   }
   
@@ -621,6 +623,24 @@ export default function ProgressionMap() {
                                 })()}
                               </div>
                             )}
+                            {requirements.onboardingRequired && (
+                              <div className="flex items-center gap-1">
+                                <span>
+                                  {onboardingProgress?.totalOnboardingModules > 0 
+                                    ? `${onboardingProgress.completedOnboardingModules}/${onboardingProgress.totalOnboardingModules} onboarding`
+                                    : "0/0 onboarding"
+                                  }
+                                </span>
+                                {(() => {
+                                  const onboardingComplete = onboardingProgress?.isOnboardingComplete || false;
+                                  return onboardingComplete ? (
+                                    <CheckCircle className="h-3 w-3 text-green-500" />
+                                  ) : (
+                                    <span className="text-xs text-red-500">✗</span>
+                                  );
+                                })()}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -663,25 +683,29 @@ export default function ProgressionMap() {
                         const requirements = getNextLevelRequirements();
                         if (!requirements) return "Keep up the great work!";
                         
-                        const { pointsNeeded, hoursNeeded, hasHourRequirement } = requirements;
+                        const { pointsNeeded, hoursNeeded, hasHourRequirement, onboardingRequired, onboardingProgress } = requirements;
+                        const onboardingComplete = !onboardingRequired || onboardingProgress?.isOnboardingComplete || false;
+                        const onboardingMessage = onboardingRequired && !onboardingComplete 
+                          ? ` and complete ${(onboardingProgress?.totalOnboardingModules || 0) - (onboardingProgress?.completedOnboardingModules || 0)} onboarding modules`
+                          : "";
                         
-                        if (pointsNeeded === 0 && hoursNeeded === 0) {
+                        if (pointsNeeded === 0 && hoursNeeded === 0 && onboardingComplete) {
                           return `Ready to advance to ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level!`;
                         }
                         
-                        if (pointsNeeded === 0 && hasHourRequirement) {
+                        if (pointsNeeded === 0 && hasHourRequirement && onboardingComplete) {
                           return `${hoursNeeded} more ECE hours needed to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
                         }
                         
-                        if (hoursNeeded === 0 && hasHourRequirement) {
+                        if (hoursNeeded === 0 && hasHourRequirement && onboardingComplete) {
                           return `${pointsNeeded} more points needed to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
                         }
                         
                         if (hasHourRequirement) {
-                          return `Need ${pointsNeeded} points and ${hoursNeeded} ECE hours to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
+                          return `Need ${pointsNeeded} points and ${hoursNeeded} ECE hours${onboardingMessage} to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
                         }
                         
-                        return `${pointsNeeded} more points needed to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
+                        return `${pointsNeeded} more points needed${onboardingMessage} to reach ${nextLevel.charAt(0).toUpperCase() + nextLevel.slice(1)} Teacher level`;
                       })()}
                     </p>
                   )}
