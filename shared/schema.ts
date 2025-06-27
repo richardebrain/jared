@@ -240,6 +240,10 @@ export const learningModules = pgTable("learning_modules", {
   trainingDuration: integer("training_duration"), // minutes - actual training time
   approvedTrainerId: integer("approved_trainer_id").references(() => users.id), // trainer who created this
   
+  // Onboarding system fields
+  isOnboardingModule: boolean("is_onboarding_module").default(false), // true if this is required for new teacher onboarding
+  onboardingOrder: integer("onboarding_order"), // order in which onboarding modules should be completed
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 

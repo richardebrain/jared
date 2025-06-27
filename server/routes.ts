@@ -3536,6 +3536,129 @@ Continue for all 5 questions...
     }
   });
 
+  // Onboarding Module Management API Routes
+
+  // Get all onboarding modules (ordered by onboarding_order)
+  app.get("/api/onboarding-modules", requireAuth, async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT id, title, description, duration, point_value as "pointValue",
+               image_url as "imageUrl", featured, difficulty, category, content,
+               quiz, is_visible as "isVisible", created_at as "createdAt",
+               is_onboarding_module as "isOnboardingModule", 
+               onboarding_order as "onboardingOrder",
+               ece_hours as "eceHours", ece_category as "eceCategory"
+        FROM learning_modules
+        WHERE is_onboarding_module = true
+        ORDER BY onboarding_order ASC NULLS LAST, created_at DESC
+      `);
+
+      const modules = result.rows.map((row) => ({
+        ...row,
+        pointValue: row.pointValue || 5,
+        isOnboardingModule: row.isOnboardingModule || false,
+        onboardingOrder: row.onboardingOrder || null,
+      }));
+
+      res.status(200).json(modules);
+    } catch (error) {
+      console.error("Error fetching onboarding modules:", error);
+      res.status(500).json({ message: "Failed to fetch onboarding modules" });
+    }
+  });
+
+  // Mark a module as onboarding module
+  app.post("/api/modules/:id/set-onboarding", requireAuth, async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const { onboardingOrder } = req.body;
+      const userId = req.session.userId;
+
+      // Check if user is admin or school admin
+      const user = await storage.getUser(userId);
+      if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Update module to mark as onboarding
+      await db.execute(sql`
+        UPDATE learning_modules 
+        SET is_onboarding_module = true,
+            onboarding_order = ${onboardingOrder || null}
+        WHERE id = ${moduleId}
+      `);
+
+      res.status(200).json({ 
+        success: true, 
+        message: "Module added to onboarding training" 
+      });
+    } catch (error) {
+      console.error("Error setting onboarding module:", error);
+      res.status(500).json({ message: "Failed to set onboarding module" });
+    }
+  });
+
+  // Remove module from onboarding
+  app.delete("/api/modules/:id/remove-onboarding", requireAuth, async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const userId = req.session.userId;
+
+      // Check if user is admin or school admin
+      const user = await storage.getUser(userId);
+      if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Update module to remove from onboarding
+      await db.execute(sql`
+        UPDATE learning_modules 
+        SET is_onboarding_module = false,
+            onboarding_order = NULL
+        WHERE id = ${moduleId}
+      `);
+
+      res.status(200).json({ 
+        success: true, 
+        message: "Module removed from onboarding training" 
+      });
+    } catch (error) {
+      console.error("Error removing onboarding module:", error);
+      res.status(500).json({ message: "Failed to remove onboarding module" });
+    }
+  });
+
+  // Update onboarding order for multiple modules
+  app.patch("/api/onboarding-modules/reorder", requireAuth, async (req, res) => {
+    try {
+      const { modules } = req.body; // Array of {id, onboardingOrder}
+      const userId = req.session.userId;
+
+      // Check if user is admin or school admin
+      const user = await storage.getUser(userId);
+      if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Update each module's onboarding order
+      for (const module of modules) {
+        await db.execute(sql`
+          UPDATE learning_modules 
+          SET onboarding_order = ${module.onboardingOrder}
+          WHERE id = ${module.id} AND is_onboarding_module = true
+        `);
+      }
+
+      res.status(200).json({ 
+        success: true, 
+        message: "Onboarding order updated successfully" 
+      });
+    } catch (error) {
+      console.error("Error reordering onboarding modules:", error);
+      res.status(500).json({ message: "Failed to reorder onboarding modules" });
+    }
+  });
+
   // Admin middleware
   const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
     // Simple password-based admin authentication

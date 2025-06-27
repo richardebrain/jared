@@ -726,7 +726,7 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
                   <Shield className="h-5 w-5 mr-2 text-indigo-600" />
-                  Required Training
+                  Required Onboarding Training
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Replace CoreValuesCard with CompactModuleCard */}
