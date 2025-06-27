@@ -61,8 +61,8 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     }
   }, [open]);
 
-  // Search function that only runs when button is clicked
-  const performGiphySearch = async () => {
+  // Search function for both GIFs and Images
+  const performSearch = async () => {
     if (!searchTerm.trim()) {
       toast({
         title: "Enter Search Term",
@@ -83,29 +83,41 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       
       // Add timestamp to ensure fresh request
       const timestamp = Date.now();
-      const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(searchQuery)}&limit=20&rating=pg-13&t=${timestamp}`);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('GIPHY API response error:', response.status, errorText);
-        throw new Error(`GIPHY API error: ${response.status}`);
+      // Search both GIFs and Images simultaneously
+      const [gifResponse, imageResponse] = await Promise.all([
+        fetch(`/api/giphy/gifs?q=${encodeURIComponent(searchQuery)}&limit=20&rating=pg-13&t=${timestamp}`),
+        fetch(`/api/giphy/images?q=${encodeURIComponent(searchQuery)}&limit=20&rating=pg-13&t=${timestamp}`)
+      ]);
+      
+      // Process GIF results
+      if (gifResponse.ok) {
+        const gifData = await gifResponse.json();
+        console.log('GIPHY GIF search successful for:', searchQuery);
+        setGifResults(gifData.data || []);
       }
       
-      const data = await response.json();
-      console.log('GIPHY search successful for:', searchQuery);
-      console.log('Setting giphyResults to:', data.data?.length, 'items');
+      // Process Image results  
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        console.log('GIPHY Image search successful for:', searchQuery);
+        setImageResults(imageData.data || []);
+      }
       
-      // For now, keep using the legacy endpoint, but update to GIF results
-      setGifResults(data.data || []);
-      setSearchKey(prev => prev + 1); // Force re-render
+      if (!gifResponse.ok && !imageResponse.ok) {
+        throw new Error('Both search requests failed');
+      }
+      
+      setSearchKey(prev => prev + 1);
     } catch (error) {
-      console.error('GIPHY search error:', error);
+      console.error('Visual content search failed:', error);
+      setGifResults([]);
+      setImageResults([]);
       toast({
-        title: "Search Error",
-        description: `Failed to search visual content: ${error.message}`,
+        title: "Search Failed",
+        description: "Unable to search visual content. Please try again.",
         variant: "destructive"
       });
-      setGifResults([]);
     } finally {
       setLoading(false);
     }
@@ -114,7 +126,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
   // Handle Enter key press in search input
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      performGiphySearch();
+      performSearch();
     }
   };
 
@@ -156,7 +168,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
               />
             </div>
             <Button 
-              onClick={performGiphySearch}
+              onClick={performSearch}
               disabled={loading || !searchTerm.trim()}
               className="px-6"
             >
@@ -175,9 +187,9 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
                 <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
                 <span className="ml-2 text-gray-600">Searching visual content...</span>
               </div>
-            ) : giphyResults.length > 0 ? (
+            ) : (activeTab === 'gifs' && gifResults.length > 0) || (activeTab === 'images' && imageResults.length > 0) ? (
               <div key={searchKey} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {giphyResults.map((meme) => (
+                {(activeTab === 'gifs' ? gifResults : imageResults).map((meme: GiphyContent) => (
                   <Card
                     key={meme.id}
                     className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
