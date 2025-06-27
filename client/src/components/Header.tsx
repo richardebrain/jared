@@ -245,16 +245,16 @@ export default function Header() {
           */}
         </nav>
         
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            {/* Notification Bell */}
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="flex items-center space-x-1 md:space-x-2">
+            {/* Notification Bell - hidden on small mobile, visible on larger screens */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative p-2">
-                  <Bell className="h-5 w-5" />
+                <Button variant="ghost" size="sm" className="relative p-1 md:p-2 hidden sm:flex">
+                  <Bell className="h-4 w-4 md:h-5 md:w-5" />
                   {totalNotifications > 0 && (
                     <Badge 
-                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white"
+                      className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white"
                     >
                       {totalNotifications}
                     </Badge>
@@ -505,9 +505,11 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           
+          {/* Mobile menu button */}
           <button 
-            className="md:hidden text-neutral-800 hover:text-primary transition"
+            className="md:hidden text-neutral-800 hover:text-primary transition p-2 ml-2"
             onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
           >
             <i className={`${isMobileMenuOpen ? "ri-close-line" : "ri-menu-line"} text-2xl`}></i>
           </button>
