@@ -704,7 +704,10 @@ export default function NewModuleAI() {
       includeInLibrary: publishSettings.includeInLibrary,
       allowComments: publishSettings.allowComments,
       publishToSection: publishSettings.publishToSection,
-      publishToCommunity: publishSettings.publishToCommunity
+      publishToCommunity: publishSettings.publishToCommunity,
+      // Mandatory onboarding settings
+      publishToOnboarding: publishSettings.type === "mandatory" && publishSettings.mandatoryForAllNewHires,
+      onboardingOrder: publishSettings.type === "mandatory" ? publishSettings.onboardingOrder : null
     };
 
     console.log('Publishing module with data:', publishData);

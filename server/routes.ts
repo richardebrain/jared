@@ -3017,8 +3017,8 @@ Continue for all 5 questions...
           }),
           is_visible: includeInLibrary,
           is_shared_to_community: publishToCommunity,
-          isOnboardingModule: publishToOnboarding,
-          onboardingOrder: publishToOnboarding ? onboardingOrder : null,
+          is_onboarding_module: publishToOnboarding,
+          onboarding_order: publishToOnboarding ? onboardingOrder : null,
           creator_id: userId,
           school_id: user.schoolId,
         };
@@ -3049,11 +3049,13 @@ Continue for all 5 questions...
       // Handle onboarding publishing
       if (publishToOnboarding) {
         if (savedModule.id) {
-          // Update the module to mark it as onboarding with order
-          await storage.updateModule(savedModule.id, {
-            isOnboardingModule: true,
-            onboardingOrder: onboardingOrder
-          });
+          // Update the module to mark it as onboarding with order using direct SQL
+          await db.execute(sql`
+            UPDATE learning_modules 
+            SET is_onboarding_module = true,
+                onboarding_order = ${onboardingOrder || null}
+            WHERE id = ${savedModule.id}
+          `);
           console.log(`Module "${savedModule.title}" published to required onboarding training at position ${onboardingOrder}`);
         }
       }
