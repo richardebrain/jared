@@ -323,7 +323,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
                   className="bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700"
                 >
                   <Smile className="h-4 w-4 mr-2" />
-                  Find a Meme
+                  Visual Content
                 </Button>
               </div>
             </div>

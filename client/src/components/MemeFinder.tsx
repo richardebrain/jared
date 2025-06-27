@@ -155,7 +155,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
                           alt={meme.title}
                           className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
                           onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Meme+Not+Available';
+                            e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Content+Not+Available';
                           }}
                         />
                       </div>
@@ -174,13 +174,13 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
             ) : searchTerm.trim() ? (
               <div className="text-center py-8">
                 <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">No memes found for "{searchTerm}"</p>
+                <p className="text-gray-600">No visual content found for "{searchTerm}"</p>
                 <p className="text-sm text-gray-500">Try different keywords like "teaching", "classroom", or "kids"</p>
               </div>
             ) : (
               <div className="text-center py-8">
                 <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Start typing to search for educational memes</p>
+                <p className="text-gray-600">Start typing to search for visual content</p>
                 <p className="text-sm text-gray-500">Try "playground safety", "classroom management", or "teaching moments"</p>
               </div>
             )}
