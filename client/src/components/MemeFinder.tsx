@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,57 +53,67 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     }
   }, [open]);
 
-  // GIPHY search function
-  const searchGiphy = useCallback(
-    async (searchQuery: string) => {
-      if (!searchQuery.trim()) {
-        setGiphyResults([]);
-        return;
+  // Simple search function with variable tracking
+  let searchTimeout: NodeJS.Timeout | null = null;
+
+  const performGiphySearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setGiphyResults([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Add educational keywords to improve relevance (shorter to avoid 414 URI too long)
+      const educationalQuery = `${searchQuery} education teaching`;
+      
+      const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GIPHY API response error:', response.status, errorText);
+        throw new Error(`GIPHY API error: ${response.status}`);
       }
+      
+      const data = await response.json();
+      console.log('GIPHY search successful for:', searchQuery);
+      console.log('Setting giphyResults to:', data.data?.length, 'items');
+      
+      // Force state update with new results
+      setGiphyResults(data.data || []);
+    } catch (error) {
+      console.error('GIPHY search error:', error);
+      toast({
+        title: "Search Error",
+        description: `Failed to search visual content: ${error.message}`,
+        variant: "destructive"
+      });
+      setGiphyResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      setLoading(true);
-      try {
-        // Add educational keywords to improve relevance (shorter to avoid 414 URI too long)
-        const educationalQuery = `${searchQuery} education teaching`;
-        
-        const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13`);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('GIPHY API response error:', response.status, errorText);
-          throw new Error(`GIPHY API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('GIPHY search successful:', data);
-        setGiphyResults(data.data || []);
-      } catch (error) {
-        console.error('GIPHY search error:', error);
-        toast({
-          title: "Search Error",
-          description: `Failed to search visual content: ${error.message}`,
-          variant: "destructive"
-        });
-        setGiphyResults([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [toast]
-  );
-
-  // Debounced GIPHY search
-  const debouncedGiphySearch = useCallback(
-    debounce((query: string) => {
-      searchGiphy(query);
-    }, 500),
-    [searchGiphy]
-  );
-
-  // Search when term changes
+  // Search when term changes with simple debounce
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    debouncedGiphySearch(value);
+    
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    if (value.trim()) {
+      // Set new timeout for search
+      searchTimeout = setTimeout(() => {
+        performGiphySearch(value);
+      }, 500);
+    } else {
+      setGiphyResults([]);
+      setLoading(false);
+    }
   };
 
   const handleContentSelect = (content: GiphyContent) => {
