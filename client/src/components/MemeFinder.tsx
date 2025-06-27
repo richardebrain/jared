@@ -155,6 +155,30 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('gifs')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'gifs'
+                  ? 'bg-white text-orange-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              GIFs
+            </button>
+            <button
+              onClick={() => setActiveTab('images')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'images'
+                  ? 'bg-white text-orange-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Images
+            </button>
+          </div>
+
           {/* Search Input with Button */}
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -221,13 +245,13 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
             ) : searchTerm.trim() ? (
               <div className="text-center py-8">
                 <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">No visual content found for "{searchTerm}"</p>
+                <p className="text-gray-600">No {activeTab === 'gifs' ? 'GIFs' : 'images'} found for "{searchTerm}"</p>
                 <p className="text-sm text-gray-500">Try different keywords like "teaching", "classroom", or "kids"</p>
               </div>
             ) : (
               <div className="text-center py-8">
                 <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Enter search terms and click "Search" to find visual content</p>
+                <p className="text-gray-600">Enter search terms and click "Search" to find {activeTab === 'gifs' ? 'GIFs' : 'images'}</p>
                 <p className="text-sm text-gray-500">Try "playground safety", "classroom management", or "teaching moments"</p>
               </div>
             )}
