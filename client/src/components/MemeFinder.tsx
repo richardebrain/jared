@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +43,15 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
   const [giphyResults, setGiphyResults] = useState<GiphyContent[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Reset component state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setSearchTerm('');
+      setGiphyResults([]);
+      setLoading(false);
+    }
+  }, [open]);
 
   // GIPHY search function
   const searchGiphy = useCallback(
