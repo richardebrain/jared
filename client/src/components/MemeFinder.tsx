@@ -72,12 +72,12 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     setLoading(true);
     
     try {
-      // Add educational keywords to improve relevance
-      const educationalQuery = `${searchTerm} education teaching`;
+      // Use the exact search term entered by the user
+      const searchQuery = searchTerm.trim();
       
       // Add timestamp to ensure fresh request
       const timestamp = Date.now();
-      const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13&t=${timestamp}`);
+      const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(searchQuery)}&limit=20&rating=pg-13&t=${timestamp}`);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -86,7 +86,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       }
       
       const data = await response.json();
-      console.log('GIPHY search successful for:', searchTerm);
+      console.log('GIPHY search successful for:', searchQuery);
       console.log('Setting giphyResults to:', data.data?.length, 'items');
       
       // Force state update with completely new results and increment search key
@@ -148,7 +148,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search for visual content (e.g., playground safety, classroom management, teaching moments, celebrations)..."
+                placeholder="Search for any visual content (e.g., celebration, applause, funny cat, motivational, thumbs up)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
