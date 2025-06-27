@@ -7000,9 +7000,12 @@ Continue for all 5 questions...
       const userId = parseInt(req.params.userId);
       const currentUserId = req.session.userId as number;
       
-      // Verify admin access
+      // Verify admin access or self-access
       const currentUser = await storage.getUser(currentUserId);
-      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+      const isViewingSelf = currentUserId === userId;
+      const hasAdminAccess = currentUser?.isAdmin || currentUser?.isSchoolAdmin || currentUser?.isOwner;
+      
+      if (!isViewingSelf && !hasAdminAccess) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
