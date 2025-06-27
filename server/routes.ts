@@ -7060,14 +7060,14 @@ Continue for all 5 questions...
       // Get total points breakdown including assessment points, current points, bearBucks, and lifetime points
       const pointsBreakdown = await db.execute(sql`
         SELECT 
-          COALESCE(SUM(CASE WHEN up.points_earned > 0 THEN up.points_earned ELSE 0 END), 0) as modulePoints,
+          COALESCE(SUM(CASE WHEN up.points_earned > 0 THEN up.points_earned ELSE 0 END), 0) as "modulePoints",
           (SELECT COALESCE(SUM(CASE WHEN gc.points_earned > 0 THEN gc.points_earned ELSE 0 END), 0) 
-           FROM game_completions gc WHERE gc.user_id = ${userId}) as gamePoints,
+           FROM game_completions gc WHERE gc.user_id = ${userId}) as "gamePoints",
           (SELECT COALESCE(SUM(CASE WHEN ar.points_earned > 0 THEN ar.points_earned ELSE 0 END), 0) 
-           FROM assessment_responses ar WHERE ar.user_id = ${userId}) as assessmentPoints,
-          (SELECT COALESCE(points, 0) FROM users WHERE id = ${userId}) as currentPoints,
-          (SELECT COALESCE(lifetime_points, 0) FROM users WHERE id = ${userId}) as lifetimePoints,
-          (SELECT COALESCE(bear_bucks, 0) FROM users WHERE id = ${userId}) as bearBucks
+           FROM assessment_responses ar WHERE ar.user_id = ${userId}) as "assessmentPoints",
+          (SELECT COALESCE(points, 0) FROM users WHERE id = ${userId}) as "currentPoints",
+          (SELECT COALESCE(lifetime_points, 0) FROM users WHERE id = ${userId}) as "lifetimePoints",
+          (SELECT COALESCE(bear_bucks, 0) FROM users WHERE id = ${userId}) as "bearBucks"
         FROM user_progress up
         WHERE up.user_id = ${userId}
       `);
