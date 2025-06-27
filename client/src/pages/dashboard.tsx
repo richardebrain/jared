@@ -88,6 +88,12 @@ export default function Dashboard() {
     staleTime: 0,
     cacheTime: 0,
   });
+
+  // Fetch onboarding modules
+  const { data: onboardingModules } = useQuery({
+    queryKey: ["/api/onboarding-modules"],
+    enabled: !!user,
+  });
   
 
   
@@ -722,60 +728,36 @@ export default function Dashboard() {
                 {/* Custom animations are added through global CSS instead */}
               </div>
               
-              {/* Required Modules Section */}
+              {/* Required Onboarding Training Section */}
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center">
                   <Shield className="h-5 w-5 mr-2 text-indigo-600" />
                   Required Onboarding Training
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Replace CoreValuesCard with CompactModuleCard */}
-                  <CompactModuleCard 
-                    module={{
-                      id: 33,
-                      title: "Raising Arizona's CORE Values",
-                      description: "Learn the essential values that guide our work with children",
-                      duration: 20,
-                      pointValue: 10,
-                      category: "training",
-                      difficulty: "beginner",
-                      content: null,
-                      quiz: null,
-                      imageUrl: null,
-                      featured: true,
-                      isVisible: true,
-                      createdAt: null
-                    }}
-                    onClick={(moduleId) => {
-                      // Direct navigation to the new Core Values module
-                      if (moduleId === 33) {
-                        setLocation('/core-values-module-new');
-                      } else {
-                        setSelectedModuleId(moduleId);
-                      }
-                    }}
-                  />
-                  
-                  {/* Replace ChapterOneCard with CompactModuleCard */}
-                  <CompactModuleCard 
-                    module={{
-                      id: 34,
-                      title: "Chapter 1: Building a Human",
-                      description: "Understanding child development from the ground up",
-                      duration: 30,
-                      pointValue: 15,
-                      category: "training",
-                      difficulty: "beginner",
-                      content: null,
-                      quiz: null,
-                      imageUrl: null,
-                      featured: true,
-                      isVisible: true,
-                      createdAt: null
-                    }}
-                    onClick={(moduleId) => setSelectedModuleId(moduleId)}
-                  />
-                </div>
+                {onboardingModules && onboardingModules.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {onboardingModules.map((module: any) => (
+                      <CompactModuleCard 
+                        key={module.id}
+                        module={module}
+                        onClick={(moduleId) => {
+                          // Handle special routing for certain modules
+                          if (moduleId === 33) {
+                            setLocation('/core-values-module-new');
+                          } else {
+                            setSelectedModuleId(moduleId);
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Shield className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No onboarding modules have been published yet.</p>
+                    <p className="text-sm">Administrators can create and publish onboarding modules for new teacher training.</p>
+                  </div>
+                )}
               </div>
               
               {/* Ultimate Escalator - Moved to middle of dashboard */}

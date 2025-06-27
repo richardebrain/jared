@@ -3017,7 +3017,7 @@ Continue for all 5 questions...
           }),
           is_visible: includeInLibrary,
           is_shared_to_community: publishToCommunity,
-          isOnboarding: publishToOnboarding,
+          isOnboardingModule: publishToOnboarding,
           onboardingOrder: publishToOnboarding ? onboardingOrder : null,
           creator_id: userId,
           school_id: user.schoolId,
@@ -3043,6 +3043,18 @@ Continue for all 5 questions...
             INSERT INTO community_modules (module_id, shared_by_school_id, status)
             VALUES (${savedModule.id}, ${user.schoolId}, 'active')
           `);
+        }
+      }
+
+      // Handle onboarding publishing
+      if (publishToOnboarding) {
+        if (savedModule.id) {
+          // Update the module to mark it as onboarding with order
+          await storage.updateModule(savedModule.id, {
+            isOnboardingModule: true,
+            onboardingOrder: onboardingOrder
+          });
+          console.log(`Module "${savedModule.title}" published to required onboarding training at position ${onboardingOrder}`);
         }
       }
 
