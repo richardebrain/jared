@@ -301,9 +301,9 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
         <BonusBoxPopup
           bonusBoxes={bonusBoxes}
           onClose={() => {
-            // All boxes have been processed, close popup and main welcome
+            // All boxes have been processed, close popup but keep welcome dashboard open
             setShowBonusBoxPopup(false);
-            onClose();
+            // Don't call onClose() - let the welcome dashboard stay visible
           }}
         />
       )}
