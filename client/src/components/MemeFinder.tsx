@@ -220,6 +220,18 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
             </Button>
           </div>
 
+          {/* GIPHY Attribution */}
+          <div className="flex justify-center py-2">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>Powered by</span>
+              <img 
+                src="https://developers.giphy.com/branch/master/static/api-logo-white-bg.png" 
+                alt="GIPHY" 
+                className="h-4"
+              />
+            </div>
+          </div>
+
           {/* Results Grid */}
           <div className="max-h-96 overflow-y-auto">
             {loading ? (

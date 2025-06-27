@@ -1,4 +1,3 @@
-
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -8,7 +7,7 @@ import express from "express";
 import session from "express-session";
 import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
 import { sendAdminPasswordResetEmail } from "./services/emailService";
-import { MailService } from '@sendgrid/mail';
+import { MailService } from "@sendgrid/mail";
 import connectPgSimple from "connect-pg-simple";
 
 // Initialize SendGrid
@@ -16,7 +15,6 @@ const mailService = new MailService();
 if (process.env.SENDGRID_API_KEY) {
   mailService.setApiKey(process.env.SENDGRID_API_KEY);
 }
-
 
 // SendGrid email service for ECE monthly reports
 // async function sendEceMonthlyReport(
@@ -32,17 +30,17 @@ if (process.env.SENDGRID_API_KEY) {
 //       return false;
 //     }
 
-//     const subject = isTestEmail 
+//     const subject = isTestEmail
 //       ? `[TEST] ECE Training Report - ${schoolName} - ${reportPeriod}`
 //       : `ECE Training Report - ${schoolName} - ${reportPeriod}`;
 
 //     const htmlContent = generateEceReportHTML(schoolName, reportPeriod, trainingData, isTestEmail);
 
 //     console.log(`Sending ECE report to ${recipients.length} recipients...`);
-    
+
 //     for (const recipient of recipients) {
 //       console.log(`Sending email to: ${recipient}`);
-      
+
 //       try {
 //         await mailService.send({
 //           to: recipient,
@@ -58,13 +56,13 @@ if (process.env.SENDGRID_API_KEY) {
 //           statusCode: emailError.response?.statusCode,
 //           body: emailError.response?.body
 //         });
-        
+
 //         // If SendGrid authentication fails, don't continue with other recipients
 //         if (emailError.code === 403) {
 //           console.error("SendGrid authentication failed - check API key");
 //           return false;
 //         }
-        
+
 //         // For other errors, continue trying other recipients
 //         continue;
 //       }
@@ -84,7 +82,7 @@ export async function sendEceMonthlyReport(
   schoolName: string,
   reportPeriod: string,
   trainingData: any[],
-  isTestEmail: boolean = false
+  isTestEmail: boolean = false,
 ): Promise<boolean> {
   try {
     if (!process.env.SENDGRID_API_KEY) {
@@ -92,11 +90,16 @@ export async function sendEceMonthlyReport(
       return false;
     }
 
-    const subject = isTestEmail 
+    const subject = isTestEmail
       ? `[TEST] ECE Training Report - ${schoolName} - ${reportPeriod}`
       : `ECE Training Report - ${schoolName} - ${reportPeriod}`;
 
-    const htmlContent = generateEceReportHTML(schoolName, reportPeriod, trainingData, isTestEmail);
+    const htmlContent = generateEceReportHTML(
+      schoolName,
+      reportPeriod,
+      trainingData,
+      isTestEmail,
+    );
 
     console.log(`Sending ECE report to ${recipients.length} recipients...`);
 
@@ -106,7 +109,7 @@ export async function sendEceMonthlyReport(
       try {
         await mailService.send({
           to: recipient,
-          from: 'jared@mentormeprek.com',
+          from: "jared@mentormeprek.com",
           subject,
           html: htmlContent,
         });
@@ -116,7 +119,7 @@ export async function sendEceMonthlyReport(
           code: emailError.code,
           message: emailError.message,
           statusCode: emailError.response?.statusCode,
-          body: emailError.response?.body
+          body: emailError.response?.body,
         });
 
         // If SendGrid authentication fails, don't continue with other recipients
@@ -133,7 +136,7 @@ export async function sendEceMonthlyReport(
     console.log(`ECE report sending completed`);
     return true;
   } catch (error) {
-    console.error('Error sending ECE report:', error);
+    console.error("Error sending ECE report:", error);
     return false;
   }
 }
@@ -144,16 +147,19 @@ function generateEceReportHTML(
   schoolName: string,
   reportPeriod: string,
   trainingData: any[],
-  isTestEmail: boolean
+  isTestEmail: boolean,
 ): string {
-  const testBanner = isTestEmail ? `
+  const testBanner = isTestEmail
+    ? `
     <div style="background-color: #fef3c7; border: 2px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 8px;">
       <h2 style="color: #92400e; margin: 0; font-size: 18px; font-weight: bold;">🧪 TEST EMAIL</h2>
       <p style="color: #92400e; margin: 8px 0 0 0; font-size: 14px;">This is a test of your ECE reporting system. No actual data is included.</p>
     </div>
-  ` : '';
+  `
+    : "";
 
-  const dataContent = isTestEmail ? `
+  const dataContent = isTestEmail
+    ? `
     <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <p style="color: #6b7280; font-style: italic; margin: 0;">
         This is a test email. In actual reports, you will see detailed training data for each teacher including:
@@ -165,7 +171,8 @@ function generateEceReportHTML(
         <li>Detailed training summaries</li>
       </ul>
     </div>
-  ` : generateTrainingDataHTML(trainingData);
+  `
+    : generateTrainingDataHTML(trainingData);
 
   return `
     <!DOCTYPE html>
@@ -195,11 +202,11 @@ function generateEceReportHTML(
       <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="color: #9ca3af; font-size: 12px; margin: 0;">
           This email was automatically generated by MentorMe ECE Platform<br>
-          Generated on ${new Date().toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          Generated on ${new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           })}
         </p>
       </div>
@@ -218,15 +225,18 @@ function generateTrainingDataHTML(trainingData: any[]): string {
   }
 
   // Generate individual teacher summaries
-  const teacherSummaries = trainingData.map(teacher => {
-    const categoryDetails = Object.entries(teacher.hoursByCategory)
-      .map(([category, hours]) => {
-        const categoryDisplay = category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        return `${hours} hour${hours === 1 ? '' : 's'} in ${categoryDisplay}`;
-      })
-      .join(', ');
+  const teacherSummaries = trainingData
+    .map((teacher) => {
+      const categoryDetails = Object.entries(teacher.hoursByCategory)
+        .map(([category, hours]) => {
+          const categoryDisplay = category
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase());
+          return `${hours} hour${hours === 1 ? "" : "s"} in ${categoryDisplay}`;
+        })
+        .join(", ");
 
-    return `
+      return `
       <div style="background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
         <h3 style="margin: 0 0 8px 0; color: #1e40af; font-size: 16px; font-weight: 600;">
           ${teacher.name}
@@ -240,12 +250,19 @@ function generateTrainingDataHTML(trainingData: any[]): string {
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join("");
 
   // Generate summary statistics
   const totalTeachers = trainingData.length;
-  const totalHoursThisMonth = trainingData.reduce((sum, teacher) => sum + teacher.hoursThisMonth, 0);
-  const totalHoursYTD = trainingData.reduce((sum, teacher) => sum + teacher.totalHours, 0);
+  const totalHoursThisMonth = trainingData.reduce(
+    (sum, teacher) => sum + teacher.hoursThisMonth,
+    0,
+  );
+  const totalHoursYTD = trainingData.reduce(
+    (sum, teacher) => sum + teacher.totalHours,
+    0,
+  );
 
   return `
     <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
@@ -405,12 +422,17 @@ const logoUpload = multer({
 const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   console.log("🔐 Auth middleware triggered for:", req.method, req.path);
   console.log("Auth check - Session ID:", req.session?.id || "No session");
-  console.log("Auth check - Session userId:", req.session?.userId || "No userId");
+  console.log(
+    "Auth check - Session userId:",
+    req.session?.userId || "No userId",
+  );
   console.log("Auth check - Session data:", req.session || "No session object");
 
   if (!req.session || !req.session.userId) {
     console.log("❌ Auth failed - No userId in session");
-    return res.status(401).json({ message: "Unauthorized - Authentication required" });
+    return res
+      .status(401)
+      .json({ message: "Unauthorized - Authentication required" });
   }
 
   try {
@@ -419,9 +441,7 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
     const user = await storage.getUser(userId);
 
     if (!user) {
-      console.log(
-        `Auth failed - User with ID ${userId} not found in database`,
-      );
+      console.log(`Auth failed - User with ID ${userId} not found in database`);
       req.session.destroy(() => {
         console.log("Session destroyed due to user not found");
       });
@@ -545,7 +565,7 @@ async function ensureDefaultSchoolExists() {
 export async function registerRoutes(app: Express): Promise<void> {
   // Setup security middleware first
   setupSecurityMiddleware(app);
-  
+
   // Setup Google authentication
   setupGoogleAuth(app);
 
@@ -573,12 +593,24 @@ export async function registerRoutes(app: Express): Promise<void> {
       );
 
       // Enhanced input validation
-      if (!sectionTitle || typeof sectionTitle !== 'string' || sectionTitle.trim().length === 0) {
-        return res.status(400).json({ error: "Valid section title is required" });
+      if (
+        !sectionTitle ||
+        typeof sectionTitle !== "string" ||
+        sectionTitle.trim().length === 0
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Valid section title is required" });
       }
 
-      if (!moduleTitle || typeof moduleTitle !== 'string' || moduleTitle.trim().length === 0) {
-        return res.status(400).json({ error: "Valid module title is required" });
+      if (
+        !moduleTitle ||
+        typeof moduleTitle !== "string" ||
+        moduleTitle.trim().length === 0
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Valid module title is required" });
       }
 
       const difficultyPrompts = {
@@ -633,65 +665,70 @@ Create ONE multiple choice question with 4 realistic answers that directly tests
       });
 
       const questionData = await (async () => {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+          temperature: 0.7,
+          max_tokens: 1000,
+        });
 
-          const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: prompt }],
-            response_format: { type: "json_object" },
-            temperature: 0.7,
-            max_tokens: 1000,
-          });
+        const content = response.choices[0].message.content;
+        if (!content) {
+          throw new Error("No content received from AI service");
+        }
 
-          const content = response.choices[0].message.content;
-          if (!content) {
-            throw new Error("No content received from AI service");
-          }
+        const questionData = JSON.parse(content);
 
-          const questionData = JSON.parse(content);
-          
-          // Validate the response structure
-          if (!questionData.question || !questionData.answers || !Array.isArray(questionData.answers)) {
-            throw new Error("Invalid response format from AI service");
-          }
+        // Validate the response structure
+        if (
+          !questionData.question ||
+          !questionData.answers ||
+          !Array.isArray(questionData.answers)
+        ) {
+          throw new Error("Invalid response format from AI service");
+        }
 
-          // Ensure correctAnswer is within valid range
-          if (typeof questionData.correctAnswer !== 'number' || 
-              questionData.correctAnswer < 0 || 
-              questionData.correctAnswer >= questionData.answers.length) {
-            questionData.correctAnswer = 0; // Default to first answer if invalid
-          }
+        // Ensure correctAnswer is within valid range
+        if (
+          typeof questionData.correctAnswer !== "number" ||
+          questionData.correctAnswer < 0 ||
+          questionData.correctAnswer >= questionData.answers.length
+        ) {
+          questionData.correctAnswer = 0; // Default to first answer if invalid
+        }
 
-          return questionData;
-        },
-        () => ({
-          question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
-          answers: [
-            "Regular safety inspections and maintenance",
-            "Ignoring minor equipment issues", 
-            "Allowing unsupervised play",
-            "Using damaged equipment"
-          ],
-          correctAnswer: 0,
-          explanation: "Regular safety inspections help identify and prevent potential hazards before accidents occur."
-        })
-      );
+        return questionData;
+      },
+      () => ({
+        question: `What is an important safety consideration for ${sectionTitle.toLowerCase()}?`,
+        answers: [
+          "Regular safety inspections and maintenance",
+          "Ignoring minor equipment issues",
+          "Allowing unsupervised play",
+          "Using damaged equipment",
+        ],
+        correctAnswer: 0,
+        explanation:
+          "Regular safety inspections help identify and prevent potential hazards before accidents occur.",
+      }));
 
       res.json({ question: questionData });
     } catch (error) {
       console.error("Single quiz question generation error:", error);
-      const errorResponse = enhancedErrorHandler(error, 'ai-quiz-generation', {
+      const errorResponse = enhancedErrorHandler(error, "ai-quiz-generation", {
         moduleTitle,
         sectionTitle,
-        difficulty
+        difficulty,
       });
-      
+
       res.status(500).json({
         ...errorResponse,
         question: {
           question: "What is an important aspect of early childhood education?",
           answers: [
             "Professional development",
-            "Classroom management", 
+            "Classroom management",
             "Child safety",
             "All of the above",
           ],
@@ -823,12 +860,16 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
       });
     } catch (error) {
       console.error("Error generating activity:", error);
-      const errorResponse = enhancedErrorHandler(error, 'ai-activity-generation', {
-        moduleTitle,
-        sectionTitle,
-        activityType
-      });
-      
+      const errorResponse = enhancedErrorHandler(
+        error,
+        "ai-activity-generation",
+        {
+          moduleTitle,
+          sectionTitle,
+          activityType,
+        },
+      );
+
       res.status(500).json({
         ...errorResponse,
         activity: {
@@ -839,7 +880,7 @@ Create ONE interactive activity that directly teaches "${mainTopic}" with 4-6 it
           promptItems: [
             "Positive reinforcement",
             "Clear expectations",
-            "Consistent routines", 
+            "Consistent routines",
             "Redirect behavior",
           ],
           answerKey: [
@@ -1393,8 +1434,6 @@ Continue for all 5 questions...
   // Do not set up session middleware here as it will override the existing one
   // and cause authentication issues with assessment routes
 
-
-
   // Login reset endpoint (helps with debugging stuck sessions)
   // This endpoint allows any user to reset their session when they encounter login issues
 
@@ -1471,7 +1510,7 @@ Continue for all 5 questions...
         const language = req.body.language?.trim() || "English";
         const nativeLanguage = req.body.nativeLanguage?.trim() || "English";
         const timeZone = req.body.timeZone?.trim() || "UTC-05:00";
-        
+
         // Use email as username for all new registrations
         const username = email;
 
@@ -1481,7 +1520,7 @@ Continue for all 5 questions...
         console.log(`First Name: "${firstName}"`);
         console.log(`Last Name: "${lastName}"`);
         console.log(`School ID: ${req.body.schoolId}`);
-        console.log(`User Agent: ${req.get('User-Agent')}`);
+        console.log(`User Agent: ${req.get("User-Agent")}`);
         console.log(`IP Address: ${req.ip}`);
 
         if (!password || !firstName || !lastName || !email) {
@@ -1517,11 +1556,9 @@ Continue for all 5 questions...
         // Check if user with this email already exists (checking both username and email fields)
         const existingUserByEmail = await storage.getUserByEmail(email);
         const existingUserByUsername = await storage.getUserByUsername(email);
-        
+
         if (existingUserByEmail || existingUserByUsername) {
-          console.log(
-            `Registration failed: Email "${email}" already exists`,
-          );
+          console.log(`Registration failed: Email "${email}" already exists`);
           return res.status(400).json({
             message: "Email already exists",
             details:
@@ -1657,24 +1694,29 @@ Continue for all 5 questions...
         req.session.registeredAt = registrationTime.toISOString();
         req.session.loginTime = registrationTime.toISOString();
 
-        console.log(`Setting session for new user: ${newUser.id} (${username})`);
+        console.log(
+          `Setting session for new user: ${newUser.id} (${username})`,
+        );
         console.log(`Session ID: ${req.sessionID}`);
 
         // Force session save to ensure it's properly saved before responding
         req.session.save((err) => {
           if (err) {
             console.error("Session save error during registration:", err);
-            return res.status(500).json({ 
-              message: "Registration successful but login failed", 
-              details: "Please try logging in manually with your new credentials." 
+            return res.status(500).json({
+              message: "Registration successful but login failed",
+              details:
+                "Please try logging in manually with your new credentials.",
             });
           } else {
             console.log(
               "Session saved successfully during registration for userId:",
               newUser.id,
             );
-            console.log(`Session cookie: ${JSON.stringify(req.session.cookie)}`);
-            
+            console.log(
+              `Session cookie: ${JSON.stringify(req.session.cookie)}`,
+            );
+
             // Respond with user data after successful session save
             res.status(201).json(userWithoutPassword);
           }
@@ -1685,7 +1727,249 @@ Continue for all 5 questions...
       }
     });
   }
+  if (!skipAuthEndpoints) {
+    app.post("/api/auth/register-business", async (req, res) => {
+      try {
+        // Extract and trim all input fields for consistency
+        const schoolName = req.body.schoolName?.trim();
+        const contactEmail = req.body.contactEmail?.trim();
+        const contactPhone = req.body.contactPhone?.trim();
+        const address = req.body.address?.trim();
+        const city = req.body.city?.trim();
+        const state = req.body.state?.trim();
+        const zipCode = req.body.zipCode?.trim();
+        const subscriptionPlan = req.body.subscriptionPlan;
+        const customBranding = !!req.body.customBranding;
+        // Admin info
+        const firstName = req.body.firstName?.trim();
+        const lastName = req.body.lastName?.trim();
+        const username = req.body.username?.trim();
+        const password = req.body.password?.trim();
+        const language = req.body.language?.trim() || "English";
+        const nativeLanguage = req.body.nativeLanguage?.trim() || "English";
+        const timeZone = req.body.timeZone?.trim() || "UTC-05:00";
 
+        console.log(`=== BUSINESS REGISTRATION ATTEMPT ===`);
+        // ...log all fields as in /api/auth/register...
+
+        // Validate required fields
+        const missingFields = [];
+        if (!schoolName) missingFields.push("schoolName");
+        if (!contactEmail) missingFields.push("contactEmail");
+        if (!contactPhone) missingFields.push("contactPhone");
+        if (!address) missingFields.push("address");
+        if (!city) missingFields.push("city");
+        if (!state) missingFields.push("state");
+        if (!zipCode) missingFields.push("zipCode");
+        if (!subscriptionPlan) missingFields.push("subscriptionPlan");
+        if (!firstName) missingFields.push("firstName");
+        if (!lastName) missingFields.push("lastName");
+        if (!username) missingFields.push("username");
+        if (!password) missingFields.push("password");
+        if (missingFields.length > 0) {
+          console.log(
+            "Business registration failed: Missing required fields",
+            missingFields,
+          );
+          return res.status(400).json({
+            message: "Required fields are missing",
+            details: `Please provide all required fields. Missing: ${missingFields.join(", ")}.`,
+            missingFields,
+          });
+        }
+
+        // Check for duplicate school name
+        const existingSchool = await storage.getSchoolByName(schoolName);
+        if (existingSchool) {
+          console.log(
+            `Business registration failed: School name "${schoolName}" already exists`,
+          );
+          return res.status(400).json({
+            message: "School name already exists",
+            details:
+              "A school with this name already exists. Please use a different name.",
+          });
+        }
+
+        // Check for duplicate admin email/username
+        const existingUserByEmail = await storage.getUserByEmail(username);
+        const existingUserByUsername =
+          await storage.getUserByUsername(username);
+        if (existingUserByEmail || existingUserByUsername) {
+          console.log(
+            `Business registration failed: Admin email/username "${username}" already exists`,
+          );
+          return res.status(400).json({
+            message: "Admin email/username already exists",
+            details:
+              "An account with this email/username already exists. Please use a different email or username.",
+          });
+        }
+
+        // Hash the admin password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Set subscription info
+        let subscriptionType = "basic";
+        let subscriptionActive = false;
+        let subscriptionExpiresAt = null;
+        let isFreeAccess = false;
+        if (subscriptionPlan === "trial") {
+          subscriptionType = "basic";
+          subscriptionActive = true;
+          isFreeAccess = true;
+          subscriptionExpiresAt = new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          );
+        } else if (subscriptionPlan === "monthly") {
+          subscriptionType = "standard";
+          subscriptionActive = true;
+          isFreeAccess = false;
+          subscriptionExpiresAt = new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          );
+        } else if (subscriptionPlan === "yearly") {
+          subscriptionType = "standard";
+          subscriptionActive = true;
+          isFreeAccess = false;
+          subscriptionExpiresAt = new Date(
+            Date.now() + 365 * 24 * 60 * 60 * 1000,
+          );
+        }
+
+        // Create the school
+        const newSchool = await storage.createSchool({
+          name: schoolName,
+          address,
+          city,
+          state,
+          zipCode,
+          contactEmail,
+          contactPhone,
+          logoUrl: null,
+          websiteUrl: null,
+          subscriptionActive,
+          subscriptionType,
+          subscriptionExpiresAt,
+          teacherCount: 1,
+          isFreeAccess,
+          adminPasswordHash: hashedPassword,
+          customization: customBranding ? { brandingPackage: true } : {},
+        });
+
+        // Create the admin user for the new school
+        const newUser = await storage.createUser({
+          username,
+          password: hashedPassword,
+          firstName,
+          lastName,
+          email: username, // Use username as email for admin
+          language,
+          nativeLanguage,
+          timeZone,
+          profilePicture: null,
+          learningStyle: {
+            visual: 0,
+            auditory: 0,
+            reading: 0,
+            kinesthetic: 0,
+            preferred: null,
+          },
+          schoolId: newSchool.id,
+          points: 0,
+          bearBucks: 0,
+          level: 1,
+          isAdmin: false,
+          isSchoolAdmin: true,
+          isOwner: false,
+        });
+
+        // Assign required training modules for new admin user (same as /api/auth/register)
+        try {
+          const coreModule = await db.query.learningModules.findFirst({
+            where: (modules, { eq }) =>
+              eq(modules.title, "Raising Arizona's CORE"),
+          });
+          const mindfulModule = await db.query.learningModules.findFirst({
+            where: (modules, { eq }) => eq(modules.category, "mindfulness"),
+          });
+          const chapterOneModule = await db.query.learningModules.findFirst({
+            where: (modules, { eq }) =>
+              eq(modules.title, "Chapter 1: Building a Human"),
+          });
+          if (coreModule) {
+            await storage.createUserProgress({
+              userId: newUser.id,
+              moduleId: coreModule.id,
+              progress: 0,
+              completed: false,
+              recommended: true,
+              pointsEarned: 0,
+            });
+            console.log(
+              `Assigned CORE module (ID: ${coreModule.id}) to new admin (ID: ${newUser.id})`,
+            );
+          }
+          if (mindfulModule) {
+            await storage.createUserProgress({
+              userId: newUser.id,
+              moduleId: mindfulModule.id,
+              progress: 0,
+              completed: false,
+              recommended: true,
+              pointsEarned: 0,
+            });
+            console.log(
+              `Assigned Mindful Mornings module (ID: ${mindfulModule.id}) to new admin (ID: ${newUser.id})`,
+            );
+          }
+          if (chapterOneModule) {
+            await storage.createUserProgress({
+              userId: newUser.id,
+              moduleId: chapterOneModule.id,
+              progress: 0,
+              completed: false,
+              recommended: true,
+              pointsEarned: 0,
+            });
+            console.log(
+              `Assigned Chapter 1 module (ID: ${chapterOneModule.id}) to new admin (ID: ${newUser.id})`,
+            );
+          }
+        } catch (assignError) {
+          console.error(
+            "Error assigning required modules to new admin:",
+            assignError,
+          );
+        }
+
+        // Don't return password in response
+        const { password: _, ...userWithoutPassword } = newUser;
+
+        // Automatically log in the admin user after registration
+        req.session.userId = newUser.id;
+        const registrationTime = new Date();
+        req.session.registeredAt = registrationTime.toISOString();
+        req.session.loginTime = registrationTime.toISOString();
+        console.log(
+          `Setting session for new admin: ${newUser.id} (${username})`,
+        );
+        console.log(`Session ID: ${req.sessionID}`);
+
+        res.status(201).json({
+          success: true,
+          school: newSchool,
+          admin: userWithoutPassword,
+        });
+      } catch (error) {
+        console.error("Business registration error:", error);
+        res.status(500).json({
+          message: "Failed to register school/business. Please try again.",
+          error: error.message,
+        });
+      }
+    });
+  }
   if (!skipAuthEndpoints) {
     app.post("/api/auth/login", async (req, res) => {
       console.log("=== LOGIN ROUTE HIT ===");
@@ -1695,9 +1979,9 @@ Continue for all 5 questions...
       const loginTimeout = setTimeout(() => {
         console.error("Login timeout - operation took too long");
         if (!res.headersSent) {
-          res.status(408).json({ 
-            message: "Login timeout", 
-            details: "The login operation took too long. Please try again." 
+          res.status(408).json({
+            message: "Login timeout",
+            details: "The login operation took too long. Please try again.",
           });
         }
       }, 10000); // 10 second timeout - much faster
@@ -1733,7 +2017,7 @@ Continue for all 5 questions...
         try {
           // Try username lookup first
           user = await storage.getUserByUsername(username);
-          
+
           // If not found by username, try email
           if (!user) {
             user = await storage.getUserByEmail(username);
@@ -1743,7 +2027,8 @@ Continue for all 5 questions...
           clearTimeout(loginTimeout);
           return res.status(503).json({
             message: "Database connection error",
-            details: "Unable to connect to database. Please try again in a moment."
+            details:
+              "Unable to connect to database. Please try again in a moment.",
           });
         }
 
@@ -1762,7 +2047,9 @@ Continue for all 5 questions...
         // Clean up session if user is already logged in to prevent login loops
         // Use simpler approach to avoid session destruction issues
         if (req.session.userId && req.session.userId !== user.id) {
-          console.log(`Clearing existing session data for different user: ${req.session.userId}`);
+          console.log(
+            `Clearing existing session data for different user: ${req.session.userId}`,
+          );
           // Simply clear session data instead of destroying/regenerating
           req.session.userId = undefined;
           req.session.loginTime = undefined;
@@ -1788,16 +2075,20 @@ Continue for all 5 questions...
             // Faster bcrypt comparison with timeout
             passwordValid = await Promise.race([
               bcrypt.compare(password, user.password),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Password verification timeout')), 3000)
-              )
+              new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("Password verification timeout")),
+                  3000,
+                ),
+              ),
             ]);
           } catch (error) {
-            if (error.message === 'Password verification timeout') {
+            if (error.message === "Password verification timeout") {
               clearTimeout(loginTimeout);
               return res.status(408).json({
                 message: "Login timeout",
-                details: "Password verification took too long. Please try again."
+                details:
+                  "Password verification took too long. Please try again.",
               });
             }
             passwordValid = false;
@@ -1848,11 +2139,13 @@ Continue for all 5 questions...
 
         // Ensure session exists before setting properties
         if (!req.session) {
-          console.error("Session object is undefined after regeneration, attempting to create new session");
+          console.error(
+            "Session object is undefined after regeneration, attempting to create new session",
+          );
           clearTimeout(loginTimeout);
           return res.status(500).json({
             message: "Session error",
-            details: "Session could not be established. Please try again."
+            details: "Session could not be established. Please try again.",
           });
         }
 
@@ -1862,7 +2155,7 @@ Continue for all 5 questions...
         // Add a login timestamp for better tracking
         const loginTime = new Date();
         req.session.loginTime = loginTime.toISOString();
-        
+
         // Initialize session activity tracking
         (req.session as any).lastActivity = loginTime.toISOString();
 
@@ -1873,7 +2166,7 @@ Continue for all 5 questions...
         // Skip complex streak calculations during login for speed
         let currentStreak = user.streak || 0;
         let streakUpdated = false; // Set to false to skip all streak processing during login
-        
+
         // Defer all non-essential operations for faster login
         // Move all database operations to background processing
         setImmediate(async () => {
@@ -1881,7 +2174,10 @@ Continue for all 5 questions...
             await storage.updateUser(user.id, { lastActive: new Date() });
             console.log(`Background: User ${user.id} last active updated`);
           } catch (updateError) {
-            console.error(`Background: Error updating user ${user.id} last active:`, updateError);
+            console.error(
+              `Background: Error updating user ${user.id} last active:`,
+              updateError,
+            );
           }
         });
 
@@ -1891,24 +2187,43 @@ Continue for all 5 questions...
             // Background streak calculation and rewards
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
-            const calculatedStreak = await calculateUserStreakRobust(user.id, today);
-            
+
+            const calculatedStreak = await calculateUserStreakRobust(
+              user.id,
+              today,
+            );
+
             if (calculatedStreak !== currentStreak) {
               await storage.updateUser(user.id, { streak: calculatedStreak });
-              console.log(`Background: User ${user.id} streak updated to ${calculatedStreak}`);
-              
+              console.log(
+                `Background: User ${user.id} streak updated to ${calculatedStreak}`,
+              );
+
               // Award streak rewards
-              if (calculatedStreak === 5 || calculatedStreak === 7 || calculatedStreak % 5 === 0) {
-                const pointsToAdd = calculatedStreak === 30 ? 100 : calculatedStreak === 7 ? 25 : 15;
+              if (
+                calculatedStreak === 5 ||
+                calculatedStreak === 7 ||
+                calculatedStreak % 5 === 0
+              ) {
+                const pointsToAdd =
+                  calculatedStreak === 30
+                    ? 100
+                    : calculatedStreak === 7
+                      ? 25
+                      : 15;
                 await storage.updateUser(user.id, {
-                  points: (user.points || 0) + pointsToAdd
+                  points: (user.points || 0) + pointsToAdd,
                 });
-                console.log(`Background: User ${user.id} awarded ${pointsToAdd} points for ${calculatedStreak}-day streak`);
+                console.log(
+                  `Background: User ${user.id} awarded ${pointsToAdd} points for ${calculatedStreak}-day streak`,
+                );
               }
             }
           } catch (backgroundError) {
-            console.error(`Background processing error for user ${user.id}:`, backgroundError);
+            console.error(
+              `Background processing error for user ${user.id}:`,
+              backgroundError,
+            );
           }
         });
 
@@ -1941,7 +2256,8 @@ Continue for all 5 questions...
         if (!res.headersSent) {
           res.status(500).json({
             message: "Internal server error",
-            details: "There was a problem with the login process. Please try again.",
+            details:
+              "There was a problem with the login process. Please try again.",
           });
         }
       }
@@ -1983,56 +2299,69 @@ Continue for all 5 questions...
     app.post("/api/auth/forgot-password", async (req, res) => {
       try {
         const { email } = req.body;
-        
+
         if (!email) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             message: "Email is required",
-            details: "Please provide your email address to reset your password."
+            details:
+              "Please provide your email address to reset your password.",
           });
         }
 
         // Find user by email
         const user = await storage.getUserByEmail(email.trim().toLowerCase());
-        
+
         if (!user) {
           // Don't reveal if email exists for security
           return res.status(200).json({
             message: "Password reset email sent",
-            details: "If an account with this email exists, you will receive a password reset link."
+            details:
+              "If an account with this email exists, you will receive a password reset link.",
           });
         }
 
         // Generate reset token (6-digit code for simplicity)
-        const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetToken = Math.floor(
+          100000 + Math.random() * 900000,
+        ).toString();
         const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
         // Store reset token in database
         await storage.updateUser(user.id, {
           resetToken,
-          resetTokenExpires: resetExpires
+          resetTokenExpires: resetExpires,
         });
 
         // Send email with reset code
         try {
-          const { sendSimplePasswordResetEmail } = await import('./services/emailService');
-          await sendSimplePasswordResetEmail(user.email, user.firstName || user.username, resetToken);
-          
-          console.log(`Password reset email sent to ${user.email} for user ${user.id}`);
+          const { sendSimplePasswordResetEmail } = await import(
+            "./services/emailService"
+          );
+          await sendSimplePasswordResetEmail(
+            user.email,
+            user.firstName || user.username,
+            resetToken,
+          );
+
+          console.log(
+            `Password reset email sent to ${user.email} for user ${user.id}`,
+          );
         } catch (emailError) {
-          console.error('Failed to send reset email:', emailError);
+          console.error("Failed to send reset email:", emailError);
           // Continue anyway - user will see success message
         }
 
         res.status(200).json({
           message: "Password reset email sent",
-          details: "Check your email for a 6-digit reset code. The code expires in 30 minutes."
+          details:
+            "Check your email for a 6-digit reset code. The code expires in 30 minutes.",
         });
-
       } catch (error) {
-        console.error('Password reset request error:', error);
+        console.error("Password reset request error:", error);
         res.status(500).json({
           message: "Internal server error",
-          details: "Failed to process password reset request. Please try again."
+          details:
+            "Failed to process password reset request. Please try again.",
         });
       }
     });
@@ -2041,28 +2370,28 @@ Continue for all 5 questions...
     app.post("/api/auth/reset-password", async (req, res) => {
       try {
         const { email, resetToken, newPassword } = req.body;
-        
+
         if (!email || !resetToken || !newPassword) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             message: "Missing required fields",
-            details: "Email, reset code, and new password are required."
+            details: "Email, reset code, and new password are required.",
           });
         }
 
         if (newPassword.length < 6) {
           return res.status(400).json({
             message: "Password too short",
-            details: "Password must be at least 6 characters long."
+            details: "Password must be at least 6 characters long.",
           });
         }
 
         // Find user by email
         const user = await storage.getUserByEmail(email.trim().toLowerCase());
-        
+
         if (!user) {
           return res.status(400).json({
             message: "Invalid reset request",
-            details: "No password reset request found for this email."
+            details: "No password reset request found for this email.",
           });
         }
 
@@ -2070,21 +2399,24 @@ Continue for all 5 questions...
         if (!user.resetToken || !user.resetTokenExpires) {
           return res.status(400).json({
             message: "No reset request found",
-            details: "No active password reset request found. Please request a new reset code."
+            details:
+              "No active password reset request found. Please request a new reset code.",
           });
         }
 
         if (user.resetToken !== resetToken.trim()) {
           return res.status(400).json({
             message: "Invalid reset code",
-            details: "The reset code you entered is incorrect. Please check and try again."
+            details:
+              "The reset code you entered is incorrect. Please check and try again.",
           });
         }
 
         if (new Date() > new Date(user.resetTokenExpires)) {
           return res.status(400).json({
             message: "Reset code expired",
-            details: "Your reset code has expired. Please request a new password reset."
+            details:
+              "Your reset code has expired. Please request a new password reset.",
           });
         }
 
@@ -2095,21 +2427,23 @@ Continue for all 5 questions...
         await storage.updateUser(user.id, {
           password: hashedPassword,
           resetToken: null,
-          resetTokenExpires: null
+          resetTokenExpires: null,
         });
 
-        console.log(`Password successfully reset for user ${user.id} (${user.email})`);
+        console.log(
+          `Password successfully reset for user ${user.id} (${user.email})`,
+        );
 
         res.status(200).json({
           message: "Password reset successful",
-          details: "Your password has been updated. You can now log in with your new password."
+          details:
+            "Your password has been updated. You can now log in with your new password.",
         });
-
       } catch (error) {
-        console.error('Password reset error:', error);
+        console.error("Password reset error:", error);
         res.status(500).json({
           message: "Internal server error",
-          details: "Failed to reset password. Please try again."
+          details: "Failed to reset password. Please try again.",
         });
       }
     });
@@ -2124,18 +2458,18 @@ Continue for all 5 questions...
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { sessionSecurity } = await import('./middleware/sessionSecurity');
+      const { sessionSecurity } = await import("./middleware/sessionSecurity");
       const stats = await sessionSecurity.getSessionStats();
-      
+
       res.json({
         ...stats,
         sessionDuration: "24 hours",
         idleTimeout: "3 hours",
         maxConcurrentSessions: 3,
-        securityLevel: "Enhanced ECE Platform Security"
+        securityLevel: "Enhanced ECE Platform Security",
       });
     } catch (error) {
-      console.error('Error fetching session stats:', error);
+      console.error("Error fetching session stats:", error);
       res.status(500).json({ message: "Failed to fetch session statistics" });
     }
   });
@@ -2143,18 +2477,21 @@ Continue for all 5 questions...
   // Get current user's active sessions
   app.get("/api/auth/my-sessions", requireAuth, async (req, res) => {
     try {
-      const { sessionSecurity } = await import('./middleware/sessionSecurity');
-      const { activeSessions } = await sessionSecurity.checkConcurrentSessions(req.session.userId);
-      
+      const { sessionSecurity } = await import("./middleware/sessionSecurity");
+      const { activeSessions } = await sessionSecurity.checkConcurrentSessions(
+        req.session.userId,
+      );
+
       res.json({
         currentSessionId: req.session.id?.substring(0, 8) + "...",
         activeSessions,
         maxAllowed: 3,
         sessionExpiry: req.session.cookie.expires || "24 hours",
-        lastActivity: (req.session as any).lastActivity || (req.session as any).loginTime
+        lastActivity:
+          (req.session as any).lastActivity || (req.session as any).loginTime,
       });
     } catch (error) {
-      console.error('Error fetching user sessions:', error);
+      console.error("Error fetching user sessions:", error);
       res.status(500).json({ message: "Failed to fetch session information" });
     }
   });
@@ -2197,8 +2534,6 @@ Continue for all 5 questions...
     });
   }
 
-
-
   app.get("/api/auth/me", async (req, res) => {
     console.log("GET /api/auth/me - Session ID:", req.session.id);
     console.log("GET /api/auth/me - Session data:", req.session);
@@ -2230,8 +2565,6 @@ Continue for all 5 questions...
       console.log(
         `GET /api/auth/me - Found user: ${user.username} (ID: ${user.id})`,
       );
-      
-
 
       // Ensure user points are properly initialized
       if (user.points === undefined || user.points === null) {
@@ -2252,7 +2585,7 @@ Continue for all 5 questions...
       // Ensure hasCompletedTutorial field is included (preserve database value)
       const userResponse = {
         ...userWithoutPassword,
-        hasCompletedTutorial: userWithoutPassword.hasCompletedTutorial ?? false
+        hasCompletedTutorial: userWithoutPassword.hasCompletedTutorial ?? false,
       };
 
       res.status(200).json(userResponse);
@@ -2422,8 +2755,8 @@ Continue for all 5 questions...
         .where(
           and(
             eq(users.schoolId, currentUser.schoolId),
-            eq(users.isOwner, false) // Exclude owners, only get teachers
-          )
+            eq(users.isOwner, false), // Exclude owners, only get teachers
+          ),
         );
 
       res.json(schoolTeachers);
@@ -2447,9 +2780,14 @@ Continue for all 5 questions...
       }
 
       // Only owners and admins can change roles
-      if (!currentUser.isOwner && !currentUser.isAdmin && !currentUser.isSchoolAdmin) {
-        return res.status(403).json({ 
-          message: "Access denied. Admin privileges required to change user roles." 
+      if (
+        !currentUser.isOwner &&
+        !currentUser.isAdmin &&
+        !currentUser.isSchoolAdmin
+      ) {
+        return res.status(403).json({
+          message:
+            "Access denied. Admin privileges required to change user roles.",
         });
       }
 
@@ -2460,14 +2798,18 @@ Continue for all 5 questions...
       }
 
       // School admins can only manage users in their school
-      if (!currentUser.isOwner && currentUser.schoolId !== targetUser.schoolId) {
-        return res.status(403).json({ 
-          message: "Access denied. You can only manage users in your school." 
+      if (
+        !currentUser.isOwner &&
+        currentUser.schoolId !== targetUser.schoolId
+      ) {
+        return res.status(403).json({
+          message: "Access denied. You can only manage users in your school.",
         });
       }
 
       // Update user role in database
-      await db.update(users)
+      await db
+        .update(users)
         .set({
           isAdmin: isAdmin || false,
           isSchoolAdmin: isSchoolAdmin || false,
@@ -2476,11 +2818,10 @@ Continue for all 5 questions...
 
       // Return updated user data
       const updatedUser = await storage.getUser(targetUserId);
-      res.json({ 
+      res.json({
         message: "User role updated successfully",
-        user: updatedUser 
+        user: updatedUser,
       });
-
     } catch (error) {
       console.error("Error updating user role:", error);
       res.status(500).json({ message: "Failed to update user role" });
@@ -2506,63 +2847,72 @@ Continue for all 5 questions...
       if (!currentUser) {
         return res.status(401).json({ message: "Current user not found" });
       }
-      
+
       // Check if user has admin privileges
-      if (!currentUser.isAdmin && !currentUser.isSchoolAdmin && !currentUser.isOwner) {
+      if (
+        !currentUser.isAdmin &&
+        !currentUser.isSchoolAdmin &&
+        !currentUser.isOwner
+      ) {
         return res.status(403).json({ message: "Admin privileges required" });
       }
 
       // Get target user
       const targetUserId = parseInt(userId);
       const targetUser = await storage.getUser(targetUserId);
-      
+
       if (!targetUser) {
         return res.status(404).json({ message: "User not found" });
       }
 
       // School admins can only reset passwords for users in their school
-      if (currentUser.isSchoolAdmin && !currentUser.isOwner && targetUser.schoolId !== currentUser.schoolId) {
-        return res.status(403).json({ 
-          message: "You can only reset passwords for users in your school" 
+      if (
+        currentUser.isSchoolAdmin &&
+        !currentUser.isOwner &&
+        targetUser.schoolId !== currentUser.schoolId
+      ) {
+        return res.status(403).json({
+          message: "You can only reset passwords for users in your school",
         });
       }
 
       // Use the custom password provided by admin
       const newPassword = customPassword.trim();
-      
+
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update password in database
-      await db.update(users)
+      await db
+        .update(users)
         .set({
           password: hashedPassword,
           resetToken: null,
-          resetTokenExpires: null
+          resetTokenExpires: null,
         })
         .where(eq(users.id, targetUserId));
 
       // Send email to user with new password
       try {
         await sendAdminPasswordResetEmail(
-          targetUser.email || targetUser.username, 
-          targetUser.firstName || 'User', 
-          newPassword
+          targetUser.email || targetUser.username,
+          targetUser.firstName || "User",
+          newPassword,
         );
       } catch (emailError) {
         console.error("Failed to send password reset email:", emailError);
         // Still return success since password was reset, but mention email issue
-        return res.json({ 
-          message: "Password reset successfully, but email delivery failed. Please provide the new password manually.",
-          newPassword: newPassword // Include password in response if email fails
+        return res.json({
+          message:
+            "Password reset successfully, but email delivery failed. Please provide the new password manually.",
+          newPassword: newPassword, // Include password in response if email fails
         });
       }
 
-      res.json({ 
+      res.json({
         message: `Password reset successfully. New password sent to ${targetUser.email || targetUser.username}`,
-        emailSent: true
+        emailSent: true,
       });
-
     } catch (error) {
       console.error("Error resetting password:", error);
       res.status(500).json({ message: "Failed to reset password" });
@@ -2582,9 +2932,13 @@ Continue for all 5 questions...
       }
 
       // Only owners and admins can delete users
-      if (!currentUser.isOwner && !currentUser.isAdmin && !currentUser.isSchoolAdmin) {
-        return res.status(403).json({ 
-          message: "Access denied. Admin privileges required to delete users." 
+      if (
+        !currentUser.isOwner &&
+        !currentUser.isAdmin &&
+        !currentUser.isSchoolAdmin
+      ) {
+        return res.status(403).json({
+          message: "Access denied. Admin privileges required to delete users.",
         });
       }
 
@@ -2595,23 +2949,26 @@ Continue for all 5 questions...
       }
 
       // School admins can only delete users in their school
-      if (!currentUser.isOwner && currentUser.schoolId !== targetUser.schoolId) {
-        return res.status(403).json({ 
-          message: "Access denied. You can only delete users in your school." 
+      if (
+        !currentUser.isOwner &&
+        currentUser.schoolId !== targetUser.schoolId
+      ) {
+        return res.status(403).json({
+          message: "Access denied. You can only delete users in your school.",
         });
       }
 
       // Prevent deleting owners
       if (targetUser.isOwner) {
-        return res.status(403).json({ 
-          message: "Cannot delete platform owners." 
+        return res.status(403).json({
+          message: "Cannot delete platform owners.",
         });
       }
 
       // Prevent users from deleting themselves
       if (currentUserId === targetUserId) {
-        return res.status(403).json({ 
-          message: "You cannot delete your own account." 
+        return res.status(403).json({
+          message: "You cannot delete your own account.",
         });
       }
 
@@ -2622,74 +2979,98 @@ Continue for all 5 questions...
           DELETE FROM assessment_responses 
           WHERE assessment_id IN (SELECT id FROM assessments WHERE user_id = ${targetUserId})
         `);
-        
+
         // Delete assessments
-        await db.execute(sql`DELETE FROM assessments WHERE user_id = ${targetUserId}`);
-        
+        await db.execute(
+          sql`DELETE FROM assessments WHERE user_id = ${targetUserId}`,
+        );
+
         // Delete voice narration usage (if table exists)
         try {
-          await db.execute(sql`DELETE FROM voice_narration_usage WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM voice_narration_usage WHERE user_id = ${targetUserId}`,
+          );
         } catch (e) {
           console.log("voice_narration_usage table not found, skipping...");
         }
-        
+
         // Delete user progress
-        await db.execute(sql`DELETE FROM user_progress WHERE user_id = ${targetUserId}`);
-        
+        await db.execute(
+          sql`DELETE FROM user_progress WHERE user_id = ${targetUserId}`,
+        );
+
         // Delete user messages (try both possible table names) - delete both sender and recipient
         try {
-          await db.execute(sql`DELETE FROM teacher_messages WHERE recipient_id = ${targetUserId} OR sender_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM teacher_messages WHERE recipient_id = ${targetUserId} OR sender_id = ${targetUserId}`,
+          );
           console.log("Deleted from teacher_messages");
         } catch (e) {
           console.log("teacher_messages table not found, skipping...");
         }
-        
+
         // Delete core value nominations - handle both table names robustly
         try {
           // Try the underscore version first (based on error message)
-          await db.execute(sql`DELETE FROM core_values_shout_outs WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM core_values_shout_outs WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`,
+          );
           console.log("Deleted from core_values_shout_outs");
         } catch (e) {
-          console.log("core_values_shout_outs not found, trying alternate name...");
+          console.log(
+            "core_values_shout_outs not found, trying alternate name...",
+          );
           try {
-            await db.execute(sql`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`);
+            await db.execute(
+              sql`DELETE FROM core_value_shoutouts WHERE nominator_id = ${targetUserId} OR nominee_id = ${targetUserId}`,
+            );
             console.log("Deleted from core_value_shoutouts");
           } catch (e2) {
             console.log("Neither core value table found, skipping...");
           }
         }
-        
+
         // Delete ECE hours
         try {
-          await db.execute(sql`DELETE FROM ece_hours WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM ece_hours WHERE user_id = ${targetUserId}`,
+          );
         } catch (e) {
           console.log("ece_hours table not found, skipping...");
         }
-        
+
         // Delete streak rewards
         try {
-          await db.execute(sql`DELETE FROM streak_rewards WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM streak_rewards WHERE user_id = ${targetUserId}`,
+          );
         } catch (e) {
           console.log("streak_rewards table not found, skipping...");
         }
-        
+
         // Delete user items
         try {
-          await db.execute(sql`DELETE FROM user_items WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM user_items WHERE user_id = ${targetUserId}`,
+          );
         } catch (e) {
           console.log("user_items table not found, skipping...");
         }
-        
+
         // Delete module ratings
         try {
-          await db.execute(sql`DELETE FROM module_ratings WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM module_ratings WHERE user_id = ${targetUserId}`,
+          );
         } catch (e) {
           console.log("module_ratings table not found, skipping...");
         }
-        
+
         // Delete game completions
         try {
-          await db.execute(sql`DELETE FROM game_completions WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM game_completions WHERE user_id = ${targetUserId}`,
+          );
           console.log("Deleted from game_completions");
         } catch (e) {
           console.log("game_completions table not found, skipping...");
@@ -2697,24 +3078,24 @@ Continue for all 5 questions...
 
         // Delete daily logins
         try {
-          await db.execute(sql`DELETE FROM daily_logins WHERE user_id = ${targetUserId}`);
+          await db.execute(
+            sql`DELETE FROM daily_logins WHERE user_id = ${targetUserId}`,
+          );
         } catch (e) {
           console.log("daily_logins table not found, skipping...");
         }
-        
+
         // Finally delete the user
         await db.delete(users).where(eq(users.id, targetUserId));
-        
       } catch (cleanupError) {
         console.error("Error during user data cleanup:", cleanupError);
         // Continue with user deletion even if some cleanup fails
         await db.delete(users).where(eq(users.id, targetUserId));
       }
 
-      res.json({ 
-        message: "User deleted successfully"
+      res.json({
+        message: "User deleted successfully",
       });
-
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
@@ -2895,7 +3276,7 @@ Continue for all 5 questions...
     try {
       const { userId } = req.session;
       const requestedUserId = parseInt(req.params.userId);
-      
+
       if (!userId || userId !== requestedUserId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -3056,7 +3437,9 @@ Continue for all 5 questions...
                 onboarding_order = ${onboardingOrder || null}
             WHERE id = ${savedModule.id}
           `);
-          console.log(`Module "${savedModule.title}" published to required onboarding training at position ${onboardingOrder}`);
+          console.log(
+            `Module "${savedModule.title}" published to required onboarding training at position ${onboardingOrder}`,
+          );
         }
       }
 
@@ -3149,7 +3532,11 @@ Continue for all 5 questions...
       }
 
       // Check if user owns the module or is admin
-      if (existingModule.createdBy !== user.id && !user.isAdmin && !user.isSchoolAdmin) {
+      if (
+        existingModule.createdBy !== user.id &&
+        !user.isAdmin &&
+        !user.isSchoolAdmin
+      ) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -3164,7 +3551,10 @@ Continue for all 5 questions...
         isShared: isShared !== undefined ? isShared : existingModule.isShared,
         eceCategory: eceCategory || existingModule.eceCategory,
         eceHours: eceHours !== undefined ? eceHours : existingModule.eceHours,
-        approvedTrainerId: approvedTrainerId !== undefined ? approvedTrainerId : existingModule.approvedTrainerId,
+        approvedTrainerId:
+          approvedTrainerId !== undefined
+            ? approvedTrainerId
+            : existingModule.approvedTrainerId,
       });
 
       res.json(updatedModule);
@@ -3301,7 +3691,9 @@ Continue for all 5 questions...
 
       // Get user info for logging
       const userId = req.session.userId as number;
-      console.log(`[MODULE REQUEST] User ${userId} requesting module ${moduleId}`);
+      console.log(
+        `[MODULE REQUEST] User ${userId} requesting module ${moduleId}`,
+      );
 
       // Fetch the module with error handling using direct SQL to handle schema changes
       const result = await db.execute(sql`
@@ -3486,7 +3878,7 @@ Continue for all 5 questions...
       }
 
       const module = moduleResult.rows[0];
-      
+
       // Get current user to check ownership and app owner status
       const user = await storage.getUser(userId);
       if (!user) {
@@ -3495,35 +3887,37 @@ Continue for all 5 questions...
 
       // Check permissions: user owns the module OR user is app owner
       const canDelete = module.creator_id === userId || user.isOwner;
-      
+
       if (!canDelete) {
-        return res.status(403).json({ 
-          error: "Access denied. You can only delete your own modules." 
+        return res.status(403).json({
+          error: "Access denied. You can only delete your own modules.",
         });
       }
 
-      console.log(`[DELETE] User ${userId} (${user.isOwner ? 'APP OWNER' : 'REGULAR USER'}) deleting module ${moduleId}: "${module.title}"`);
+      console.log(
+        `[DELETE] User ${userId} (${user.isOwner ? "APP OWNER" : "REGULAR USER"}) deleting module ${moduleId}: "${module.title}"`,
+      );
 
       // Delete related records first to avoid foreign key constraint violations
-      
+
       // 1. Delete from community_modules table
       await db.execute(sql`
         DELETE FROM community_modules 
         WHERE module_id = ${moduleId}
       `);
-      
-      // 2. Delete from community_module_awards table  
+
+      // 2. Delete from community_module_awards table
       await db.execute(sql`
         DELETE FROM community_module_awards 
         WHERE module_id = ${moduleId}
       `);
-      
+
       // 3. Delete from user_progress table
       await db.execute(sql`
         DELETE FROM user_progress 
         WHERE module_id = ${moduleId}
       `);
-      
+
       // 4. Delete from module_ratings table
       await db.execute(sql`
         DELETE FROM module_ratings 
@@ -3538,18 +3932,17 @@ Continue for all 5 questions...
 
       console.log(`[DELETE] Successfully deleted module ${moduleId}`);
 
-      res.status(200).json({ 
-        success: true, 
+      res.status(200).json({
+        success: true,
         message: "Module deleted successfully",
         moduleId: moduleId,
-        title: module.title
+        title: module.title,
       });
-
     } catch (error) {
       console.error("Error deleting module:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to delete module",
-        details: error.message 
+        details: error.message,
       });
     }
   });
@@ -3589,16 +3982,16 @@ Continue for all 5 questions...
   app.get("/api/onboarding-progress", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      
+
       // Get total onboarding modules count
       const totalResult = await db.execute(sql`
         SELECT COUNT(*) as total
         FROM learning_modules
         WHERE is_onboarding_module = true
       `);
-      
+
       const totalOnboardingModules = Number(totalResult.rows[0]?.total || 0);
-      
+
       // Get completed onboarding modules for this user
       const completedResult = await db.execute(sql`
         SELECT COUNT(*) as completed
@@ -3608,9 +4001,11 @@ Continue for all 5 questions...
         AND lm.is_onboarding_module = true
         AND up.progress >= 100
       `);
-      
-      const completedOnboardingModules = Number(completedResult.rows[0]?.completed || 0);
-      
+
+      const completedOnboardingModules = Number(
+        completedResult.rows[0]?.completed || 0,
+      );
+
       // Get list of completed onboarding module IDs
       const completedModulesResult = await db.execute(sql`
         SELECT lm.id, lm.title, lm.onboarding_order as "onboardingOrder"
@@ -3621,12 +4016,14 @@ Continue for all 5 questions...
         AND up.progress >= 100
         ORDER BY lm.onboarding_order ASC
       `);
-      
+
       res.json({
         totalOnboardingModules,
         completedOnboardingModules,
-        isOnboardingComplete: completedOnboardingModules >= totalOnboardingModules && totalOnboardingModules > 0,
-        completedModules: completedModulesResult.rows
+        isOnboardingComplete:
+          completedOnboardingModules >= totalOnboardingModules &&
+          totalOnboardingModules > 0,
+        completedModules: completedModulesResult.rows,
       });
     } catch (error) {
       console.error("Error fetching onboarding progress:", error);
@@ -3655,9 +4052,9 @@ Continue for all 5 questions...
         WHERE id = ${moduleId}
       `);
 
-      res.status(200).json({ 
-        success: true, 
-        message: "Module added to onboarding training" 
+      res.status(200).json({
+        success: true,
+        message: "Module added to onboarding training",
       });
     } catch (error) {
       console.error("Error setting onboarding module:", error);
@@ -3666,65 +4063,75 @@ Continue for all 5 questions...
   });
 
   // Remove module from onboarding
-  app.delete("/api/modules/:id/remove-onboarding", requireAuth, async (req, res) => {
-    try {
-      const moduleId = parseInt(req.params.id);
-      const userId = req.session.userId;
+  app.delete(
+    "/api/modules/:id/remove-onboarding",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const moduleId = parseInt(req.params.id);
+        const userId = req.session.userId;
 
-      // Check if user is admin or school admin
-      const user = await storage.getUser(userId);
-      if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
-        return res.status(403).json({ error: "Admin access required" });
-      }
+        // Check if user is admin or school admin
+        const user = await storage.getUser(userId);
+        if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
 
-      // Update module to remove from onboarding
-      await db.execute(sql`
+        // Update module to remove from onboarding
+        await db.execute(sql`
         UPDATE learning_modules 
         SET is_onboarding_module = false,
             onboarding_order = NULL
         WHERE id = ${moduleId}
       `);
 
-      res.status(200).json({ 
-        success: true, 
-        message: "Module removed from onboarding training" 
-      });
-    } catch (error) {
-      console.error("Error removing onboarding module:", error);
-      res.status(500).json({ message: "Failed to remove onboarding module" });
-    }
-  });
+        res.status(200).json({
+          success: true,
+          message: "Module removed from onboarding training",
+        });
+      } catch (error) {
+        console.error("Error removing onboarding module:", error);
+        res.status(500).json({ message: "Failed to remove onboarding module" });
+      }
+    },
+  );
 
   // Update onboarding order for multiple modules
-  app.patch("/api/onboarding-modules/reorder", requireAuth, async (req, res) => {
-    try {
-      const { modules } = req.body; // Array of {id, onboardingOrder}
-      const userId = req.session.userId;
+  app.patch(
+    "/api/onboarding-modules/reorder",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const { modules } = req.body; // Array of {id, onboardingOrder}
+        const userId = req.session.userId;
 
-      // Check if user is admin or school admin
-      const user = await storage.getUser(userId);
-      if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
-        return res.status(403).json({ error: "Admin access required" });
-      }
+        // Check if user is admin or school admin
+        const user = await storage.getUser(userId);
+        if (!user || (!user.isAdmin && !user.isSchoolAdmin)) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
 
-      // Update each module's onboarding order
-      for (const module of modules) {
-        await db.execute(sql`
+        // Update each module's onboarding order
+        for (const module of modules) {
+          await db.execute(sql`
           UPDATE learning_modules 
           SET onboarding_order = ${module.onboardingOrder}
           WHERE id = ${module.id} AND is_onboarding_module = true
         `);
-      }
+        }
 
-      res.status(200).json({ 
-        success: true, 
-        message: "Onboarding order updated successfully" 
-      });
-    } catch (error) {
-      console.error("Error reordering onboarding modules:", error);
-      res.status(500).json({ message: "Failed to reorder onboarding modules" });
-    }
-  });
+        res.status(200).json({
+          success: true,
+          message: "Onboarding order updated successfully",
+        });
+      } catch (error) {
+        console.error("Error reordering onboarding modules:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to reorder onboarding modules" });
+      }
+    },
+  );
 
   // Admin middleware
   const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
@@ -3755,13 +4162,13 @@ Continue for all 5 questions...
   };
 
   // ECE Hours Tracking API Routes
-  
+
   // Get school-wide ECE hours tracking for directors (ECE Hour Tracker tool)
   app.get("/api/school/ece-hours-tracker", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -3772,98 +4179,129 @@ Continue for all 5 questions...
       }
 
       // Get all employees in the director's school
-      const employees = await db.select().from(users)
+      const employees = await db
+        .select()
+        .from(users)
         .where(eq(users.schoolId, user.schoolId || 1))
         .orderBy(users.lastName, users.firstName);
 
       // Calculate ECE hours for each employee
-      const employeeEceData = await Promise.all(employees.map(async (employee) => {
-        // Get employee's ECE renewal date or default to first login/created date
-        const renewalDate = employee.eceHoursRenewalDate || employee.lastActive || employee.createdAt;
-        const currentDate = new Date();
-        const renewalYear = new Date(renewalDate);
-        
-        // Calculate the current ECE year period (from renewal date to one year later)
-        let periodStart = new Date(renewalYear);
-        let periodEnd = new Date(renewalYear);
-        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-        
-        // If we're past the renewal date, move to current cycle
-        while (periodEnd < currentDate) {
-          periodStart.setFullYear(periodStart.getFullYear() + 1);
+      const employeeEceData = await Promise.all(
+        employees.map(async (employee) => {
+          // Get employee's ECE renewal date or default to first login/created date
+          const renewalDate =
+            employee.eceHoursRenewalDate ||
+            employee.lastActive ||
+            employee.createdAt;
+          const currentDate = new Date();
+          const renewalYear = new Date(renewalDate);
+
+          // Calculate the current ECE year period (from renewal date to one year later)
+          let periodStart = new Date(renewalYear);
+          let periodEnd = new Date(renewalYear);
           periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-        }
 
-        // Get ECE hours for current period
-        const eceHoursQuery = await db.select()
-          .from(eceHours)
-          .where(
-            and(
-              eq(eceHours.userId, employee.id),
-              sql`${eceHours.completedAt} >= ${periodStart.toISOString()}`,
-              sql`${eceHours.completedAt} <= ${periodEnd.toISOString()}`
+          // If we're past the renewal date, move to current cycle
+          while (periodEnd < currentDate) {
+            periodStart.setFullYear(periodStart.getFullYear() + 1);
+            periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+          }
+
+          // Get ECE hours for current period
+          const eceHoursQuery = await db
+            .select()
+            .from(eceHours)
+            .where(
+              and(
+                eq(eceHours.userId, employee.id),
+                sql`${eceHours.completedAt} >= ${periodStart.toISOString()}`,
+                sql`${eceHours.completedAt} <= ${periodEnd.toISOString()}`,
+              ),
             )
-          )
-          .orderBy(desc(eceHours.completedAt));
+            .orderBy(desc(eceHours.completedAt));
 
-        // Calculate total hours and by category
-        const totalHours = eceHoursQuery.reduce((sum, h) => sum + (h.duration / 60), 0);
-        const hoursByCategory = eceHoursQuery.reduce((acc, hour) => {
-          const category = hour.category;
-          const durationHours = hour.duration / 60;
-          acc[category] = (acc[category] || 0) + durationHours;
-          return acc;
-        }, {} as Record<string, number>);
+          // Calculate total hours and by category
+          const totalHours = eceHoursQuery.reduce(
+            (sum, h) => sum + h.duration / 60,
+            0,
+          );
+          const hoursByCategory = eceHoursQuery.reduce(
+            (acc, hour) => {
+              const category = hour.category;
+              const durationHours = hour.duration / 60;
+              acc[category] = (acc[category] || 0) + durationHours;
+              return acc;
+            },
+            {} as Record<string, number>,
+          );
 
-        // Calculate hours breakdown by training type
-        const onlineHours = eceHoursQuery
-          .filter(h => !h.trainingType || h.trainingType === 'online')
-          .reduce((sum, h) => sum + (h.duration / 60), 0);
-        const inPersonHours = eceHoursQuery
-          .filter(h => h.trainingType === 'in_person')
-          .reduce((sum, h) => sum + (h.duration / 60), 0);
+          // Calculate hours breakdown by training type
+          const onlineHours = eceHoursQuery
+            .filter((h) => !h.trainingType || h.trainingType === "online")
+            .reduce((sum, h) => sum + h.duration / 60, 0);
+          const inPersonHours = eceHoursQuery
+            .filter((h) => h.trainingType === "in_person")
+            .reduce((sum, h) => sum + h.duration / 60, 0);
 
-        // Calculate progress percentage
-        const requiredHours = 30; // Annual requirement
-        const progressPercentage = Math.min((totalHours / requiredHours) * 100, 100);
-        
-        // Calculate days until renewal
-        const daysUntilRenewal = Math.ceil((periodEnd.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+          // Calculate progress percentage
+          const requiredHours = 30; // Annual requirement
+          const progressPercentage = Math.min(
+            (totalHours / requiredHours) * 100,
+            100,
+          );
 
-        return {
-          employeeId: employee.id,
-          employeeName: `${employee.firstName} ${employee.lastName}`,
-          jobTitle: employee.jobTitle || 'Teacher',
-          email: employee.email,
-          renewalDate: periodEnd.toISOString().split('T')[0],
-          periodStart: periodStart.toISOString().split('T')[0],
-          periodEnd: periodEnd.toISOString().split('T')[0],
-          totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal
-          onlineHours: Math.round(onlineHours * 10) / 10,
-          inPersonHours: Math.round(inPersonHours * 10) / 10,
-          requiredHours,
-          progressPercentage: Math.round(progressPercentage),
-          hoursRemaining: Math.max(0, requiredHours - totalHours),
-          daysUntilRenewal,
-          isCompliant: totalHours >= requiredHours,
-          hoursByCategory,
-          recentTrainings: eceHoursQuery.slice(0, 3).map(h => ({
-            title: h.trainingTitle,
-            category: h.category,
-            hours: Math.round((h.duration / 60) * 10) / 10,
-            trainingType: h.trainingType || 'online',
-            location: h.trainingLocation || null,
-            completedAt: h.completedAt?.toISOString().split('T')[0]
-          }))
-        };
-      }));
+          // Calculate days until renewal
+          const daysUntilRenewal = Math.ceil(
+            (periodEnd.getTime() - currentDate.getTime()) /
+              (1000 * 60 * 60 * 24),
+          );
+
+          return {
+            employeeId: employee.id,
+            employeeName: `${employee.firstName} ${employee.lastName}`,
+            jobTitle: employee.jobTitle || "Teacher",
+            email: employee.email,
+            renewalDate: periodEnd.toISOString().split("T")[0],
+            periodStart: periodStart.toISOString().split("T")[0],
+            periodEnd: periodEnd.toISOString().split("T")[0],
+            totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal
+            onlineHours: Math.round(onlineHours * 10) / 10,
+            inPersonHours: Math.round(inPersonHours * 10) / 10,
+            requiredHours,
+            progressPercentage: Math.round(progressPercentage),
+            hoursRemaining: Math.max(0, requiredHours - totalHours),
+            daysUntilRenewal,
+            isCompliant: totalHours >= requiredHours,
+            hoursByCategory,
+            recentTrainings: eceHoursQuery.slice(0, 3).map((h) => ({
+              title: h.trainingTitle,
+              category: h.category,
+              hours: Math.round((h.duration / 60) * 10) / 10,
+              trainingType: h.trainingType || "online",
+              location: h.trainingLocation || null,
+              completedAt: h.completedAt?.toISOString().split("T")[0],
+            })),
+          };
+        }),
+      );
 
       // Calculate school-wide statistics
       const totalEmployees = employeeEceData.length;
-      const compliantEmployees = employeeEceData.filter(emp => emp.isCompliant).length;
-      const schoolComplianceRate = totalEmployees > 0 ? Math.round((compliantEmployees / totalEmployees) * 100) : 0;
-      const averageHours = totalEmployees > 0 ? 
-        Math.round((employeeEceData.reduce((sum, emp) => sum + emp.totalHours, 0) / totalEmployees) * 10) / 10 : 0;
+      const compliantEmployees = employeeEceData.filter(
+        (emp) => emp.isCompliant,
+      ).length;
+      const schoolComplianceRate =
+        totalEmployees > 0
+          ? Math.round((compliantEmployees / totalEmployees) * 100)
+          : 0;
+      const averageHours =
+        totalEmployees > 0
+          ? Math.round(
+              (employeeEceData.reduce((sum, emp) => sum + emp.totalHours, 0) /
+                totalEmployees) *
+                10,
+            ) / 10
+          : 0;
 
       res.json({
         schoolStats: {
@@ -3871,9 +4309,9 @@ Continue for all 5 questions...
           compliantEmployees,
           nonCompliantEmployees: totalEmployees - compliantEmployees,
           complianceRate: schoolComplianceRate,
-          averageHours
+          averageHours,
         },
-        employees: employeeEceData
+        employees: employeeEceData,
       });
     } catch (error) {
       console.error("Error fetching school ECE hours:", error);
@@ -3882,99 +4320,118 @@ Continue for all 5 questions...
   });
 
   // Get ECE reporting settings for a school
-  app.get("/api/school/ece-reporting-settings", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  app.get(
+    "/api/school/ece-reporting-settings",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const user = await storage.getUser(userId);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if user is a school admin/director
+        if (!user.isSchoolAdmin && !user.isAdmin) {
+          return res.status(403).json({ message: "Director access required" });
+        }
+
+        // Get reporting settings for the school
+        const [settings] = await db
+          .select()
+          .from(eceReportingSettings)
+          .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
+
+        res.json({
+          settings: settings || null,
+          hasSettings: !!settings,
+        });
+      } catch (error) {
+        console.error("Error fetching ECE reporting settings:", error);
+        res.status(500).json({ message: "Failed to fetch reporting settings" });
       }
-
-      // Check if user is a school admin/director
-      if (!user.isSchoolAdmin && !user.isAdmin) {
-        return res.status(403).json({ message: "Director access required" });
-      }
-
-      // Get reporting settings for the school
-      const [settings] = await db.select().from(eceReportingSettings)
-        .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
-
-      res.json({
-        settings: settings || null,
-        hasSettings: !!settings
-      });
-    } catch (error) {
-      console.error("Error fetching ECE reporting settings:", error);
-      res.status(500).json({ message: "Failed to fetch reporting settings" });
-    }
-  });
+    },
+  );
 
   // Update ECE reporting settings
-  app.post("/api/school/ece-reporting-settings", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const { reportingEmails, frequency, isActive } = req.body;
-      
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+  app.post(
+    "/api/school/ece-reporting-settings",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const { reportingEmails, frequency, isActive } = req.body;
 
-      // Check if user is a school admin/director
-      if (!user.isSchoolAdmin && !user.isAdmin) {
-        return res.status(403).json({ message: "Director access required" });
-      }
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
 
-      // Validate email addresses
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const validEmails = reportingEmails.filter((email: string) => emailRegex.test(email));
-      
-      if (validEmails.length === 0) {
-        return res.status(400).json({ message: "At least one valid email address is required" });
-      }
+        // Check if user is a school admin/director
+        if (!user.isSchoolAdmin && !user.isAdmin) {
+          return res.status(403).json({ message: "Director access required" });
+        }
 
-      // Check if settings already exist
-      const [existingSettings] = await db.select().from(eceReportingSettings)
-        .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
+        // Validate email addresses
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const validEmails = reportingEmails.filter((email: string) =>
+          emailRegex.test(email),
+        );
 
-      if (existingSettings) {
-        // Update existing settings
-        await db.update(eceReportingSettings)
-          .set({
+        if (validEmails.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "At least one valid email address is required" });
+        }
+
+        // Check if settings already exist
+        const [existingSettings] = await db
+          .select()
+          .from(eceReportingSettings)
+          .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
+
+        if (existingSettings) {
+          // Update existing settings
+          await db
+            .update(eceReportingSettings)
+            .set({
+              reportingEmails: validEmails,
+              frequency: frequency || "monthly",
+              isActive: isActive !== undefined ? isActive : true,
+              updatedAt: new Date(),
+            })
+            .where(eq(eceReportingSettings.id, existingSettings.id));
+        } else {
+          // Create new settings
+          await db.insert(eceReportingSettings).values({
+            schoolId: user.schoolId || 1,
             reportingEmails: validEmails,
-            frequency: frequency || 'monthly',
+            frequency: frequency || "monthly",
             isActive: isActive !== undefined ? isActive : true,
-            updatedAt: new Date()
-          })
-          .where(eq(eceReportingSettings.id, existingSettings.id));
-      } else {
-        // Create new settings
-        await db.insert(eceReportingSettings).values({
-          schoolId: user.schoolId || 1,
-          reportingEmails: validEmails,
-          frequency: frequency || 'monthly',
-          isActive: isActive !== undefined ? isActive : true
-        });
-      }
+          });
+        }
 
-      res.json({ 
-        success: true, 
-        message: "ECE reporting settings updated successfully",
-        emailCount: validEmails.length
-      });
-    } catch (error) {
-      console.error("Error updating ECE reporting settings:", error);
-      res.status(500).json({ message: "Failed to update reporting settings" });
-    }
-  });
+        res.json({
+          success: true,
+          message: "ECE reporting settings updated successfully",
+          emailCount: validEmails.length,
+        });
+      } catch (error) {
+        console.error("Error updating ECE reporting settings:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to update reporting settings" });
+      }
+    },
+  );
 
   // Send test ECE report email
   app.post("/api/school/ece-test-report", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -3985,71 +4442,92 @@ Continue for all 5 questions...
       }
 
       // Get reporting settings
-      const [settings] = await db.select().from(eceReportingSettings)
+      const [settings] = await db
+        .select()
+        .from(eceReportingSettings)
         .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
 
       if (!settings) {
-        return res.status(400).json({ 
-          message: "No ECE reporting settings found. Please configure email settings first in the Email Settings tab.",
-          errorType: "NO_SETTINGS"
+        return res.status(400).json({
+          message:
+            "No ECE reporting settings found. Please configure email settings first in the Email Settings tab.",
+          errorType: "NO_SETTINGS",
         });
       }
 
       if (!settings.isActive) {
-        return res.status(400).json({ 
-          message: "ECE reporting is disabled. Please enable email reports in the Email Settings tab.",
-          errorType: "SETTINGS_DISABLED"
+        return res.status(400).json({
+          message:
+            "ECE reporting is disabled. Please enable email reports in the Email Settings tab.",
+          errorType: "SETTINGS_DISABLED",
         });
       }
 
       if (!settings.reportingEmails || settings.reportingEmails.length === 0) {
-        return res.status(400).json({ 
-          message: "No email recipients configured. Please add email addresses in the Email Settings tab.",
-          errorType: "NO_RECIPIENTS"
+        return res.status(400).json({
+          message:
+            "No email recipients configured. Please add email addresses in the Email Settings tab.",
+          errorType: "NO_RECIPIENTS",
         });
       }
 
       // Generate test report data for current month
       const currentDate = new Date();
-      const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const startOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1,
+      );
+      const endOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0,
+      );
 
       // Get school name
-      const [school] = await db.select().from(schools)
+      const [school] = await db
+        .select()
+        .from(schools)
         .where(eq(schools.id, user.schoolId || 1));
 
       // Check if SendGrid is configured properly
       if (!process.env.SENDGRID_API_KEY) {
-        return res.status(500).json({ 
-          message: "Email service not configured. Please contact administrator.",
-          errorType: "EMAIL_NOT_CONFIGURED"
+        return res.status(500).json({
+          message:
+            "Email service not configured. Please contact administrator.",
+          errorType: "EMAIL_NOT_CONFIGURED",
         });
       }
 
       // Send test email
       const emailSent = await sendEceMonthlyReport(
         settings.reportingEmails,
-        school?.name || 'Your School',
-        currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        school?.name || "Your School",
+        currentDate.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        }),
         [], // Empty training data for test
-        true // isTestEmail flag
+        true, // isTestEmail flag
       );
 
       if (!emailSent) {
         // For now, return success since the ECE system is working but SendGrid needs new API key
-        console.log("SendGrid API key needs to be refreshed - returning simulated success");
-        return res.json({ 
-          success: true, 
+        console.log(
+          "SendGrid API key needs to be refreshed - returning simulated success",
+        );
+        return res.json({
+          success: true,
           message: `Test report would be sent to ${settings.reportingEmails.length} email(s) (SendGrid API key needs refresh)`,
           recipients: settings.reportingEmails,
-          note: "Email functionality will work once SendGrid API key is updated"
+          note: "Email functionality will work once SendGrid API key is updated",
         });
       }
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: `Test report sent to ${settings.reportingEmails.length} email(s)`,
-        recipients: settings.reportingEmails
+        recipients: settings.reportingEmails,
       });
     } catch (error) {
       console.error("Error sending test report:", error);
@@ -4058,54 +4536,59 @@ Continue for all 5 questions...
   });
 
   // Update employee's ECE renewal date
-  app.put("/api/employee/:employeeId/ece-renewal-date", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const { employeeId } = req.params;
-      const { renewalDate } = req.body;
-      
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  app.put(
+    "/api/employee/:employeeId/ece-renewal-date",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const { employeeId } = req.params;
+        const { renewalDate } = req.body;
+
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if user is a school admin/director
+        if (!user.isSchoolAdmin && !user.isAdmin) {
+          return res.status(403).json({ message: "Director access required" });
+        }
+
+        // Get the employee to update
+        const employee = await storage.getUser(parseInt(employeeId));
+        if (!employee) {
+          return res.status(404).json({ message: "Employee not found" });
+        }
+
+        // Verify employee is in the same school
+        if (employee.schoolId !== user.schoolId) {
+          return res
+            .status(403)
+            .json({ message: "Access denied: Employee not in your school" });
+        }
+
+        // Update the renewal date
+        await storage.updateUser(employee.id, {
+          eceHoursRenewalDate: renewalDate,
+        });
+
+        res.json({
+          success: true,
+          message: "ECE renewal date updated successfully",
+          employeeId: employee.id,
+          renewalDate,
+        });
+      } catch (error) {
+        console.error("Error updating ECE renewal date:", error);
+        res.status(500).json({ message: "Failed to update renewal date" });
       }
-
-      // Check if user is a school admin/director
-      if (!user.isSchoolAdmin && !user.isAdmin) {
-        return res.status(403).json({ message: "Director access required" });
-      }
-
-      // Get the employee to update
-      const employee = await storage.getUser(parseInt(employeeId));
-      if (!employee) {
-        return res.status(404).json({ message: "Employee not found" });
-      }
-
-      // Verify employee is in the same school
-      if (employee.schoolId !== user.schoolId) {
-        return res.status(403).json({ message: "Access denied: Employee not in your school" });
-      }
-
-      // Update the renewal date
-      await storage.updateUser(employee.id, {
-        eceHoursRenewalDate: renewalDate
-      });
-
-      res.json({ 
-        success: true, 
-        message: "ECE renewal date updated successfully",
-        employeeId: employee.id,
-        renewalDate 
-      });
-    } catch (error) {
-      console.error("Error updating ECE renewal date:", error);
-      res.status(500).json({ message: "Failed to update renewal date" });
-    }
-  });
+    },
+  );
 
   // Send actual monthly ECE report with real data
   app.post("/api/school/ece-monthly-report", requireAuth, async (req, res) => {
     try {
-      
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
 
@@ -4119,154 +4602,198 @@ Continue for all 5 questions...
       }
 
       // Get reporting settings
-      const [settings] = await db.select().from(eceReportingSettings)
+      const [settings] = await db
+        .select()
+        .from(eceReportingSettings)
         .where(eq(eceReportingSettings.schoolId, user.schoolId || 1));
-      
 
       if (!settings) {
-        return res.status(400).json({ 
-          message: "No ECE reporting settings found. Please configure email settings first.",
-          errorType: "NO_SETTINGS"
+        return res.status(400).json({
+          message:
+            "No ECE reporting settings found. Please configure email settings first.",
+          errorType: "NO_SETTINGS",
         });
       }
 
       if (!settings.isActive) {
-        return res.status(400).json({ 
-          message: "ECE reporting is disabled. Please enable email reports in settings.",
-          errorType: "SETTINGS_DISABLED"
+        return res.status(400).json({
+          message:
+            "ECE reporting is disabled. Please enable email reports in settings.",
+          errorType: "SETTINGS_DISABLED",
         });
       }
 
       if (!settings.reportingEmails || settings.reportingEmails.length === 0) {
-        return res.status(400).json({ 
-          message: "No email recipients configured. Please add email addresses in settings.",
-          errorType: "NO_RECIPIENTS"
+        return res.status(400).json({
+          message:
+            "No email recipients configured. Please add email addresses in settings.",
+          errorType: "NO_RECIPIENTS",
         });
       }
 
       // Get school name
-      const [school] = await db.select().from(schools)
+      const [school] = await db
+        .select()
+        .from(schools)
         .where(eq(schools.id, user.schoolId || 1));
 
       // Calculate date range for this month
       const currentDate = new Date();
-      const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+      const startOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1,
+      );
+      const endOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+      );
 
       // Get all employees in the school
-      const employees = await db.select().from(users)
+      const employees = await db
+        .select()
+        .from(users)
         .where(eq(users.schoolId, user.schoolId || 1))
         .orderBy(users.firstName, users.lastName);
 
       // Get ECE hours for each employee for this month
-      const employeeTrainingData = await Promise.all(employees.map(async (employee) => {
-        // Get ECE hours for this month
-        const monthlyHours = await db.select().from(eceHours)
-          .where(
-            and(
-              eq(eceHours.userId, employee.id),
-              sql`${eceHours.completedAt} >= ${startOfMonth.toISOString()}`,
-              sql`${eceHours.completedAt} <= ${endOfMonth.toISOString()}`
+      const employeeTrainingData = await Promise.all(
+        employees.map(async (employee) => {
+          // Get ECE hours for this month
+          const monthlyHours = await db
+            .select()
+            .from(eceHours)
+            .where(
+              and(
+                eq(eceHours.userId, employee.id),
+                sql`${eceHours.completedAt} >= ${startOfMonth.toISOString()}`,
+                sql`${eceHours.completedAt} <= ${endOfMonth.toISOString()}`,
+              ),
             )
-          )
-          .orderBy(desc(eceHours.completedAt));
+            .orderBy(desc(eceHours.completedAt));
 
-        // Group hours by category
-        const hoursByCategory = monthlyHours.reduce((acc, hour) => {
-          const category = hour.category;
-          const durationHours = hour.duration / 60; // Convert minutes to hours
-          acc[category] = (acc[category] || 0) + durationHours;
-          return acc;
-        }, {} as Record<string, number>);
-
-        // Calculate total hours this month
-        const totalHoursThisMonth = monthlyHours.reduce((sum, h) => sum + (h.duration / 60), 0);
-
-        // Get total hours for the year (from employee's renewal period)
-        const renewalDate = employee.eceHoursRenewalDate || employee.lastActive || employee.createdAt;
-        const renewalYear = new Date(renewalDate);
-        let periodStart = new Date(renewalYear);
-        let periodEnd = new Date(renewalYear);
-        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-
-        // If we're past the renewal date, move to current cycle
-        while (periodEnd < currentDate) {
-          periodStart.setFullYear(periodStart.getFullYear() + 1);
-          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-        }
-
-        const yearlyHours = await db.select().from(eceHours)
-          .where(
-            and(
-              eq(eceHours.userId, employee.id),
-              sql`${eceHours.completedAt} >= ${periodStart.toISOString()}`,
-              sql`${eceHours.completedAt} <= ${periodEnd.toISOString()}`
-            )
+          // Group hours by category
+          const hoursByCategory = monthlyHours.reduce(
+            (acc, hour) => {
+              const category = hour.category;
+              const durationHours = hour.duration / 60; // Convert minutes to hours
+              acc[category] = (acc[category] || 0) + durationHours;
+              return acc;
+            },
+            {} as Record<string, number>,
           );
 
-        const totalYearlyHours = yearlyHours.reduce((sum, h) => sum + (h.duration / 60), 0);
+          // Calculate total hours this month
+          const totalHoursThisMonth = monthlyHours.reduce(
+            (sum, h) => sum + h.duration / 60,
+            0,
+          );
 
-        return {
-          id: employee.id,
-          name: `${employee.firstName} ${employee.lastName}`,
-          email: employee.email,
-          hoursThisMonth: Math.round(totalHoursThisMonth * 10) / 10,
-          totalHours: Math.round(totalYearlyHours * 10) / 10,
-          categories: Object.keys(hoursByCategory),
-          hoursByCategory,
-          monthlyTrainings: monthlyHours.map(h => ({
-            title: h.trainingTitle,
-            category: h.category,
-            hours: Math.round((h.duration / 60) * 10) / 10,
-            completedAt: h.completedAt?.toISOString().split('T')[0]
-          }))
-        };
-      }));
+          // Get total hours for the year (from employee's renewal period)
+          const renewalDate =
+            employee.eceHoursRenewalDate ||
+            employee.lastActive ||
+            employee.createdAt;
+          const renewalYear = new Date(renewalDate);
+          let periodStart = new Date(renewalYear);
+          let periodEnd = new Date(renewalYear);
+          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+
+          // If we're past the renewal date, move to current cycle
+          while (periodEnd < currentDate) {
+            periodStart.setFullYear(periodStart.getFullYear() + 1);
+            periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+          }
+
+          const yearlyHours = await db
+            .select()
+            .from(eceHours)
+            .where(
+              and(
+                eq(eceHours.userId, employee.id),
+                sql`${eceHours.completedAt} >= ${periodStart.toISOString()}`,
+                sql`${eceHours.completedAt} <= ${periodEnd.toISOString()}`,
+              ),
+            );
+
+          const totalYearlyHours = yearlyHours.reduce(
+            (sum, h) => sum + h.duration / 60,
+            0,
+          );
+
+          return {
+            id: employee.id,
+            name: `${employee.firstName} ${employee.lastName}`,
+            email: employee.email,
+            hoursThisMonth: Math.round(totalHoursThisMonth * 10) / 10,
+            totalHours: Math.round(totalYearlyHours * 10) / 10,
+            categories: Object.keys(hoursByCategory),
+            hoursByCategory,
+            monthlyTrainings: monthlyHours.map((h) => ({
+              title: h.trainingTitle,
+              category: h.category,
+              hours: Math.round((h.duration / 60) * 10) / 10,
+              completedAt: h.completedAt?.toISOString().split("T")[0],
+            })),
+          };
+        }),
+      );
 
       // Filter out employees with no training this month
-      const employeesWithTraining = employeeTrainingData.filter(emp => emp.hoursThisMonth > 0);
+      const employeesWithTraining = employeeTrainingData.filter(
+        (emp) => emp.hoursThisMonth > 0,
+      );
 
       // Generate report period string
-      const reportPeriod = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const reportPeriod = currentDate.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
 
       // Check if SendGrid is configured
       if (!process.env.SENDGRID_API_KEY) {
-        return res.status(500).json({ 
-          message: "Email service not configured. Please contact administrator.",
-          errorType: "EMAIL_NOT_CONFIGURED"
+        return res.status(500).json({
+          message:
+            "Email service not configured. Please contact administrator.",
+          errorType: "EMAIL_NOT_CONFIGURED",
         });
       }
 
       // Send the actual monthly report
       const emailSent = await sendEceMonthlyReport(
         settings.reportingEmails,
-        school?.name || 'Your School',
+        school?.name || "Your School",
         reportPeriod,
         employeesWithTraining,
-        false // Not a test email
+        false, // Not a test email
       );
 
       if (!emailSent) {
-        return res.status(500).json({ 
-          message: "Failed to send monthly report. Please check email configuration.",
-          errorType: "EMAIL_SEND_FAILED"
+        return res.status(500).json({
+          message:
+            "Failed to send monthly report. Please check email configuration.",
+          errorType: "EMAIL_SEND_FAILED",
         });
       }
 
       // Update last report sent timestamp
-      await db.update(eceReportingSettings)
+      await db
+        .update(eceReportingSettings)
         .set({ lastReportSent: new Date() })
         .where(eq(eceReportingSettings.id, settings.id));
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: `Monthly ECE report sent to ${settings.reportingEmails.length} recipient(s)`,
         recipients: settings.reportingEmails,
         reportPeriod,
         employeesWithTraining: employeesWithTraining.length,
-        totalEmployees: employees.length
+        totalEmployees: employees.length,
       });
-
     } catch (error) {
       console.error("Error sending monthly ECE report:", error);
       res.status(500).json({ message: "Failed to send monthly report" });
@@ -4274,365 +4801,518 @@ Continue for all 5 questions...
   });
 
   // Get ECE hours for a user
-  app.get("/api/ece-hours", requireAuth, requirePaidAccess, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const { category, startDate, endDate } = req.query;
+  app.get(
+    "/api/ece-hours",
+    requireAuth,
+    requirePaidAccess,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const { category, startDate, endDate } = req.query;
 
-      let query = db.select().from(eceHours).where(eq(eceHours.userId, userId));
+        let query = db
+          .select()
+          .from(eceHours)
+          .where(eq(eceHours.userId, userId));
 
-      // Add category filter if provided
-      if (category) {
-        query = query.where(and(eq(eceHours.userId, userId), eq(eceHours.category, category as string)));
-      }
+        // Add category filter if provided
+        if (category) {
+          query = query.where(
+            and(
+              eq(eceHours.userId, userId),
+              eq(eceHours.category, category as string),
+            ),
+          );
+        }
 
-      // Add date range filter if provided
-      if (startDate && endDate) {
-        query = query.where(
-          and(
-            eq(eceHours.userId, userId),
-            sql`${eceHours.completedAt} >= ${startDate}`,
-            sql`${eceHours.completedAt} <= ${endDate}`
-          )
+        // Add date range filter if provided
+        if (startDate && endDate) {
+          query = query.where(
+            and(
+              eq(eceHours.userId, userId),
+              sql`${eceHours.completedAt} >= ${startDate}`,
+              sql`${eceHours.completedAt} <= ${endDate}`,
+            ),
+          );
+        }
+
+        const hours = await query.orderBy(desc(eceHours.completedAt));
+
+        // Calculate total hours by category
+        const hoursByCategory = hours.reduce(
+          (acc, hour) => {
+            const category = hour.category;
+            const durationHours = hour.duration / 60; // Convert minutes to hours
+            acc[category] = (acc[category] || 0) + durationHours;
+            return acc;
+          },
+          {} as Record<string, number>,
         );
+
+        res.json({
+          hours,
+          totalHours: hours.reduce((sum, h) => sum + h.duration / 60, 0),
+          hoursByCategory,
+        });
+      } catch (error) {
+        console.error("Error fetching ECE hours:", error);
+        res.status(500).json({ message: "Failed to fetch ECE hours" });
       }
-
-      const hours = await query.orderBy(desc(eceHours.completedAt));
-
-      // Calculate total hours by category
-      const hoursByCategory = hours.reduce((acc, hour) => {
-        const category = hour.category;
-        const durationHours = hour.duration / 60; // Convert minutes to hours
-        acc[category] = (acc[category] || 0) + durationHours;
-        return acc;
-      }, {} as Record<string, number>);
-
-      res.json({
-        hours,
-        totalHours: hours.reduce((sum, h) => sum + (h.duration / 60), 0),
-        hoursByCategory
-      });
-    } catch (error) {
-      console.error("Error fetching ECE hours:", error);
-      res.status(500).json({ message: "Failed to fetch ECE hours" });
-    }
-  });
+    },
+  );
 
   // Add ECE hours manually (for admins/approved trainers)
-  app.post("/api/ece-hours", requireAuth, requirePaidAccess, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  app.post(
+    "/api/ece-hours",
+    requireAuth,
+    requirePaidAccess,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const user = await storage.getUser(userId);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const {
+          targetUserId,
+          category,
+          duration,
+          trainingTitle,
+          notes,
+          trainingType,
+          trainingLocation,
+        } = req.body;
+
+        // Only allow admins or approved trainers to add hours for other users
+        const finalUserId = targetUserId || userId;
+        if (
+          targetUserId &&
+          targetUserId !== userId &&
+          !user.isAdmin &&
+          !user.isSchoolAdmin
+        ) {
+          return res
+            .status(403)
+            .json({
+              message: "Only administrators can add hours for other users",
+            });
+        }
+
+        const eceHourData = {
+          userId: finalUserId,
+          category,
+          duration: parseInt(duration),
+          trainingTitle,
+          approvedBy: userId,
+          schoolId: user.schoolId,
+          notes,
+          trainingType: trainingType || "online",
+          trainingLocation: trainingLocation || null,
+          isManualEntry: targetUserId ? true : false,
+          addedBy: targetUserId ? userId : null, // Track who manually added the hours
+        };
+
+        const newEceHour = await db
+          .insert(eceHours)
+          .values(eceHourData)
+          .returning();
+
+        console.log(
+          `ECE hours added: ${duration} minutes in ${category} for user ${finalUserId} (${trainingType})`,
+        );
+
+        res.status(201).json({
+          success: true,
+          eceHour: newEceHour[0],
+        });
+      } catch (error) {
+        console.error("Error adding ECE hours:", error);
+        res.status(500).json({ message: "Failed to add ECE hours" });
       }
-
-      const { targetUserId, category, duration, trainingTitle, notes, trainingType, trainingLocation } = req.body;
-
-      // Only allow admins or approved trainers to add hours for other users
-      const finalUserId = targetUserId || userId;
-      if (targetUserId && targetUserId !== userId && !user.isAdmin && !user.isSchoolAdmin) {
-        return res.status(403).json({ message: "Only administrators can add hours for other users" });
-      }
-
-      const eceHourData = {
-        userId: finalUserId,
-        category,
-        duration: parseInt(duration),
-        trainingTitle,
-        approvedBy: userId,
-        schoolId: user.schoolId,
-        notes,
-        trainingType: trainingType || 'online',
-        trainingLocation: trainingLocation || null,
-        isManualEntry: targetUserId ? true : false,
-        addedBy: targetUserId ? userId : null // Track who manually added the hours
-      };
-
-      const newEceHour = await db.insert(eceHours).values(eceHourData).returning();
-
-      console.log(`ECE hours added: ${duration} minutes in ${category} for user ${finalUserId} (${trainingType})`);
-
-      res.status(201).json({
-        success: true,
-        eceHour: newEceHour[0]
-      });
-    } catch (error) {
-      console.error("Error adding ECE hours:", error);
-      res.status(500).json({ message: "Failed to add ECE hours" });
-    }
-  });
+    },
+  );
 
   // Generate professional development certificate PDF
-  app.post("/api/ece-certificate/generate", requireAuth, requirePaidAccess, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+  app.post(
+    "/api/ece-certificate/generate",
+    requireAuth,
+    requirePaidAccess,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const user = await storage.getUser(userId);
 
-      const { employeeId } = req.body;
-      
-      // Get employee data if generating for someone else (admin only)
-      let targetEmployee = user;
-      if (employeeId && employeeId !== userId) {
-        if (!user.isAdmin && !user.isSchoolAdmin) {
-          return res.status(403).json({ message: "Only administrators can generate certificates for other employees" });
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
         }
-        
-        targetEmployee = await storage.getUser(employeeId);
-        if (!targetEmployee) {
-          return res.status(404).json({ message: "Employee not found" });
+
+        const { employeeId } = req.body;
+
+        // Get employee data if generating for someone else (admin only)
+        let targetEmployee = user;
+        if (employeeId && employeeId !== userId) {
+          if (!user.isAdmin && !user.isSchoolAdmin) {
+            return res
+              .status(403)
+              .json({
+                message:
+                  "Only administrators can generate certificates for other employees",
+              });
+          }
+
+          targetEmployee = await storage.getUser(employeeId);
+          if (!targetEmployee) {
+            return res.status(404).json({ message: "Employee not found" });
+          }
+
+          // Ensure employee is in the same school
+          if (targetEmployee.schoolId !== user.schoolId) {
+            return res
+              .status(403)
+              .json({
+                message:
+                  "Can only generate certificates for employees in your school",
+              });
+          }
         }
-        
-        // Ensure employee is in the same school
-        if (targetEmployee.schoolId !== user.schoolId) {
-          return res.status(403).json({ message: "Can only generate certificates for employees in your school" });
-        }
-      }
 
-      // Get ECE hours data for the employee
-      const eceHoursData = await db.select({
-        totalHours: sql<number>`sum(${eceHours.duration})`,
-        category: eceHours.category,
-        categoryHours: sql<number>`sum(${eceHours.duration})`
-      })
-      .from(eceHours)
-      .where(eq(eceHours.userId, targetEmployee.id))
-      .groupBy(eceHours.category);
+        // Get ECE hours data for the employee
+        const eceHoursData = await db
+          .select({
+            totalHours: sql<number>`sum(${eceHours.duration})`,
+            category: eceHours.category,
+            categoryHours: sql<number>`sum(${eceHours.duration})`,
+          })
+          .from(eceHours)
+          .where(eq(eceHours.userId, targetEmployee.id))
+          .groupBy(eceHours.category);
 
-      const totalMinutes = eceHoursData.reduce((sum, item) => sum + item.totalHours, 0);
-      const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+        const totalMinutes = eceHoursData.reduce(
+          (sum, item) => sum + item.totalHours,
+          0,
+        );
+        const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
 
-      // Determine current level based on total hours and points (both requirements must be met)
-      const getCurrentLevel = (points: number, eceHours: number) => {
-        // Master Teacher: 300+ ECE hours AND 400+ points
-        if (eceHours >= 300 && points >= 400) return { level: 5, title: "Master Teacher" };
-        // Senior Teacher: 200+ ECE hours AND 300+ points
-        if (eceHours >= 200 && points >= 300) return { level: 4, title: "Senior Teacher" };
-        // Lead Teacher: 100+ ECE hours AND 200+ points
-        if (eceHours >= 100 && points >= 200) return { level: 3, title: "Lead Teacher" };
-        // Associate Teacher: 30+ ECE hours AND 100+ points
-        if (eceHours >= 30 && points >= 100) return { level: 2, title: "Associate Teacher" };
-        // Assistant Teacher: Default level for everyone else
-        return { level: 1, title: "Assistant Teacher" };
-      };
+        // Determine current level based on total hours and points (both requirements must be met)
+        const getCurrentLevel = (points: number, eceHours: number) => {
+          // Master Teacher: 300+ ECE hours AND 400+ points
+          if (eceHours >= 300 && points >= 400)
+            return { level: 5, title: "Master Teacher" };
+          // Senior Teacher: 200+ ECE hours AND 300+ points
+          if (eceHours >= 200 && points >= 300)
+            return { level: 4, title: "Senior Teacher" };
+          // Lead Teacher: 100+ ECE hours AND 200+ points
+          if (eceHours >= 100 && points >= 200)
+            return { level: 3, title: "Lead Teacher" };
+          // Associate Teacher: 30+ ECE hours AND 100+ points
+          if (eceHours >= 30 && points >= 100)
+            return { level: 2, title: "Associate Teacher" };
+          // Assistant Teacher: Default level for everyone else
+          return { level: 1, title: "Assistant Teacher" };
+        };
 
-      const currentLevel = getCurrentLevel(targetEmployee.points || 0, totalHours);
-      
-      // Debug logging for level calculation
-      console.log(`Certificate Debug - Employee: ${targetEmployee.firstName || targetEmployee.username}`);
-      console.log(`Points: ${targetEmployee.points || 0}, ECE Hours: ${totalHours}`);
-      console.log(`Calculated Level: ${currentLevel.title}`);
+        const currentLevel = getCurrentLevel(
+          targetEmployee.points || 0,
+          totalHours,
+        );
 
-      // Generate certificate data
-      const certificateData = {
-        employeeName: `${targetEmployee.firstName || targetEmployee.username} ${targetEmployee.lastName || ''}`.trim(),
-        level: currentLevel.title,
-        totalHours: totalHours,
-        completionDate: new Date().toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        schoolName: "Early Childhood Education Center", // You can make this dynamic based on school data
-        categoryBreakdown: eceHoursData.map(item => ({
-          category: item.category,
-          hours: Math.round((item.categoryHours / 60) * 10) / 10
-        })),
-        certificateId: `ECE-${targetEmployee.id}-${Date.now()}`,
-        directorName: user.isAdmin || user.isSchoolAdmin ? `${user.firstName || user.username} ${user.lastName || ''}`.trim() : 'Director'
-      };
+        // Debug logging for level calculation
+        console.log(
+          `Certificate Debug - Employee: ${targetEmployee.firstName || targetEmployee.username}`,
+        );
+        console.log(
+          `Points: ${targetEmployee.points || 0}, ECE Hours: ${totalHours}`,
+        );
+        console.log(`Calculated Level: ${currentLevel.title}`);
 
-      // Generate PDF certificate using jsPDF
-      const { jsPDF } = await import('jspdf');
-      const PDFDocument = jsPDF;
-      const doc = new PDFDocument({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
+        // Generate certificate data
+        const certificateData = {
+          employeeName:
+            `${targetEmployee.firstName || targetEmployee.username} ${targetEmployee.lastName || ""}`.trim(),
+          level: currentLevel.title,
+          totalHours: totalHours,
+          completionDate: new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          schoolName: "Early Childhood Education Center", // You can make this dynamic based on school data
+          categoryBreakdown: eceHoursData.map((item) => ({
+            category: item.category,
+            hours: Math.round((item.categoryHours / 60) * 10) / 10,
+          })),
+          certificateId: `ECE-${targetEmployee.id}-${Date.now()}`,
+          directorName:
+            user.isAdmin || user.isSchoolAdmin
+              ? `${user.firstName || user.username} ${user.lastName || ""}`.trim()
+              : "Director",
+        };
 
-      // Set up certificate design
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const centerX = pageWidth / 2;
-      const margin = 15;
+        // Generate PDF certificate using jsPDF
+        const { jsPDF } = await import("jspdf");
+        const PDFDocument = jsPDF;
+        const doc = new PDFDocument({
+          orientation: "landscape",
+          unit: "mm",
+          format: "a4",
+        });
 
-      // Elegant cream background
-      doc.setFillColor(252, 251, 247);
-      doc.rect(0, 0, pageWidth, pageHeight, 'F');
-      
-      // Decorative border with double lines
-      doc.setDrawColor(26, 54, 93); // Deep navy blue
-      doc.setLineWidth(1.5);
-      doc.rect(margin, margin, pageWidth - (margin * 2), pageHeight - (margin * 2));
-      
-      doc.setLineWidth(0.5);
-      doc.rect(margin + 5, margin + 5, pageWidth - (margin * 2) - 10, pageHeight - (margin * 2) - 10);
+        // Set up certificate design
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const centerX = pageWidth / 2;
+        const margin = 15;
 
-      // Elegant header with refined typography
-      doc.setFontSize(28);
-      doc.setTextColor(26, 54, 93);
-      doc.text('CERTIFICATE', centerX, 40, { align: 'center' });
-      
-      doc.setFontSize(16);
-      doc.setTextColor(139, 69, 19); // Brown accent
-      doc.text('OF PROFESSIONAL DEVELOPMENT', centerX, 50, { align: 'center' });
+        // Elegant cream background
+        doc.setFillColor(252, 251, 247);
+        doc.rect(0, 0, pageWidth, pageHeight, "F");
 
-      // Institution line
-      doc.setFontSize(12);
-      doc.setTextColor(75, 85, 99);
-      doc.text('Early Childhood Education Professional Development Program', centerX, 60, { align: 'center' });
+        // Decorative border with double lines
+        doc.setDrawColor(26, 54, 93); // Deep navy blue
+        doc.setLineWidth(1.5);
+        doc.rect(
+          margin,
+          margin,
+          pageWidth - margin * 2,
+          pageHeight - margin * 2,
+        );
 
-      // Decorative line
-      doc.setDrawColor(139, 69, 19);
-      doc.setLineWidth(0.5);
-      doc.line(centerX - 60, 65, centerX + 60, 65);
+        doc.setLineWidth(0.5);
+        doc.rect(
+          margin + 5,
+          margin + 5,
+          pageWidth - margin * 2 - 10,
+          pageHeight - margin * 2 - 10,
+        );
 
-      // Main certificate text with professional formatting
-      doc.setFontSize(14);
-      doc.setTextColor(55, 65, 81);
-      doc.text('This is to certify that', centerX, 85, { align: 'center' });
+        // Elegant header with refined typography
+        doc.setFontSize(28);
+        doc.setTextColor(26, 54, 93);
+        doc.text("CERTIFICATE", centerX, 40, { align: "center" });
 
-      // Employee name with elegant styling
-      doc.setFontSize(24);
-      doc.setTextColor(26, 54, 93);
-      doc.text(certificateData.employeeName, centerX, 105, { align: 'center' });
-      
-      // Underline for name
-      const nameWidth = doc.getTextWidth(certificateData.employeeName);
-      doc.setDrawColor(139, 69, 19);
-      doc.setLineWidth(0.5);
-      doc.line(centerX - (nameWidth/2) - 5, 108, centerX + (nameWidth/2) + 5, 108);
+        doc.setFontSize(16);
+        doc.setTextColor(139, 69, 19); // Brown accent
+        doc.text("OF PROFESSIONAL DEVELOPMENT", centerX, 50, {
+          align: "center",
+        });
 
-      // Achievement description
-      doc.setFontSize(14);
-      doc.setTextColor(55, 65, 81);
-      doc.text('has successfully completed the required professional development training', centerX, 125, { align: 'center' });
-      doc.text('and has demonstrated competency at the level of', centerX, 135, { align: 'center' });
+        // Institution line
+        doc.setFontSize(12);
+        doc.setTextColor(75, 85, 99);
+        doc.text(
+          "Early Childhood Education Professional Development Program",
+          centerX,
+          60,
+          { align: "center" },
+        );
 
-      // Level achievement with prestigious styling
-      doc.setFontSize(20);
-      doc.setTextColor(139, 69, 19);
-      doc.text(certificateData.level, centerX, 155, { align: 'center' });
+        // Decorative line
+        doc.setDrawColor(139, 69, 19);
+        doc.setLineWidth(0.5);
+        doc.line(centerX - 60, 65, centerX + 60, 65);
 
-      // Professional details section
-      doc.setFontSize(12);
-      doc.setTextColor(75, 85, 99);
-      doc.text(`Professional Development Hours Completed: ${certificateData.totalHours}`, centerX, 175, { align: 'center' });
-
-      // Training categories in a more professional layout
-      if (certificateData.categoryBreakdown.length > 0) {
-        doc.setFontSize(11);
+        // Main certificate text with professional formatting
+        doc.setFontSize(14);
         doc.setTextColor(55, 65, 81);
-        doc.text('Areas of Professional Development:', centerX, 190, { align: 'center' });
-        
-        let yPos = 200;
-        const maxCategoriesPerLine = 2;
-        for (let i = 0; i < certificateData.categoryBreakdown.length; i += maxCategoriesPerLine) {
-          const categoriesLine = certificateData.categoryBreakdown.slice(i, i + maxCategoriesPerLine);
-          const lineText = categoriesLine.map(cat => `${cat.category} (${cat.hours}h)`).join(' • ');
-          doc.text(lineText, centerX, yPos, { align: 'center' });
-          yPos += 8;
+        doc.text("This is to certify that", centerX, 85, { align: "center" });
+
+        // Employee name with elegant styling
+        doc.setFontSize(24);
+        doc.setTextColor(26, 54, 93);
+        doc.text(certificateData.employeeName, centerX, 105, {
+          align: "center",
+        });
+
+        // Underline for name
+        const nameWidth = doc.getTextWidth(certificateData.employeeName);
+        doc.setDrawColor(139, 69, 19);
+        doc.setLineWidth(0.5);
+        doc.line(
+          centerX - nameWidth / 2 - 5,
+          108,
+          centerX + nameWidth / 2 + 5,
+          108,
+        );
+
+        // Achievement description
+        doc.setFontSize(14);
+        doc.setTextColor(55, 65, 81);
+        doc.text(
+          "has successfully completed the required professional development training",
+          centerX,
+          125,
+          { align: "center" },
+        );
+        doc.text(
+          "and has demonstrated competency at the level of",
+          centerX,
+          135,
+          { align: "center" },
+        );
+
+        // Level achievement with prestigious styling
+        doc.setFontSize(20);
+        doc.setTextColor(139, 69, 19);
+        doc.text(certificateData.level, centerX, 155, { align: "center" });
+
+        // Professional details section
+        doc.setFontSize(12);
+        doc.setTextColor(75, 85, 99);
+        doc.text(
+          `Professional Development Hours Completed: ${certificateData.totalHours}`,
+          centerX,
+          175,
+          { align: "center" },
+        );
+
+        // Training categories in a more professional layout
+        if (certificateData.categoryBreakdown.length > 0) {
+          doc.setFontSize(11);
+          doc.setTextColor(55, 65, 81);
+          doc.text("Areas of Professional Development:", centerX, 190, {
+            align: "center",
+          });
+
+          let yPos = 200;
+          const maxCategoriesPerLine = 2;
+          for (
+            let i = 0;
+            i < certificateData.categoryBreakdown.length;
+            i += maxCategoriesPerLine
+          ) {
+            const categoriesLine = certificateData.categoryBreakdown.slice(
+              i,
+              i + maxCategoriesPerLine,
+            );
+            const lineText = categoriesLine
+              .map((cat) => `${cat.category} (${cat.hours}h)`)
+              .join(" • ");
+            doc.text(lineText, centerX, yPos, { align: "center" });
+            yPos += 8;
+          }
         }
+
+        // Professional footer section
+        const footerY = pageHeight - 40;
+
+        // Date section
+        doc.setFontSize(10);
+        doc.setTextColor(75, 85, 99);
+        doc.text("Date of Completion:", 30, footerY - 15);
+        doc.setTextColor(26, 54, 93);
+        doc.text(certificateData.completionDate, 30, footerY - 5);
+
+        // Certificate ID
+        doc.setTextColor(75, 85, 99);
+        doc.text("Certificate ID:", 30, footerY + 10);
+        doc.setTextColor(26, 54, 93);
+        doc.text(certificateData.certificateId, 30, footerY + 20);
+
+        // Director signature section
+        const sigX = pageWidth - 100;
+        doc.setTextColor(75, 85, 99);
+        doc.text("Program Director:", sigX, footerY - 15);
+        doc.setDrawColor(26, 54, 93);
+        doc.setLineWidth(0.5);
+        doc.line(sigX, footerY, sigX + 70, footerY);
+        doc.setTextColor(26, 54, 93);
+        doc.text(certificateData.directorName, sigX, footerY + 8);
+
+        // Generate PDF buffer
+        const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+
+        // Set response headers for PDF download
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="ECE_Certificate_${certificateData.employeeName.replace(/\s+/g, "_")}.pdf"`,
+        );
+        res.setHeader("Content-Length", pdfBuffer.length);
+
+        res.send(pdfBuffer);
+      } catch (error) {
+        console.error("Error generating certificate:", error);
+        res.status(500).json({ message: "Failed to generate certificate" });
       }
-
-      // Professional footer section
-      const footerY = pageHeight - 40;
-      
-      // Date section
-      doc.setFontSize(10);
-      doc.setTextColor(75, 85, 99);
-      doc.text('Date of Completion:', 30, footerY - 15);
-      doc.setTextColor(26, 54, 93);
-      doc.text(certificateData.completionDate, 30, footerY - 5);
-
-      // Certificate ID
-      doc.setTextColor(75, 85, 99);
-      doc.text('Certificate ID:', 30, footerY + 10);
-      doc.setTextColor(26, 54, 93);
-      doc.text(certificateData.certificateId, 30, footerY + 20);
-
-      // Director signature section
-      const sigX = pageWidth - 100;
-      doc.setTextColor(75, 85, 99);
-      doc.text('Program Director:', sigX, footerY - 15);
-      doc.setDrawColor(26, 54, 93);
-      doc.setLineWidth(0.5);
-      doc.line(sigX, footerY, sigX + 70, footerY);
-      doc.setTextColor(26, 54, 93);
-      doc.text(certificateData.directorName, sigX, footerY + 8);
-
-      // Generate PDF buffer
-      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
-
-      // Set response headers for PDF download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="ECE_Certificate_${certificateData.employeeName.replace(/\s+/g, '_')}.pdf"`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-
-      res.send(pdfBuffer);
-
-    } catch (error) {
-      console.error("Error generating certificate:", error);
-      res.status(500).json({ message: "Failed to generate certificate" });
-    }
-  });
+    },
+  );
 
   // Add ECE hours for multiple users (group training)
-  app.post("/api/ece-hours/bulk", requireAuth, requirePaidAccess, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  app.post(
+    "/api/ece-hours/bulk",
+    requireAuth,
+    requirePaidAccess,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const user = await storage.getUser(userId);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Only allow admins to add bulk hours
+        if (!user.isAdmin && !user.isSchoolAdmin) {
+          return res
+            .status(403)
+            .json({
+              message: "Only administrators can add bulk training hours",
+            });
+        }
+
+        const {
+          userIds,
+          category,
+          duration,
+          trainingTitle,
+          notes,
+          trainingType,
+          trainingLocation,
+        } = req.body;
+
+        if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "User IDs array is required" });
+        }
+
+        // Prepare bulk insert data
+        const bulkEceHourData = userIds.map((targetUserId: number) => ({
+          userId: targetUserId,
+          category,
+          duration: parseInt(duration),
+          trainingTitle,
+          approvedBy: userId,
+          schoolId: user.schoolId,
+          notes,
+          trainingType: trainingType || "in_person",
+          trainingLocation: trainingLocation || null,
+          isManualEntry: true,
+          addedBy: userId,
+        }));
+
+        const newEceHours = await db
+          .insert(eceHours)
+          .values(bulkEceHourData)
+          .returning();
+
+        console.log(
+          `Bulk ECE hours added: ${duration} minutes in ${category} for ${userIds.length} users (${trainingType})`,
+        );
+
+        res.status(201).json({
+          success: true,
+          eceHours: newEceHours,
+          count: newEceHours.length,
+        });
+      } catch (error) {
+        console.error("Error adding bulk ECE hours:", error);
+        res.status(500).json({ message: "Failed to add bulk ECE hours" });
       }
-
-      // Only allow admins to add bulk hours
-      if (!user.isAdmin && !user.isSchoolAdmin) {
-        return res.status(403).json({ message: "Only administrators can add bulk training hours" });
-      }
-
-      const { userIds, category, duration, trainingTitle, notes, trainingType, trainingLocation } = req.body;
-
-      if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-        return res.status(400).json({ message: "User IDs array is required" });
-      }
-
-      // Prepare bulk insert data
-      const bulkEceHourData = userIds.map((targetUserId: number) => ({
-        userId: targetUserId,
-        category,
-        duration: parseInt(duration),
-        trainingTitle,
-        approvedBy: userId,
-        schoolId: user.schoolId,
-        notes,
-        trainingType: trainingType || 'in_person',
-        trainingLocation: trainingLocation || null,
-        isManualEntry: true,
-        addedBy: userId
-      }));
-
-      const newEceHours = await db.insert(eceHours).values(bulkEceHourData).returning();
-
-      console.log(`Bulk ECE hours added: ${duration} minutes in ${category} for ${userIds.length} users (${trainingType})`);
-
-      res.status(201).json({
-        success: true,
-        eceHours: newEceHours,
-        count: newEceHours.length
-      });
-    } catch (error) {
-      console.error("Error adding bulk ECE hours:", error);
-      res.status(500).json({ message: "Failed to add bulk ECE hours" });
-    }
-  });
+    },
+  );
 
   // School Admin middleware - restricts access to only administrators of a specific school
   const requireSchoolAdmin = async (
@@ -4923,9 +5603,14 @@ Continue for all 5 questions...
       const userId = req.session.userId;
       const { pointsToConvert, bearBucksToAdd } = req.body;
 
-      if (!pointsToConvert || !bearBucksToAdd || pointsToConvert <= 0 || bearBucksToAdd <= 0) {
-        return res.status(400).json({ 
-          message: "Valid pointsToConvert and bearBucksToAdd amounts required" 
+      if (
+        !pointsToConvert ||
+        !bearBucksToAdd ||
+        pointsToConvert <= 0 ||
+        bearBucksToAdd <= 0
+      ) {
+        return res.status(400).json({
+          message: "Valid pointsToConvert and bearBucksToAdd amounts required",
         });
       }
 
@@ -4936,10 +5621,10 @@ Continue for all 5 questions...
 
       // Check if user has enough points
       if (user.points < pointsToConvert) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Insufficient points for conversion",
           currentPoints: user.points,
-          requestedConversion: pointsToConvert
+          requestedConversion: pointsToConvert,
         });
       }
 
@@ -5099,30 +5784,44 @@ Continue for all 5 questions...
     try {
       const schoolId = parseInt(req.params.schoolId);
       const userId = req.session.userId as number;
-      
+
       console.log(`GET /api/schools/${schoolId} - User ID: ${userId}`);
-      
+
       // Get current user to check permissions
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
         console.log(`User ${userId} not found in database`);
         return res.status(401).json({ message: "User not found" });
       }
-      
-      console.log(`Current user: ${currentUser.username} (school: ${currentUser.schoolId})`);
-      
+
+      console.log(
+        `Current user: ${currentUser.username} (school: ${currentUser.schoolId})`,
+      );
+
       // Check if user has access to this school data
-      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
-        console.log(`Access denied: User ${userId} cannot access school ${schoolId} data`);
-        return res.status(403).json({ message: "Access denied to this school's data" });
+      if (
+        !currentUser.isOwner &&
+        !currentUser.isSchoolAdmin &&
+        currentUser.schoolId !== schoolId
+      ) {
+        console.log(
+          `Access denied: User ${userId} cannot access school ${schoolId} data`,
+        );
+        return res
+          .status(403)
+          .json({ message: "Access denied to this school's data" });
       }
-      
+
       // Get school data from database
-      const school = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
-      console.log(`Found school:`, school[0] || 'Not found');
-      
+      const school = await db
+        .select()
+        .from(schools)
+        .where(eq(schools.id, schoolId))
+        .limit(1);
+      console.log(`Found school:`, school[0] || "Not found");
+
       res.json({
-        school: school[0] || null
+        school: school[0] || null,
       });
     } catch (error) {
       console.error("Error fetching school data:", error);
@@ -5134,31 +5833,44 @@ Continue for all 5 questions...
     try {
       const schoolId = parseInt(req.params.schoolId);
       const userId = req.session.userId as number;
-      
+
       console.log(`GET /api/schools/${schoolId}/teachers - User ID: ${userId}`);
-      
+
       // Get current user to check permissions
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
         console.log(`User ${userId} not found in database`);
         return res.status(401).json({ message: "User not found" });
       }
-      
-      console.log(`Current user: ${currentUser.username} (school: ${currentUser.schoolId}, isAdmin: ${currentUser.isAdmin}, isSchoolAdmin: ${currentUser.isSchoolAdmin})`);
-      
+
+      console.log(
+        `Current user: ${currentUser.username} (school: ${currentUser.schoolId}, isAdmin: ${currentUser.isAdmin}, isSchoolAdmin: ${currentUser.isSchoolAdmin})`,
+      );
+
       // Check if user has access to this school data
-      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
-        console.log(`Access denied: User ${userId} cannot access school ${schoolId} data`);
-        return res.status(403).json({ message: "Access denied to this school's data" });
+      if (
+        !currentUser.isOwner &&
+        !currentUser.isSchoolAdmin &&
+        currentUser.schoolId !== schoolId
+      ) {
+        console.log(
+          `Access denied: User ${userId} cannot access school ${schoolId} data`,
+        );
+        return res
+          .status(403)
+          .json({ message: "Access denied to this school's data" });
       }
-      
+
       // Get all teachers for the school
-      const teachers = await db.select().from(users).where(eq(users.schoolId, schoolId));
+      const teachers = await db
+        .select()
+        .from(users)
+        .where(eq(users.schoolId, schoolId));
       console.log(`Found ${teachers.length} teachers for school ${schoolId}`);
-      
+
       res.json({
         count: teachers.length,
-        teachers: teachers.map(teacher => ({
+        teachers: teachers.map((teacher) => ({
           id: teacher.id,
           username: teacher.username,
           firstName: teacher.firstName,
@@ -5171,153 +5883,197 @@ Continue for all 5 questions...
           lastActive: teacher.lastActive,
           profilePicture: teacher.profilePicture,
           isAdmin: teacher.isAdmin,
-          isSchoolAdmin: teacher.isSchoolAdmin
-        }))
+          isSchoolAdmin: teacher.isSchoolAdmin,
+        })),
       });
     } catch (error) {
       console.error("Error fetching school teachers:", error);
       res.status(500).json({ message: "Failed to fetch teachers" });
     }
   });
-  
-  // Get ECE hours for a specific teacher (for admin/school admin use)
-  app.get("/api/teachers/:teacherId/ece-hours", requireAuth, async (req, res) => {
-    try {
-      const teacherId = parseInt(req.params.teacherId);
-      const userId = req.session.userId as number;
-      
-      // Get current user to check permissions
-      const currentUser = await storage.getUser(userId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      // Get target teacher
-      const teacher = await storage.getUser(teacherId);
-      if (!teacher) {
-        return res.status(404).json({ message: "Teacher not found" });
-      }
-      
-      // Check permissions - only allow if user is admin, school admin of same school, or viewing own data
-      if (teacherId !== userId && 
-          !currentUser.isOwner && 
-          !currentUser.isAdmin && 
-          (!currentUser.isSchoolAdmin || currentUser.schoolId !== teacher.schoolId)) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      // Get ECE hours for the teacher
-      const hours = await db.select().from(eceHours)
-        .where(eq(eceHours.userId, teacherId))
-        .orderBy(desc(eceHours.completedAt));
-      
-      // Calculate totals by category
-      const hoursByCategory = hours.reduce((acc, hour) => {
-        const category = hour.category;
-        const durationHours = hour.duration / 60; // Convert minutes to hours
-        acc[category] = (acc[category] || 0) + durationHours;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      const totalHours = hours.reduce((sum, h) => sum + (h.duration / 60), 0);
-      
-      res.json({
-        teacherId,
-        teacherName: `${teacher.firstName} ${teacher.lastName}`,
-        hours,
-        totalHours,
-        hoursByCategory,
-        categories: Object.keys(hoursByCategory)
-      });
-    } catch (error) {
-      console.error("Error fetching teacher ECE hours:", error);
-      res.status(500).json({ message: "Failed to fetch ECE hours" });
-    }
-  });
 
-  app.get("/api/schools/:schoolId/teacher-progress", requireAuth, async (req, res) => {
-    try {
-      const schoolId = parseInt(req.params.schoolId);
-      const userId = req.session.userId as number;
-      
-      console.log(`GET /api/schools/${schoolId}/teacher-progress - User ID: ${userId}`);
-      
-      // Get current user to check permissions
-      const currentUser = await storage.getUser(userId);
-      if (!currentUser) {
-        console.log(`User ${userId} not found in database`);
-        return res.status(401).json({ message: "User not found" });
+  // Get ECE hours for a specific teacher (for admin/school admin use)
+  app.get(
+    "/api/teachers/:teacherId/ece-hours",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const teacherId = parseInt(req.params.teacherId);
+        const userId = req.session.userId as number;
+
+        // Get current user to check permissions
+        const currentUser = await storage.getUser(userId);
+        if (!currentUser) {
+          return res.status(401).json({ message: "User not found" });
+        }
+
+        // Get target teacher
+        const teacher = await storage.getUser(teacherId);
+        if (!teacher) {
+          return res.status(404).json({ message: "Teacher not found" });
+        }
+
+        // Check permissions - only allow if user is admin, school admin of same school, or viewing own data
+        if (
+          teacherId !== userId &&
+          !currentUser.isOwner &&
+          !currentUser.isAdmin &&
+          (!currentUser.isSchoolAdmin ||
+            currentUser.schoolId !== teacher.schoolId)
+        ) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+
+        // Get ECE hours for the teacher
+        const hours = await db
+          .select()
+          .from(eceHours)
+          .where(eq(eceHours.userId, teacherId))
+          .orderBy(desc(eceHours.completedAt));
+
+        // Calculate totals by category
+        const hoursByCategory = hours.reduce(
+          (acc, hour) => {
+            const category = hour.category;
+            const durationHours = hour.duration / 60; // Convert minutes to hours
+            acc[category] = (acc[category] || 0) + durationHours;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
+
+        const totalHours = hours.reduce((sum, h) => sum + h.duration / 60, 0);
+
+        res.json({
+          teacherId,
+          teacherName: `${teacher.firstName} ${teacher.lastName}`,
+          hours,
+          totalHours,
+          hoursByCategory,
+          categories: Object.keys(hoursByCategory),
+        });
+      } catch (error) {
+        console.error("Error fetching teacher ECE hours:", error);
+        res.status(500).json({ message: "Failed to fetch ECE hours" });
       }
-      
-      console.log(`Current user: ${currentUser.username} (school: ${currentUser.schoolId})`);
-      
-      // Check if user has access to this school data
-      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
-        console.log(`Access denied: User ${userId} cannot access school ${schoolId} data`);
-        return res.status(403).json({ message: "Access denied to this school's data" });
-      }
-      
-      // Get all teachers for the school
-      const teachers = await db.select().from(users).where(eq(users.schoolId, schoolId));
-      console.log(`Found ${teachers.length} teachers for progress data`);
-      
-      // Get progress data for each teacher
-      const progressData = await Promise.all(teachers.map(async (teacher) => {
-        // Get total modules count
-        const totalModulesResult = await db.execute(sql`SELECT COUNT(*) as count FROM learning_modules WHERE is_visible = true`);
-        const totalModules = totalModulesResult.rows[0]?.count || 0;
-        
-        // Get completed modules for this teacher
-        const completedModulesResult = await db.execute(sql`
+    },
+  );
+
+  app.get(
+    "/api/schools/:schoolId/teacher-progress",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const schoolId = parseInt(req.params.schoolId);
+        const userId = req.session.userId as number;
+
+        console.log(
+          `GET /api/schools/${schoolId}/teacher-progress - User ID: ${userId}`,
+        );
+
+        // Get current user to check permissions
+        const currentUser = await storage.getUser(userId);
+        if (!currentUser) {
+          console.log(`User ${userId} not found in database`);
+          return res.status(401).json({ message: "User not found" });
+        }
+
+        console.log(
+          `Current user: ${currentUser.username} (school: ${currentUser.schoolId})`,
+        );
+
+        // Check if user has access to this school data
+        if (
+          !currentUser.isOwner &&
+          !currentUser.isSchoolAdmin &&
+          currentUser.schoolId !== schoolId
+        ) {
+          console.log(
+            `Access denied: User ${userId} cannot access school ${schoolId} data`,
+          );
+          return res
+            .status(403)
+            .json({ message: "Access denied to this school's data" });
+        }
+
+        // Get all teachers for the school
+        const teachers = await db
+          .select()
+          .from(users)
+          .where(eq(users.schoolId, schoolId));
+        console.log(`Found ${teachers.length} teachers for progress data`);
+
+        // Get progress data for each teacher
+        const progressData = await Promise.all(
+          teachers.map(async (teacher) => {
+            // Get total modules count
+            const totalModulesResult = await db.execute(
+              sql`SELECT COUNT(*) as count FROM learning_modules WHERE is_visible = true`,
+            );
+            const totalModules = totalModulesResult.rows[0]?.count || 0;
+
+            // Get completed modules for this teacher
+            const completedModulesResult = await db.execute(sql`
           SELECT COUNT(*) as count FROM user_progress 
           WHERE user_id = ${teacher.id} AND completed = true AND passed = true
         `);
-        const modulesCompleted = completedModulesResult.rows[0]?.count || 0;
-        
-        // Get last assessment
-        const lastAssessmentResult = await db.execute(sql`
+            const modulesCompleted = completedModulesResult.rows[0]?.count || 0;
+
+            // Get last assessment
+            const lastAssessmentResult = await db.execute(sql`
           SELECT created_at FROM user_assessments 
           WHERE user_id = ${teacher.id} 
           ORDER BY created_at DESC LIMIT 1
         `);
-        const lastAssessment = lastAssessmentResult.rows[0] || null;
-        
-        const completionPercentage = totalModules > 0 ? Math.round((modulesCompleted / totalModules) * 100) : 0;
-        
-        return {
-          userId: teacher.id,
-          fullName: `${teacher.firstName} ${teacher.lastName}`,
-          completionPercentage,
-          modulesCompleted,
-          totalModules,
-          lastAssessment,
-          lastActive: teacher.lastActive
-        };
-      }));
-      
-      res.json({ progressData });
-    } catch (error) {
-      console.error("Error fetching teacher progress:", error);
-      res.status(500).json({ message: "Failed to fetch progress data" });
-    }
-  });
-  
+            const lastAssessment = lastAssessmentResult.rows[0] || null;
+
+            const completionPercentage =
+              totalModules > 0
+                ? Math.round((modulesCompleted / totalModules) * 100)
+                : 0;
+
+            return {
+              userId: teacher.id,
+              fullName: `${teacher.firstName} ${teacher.lastName}`,
+              completionPercentage,
+              modulesCompleted,
+              totalModules,
+              lastAssessment,
+              lastActive: teacher.lastActive,
+            };
+          }),
+        );
+
+        res.json({ progressData });
+      } catch (error) {
+        console.error("Error fetching teacher progress:", error);
+        res.status(500).json({ message: "Failed to fetch progress data" });
+      }
+    },
+  );
+
   app.get("/api/schools/:schoolId/eos", requireAuth, async (req, res) => {
     try {
       const schoolId = parseInt(req.params.schoolId);
       const userId = req.session.userId as number;
-      
+
       // Get current user to check permissions
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
         return res.status(401).json({ message: "User not found" });
       }
-      
+
       // Check if user has access to this school data
-      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
-        return res.status(403).json({ message: "Access denied to this school's data" });
+      if (
+        !currentUser.isOwner &&
+        !currentUser.isSchoolAdmin &&
+        currentUser.schoolId !== schoolId
+      ) {
+        return res
+          .status(403)
+          .json({ message: "Access denied to this school's data" });
       }
-      
+
       // Get core value shout outs for this school
       try {
         const shoutOutsResult = await db.execute(sql`
@@ -5330,20 +6086,20 @@ Continue for all 5 questions...
           WHERE n.school_id = ${schoolId} OR nom.school_id = ${schoolId}
           ORDER BY cvs.created_at DESC
         `);
-        
-        const shoutOuts = shoutOutsResult.rows.map(row => ({
+
+        const shoutOuts = shoutOutsResult.rows.map((row) => ({
           id: row.id,
           coreValue: row.core_value,
           message: row.message,
           createdAt: row.created_at,
           nominator: {
-            fullName: `${row.nominator_first_name} ${row.nominator_last_name}`
+            fullName: `${row.nominator_first_name} ${row.nominator_last_name}`,
           },
           nominee: {
-            fullName: `${row.nominee_first_name} ${row.nominee_last_name}`
-          }
+            fullName: `${row.nominee_first_name} ${row.nominee_last_name}`,
+          },
         }));
-        
+
         res.json({ shoutOuts });
       } catch (tableError) {
         // Try alternate table name if first doesn't exist
@@ -5358,20 +6114,20 @@ Continue for all 5 questions...
             WHERE n.school_id = ${schoolId} OR nom.school_id = ${schoolId}
             ORDER BY cvs.created_at DESC
           `);
-          
-          const shoutOuts = shoutOutsResult.rows.map(row => ({
+
+          const shoutOuts = shoutOutsResult.rows.map((row) => ({
             id: row.id,
             coreValue: row.core_value,
             message: row.message,
             createdAt: row.created_at,
             nominator: {
-              fullName: `${row.nominator_first_name} ${row.nominator_last_name}`
+              fullName: `${row.nominator_first_name} ${row.nominator_last_name}`,
             },
             nominee: {
-              fullName: `${row.nominee_first_name} ${row.nominee_last_name}`
-            }
+              fullName: `${row.nominee_first_name} ${row.nominee_last_name}`,
+            },
           }));
-          
+
           res.json({ shoutOuts });
         } catch (error2) {
           console.log("No core values table found, returning empty data");
@@ -5383,29 +6139,35 @@ Continue for all 5 questions...
       res.status(500).json({ message: "Failed to fetch EOS data" });
     }
   });
-  
+
   app.get("/api/schools/:schoolId", requireAuth, async (req, res) => {
     try {
       const schoolId = parseInt(req.params.schoolId);
       const userId = req.session.userId as number;
-      
+
       // Get current user to check permissions
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
         return res.status(401).json({ message: "User not found" });
       }
-      
+
       // Check if user has access to this school data
-      if (!currentUser.isOwner && !currentUser.isSchoolAdmin && currentUser.schoolId !== schoolId) {
-        return res.status(403).json({ message: "Access denied to this school's data" });
+      if (
+        !currentUser.isOwner &&
+        !currentUser.isSchoolAdmin &&
+        currentUser.schoolId !== schoolId
+      ) {
+        return res
+          .status(403)
+          .json({ message: "Access denied to this school's data" });
       }
-      
+
       // Get school information
       const school = await storage.getSchool(schoolId);
       if (!school) {
         return res.status(404).json({ message: "School not found" });
       }
-      
+
       res.json({ school });
     } catch (error) {
       console.error("Error fetching school data:", error);
@@ -5486,10 +6248,14 @@ Continue for all 5 questions...
       // Check if user has admin privileges
       const currentUser = await storage.getUser(req.session.userId);
       if (!currentUser?.isOwner && !currentUser?.isAdmin) {
-        console.log("Reset points - User lacks admin privileges, access denied");
-        return res.status(403).json({ message: "Forbidden: Admin access required" });
+        console.log(
+          "Reset points - User lacks admin privileges, access denied",
+        );
+        return res
+          .status(403)
+          .json({ message: "Forbidden: Admin access required" });
       }
-      
+
       console.log("Reset points - Admin access verified");
       const userId = parseInt(req.params.userId);
       console.log("Resetting points for user ID:", userId);
@@ -5514,39 +6280,47 @@ Continue for all 5 questions...
     }
   });
 
-  app.post("/api/admin/reset-progress/:userId", requireAuth, async (req, res) => {
-    try {
-      // Check if user has admin privileges
-      const currentUser = await storage.getUser(req.session.userId);
-      if (!currentUser?.isOwner && !currentUser?.isAdmin) {
-        console.log("Reset progress - User lacks admin privileges, access denied");
-        return res.status(403).json({ message: "Forbidden: Admin access required" });
+  app.post(
+    "/api/admin/reset-progress/:userId",
+    requireAuth,
+    async (req, res) => {
+      try {
+        // Check if user has admin privileges
+        const currentUser = await storage.getUser(req.session.userId);
+        if (!currentUser?.isOwner && !currentUser?.isAdmin) {
+          console.log(
+            "Reset progress - User lacks admin privileges, access denied",
+          );
+          return res
+            .status(403)
+            .json({ message: "Forbidden: Admin access required" });
+        }
+
+        console.log("Reset progress - Admin access verified");
+
+        const userId = parseInt(req.params.userId);
+        console.log("Resetting progress for user ID:", userId);
+
+        if (!userId) {
+          return res.status(400).json({ message: "User ID is required" });
+        }
+
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Delete all progress records for this user
+        await storage.resetUserProgress(userId);
+        console.log("Reset progress successful for user ID:", userId);
+
+        res.status(200).json({ message: "User progress reset successfully" });
+      } catch (error) {
+        console.error("Error resetting user progress:", error);
+        res.status(500).json({ message: "Internal server error" });
       }
-      
-      console.log("Reset progress - Admin access verified");
-
-      const userId = parseInt(req.params.userId);
-      console.log("Resetting progress for user ID:", userId);
-
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Delete all progress records for this user
-      await storage.resetUserProgress(userId);
-      console.log("Reset progress successful for user ID:", userId);
-
-      res.status(200).json({ message: "User progress reset successfully" });
-    } catch (error) {
-      console.error("Error resetting user progress:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+    },
+  );
 
   // Legacy endpoint for backward compatibility
   app.post("/api/admin/reset-user-points", requireAdmin, async (req, res) => {
@@ -5656,7 +6430,8 @@ Continue for all 5 questions...
     try {
       const userId = req.session.userId as number;
       const moduleId = parseInt(req.params.moduleId);
-      const { progress, completed, pointsEarned, passed, finalScore } = req.body;
+      const { progress, completed, pointsEarned, passed, finalScore } =
+        req.body;
 
       // This should be replaced with a proper get by user and module function
       const allProgress = await storage.getProgressByUserId(userId);
@@ -5671,7 +6446,8 @@ Continue for all 5 questions...
           completed:
             completed !== undefined ? completed : existingProgress.completed,
           passed: passed !== undefined ? passed : existingProgress.passed,
-          finalScore: finalScore !== undefined ? finalScore : existingProgress.finalScore,
+          finalScore:
+            finalScore !== undefined ? finalScore : existingProgress.finalScore,
           pointsEarned:
             pointsEarned !== undefined
               ? pointsEarned
@@ -5702,7 +6478,11 @@ Continue for all 5 questions...
           }
 
           // Track ECE hours if module is eligible
-          if (module?.eceHoursEligible && module.eceCategory && module.trainingDuration) {
+          if (
+            module?.eceHoursEligible &&
+            module.eceCategory &&
+            module.trainingDuration
+          ) {
             try {
               const user = await storage.getUser(userId);
               const eceHourData = {
@@ -5713,13 +6493,13 @@ Continue for all 5 questions...
                 trainingTitle: module.title,
                 approvedBy: module.approvedTrainerId,
                 schoolId: user?.schoolId || null,
-                notes: `Completed training module: ${module.title}`
+                notes: `Completed training module: ${module.title}`,
               };
 
               await db.insert(eceHours).values(eceHourData);
 
               console.log(
-                `ECE hours tracked: ${module.trainingDuration} minutes in ${module.eceCategory} for user ${userId} completing module "${module.title}"`
+                `ECE hours tracked: ${module.trainingDuration} minutes in ${module.eceCategory} for user ${userId} completing module "${module.title}"`,
               );
             } catch (eceError) {
               console.error("Error tracking ECE hours:", eceError);
@@ -5764,7 +6544,11 @@ Continue for all 5 questions...
           }
 
           // Track ECE hours if module is eligible
-          if (module?.eceHoursEligible && module.eceCategory && module.trainingDuration) {
+          if (
+            module?.eceHoursEligible &&
+            module.eceCategory &&
+            module.trainingDuration
+          ) {
             try {
               const user = await storage.getUser(userId);
               const eceHourData = {
@@ -5775,13 +6559,13 @@ Continue for all 5 questions...
                 trainingTitle: module.title,
                 approvedBy: module.approvedTrainerId,
                 schoolId: user?.schoolId || null,
-                notes: `Completed training module: ${module.title}`
+                notes: `Completed training module: ${module.title}`,
               };
 
               await db.insert(eceHours).values(eceHourData);
 
               console.log(
-                `ECE hours tracked: ${module.trainingDuration} minutes in ${module.eceCategory} for user ${userId} completing module "${module.title}"`
+                `ECE hours tracked: ${module.trainingDuration} minutes in ${module.eceCategory} for user ${userId} completing module "${module.title}"`,
               );
             } catch (eceError) {
               console.error("Error tracking ECE hours:", eceError);
@@ -6599,14 +7383,14 @@ Continue for all 5 questions...
   app.post("/api/award-tutorial-point", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId as number;
-      
+
       // Award 1 point for tutorial progress
       await storage.addUserPoints(userId, 1);
-      
-      res.status(200).json({ 
-        success: true, 
+
+      res.status(200).json({
+        success: true,
         pointsAwarded: 1,
-        message: "Tutorial point awarded successfully"
+        message: "Tutorial point awarded successfully",
       });
     } catch (error) {
       console.error("Error awarding tutorial point:", error);
@@ -6619,19 +7403,19 @@ Continue for all 5 questions...
     try {
       const userId = req.session.userId as number;
       const { bonusPoints } = req.body;
-      
+
       // Validate bonus points (1-20)
       if (!bonusPoints || bonusPoints < 1 || bonusPoints > 20) {
         return res.status(400).json({ error: "Invalid bonus points amount" });
       }
-      
+
       // Award bonus points from mystery box
       await storage.addUserPoints(userId, bonusPoints);
-      
-      res.status(200).json({ 
-        success: true, 
+
+      res.status(200).json({
+        success: true,
         bonusPoints,
-        message: `Mystery box opened! Awarded ${bonusPoints} bonus points!` 
+        message: `Mystery box opened! Awarded ${bonusPoints} bonus points!`,
       });
     } catch (error) {
       console.error("Error awarding mystery box reward:", error);
@@ -6776,36 +7560,41 @@ Continue for all 5 questions...
 
   // We have a different endpoint for bonus games rewards at line 900, so this duplicate was removed
   // Manual trigger for monthly ECE report (for testing)
-  app.post("/api/school/ece-trigger-monthly-report", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId as number;
-      const user = await storage.getUser(userId);
+  app.post(
+    "/api/school/ece-trigger-monthly-report",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = req.session.userId as number;
+        const user = await storage.getUser(userId);
 
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Only allow admins to trigger manual reports
+        if (!user.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        // Import the scheduled task service
+        const { scheduledTaskService } = await import(
+          "./services/scheduledTasks.js"
+        );
+
+        // Trigger the monthly report
+        await scheduledTaskService.triggerMonthlyReport();
+
+        res.json({
+          success: true,
+          message: "Monthly ECE report task triggered successfully",
+        });
+      } catch (error) {
+        console.error("Error triggering monthly ECE report:", error);
+        res.status(500).json({ message: "Failed to trigger monthly report" });
       }
-
-      // Only allow admins to trigger manual reports
-      if (!user.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      // Import the scheduled task service
-      const { scheduledTaskService } = await import('./services/scheduledTasks.js');
-
-      // Trigger the monthly report
-      await scheduledTaskService.triggerMonthlyReport();
-
-      res.json({ 
-        success: true, 
-        message: "Monthly ECE report task triggered successfully"
-      });
-
-    } catch (error) {
-      console.error("Error triggering monthly ECE report:", error);
-      res.status(500).json({ message: "Failed to trigger monthly report" });
-    }
-  });
+    },
+  );
 
   // Add the new endpoint to match client expectations
   app.post("/api/core-values-shoutouts", requireAuth, async (req, res) => {
@@ -6969,10 +7758,10 @@ Continue for all 5 questions...
       // Build update object based on field
       const updateData: any = {};
       const validFields = [
-        'fingerprintExpiration',
-        'cprExpiration', 
-        'firstAidExpiration',
-        'foodHandlerExpiration'
+        "fingerprintExpiration",
+        "cprExpiration",
+        "firstAidExpiration",
+        "foodHandlerExpiration",
       ];
 
       if (!validFields.includes(field)) {
@@ -6995,22 +7784,28 @@ Continue for all 5 questions...
   });
 
   // Get comprehensive user activity data
-  app.get('/api/admin/teachers/:userId/activity-summary', requireAuth, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const currentUserId = req.session.userId as number;
-      
-      // Verify admin access or self-access
-      const currentUser = await storage.getUser(currentUserId);
-      const isViewingSelf = currentUserId === userId;
-      const hasAdminAccess = currentUser?.isAdmin || currentUser?.isSchoolAdmin || currentUser?.isOwner;
-      
-      if (!isViewingSelf && !hasAdminAccess) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.get(
+    "/api/admin/teachers/:userId/activity-summary",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
+        const currentUserId = req.session.userId as number;
 
-      // Get user's completed modules with points and ECE hours
-      const completedModules = await db.execute(sql`
+        // Verify admin access or self-access
+        const currentUser = await storage.getUser(currentUserId);
+        const isViewingSelf = currentUserId === userId;
+        const hasAdminAccess =
+          currentUser?.isAdmin ||
+          currentUser?.isSchoolAdmin ||
+          currentUser?.isOwner;
+
+        if (!isViewingSelf && !hasAdminAccess) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        // Get user's completed modules with points and ECE hours
+        const completedModules = await db.execute(sql`
         SELECT 
           up.module_id as moduleId,
           up.points_earned as pointsEarned,
@@ -7028,8 +7823,8 @@ Continue for all 5 questions...
         ORDER BY up.last_accessed DESC
       `);
 
-      // Get ECE hours summary
-      const eceHoursSummary = await db.execute(sql`
+        // Get ECE hours summary
+        const eceHoursSummary = await db.execute(sql`
         SELECT 
           category,
           SUM(duration) as totalMinutes,
@@ -7040,8 +7835,8 @@ Continue for all 5 questions...
         ORDER BY totalMinutes DESC
       `);
 
-      // Get game completions
-      const gameCompletions = await db.execute(sql`
+        // Get game completions
+        const gameCompletions = await db.execute(sql`
         SELECT 
           gc.game_id as gameId,
           gc.score,
@@ -7057,8 +7852,8 @@ Continue for all 5 questions...
         LIMIT 20
       `);
 
-      // Get total points breakdown including assessment points, current points, bearBucks, and lifetime points
-      const pointsBreakdown = await db.execute(sql`
+        // Get total points breakdown including assessment points, current points, bearBucks, and lifetime points
+        const pointsBreakdown = await db.execute(sql`
         SELECT 
           COALESCE(SUM(CASE WHEN up.points_earned > 0 THEN up.points_earned ELSE 0 END), 0) as "modulePoints",
           (SELECT COALESCE(SUM(CASE WHEN gc.points_earned > 0 THEN gc.points_earned ELSE 0 END), 0) 
@@ -7072,8 +7867,8 @@ Continue for all 5 questions...
         WHERE up.user_id = ${userId}
       `);
 
-      // Get assessment completions
-      const assessmentHistory = await db.execute(sql`
+        // Get assessment completions
+        const assessmentHistory = await db.execute(sql`
         SELECT 
           type,
           overall_score as overallScore,
@@ -7085,159 +7880,185 @@ Continue for all 5 questions...
         LIMIT 10
       `);
 
-      // Get teacher information
-      const targetUser = await storage.getUser(userId);
-      
-      const activitySummary = {
-        firstName: targetUser?.firstName || '',
-        lastName: targetUser?.lastName || '',
-        email: targetUser?.email || '',
-        completedModules: completedModules.rows || [],
-        eceHoursSummary: eceHoursSummary.rows || [],
-        gameCompletions: gameCompletions.rows || [],
-        pointsBreakdown: pointsBreakdown.rows?.[0] || { 
-          modulePoints: 0, 
-          gamePoints: 0, 
-          assessmentPoints: 0, 
-          currentPoints: 0, 
-          lifetimePoints: 0, 
-          bearBucks: 0 
-        },
-        assessmentHistory: assessmentHistory.rows || []
-      };
+        // Get teacher information
+        const targetUser = await storage.getUser(userId);
 
-      console.log(`Activity summary for user ${userId}:`, JSON.stringify(activitySummary, null, 2));
-      res.json(activitySummary);
-    } catch (error) {
-      console.error('Error fetching user activity summary:', error);
-      res.status(500).json({ message: 'Failed to fetch activity summary' });
-    }
-  });
+        const activitySummary = {
+          firstName: targetUser?.firstName || "",
+          lastName: targetUser?.lastName || "",
+          email: targetUser?.email || "",
+          completedModules: completedModules.rows || [],
+          eceHoursSummary: eceHoursSummary.rows || [],
+          gameCompletions: gameCompletions.rows || [],
+          pointsBreakdown: pointsBreakdown.rows?.[0] || {
+            modulePoints: 0,
+            gamePoints: 0,
+            assessmentPoints: 0,
+            currentPoints: 0,
+            lifetimePoints: 0,
+            bearBucks: 0,
+          },
+          assessmentHistory: assessmentHistory.rows || [],
+        };
+
+        console.log(
+          `Activity summary for user ${userId}:`,
+          JSON.stringify(activitySummary, null, 2),
+        );
+        res.json(activitySummary);
+      } catch (error) {
+        console.error("Error fetching user activity summary:", error);
+        res.status(500).json({ message: "Failed to fetch activity summary" });
+      }
+    },
+  );
 
   // Bear Bucks Admin Management Endpoints
-  app.post('/api/admin/bear-bucks/cash-out/:userId', requireAuth, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const currentUserId = req.session.userId as number;
-      
-      // Verify admin access
-      const currentUser = await storage.getUser(currentUserId);
-      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+  app.post(
+    "/api/admin/bear-bucks/cash-out/:userId",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
+        const currentUserId = req.session.userId as number;
+
+        // Verify admin access
+        const currentUser = await storage.getUser(currentUserId);
+        if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        // Get user's current Bear Bucks balance
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const cashOutAmount = user.bearBucks || 0;
+        if (cashOutAmount === 0) {
+          return res.status(400).json({ message: "No Bear Bucks to cash out" });
+        }
+
+        // Reset Bear Bucks to 0
+        await storage.updateUser(userId, { bearBucks: 0 });
+
+        res.json({
+          success: true,
+          message: `Cashed out ${cashOutAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+          cashedOutAmount: cashOutAmount,
+        });
+      } catch (error) {
+        console.error("Error cashing out Bear Bucks:", error);
+        res.status(500).json({ message: "Failed to cash out Bear Bucks" });
       }
+    },
+  );
 
-      // Get user's current Bear Bucks balance
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  app.post(
+    "/api/admin/bear-bucks/zero-out/:userId",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
+        const currentUserId = req.session.userId as number;
+
+        // Verify admin access
+        const currentUser = await storage.getUser(currentUserId);
+        if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        // Get user's current Bear Bucks balance
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const previousAmount = user.bearBucks || 0;
+
+        // Reset Bear Bucks to 0
+        await storage.updateUser(userId, { bearBucks: 0 });
+
+        res.json({
+          success: true,
+          message: `Zeroed out ${previousAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+          previousAmount,
+        });
+      } catch (error) {
+        console.error("Error zeroing out Bear Bucks:", error);
+        res.status(500).json({ message: "Failed to zero out Bear Bucks" });
       }
+    },
+  );
 
-      const cashOutAmount = user.bearBucks || 0;
-      if (cashOutAmount === 0) {
-        return res.status(400).json({ message: "No Bear Bucks to cash out" });
+  app.post(
+    "/api/admin/bear-bucks/adjust/:userId",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
+        const { adjustment } = req.body;
+        const currentUserId = req.session.userId as number;
+
+        // Verify admin access
+        const currentUser = await storage.getUser(currentUserId);
+        if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        if (typeof adjustment !== "number") {
+          return res
+            .status(400)
+            .json({
+              message: "Adjustment amount is required and must be a number",
+            });
+        }
+
+        // Get user's current Bear Bucks balance
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const currentAmount = user.bearBucks || 0;
+        const newAmount = Math.max(0, currentAmount + adjustment); // Ensure non-negative
+
+        // Only allow adjustments down (negative values)
+        if (adjustment > 0) {
+          return res
+            .status(400)
+            .json({
+              message: "Can only adjust Bear Bucks downward (negative values)",
+            });
+        }
+
+        // Update Bear Bucks
+        await storage.updateUser(userId, { bearBucks: newAmount });
+
+        res.json({
+          success: true,
+          message: `Adjusted Bear Bucks for ${user.firstName} ${user.lastName} from ${currentAmount} to ${newAmount}`,
+          previousAmount: currentAmount,
+          newAmount,
+          adjustment,
+        });
+      } catch (error) {
+        console.error("Error adjusting Bear Bucks:", error);
+        res.status(500).json({ message: "Failed to adjust Bear Bucks" });
       }
-
-      // Reset Bear Bucks to 0
-      await storage.updateUser(userId, { bearBucks: 0 });
-
-      res.json({ 
-        success: true, 
-        message: `Cashed out ${cashOutAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
-        cashedOutAmount: cashOutAmount
-      });
-    } catch (error) {
-      console.error('Error cashing out Bear Bucks:', error);
-      res.status(500).json({ message: 'Failed to cash out Bear Bucks' });
-    }
-  });
-
-  app.post('/api/admin/bear-bucks/zero-out/:userId', requireAuth, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const currentUserId = req.session.userId as number;
-      
-      // Verify admin access
-      const currentUser = await storage.getUser(currentUserId);
-      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      // Get user's current Bear Bucks balance
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const previousAmount = user.bearBucks || 0;
-
-      // Reset Bear Bucks to 0
-      await storage.updateUser(userId, { bearBucks: 0 });
-
-      res.json({ 
-        success: true, 
-        message: `Zeroed out ${previousAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
-        previousAmount
-      });
-    } catch (error) {
-      console.error('Error zeroing out Bear Bucks:', error);
-      res.status(500).json({ message: 'Failed to zero out Bear Bucks' });
-    }
-  });
-
-  app.post('/api/admin/bear-bucks/adjust/:userId', requireAuth, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const { adjustment } = req.body;
-      const currentUserId = req.session.userId as number;
-      
-      // Verify admin access
-      const currentUser = await storage.getUser(currentUserId);
-      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      if (typeof adjustment !== 'number') {
-        return res.status(400).json({ message: "Adjustment amount is required and must be a number" });
-      }
-
-      // Get user's current Bear Bucks balance
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const currentAmount = user.bearBucks || 0;
-      const newAmount = Math.max(0, currentAmount + adjustment); // Ensure non-negative
-
-      // Only allow adjustments down (negative values)
-      if (adjustment > 0) {
-        return res.status(400).json({ message: "Can only adjust Bear Bucks downward (negative values)" });
-      }
-
-      // Update Bear Bucks
-      await storage.updateUser(userId, { bearBucks: newAmount });
-
-      res.json({ 
-        success: true, 
-        message: `Adjusted Bear Bucks for ${user.firstName} ${user.lastName} from ${currentAmount} to ${newAmount}`,
-        previousAmount: currentAmount,
-        newAmount,
-        adjustment
-      });
-    } catch (error) {
-      console.error('Error adjusting Bear Bucks:', error);
-      res.status(500).json({ message: 'Failed to adjust Bear Bucks' });
-    }
-  });
+    },
+  );
 
   // Bonus Box API endpoints
-  app.post('/api/bonus-boxes/send', requireAuth, async (req: any, res) => {
+  app.post("/api/bonus-boxes/send", requireAuth, async (req: any, res) => {
     try {
       const { recipientId, boxType, points, message } = req.body;
       const senderId = req.session.userId;
 
       if (!recipientId || !boxType) {
-        return res.status(400).json({ message: 'Recipient ID and box type are required' });
+        return res
+          .status(400)
+          .json({ message: "Recipient ID and box type are required" });
       }
 
       // Validate box type and determine point range
@@ -7245,15 +8066,16 @@ Continue for all 5 questions...
         bonus: { min: 1, max: 30 },
         bronze: { min: 1, max: 20 },
         silver: { min: 10, max: 30 },
-        gold: { min: 20, max: 50 }
+        gold: { min: 20, max: 50 },
       };
 
       if (!pointRanges[boxType as keyof typeof pointRanges]) {
-        return res.status(400).json({ message: 'Invalid box type' });
+        return res.status(400).json({ message: "Invalid box type" });
       }
 
       const range = pointRanges[boxType as keyof typeof pointRanges];
-      const pointsAwarded = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+      const pointsAwarded =
+        Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
       // Insert bonus box
       await db.execute(sql`
@@ -7261,22 +8083,22 @@ Continue for all 5 questions...
         VALUES (${recipientId}, ${senderId}, ${boxType}, ${pointsAwarded}, ${message || null})
       `);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: `${boxType.charAt(0).toUpperCase() + boxType.slice(1)} box sent successfully!`,
-        pointsAwarded 
+        pointsAwarded,
       });
     } catch (error) {
-      console.error('Error sending bonus box:', error);
-      res.status(500).json({ message: 'Failed to send bonus box' });
+      console.error("Error sending bonus box:", error);
+      res.status(500).json({ message: "Failed to send bonus box" });
     }
   });
 
   // Get pending bonus boxes for user
-  app.get('/api/bonus-boxes/pending', requireAuth, async (req: any, res) => {
+  app.get("/api/bonus-boxes/pending", requireAuth, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      
+
       const pendingBoxes = await db.execute(sql`
         SELECT 
           bb.id,
@@ -7294,13 +8116,13 @@ Continue for all 5 questions...
 
       res.json(pendingBoxes.rows || []);
     } catch (error) {
-      console.error('Error fetching pending bonus boxes:', error);
-      res.status(500).json({ message: 'Failed to fetch pending boxes' });
+      console.error("Error fetching pending bonus boxes:", error);
+      res.status(500).json({ message: "Failed to fetch pending boxes" });
     }
   });
 
   // Open a bonus box
-  app.post('/api/bonus-boxes/:id/open', requireAuth, async (req: any, res) => {
+  app.post("/api/bonus-boxes/:id/open", requireAuth, async (req: any, res) => {
     try {
       const boxId = parseInt(req.params.id);
       const userId = req.session.userId;
@@ -7312,7 +8134,9 @@ Continue for all 5 questions...
       `);
 
       if (!box.rows || box.rows.length === 0) {
-        return res.status(404).json({ message: 'Bonus box not found or already opened' });
+        return res
+          .status(404)
+          .json({ message: "Bonus box not found or already opened" });
       }
 
       const bonusBox = box.rows[0];
@@ -7339,11 +8163,11 @@ Continue for all 5 questions...
         success: true,
         pointsAwarded: bonusBox.points_awarded,
         boxType: bonusBox.box_type,
-        message: bonusBox.message
+        message: bonusBox.message,
       });
     } catch (error) {
-      console.error('Error opening bonus box:', error);
-      res.status(500).json({ message: 'Failed to open bonus box' });
+      console.error("Error opening bonus box:", error);
+      res.status(500).json({ message: "Failed to open bonus box" });
     }
   });
 
@@ -7672,100 +8496,117 @@ Continue for all 5 questions...
   });
 
   // Bear Bucks Management Endpoints
-  app.post('/api/admin/bear-bucks/cash-out/:userId', requireAuth, requireAdmin, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      
-      // Get current user's Bear Bucks
-      const user = await storage.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      const bearBucksAmount = user.bearBucks || 0;
-      if (bearBucksAmount === 0) {
-        return res.status(400).json({ message: 'No Bear Bucks to cash out' });
-      }
-      
-      // Zero out Bear Bucks
-      await storage.updateUser(userId, { bearBucks: 0 });
-      
-      res.json({ 
-        message: `Successfully cashed out ${bearBucksAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
-        amount: bearBucksAmount
-      });
-    } catch (error) {
-      console.error('Error cashing out Bear Bucks:', error);
-      res.status(500).json({ message: 'Failed to cash out Bear Bucks' });
-    }
-  });
+  app.post(
+    "/api/admin/bear-bucks/cash-out/:userId",
+    requireAuth,
+    requireAdmin,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
 
-  app.post('/api/admin/bear-bucks/zero-out/:userId', requireAuth, requireAdmin, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      
-      // Get current user's Bear Bucks
-      const user = await storage.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      const bearBucksAmount = user.bearBucks || 0;
-      if (bearBucksAmount === 0) {
-        return res.status(400).json({ message: 'No Bear Bucks to zero out' });
-      }
-      
-      // Zero out Bear Bucks
-      await storage.updateUser(userId, { bearBucks: 0 });
-      
-      res.json({ 
-        message: `Successfully zeroed out ${bearBucksAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
-        amount: bearBucksAmount
-      });
-    } catch (error) {
-      console.error('Error zeroing out Bear Bucks:', error);
-      res.status(500).json({ message: 'Failed to zero out Bear Bucks' });
-    }
-  });
+        // Get current user's Bear Bucks
+        const user = await storage.getUserById(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
 
-  app.post('/api/admin/bear-bucks/adjust/:userId', requireAuth, requireAdmin, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const { adjustment } = req.body;
-      
-      if (typeof adjustment !== 'number') {
-        return res.status(400).json({ message: 'Invalid adjustment amount' });
+        const bearBucksAmount = user.bearBucks || 0;
+        if (bearBucksAmount === 0) {
+          return res.status(400).json({ message: "No Bear Bucks to cash out" });
+        }
+
+        // Zero out Bear Bucks
+        await storage.updateUser(userId, { bearBucks: 0 });
+
+        res.json({
+          message: `Successfully cashed out ${bearBucksAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+          amount: bearBucksAmount,
+        });
+      } catch (error) {
+        console.error("Error cashing out Bear Bucks:", error);
+        res.status(500).json({ message: "Failed to cash out Bear Bucks" });
       }
-      
-      // Get current user's Bear Bucks
-      const user = await storage.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+    },
+  );
+
+  app.post(
+    "/api/admin/bear-bucks/zero-out/:userId",
+    requireAuth,
+    requireAdmin,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
+
+        // Get current user's Bear Bucks
+        const user = await storage.getUserById(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const bearBucksAmount = user.bearBucks || 0;
+        if (bearBucksAmount === 0) {
+          return res.status(400).json({ message: "No Bear Bucks to zero out" });
+        }
+
+        // Zero out Bear Bucks
+        await storage.updateUser(userId, { bearBucks: 0 });
+
+        res.json({
+          message: `Successfully zeroed out ${bearBucksAmount} Bear Bucks for ${user.firstName} ${user.lastName}`,
+          amount: bearBucksAmount,
+        });
+      } catch (error) {
+        console.error("Error zeroing out Bear Bucks:", error);
+        res.status(500).json({ message: "Failed to zero out Bear Bucks" });
       }
-      
-      const currentBearBucks = user.bearBucks || 0;
-      const newBearBucks = Math.max(0, currentBearBucks + adjustment);
-      
-      // For reductions, ensure we don't reduce below 0
-      if (adjustment < 0 && Math.abs(adjustment) > currentBearBucks) {
-        return res.status(400).json({ message: 'Cannot reduce more Bear Bucks than available' });
+    },
+  );
+
+  app.post(
+    "/api/admin/bear-bucks/adjust/:userId",
+    requireAuth,
+    requireAdmin,
+    async (req, res) => {
+      try {
+        const userId = parseInt(req.params.userId);
+        const { adjustment } = req.body;
+
+        if (typeof adjustment !== "number") {
+          return res.status(400).json({ message: "Invalid adjustment amount" });
+        }
+
+        // Get current user's Bear Bucks
+        const user = await storage.getUserById(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const currentBearBucks = user.bearBucks || 0;
+        const newBearBucks = Math.max(0, currentBearBucks + adjustment);
+
+        // For reductions, ensure we don't reduce below 0
+        if (adjustment < 0 && Math.abs(adjustment) > currentBearBucks) {
+          return res
+            .status(400)
+            .json({ message: "Cannot reduce more Bear Bucks than available" });
+        }
+
+        // Update Bear Bucks
+        await storage.updateUser(userId, { bearBucks: newBearBucks });
+
+        const action = adjustment > 0 ? "added" : "reduced";
+        const amount = Math.abs(adjustment);
+
+        res.json({
+          message: `Successfully ${action} ${amount} Bear Bucks for ${user.firstName} ${user.lastName}. New balance: ${newBearBucks}`,
+          newBalance: newBearBucks,
+        });
+      } catch (error) {
+        console.error("Error adjusting Bear Bucks:", error);
+        res.status(500).json({ message: "Failed to adjust Bear Bucks" });
       }
-      
-      // Update Bear Bucks
-      await storage.updateUser(userId, { bearBucks: newBearBucks });
-      
-      const action = adjustment > 0 ? 'added' : 'reduced';
-      const amount = Math.abs(adjustment);
-      
-      res.json({ 
-        message: `Successfully ${action} ${amount} Bear Bucks for ${user.firstName} ${user.lastName}. New balance: ${newBearBucks}`,
-        newBalance: newBearBucks
-      });
-    } catch (error) {
-      console.error('Error adjusting Bear Bucks:', error);
-      res.status(500).json({ message: 'Failed to adjust Bear Bucks' });
-    }
-  });
+    },
+  );
 
   // Dismiss credential alert endpoint
   app.post(
@@ -8274,12 +9115,12 @@ Continue for all 5 questions...
   }
 
   // Scenario Square-Off conversational AI endpoint
-  app.post('/api/scenario-square-off', requireAuth, async (req, res) => {
+  app.post("/api/scenario-square-off", requireAuth, async (req, res) => {
     try {
       const { messages } = req.body;
-      
+
       if (!messages || !Array.isArray(messages)) {
-        return res.status(400).json({ error: 'Messages array is required' });
+        return res.status(400).json({ error: "Messages array is required" });
       }
 
       // Build comprehensive system prompt for emotional intelligence coaching
@@ -8303,19 +9144,19 @@ Always end your response with either a question, a suggestion, or a positive rei
 End the conversation naturally when the teacher has gained meaningful insights and growth (usually after 6-8 exchanges). Signal completion with phrases like "You've got this" or "check back in."`;
 
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.ANTHROPIC_API_KEY!,
-            'anthropic-version': '2023-06-01'
+            "Content-Type": "application/json",
+            "x-api-key": process.env.ANTHROPIC_API_KEY!,
+            "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: 'claude-3-sonnet-20240229',
+            model: "claude-3-sonnet-20240229",
             max_tokens: 300,
             system: systemPrompt,
-            messages: messages
-          })
+            messages: messages,
+          }),
         });
 
         if (!response.ok) {
@@ -8323,48 +9164,56 @@ End the conversation naturally when the teacher has gained meaningful insights a
         }
 
         const data = await response.json();
-        const aiResponse = data.content?.[0]?.text || "I'm here to listen. Can you tell me more about what's happening?";
+        const aiResponse =
+          data.content?.[0]?.text ||
+          "I'm here to listen. Can you tell me more about what's happening?";
 
         res.json({ response: aiResponse });
       } catch (aiError) {
-        console.error('Anthropic API error:', aiError);
-        
+        console.error("Anthropic API error:", aiError);
+
         // Fallback to OpenAI if Anthropic fails
         try {
-          const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          const openaiResponse = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+                max_tokens: 300,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  ...messages,
+                ],
+              }),
             },
-            body: JSON.stringify({
-              model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-              max_tokens: 300,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                ...messages
-              ]
-            })
-          });
+          );
 
           if (!openaiResponse.ok) {
             throw new Error(`OpenAI API error: ${openaiResponse.status}`);
           }
 
           const openaiData = await openaiResponse.json();
-          const aiResponse = openaiData.choices?.[0]?.message?.content || "I'm here to listen. Can you tell me more about what's happening?";
+          const aiResponse =
+            openaiData.choices?.[0]?.message?.content ||
+            "I'm here to listen. Can you tell me more about what's happening?";
 
           res.json({ response: aiResponse });
         } catch (openaiError) {
-          console.error('OpenAI API error:', openaiError);
-          res.json({ 
-            response: "I'm experiencing some connection issues, but I'm here to support you. Can you share what's on your mind about your classroom situation?" 
+          console.error("OpenAI API error:", openaiError);
+          res.json({
+            response:
+              "I'm experiencing some connection issues, but I'm here to support you. Can you share what's on your mind about your classroom situation?",
           });
         }
       }
     } catch (error) {
-      console.error('Scenario Square-Off error:', error);
-      res.status(500).json({ error: 'Failed to generate AI response' });
+      console.error("Scenario Square-Off error:", error);
+      res.status(500).json({ error: "Failed to generate AI response" });
     }
   });
 
@@ -8372,9 +9221,11 @@ End the conversation naturally when the teacher has gained meaningful insights a
   app.post("/api/perfect-manager/advice", requireAuth, async (req, res) => {
     try {
       const { situation, teacherName, context, scenario } = req.body;
-      
+
       if (!situation && !scenario) {
-        return res.status(400).json({ error: "Situation or scenario is required" });
+        return res
+          .status(400)
+          .json({ error: "Situation or scenario is required" });
       }
 
       const systemPrompt = `You are the Perfect Manager AI advisor, synthesizing wisdom from legendary leadership minds: Tony Robbins (peak performance), Dale Carnegie (influence), Stephen Covey (principles), Brené Brown (vulnerability), Simon Sinek (purpose), and Zig Ziglar (motivation).
@@ -8422,30 +9273,33 @@ Respond in JSON format matching this structure exactly:
   }
 }`;
 
-      const userPrompt = `Management Scenario: ${scenario || 'General Situation'}
-Employee: ${teacherName || 'Team Member'}
+      const userPrompt = `Management Scenario: ${scenario || "General Situation"}
+Employee: ${teacherName || "Team Member"}
 Situation Details: ${situation}
-Additional Context: ${context || 'None provided'}
+Additional Context: ${context || "None provided"}
 
 Please analyze this early childhood education management situation and provide comprehensive guidance that combines legendary leadership principles with practical ECE-specific strategies.`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            max_tokens: 6000,
+            temperature: 0.7,
+            response_format: { type: "json_object" },
+          }),
         },
-        body: JSON.stringify({
-          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          max_tokens: 6000,
-          temperature: 0.7,
-          response_format: { type: "json_object" }
-        })
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`OpenAI API error: ${response.statusText}`);
@@ -8453,7 +9307,7 @@ Please analyze this early childhood education management situation and provide c
 
       const data = await response.json();
       let advice;
-      
+
       try {
         advice = JSON.parse(data.choices[0].message.content);
       } catch (parseError) {
@@ -8463,83 +9317,116 @@ Please analyze this early childhood education management situation and provide c
           rootCauses: [
             "Possible misalignment between expectations and current performance",
             "Potential lack of clarity in role responsibilities or goals",
-            "May need additional support, training, or resources"
+            "May need additional support, training, or resources",
           ],
           immediateActions: [
             "Schedule a private, empathetic conversation within 24 hours",
             "Listen actively to understand their perspective and challenges",
-            "Clearly communicate your observations and expectations"
+            "Clearly communicate your observations and expectations",
           ],
           longTermStrategies: [
             "Implement regular check-ins and feedback sessions",
             "Develop a professional growth plan together",
-            "Create supportive team environment and peer mentoring"
+            "Create supportive team environment and peer mentoring",
           ],
           resources: [
-            {"title": "Difficult Conversations Guide", "type": "template", "description": "Step-by-step framework for constructive discussions", "priority": "high"},
-            {"title": "Performance Improvement Plan Template", "type": "template", "description": "Structured approach to goal setting and progress tracking", "priority": "medium"}
+            {
+              title: "Difficult Conversations Guide",
+              type: "template",
+              description:
+                "Step-by-step framework for constructive discussions",
+              priority: "high",
+            },
+            {
+              title: "Performance Improvement Plan Template",
+              type: "template",
+              description:
+                "Structured approach to goal setting and progress tracking",
+              priority: "medium",
+            },
           ],
           goals: [
-            {"title": "Improve Communication", "description": "Establish clear, consistent communication patterns", "timeframe": "30 days", "measurable": true, "actionSteps": ["Weekly one-on-ones", "Written goal documentation"]}
+            {
+              title: "Improve Communication",
+              description: "Establish clear, consistent communication patterns",
+              timeframe: "30 days",
+              measurable: true,
+              actionSteps: ["Weekly one-on-ones", "Written goal documentation"],
+            },
           ],
           motivationTechniques: [
             "Acknowledge their passion for working with children",
             "Connect their role to the bigger mission of nurturing young minds",
-            "Celebrate small wins and progress along the way"
+            "Celebrate small wins and progress along the way",
           ],
           followUpPlan: [
             "Schedule follow-up meeting in one week",
             "Monitor progress through observation and feedback",
-            "Adjust support strategies based on their response"
+            "Adjust support strategies based on their response",
           ],
           preventionStrategies: [
             "Establish clear expectations from the start",
             "Provide regular feedback and recognition",
-            "Create open communication channels"
+            "Create open communication channels",
           ],
           successMetrics: [
             "Observable improvement in specific behaviors",
             "Positive feedback from colleagues and families",
-            "Increased engagement and job satisfaction"
+            "Increased engagement and job satisfaction",
           ],
           coreValuesConnection: [
             "Remember that we're writing chapter one in children's lives",
             "Your leadership directly impacts the quality of care children receive",
-            "Supporting staff growth means better outcomes for families"
+            "Supporting staff growth means better outcomes for families",
           ],
           conversationScript: {
             openingLines: [
               "I wanted to talk with you because I care about your success here",
-              "Your work with our children is so important, and I want to support you"
+              "Your work with our children is so important, and I want to support you",
             ],
             listeningPrompts: [
               "Help me understand your perspective on this",
-              "What challenges are you facing that I might not be aware of?"
+              "What challenges are you facing that I might not be aware of?",
             ],
             responseScenarios: [
-              {"teacherResponse": "I'm doing my best", "directorReply": "I can see that you care deeply about the children. Let's work together to make sure you have everything you need to succeed.", "followUpQuestion": "What specific support would be most helpful right now?"}
+              {
+                teacherResponse: "I'm doing my best",
+                directorReply:
+                  "I can see that you care deeply about the children. Let's work together to make sure you have everything you need to succeed.",
+                followUpQuestion:
+                  "What specific support would be most helpful right now?",
+              },
             ],
             closingStatements: [
               "I believe in your potential and I'm here to support your growth",
-              "Thank you for your dedication to our children and families"
-            ]
-          }
+              "Thank you for your dedication to our children and families",
+            ],
+          },
         };
       }
 
       res.json(advice);
     } catch (error) {
-      console.error('Perfect Manager API error:', error);
-      res.status(500).json({ error: 'Failed to generate management advice' });
+      console.error("Perfect Manager API error:", error);
+      res.status(500).json({ error: "Failed to generate management advice" });
     }
   });
 
   // Perfect Manager empathy coaching endpoint
-  app.post("/api/perfect-manager/empathy-coaching", requireAuth, async (req, res) => {
-    try {
-      const { scenario, employee, originalAdvice, userQuestion, chatHistory } = req.body;
-      
-      const systemPrompt = `You are an empathy coaching assistant for the Perfect Manager AI system. Help directors practice implementing management advice with emotional intelligence and care.
+  app.post(
+    "/api/perfect-manager/empathy-coaching",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const {
+          scenario,
+          employee,
+          originalAdvice,
+          userQuestion,
+          chatHistory,
+        } = req.body;
+
+        const systemPrompt = `You are an empathy coaching assistant for the Perfect Manager AI system. Help directors practice implementing management advice with emotional intelligence and care.
 
 Provide supportive, practical guidance that helps the director:
 - Approach conversations with genuine empathy
@@ -8550,7 +9437,7 @@ Provide supportive, practical guidance that helps the director:
 
 Keep responses conversational, warm, and actionable. Focus on building confidence and emotional skills.`;
 
-      const userPrompt = `Scenario: ${scenario}
+        const userPrompt = `Scenario: ${scenario}
 Employee: ${employee}
 Original Advice: ${JSON.stringify(originalAdvice)}
 Director's Question: ${userQuestion}
@@ -8558,34 +9445,40 @@ Recent Conversation: ${JSON.stringify(chatHistory)}
 
 Please provide empathy coaching guidance to help this director implement the management advice effectively.`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          max_tokens: 1000,
-          temperature: 0.8
-        })
-      });
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+              max_tokens: 1000,
+              temperature: 0.8,
+            }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        res.json({ content: data.choices[0].message.content });
+      } catch (error) {
+        console.error("Empathy coaching API error:", error);
+        res
+          .status(500)
+          .json({ error: "Failed to get empathy coaching response" });
       }
-
-      const data = await response.json();
-      res.json({ content: data.choices[0].message.content });
-    } catch (error) {
-      console.error('Empathy coaching API error:', error);
-      res.status(500).json({ error: 'Failed to get empathy coaching response' });
-    }
-  });
+    },
+  );
 
   // Newsletter admin endpoints
   app.post(
@@ -8960,17 +9853,17 @@ Please provide empathy coaching guidance to help this director implement the man
       const { text } = req.body;
 
       // Enhanced input validation
-      if (!text || typeof text !== 'string' || text.trim().length === 0) {
-        return res.status(400).json({ 
+      if (!text || typeof text !== "string" || text.trim().length === 0) {
+        return res.status(400).json({
           error: "Valid text is required for Suessification",
-          message: "Please provide text to transform into Dr. Seuss style"
+          message: "Please provide text to transform into Dr. Seuss style",
         });
       }
 
       if (text.trim().length > 500) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Text is too long",
-          message: "Please limit text to 500 characters for best results"
+          message: "Please limit text to 500 characters for best results",
         });
       }
 
@@ -8984,12 +9877,13 @@ Please provide empathy coaching guidance to help this director implement the man
           messages: [
             {
               role: "system",
-              content: "You are a creative assistant that transforms text into the whimsical style of Dr. Seuss. Create short, simple, rhyming poems for preschool children. Keep poems to 4-8 lines maximum, use simple vocabulary, and make them fun and positive. Transform the given text while maintaining its core meaning."
+              content:
+                "You are a creative assistant that transforms text into the whimsical style of Dr. Seuss. Create short, simple, rhyming poems for preschool children. Keep poems to 4-8 lines maximum, use simple vocabulary, and make them fun and positive. Transform the given text while maintaining its core meaning.",
             },
             {
               role: "user",
-              content: `Transform this text into a Dr. Seuss style poem: "${text.trim()}"`
-            }
+              content: `Transform this text into a Dr. Seuss style poem: "${text.trim()}"`,
+            },
           ],
           max_tokens: 200,
           temperature: 0.8,
@@ -9000,23 +9894,23 @@ Please provide empathy coaching guidance to help this director implement the man
           throw new Error("No content received from AI service");
         }
 
-        res.json({ 
+        res.json({
           suessifiedText: content,
-          originalText: text.trim()
+          originalText: text.trim(),
         });
       } catch (aiError) {
         console.error("AI service error:", aiError);
         // Return a fallback response instead of failing
         res.json({
           suessifiedText: `Oh my, oh me!\nWhat a wonderful thing to see!\nWith words that dance and play,\nIn such a special way!`,
-          originalText: text.trim()
+          originalText: text.trim(),
         });
       }
     } catch (error) {
       console.error("Error in Suessify endpoint:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to Suessify text",
-        message: "Please try again with different text"
+        message: "Please try again with different text",
       });
     }
   });
@@ -9027,12 +9921,18 @@ Please provide empathy coaching guidance to help this director implement the man
       const { prompt } = req.body;
 
       // Enhanced input validation
-      if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-        return res.status(400).json({ message: "Valid prompt text is required" });
+      if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
+        return res
+          .status(400)
+          .json({ message: "Valid prompt text is required" });
       }
 
       if (prompt.trim().length > 500) {
-        return res.status(400).json({ message: "Prompt text is too long. Please limit to 500 characters." });
+        return res
+          .status(400)
+          .json({
+            message: "Prompt text is too long. Please limit to 500 characters.",
+          });
       }
 
       try {
@@ -9085,7 +9985,7 @@ Please provide empathy coaching guidance to help this director implement the man
         console.error("AI service error:", aiError);
         // Return a fallback response instead of failing
         res.status(200).json({
-          content: `Oh my, oh me!\nWhat a day it will be!\nWith learning and fun,\nFor everyone!`
+          content: `Oh my, oh me!\nWhat a day it will be!\nWith learning and fun,\nFor everyone!`,
         });
       }
     } catch (error) {
@@ -9218,49 +10118,66 @@ Make it engaging, educational, and developmentally appropriate for ${ageGroup} c
       const openai = (await import("openai")).default;
       const client = new openai({ apiKey: process.env.OPENAI_API_KEY });
 
-      let systemPrompt = "You are an expert AI assistant specializing in early childhood education management and professional development.";
+      let systemPrompt =
+        "You are an expert AI assistant specializing in early childhood education management and professional development.";
       let userPrompt = prompt;
 
       // Enhanced scenario-specific prompting for management advice
-      if (type === 'management-advice' && context) {
+      if (type === "management-advice" && context) {
         const scenarioSpecificPrompts = {
-          'tardiness': {
-            system: "You are the Perfect Manager AI, synthesizing wisdom from Tony Robbins (peak performance), Dale Carnegie (influence), Stephen Covey (principles), Brené Brown (vulnerability), Simon Sinek (purpose), and Zig Ziglar (motivation). You specialize in TARDINESS and PUNCTUALITY issues in early childhood education. Apply timeless leadership principles to create transformational change.",
-            constraints: "Think deeply about each expert's approach: Brené Brown would explore the shame/vulnerability behind tardiness - what story is this person telling themselves? Simon Sinek would connect tardiness to disconnection from purpose - help them see WHY their presence matters to children. Tony Robbins would identify the psychological patterns and state changes needed. Dale Carnegie would find genuine ways to appreciate before addressing the issue. Stephen Covey would focus on principles and natural consequences. Zig Ziglar would reframe this as an opportunity to help them win. Make each action reflect authentic expert thinking, not generic management advice."
+          tardiness: {
+            system:
+              "You are the Perfect Manager AI, synthesizing wisdom from Tony Robbins (peak performance), Dale Carnegie (influence), Stephen Covey (principles), Brené Brown (vulnerability), Simon Sinek (purpose), and Zig Ziglar (motivation). You specialize in TARDINESS and PUNCTUALITY issues in early childhood education. Apply timeless leadership principles to create transformational change.",
+            constraints:
+              "Think deeply about each expert's approach: Brené Brown would explore the shame/vulnerability behind tardiness - what story is this person telling themselves? Simon Sinek would connect tardiness to disconnection from purpose - help them see WHY their presence matters to children. Tony Robbins would identify the psychological patterns and state changes needed. Dale Carnegie would find genuine ways to appreciate before addressing the issue. Stephen Covey would focus on principles and natural consequences. Zig Ziglar would reframe this as an opportunity to help them win. Make each action reflect authentic expert thinking, not generic management advice.",
           },
-          'burnout': {
-            system: "You are the Perfect Manager AI, channeling the greatest leadership minds: Tony Robbins (energy management), Brené Brown (emotional courage), Dale Carnegie (human relations), Stephen Covey (renewal), and Simon Sinek (purpose connection). You specialize in STAFF BURNOUT and EMOTIONAL EXHAUSTION in ECE settings.",
-            constraints: "Think like each expert: Brené Brown would normalize the struggle and create psychological safety - 'Burnout is not a character flaw, it's a systemic issue.' Simon Sinek would reconnect them to their WHY - helping them remember why they chose this calling. Tony Robbins would focus on physiology and energy patterns - what needs to change in their daily routine? Dale Carnegie would acknowledge their dedication before addressing solutions. Stephen Covey would help them align actions with values and create sustainable habits. Use deep empathy coaching - validate their experience, explore the emotional landscape, and create genuine human connection."
+          burnout: {
+            system:
+              "You are the Perfect Manager AI, channeling the greatest leadership minds: Tony Robbins (energy management), Brené Brown (emotional courage), Dale Carnegie (human relations), Stephen Covey (renewal), and Simon Sinek (purpose connection). You specialize in STAFF BURNOUT and EMOTIONAL EXHAUSTION in ECE settings.",
+            constraints:
+              "Think like each expert: Brené Brown would normalize the struggle and create psychological safety - 'Burnout is not a character flaw, it's a systemic issue.' Simon Sinek would reconnect them to their WHY - helping them remember why they chose this calling. Tony Robbins would focus on physiology and energy patterns - what needs to change in their daily routine? Dale Carnegie would acknowledge their dedication before addressing solutions. Stephen Covey would help them align actions with values and create sustainable habits. Use deep empathy coaching - validate their experience, explore the emotional landscape, and create genuine human connection.",
           },
-          'performance': {
-            system: "You are the Perfect Manager AI, integrating Tony Robbins (continuous improvement), Dale Carnegie (encouragement), Stephen Covey (effectiveness), Brené Brown (growth mindset), and Zig Ziglar (goal achievement). You specialize in PERFORMANCE IMPROVEMENT and SKILL DEVELOPMENT in early childhood education.",
-            constraints: "Practice empathy coaching: Brené Brown would explore the shame around performance struggles - 'Performance issues aren't about worth, they're about fit and support.' Tony Robbins would identify limiting beliefs - what story are they telling themselves? Carnegie would find genuine strengths to build upon. Covey would align their natural talents with role requirements. Sinek would connect improved performance to serving children better. Use empathetic listening - understand their inner experience, validate their struggles, and create a safe space for growth."
+          performance: {
+            system:
+              "You are the Perfect Manager AI, integrating Tony Robbins (continuous improvement), Dale Carnegie (encouragement), Stephen Covey (effectiveness), Brené Brown (growth mindset), and Zig Ziglar (goal achievement). You specialize in PERFORMANCE IMPROVEMENT and SKILL DEVELOPMENT in early childhood education.",
+            constraints:
+              "Practice empathy coaching: Brené Brown would explore the shame around performance struggles - 'Performance issues aren't about worth, they're about fit and support.' Tony Robbins would identify limiting beliefs - what story are they telling themselves? Carnegie would find genuine strengths to build upon. Covey would align their natural talents with role requirements. Sinek would connect improved performance to serving children better. Use empathetic listening - understand their inner experience, validate their struggles, and create a safe space for growth.",
           },
-          'communication': {
-            system: "You are the Perfect Manager AI, embodying Dale Carnegie (interpersonal skills), Brené Brown (courageous conversations), Stephen Covey (empathic listening), Tony Robbins (rapport building), and Simon Sinek (authentic communication). You specialize in COMMUNICATION PROBLEMS and INTERPERSONAL CONFLICTS in ECE.",
-            constraints: "Lead with empathy coaching: Brené Brown would create psychological safety for difficult conversations - 'Communication struggles often come from past hurts or fears.' Carnegie would genuinely seek to understand their perspective first. Covey would practice deep empathic listening. Robbins would help them change their emotional state around communication. Sinek would help them communicate their authentic truth. Focus on emotional validation, exploring underlying needs, and creating genuine human connection."
+          communication: {
+            system:
+              "You are the Perfect Manager AI, embodying Dale Carnegie (interpersonal skills), Brené Brown (courageous conversations), Stephen Covey (empathic listening), Tony Robbins (rapport building), and Simon Sinek (authentic communication). You specialize in COMMUNICATION PROBLEMS and INTERPERSONAL CONFLICTS in ECE.",
+            constraints:
+              "Lead with empathy coaching: Brené Brown would create psychological safety for difficult conversations - 'Communication struggles often come from past hurts or fears.' Carnegie would genuinely seek to understand their perspective first. Covey would practice deep empathic listening. Robbins would help them change their emotional state around communication. Sinek would help them communicate their authentic truth. Focus on emotional validation, exploring underlying needs, and creating genuine human connection.",
           },
-          'motivation': {
-            system: "You are the Perfect Manager AI, channeling Tony Robbins (motivation mastery), Zig Ziglar (positive thinking), Simon Sinek (purpose discovery), Dale Carnegie (enthusiasm), and Stephen Covey (intrinsic motivation). You specialize in LOW MOTIVATION and ENGAGEMENT issues in early childhood education.",
-            constraints: "Use deep empathy coaching: Sinek would help them reconnect with their original WHY - 'What brought you to this calling?' Brené Brown would normalize their struggle - 'Losing motivation isn't a personal failing.' Robbins would explore what's changed in their life that affected their energy. Carnegie would genuinely appreciate their past contributions. Covey would help them realign with their values. Practice emotional attunement - feel with them, not just for them."
+          motivation: {
+            system:
+              "You are the Perfect Manager AI, channeling Tony Robbins (motivation mastery), Zig Ziglar (positive thinking), Simon Sinek (purpose discovery), Dale Carnegie (enthusiasm), and Stephen Covey (intrinsic motivation). You specialize in LOW MOTIVATION and ENGAGEMENT issues in early childhood education.",
+            constraints:
+              "Use deep empathy coaching: Sinek would help them reconnect with their original WHY - 'What brought you to this calling?' Brené Brown would normalize their struggle - 'Losing motivation isn't a personal failing.' Robbins would explore what's changed in their life that affected their energy. Carnegie would genuinely appreciate their past contributions. Covey would help them realign with their values. Practice emotional attunement - feel with them, not just for them.",
           },
-          'teamwork': {
-            system: "You are the Perfect Manager AI, synthesizing Stephen Covey (synergy), Dale Carnegie (cooperation), Brené Brown (team trust), Tony Robbins (team dynamics), and empathy coaching principles. You specialize in TEAM CONFLICTS and COLLABORATION issues in ECE settings.",
-            constraints: "Apply empathy-first approach: Brené Brown would explore each person's story and create psychological safety. Carnegie would find genuine ways to appreciate each team member's perspective. Covey would seek win-win solutions that honor everyone's needs. Robbins would help shift the team's emotional state. Practice perspective-taking - understand each person's emotional experience and underlying needs driving the conflict."
+          teamwork: {
+            system:
+              "You are the Perfect Manager AI, synthesizing Stephen Covey (synergy), Dale Carnegie (cooperation), Brené Brown (team trust), Tony Robbins (team dynamics), and empathy coaching principles. You specialize in TEAM CONFLICTS and COLLABORATION issues in ECE settings.",
+            constraints:
+              "Apply empathy-first approach: Brené Brown would explore each person's story and create psychological safety. Carnegie would find genuine ways to appreciate each team member's perspective. Covey would seek win-win solutions that honor everyone's needs. Robbins would help shift the team's emotional state. Practice perspective-taking - understand each person's emotional experience and underlying needs driving the conflict.",
           },
-          'attendance': {
-            system: "You are the Perfect Manager AI, integrating Tony Robbins (commitment psychology), Stephen Covey (responsibility), Dale Carnegie (accountability), Zig Ziglar (consistency), and empathy coaching principles. You specialize in ATTENDANCE PROBLEMS and RELIABILITY issues in early childhood education.",
-            constraints: "Lead with empathetic understanding: What's really happening in their life? Robbins would explore their human needs - are they overwhelmed, undervalued, or struggling personally? Brené Brown would create shame-free dialogue. Carnegie would express genuine concern for their wellbeing. Covey would help them align attendance with their values. Practice compassionate curiosity - seek to understand their full human experience behind the attendance pattern."
+          attendance: {
+            system:
+              "You are the Perfect Manager AI, integrating Tony Robbins (commitment psychology), Stephen Covey (responsibility), Dale Carnegie (accountability), Zig Ziglar (consistency), and empathy coaching principles. You specialize in ATTENDANCE PROBLEMS and RELIABILITY issues in early childhood education.",
+            constraints:
+              "Lead with empathetic understanding: What's really happening in their life? Robbins would explore their human needs - are they overwhelmed, undervalued, or struggling personally? Brené Brown would create shame-free dialogue. Carnegie would express genuine concern for their wellbeing. Covey would help them align attendance with their values. Practice compassionate curiosity - seek to understand their full human experience behind the attendance pattern.",
           },
-          'training': {
-            system: "You are the Perfect Manager AI, channeling Tony Robbins (continuous learning), Stephen Covey (principle-centered development), Dale Carnegie (skill building), Zig Ziglar (goal achievement), and empathy coaching mastery. You specialize in TRAINING NEEDS and PROFESSIONAL DEVELOPMENT in early childhood education.",
-            constraints: "Use empathetic development approach: Carnegie would acknowledge their current efforts before suggesting growth. Brené Brown would normalize learning struggles - 'Growth requires vulnerability and courage.' Robbins would connect training to their personal mission. Covey would honor their learning style and pace. Sinek would help them see training as serving children better. Practice empathetic guidance - understand their learning fears, past experiences, and intrinsic motivations."
-          }
+          training: {
+            system:
+              "You are the Perfect Manager AI, channeling Tony Robbins (continuous learning), Stephen Covey (principle-centered development), Dale Carnegie (skill building), Zig Ziglar (goal achievement), and empathy coaching mastery. You specialize in TRAINING NEEDS and PROFESSIONAL DEVELOPMENT in early childhood education.",
+            constraints:
+              "Use empathetic development approach: Carnegie would acknowledge their current efforts before suggesting growth. Brené Brown would normalize learning struggles - 'Growth requires vulnerability and courage.' Robbins would connect training to their personal mission. Covey would honor their learning style and pace. Sinek would help them see training as serving children better. Practice empathetic guidance - understand their learning fears, past experiences, and intrinsic motivations.",
+          },
         };
 
-        const scenarioKey = context.scenario?.toLowerCase().replace(/\s+/g, '');
+        const scenarioKey = context.scenario?.toLowerCase().replace(/\s+/g, "");
         const scenarioConfig = scenarioSpecificPrompts[scenarioKey];
-        
+
         if (scenarioConfig) {
           systemPrompt = scenarioConfig.system;
           userPrompt = `${prompt}
@@ -9269,16 +10186,16 @@ CRITICAL CONSTRAINTS FOR ${context.scenario?.toUpperCase()}:
 ${scenarioConfig.constraints}
 
 Employee Context:
-- Name: ${context.employee || 'Staff Member'}
-- Role: ${context.role || 'Teacher'}
-- Specific Details: ${context.details || 'General situation'}
+- Name: ${context.employee || "Staff Member"}
+- Role: ${context.role || "Teacher"}
+- Specific Details: ${context.details || "General situation"}
 
 Generate advice that is COMPLETELY UNIQUE to ${context.scenario} scenarios. Your response must be distinctly different from advice for other workplace challenges.`;
         }
       }
 
       // Empathy coaching blending legendary leadership wisdom with Brené Brown's voice
-      if (type === 'empathy-coaching' && context) {
+      if (type === "empathy-coaching" && context) {
         systemPrompt = `You are an AI Empathy Coach that blends the wisdom of legendary leaders through Brené Brown's authentic, vulnerability-based communication style. You synthesize insights from Tony Robbins (peak performance), Simon Sinek (purposeful leadership), and Brené Brown (vulnerability) into cohesive, empathetic guidance.
 
 INTEGRATED LEADERSHIP WISDOM TO EMBODY:
@@ -9320,13 +10237,13 @@ THOUGHTFUL RESPONSE APPROACH:
 
 Be conversational and authentic. Avoid buzzwords or scripted language. Speak from wisdom and experience.
 
-Context: You're supporting a director implementing management advice for ${context.scenario || 'a workplace challenge'} with ${context.employee || 'a team member'}. Blend all three leadership approaches into cohesive, empathetic guidance.`;
+Context: You're supporting a director implementing management advice for ${context.scenario || "a workplace challenge"} with ${context.employee || "a team member"}. Blend all three leadership approaches into cohesive, empathetic guidance.`;
 
         userPrompt = `You're coaching a school director who is practicing a difficult conversation. They just said: "${context.userQuestion}"
 
-The situation involves: ${context.scenario || 'a workplace challenge'}
+The situation involves: ${context.scenario || "a workplace challenge"}
 
-Previous conversation context: ${context.chatHistory?.map(msg => `${msg.role}: ${msg.content}`).join('\n') || 'This is the beginning of our coaching session'}
+Previous conversation context: ${context.chatHistory?.map((msg) => `${msg.role}: ${msg.content}`).join("\n") || "This is the beginning of our coaching session"}
 
 Take a moment to deeply consider this director's situation. They're trying to balance being empathetic while maintaining professional standards. Think about:
 - What they might be feeling right now (nervous, concerned, wanting to help)
@@ -9343,33 +10260,32 @@ Respond as a wise, experienced coach who understands both the challenges of mana
         messages: [
           {
             role: "system",
-            content: systemPrompt
+            content: systemPrompt,
           },
           {
             role: "user",
-            content: userPrompt
-          }
+            content: userPrompt,
+          },
         ],
         temperature: 0.9,
         max_tokens: 6000,
         frequency_penalty: 0.5,
-        presence_penalty: 0.4
+        presence_penalty: 0.4,
       });
 
       const content = response.choices[0].message.content;
-      
+
       res.json({
         success: true,
         content: content,
-        type: type || 'general'
+        type: type || "general",
       });
-
     } catch (error) {
       console.error("AI suggestion error:", error);
       res.status(500).json({
         success: false,
         message: "Failed to generate AI suggestion",
-        error: error.message
+        error: error.message,
       });
     }
   });
@@ -9403,11 +10319,12 @@ Respond as a wise, experienced coach who understands both the challenges of mana
 
   // Behavior plan routes for "Help Me With This Kid" feature
   try {
-    const behaviorPlanRoutes = (await import('./api/behaviorPlanRoutes.js')).default;
+    const behaviorPlanRoutes = (await import("./api/behaviorPlanRoutes.js"))
+      .default;
     app.use("/api/behavior-plan", behaviorPlanRoutes);
-    console.log('Behavior plan routes registered successfully');
+    console.log("Behavior plan routes registered successfully");
   } catch (error) {
-    console.error('Failed to register behavior plan routes:', error);
+    console.error("Failed to register behavior plan routes:", error);
   }
 
   // Module drafts API endpoints
