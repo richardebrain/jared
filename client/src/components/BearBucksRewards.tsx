@@ -186,7 +186,21 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
             </div>
           </div>
           
-          <div className="mt-6 bg-white p-4 rounded-lg border border-blue-100">
+          <div className="mt-6 bg-green-50 p-4 rounded-lg border border-green-200">
+            <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Your Progression is Protected
+            </h4>
+            <p className="text-sm text-green-700 mb-2">
+              <span className="font-medium">Don't worry!</span> Converting points to Bear Bucks only reduces your current balance. 
+              Your <span className="font-medium">lifetime points stay unchanged</span> and continue counting toward your teacher progression levels.
+            </p>
+            <p className="text-xs text-green-600">
+              Your progression map tracks lifetime points, so you'll never lose progress toward Associate, Lead, or Master Teacher levels.
+            </p>
+          </div>
+
+          <div className="mt-4 bg-white p-4 rounded-lg border border-blue-100">
             <h4 className="font-medium text-blue-800 mb-2">How to Earn Points</h4>
             <ul className="text-sm text-gray-700 space-y-2 pl-5 list-disc">
               <li><span className="font-medium">Complete learning modules</span> (10-20 points based on difficulty)</li>

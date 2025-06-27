@@ -4917,6 +4917,53 @@ Continue for all 5 questions...
     }
   });
 
+  // Convert points to Bear Bucks
+  app.post("/api/convert-points", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { pointsToConvert, bearBucksToAdd } = req.body;
+
+      if (!pointsToConvert || !bearBucksToAdd || pointsToConvert <= 0 || bearBucksToAdd <= 0) {
+        return res.status(400).json({ 
+          message: "Valid pointsToConvert and bearBucksToAdd amounts required" 
+        });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user has enough points
+      if (user.points < pointsToConvert) {
+        return res.status(400).json({ 
+          message: "Insufficient points for conversion",
+          currentPoints: user.points,
+          requestedConversion: pointsToConvert
+        });
+      }
+
+      // Update user: reduce current points, add bearBucks, keep lifetimePoints unchanged
+      await storage.updateUser(userId, {
+        points: user.points - pointsToConvert,
+        bearBucks: (user.bearBucks || 0) + bearBucksToAdd,
+        // lifetimePoints stays the same - don't touch it
+      });
+
+      res.status(200).json({
+        success: true,
+        pointsConverted: pointsToConvert,
+        bearBucksAdded: bearBucksToAdd,
+        newCurrentPoints: user.points - pointsToConvert,
+        newBearBucks: (user.bearBucks || 0) + bearBucksToAdd,
+        lifetimePointsUnchanged: user.lifetimePoints, // Confirm lifetime points preserved
+      });
+    } catch (error) {
+      console.error("Error converting points to Bear Bucks:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Assign owner privileges to another user
   app.post("/api/owner/assign", requireOwner, async (req, res) => {
     try {
