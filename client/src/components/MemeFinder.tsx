@@ -178,6 +178,20 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     onOpenChange(false);
   };
 
+  const handlePixabaySelect = (image: PixabayImage) => {
+    onMemeSelected({
+      url: image.url,
+      description: image.description || `Educational image by ${image.user} from Pixabay`
+    });
+    
+    toast({
+      title: "Image Added!",
+      description: "Educational image added to your module section."
+    });
+    
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
@@ -259,34 +273,64 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
               </div>
             ) : (activeTab === 'gifs' && gifResults.length > 0) || (activeTab === 'images' && imageResults.length > 0) ? (
               <div key={searchKey} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {(activeTab === 'gifs' ? gifResults : imageResults).map((meme: GiphyContent) => (
-                  <Card
-                    key={meme.id}
-                    className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                    onClick={() => handleContentSelect(meme)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="aspect-square mb-2 rounded-lg overflow-hidden bg-gray-100">
-                        <img
-                          src={meme.images.fixed_height.url}
-                          alt={meme.title}
-                          className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Content+Not+Available';
-                          }}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-gray-800 line-clamp-2">
-                          {meme.title}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          GIPHY
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {activeTab === 'gifs' 
+                  ? gifResults.map((gif: GiphyContent) => (
+                      <Card
+                        key={gif.id}
+                        className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                        onClick={() => handleContentSelect(gif)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="aspect-square mb-2 rounded-lg overflow-hidden bg-gray-100">
+                            <img
+                              src={gif.images.fixed_height.url}
+                              alt={gif.title}
+                              className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Content+Not+Available';
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-gray-800 line-clamp-2">
+                              {gif.title}
+                            </p>
+                            <Badge variant="outline" className="text-xs">
+                              GIPHY
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  : imageResults.map((image: PixabayImage, index: number) => (
+                      <Card
+                        key={index}
+                        className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                        onClick={() => handlePixabaySelect(image)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="aspect-square mb-2 rounded-lg overflow-hidden bg-gray-100">
+                            <img
+                              src={image.url}
+                              alt={image.description}
+                              className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Image+Not+Available';
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-gray-800 line-clamp-2">
+                              by {image.user}
+                            </p>
+                            <Badge variant="outline" className="text-xs">
+                              Pixabay
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                }
               </div>
             ) : searchTerm.trim() ? (
               <div className="text-center py-8">
