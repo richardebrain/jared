@@ -92,7 +92,9 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       // Force state update with completely new results and increment search key
       setGiphyResults(prev => {
         console.log('Previous results:', prev.length);
+        console.log('Previous IDs:', prev.slice(0, 3).map(item => item.id));
         console.log('New results:', data.data?.length || 0);
+        console.log('New IDs:', data.data?.slice(0, 3).map((item: any) => item.id) || []);
         return data.data || [];
       });
       setSearchKey(prev => prev + 1); // Force re-render

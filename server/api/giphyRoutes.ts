@@ -16,15 +16,18 @@ router.get('/search', async (req, res) => {
       return res.status(500).json({ error: 'GIPHY API key not configured' });
     }
 
-    // Search both GIFs and static images
-    const limitNumber = typeof limit === 'string' ? parseInt(limit) : limit;
+    // Search both GIFs and static images with random offset for diversity
+    const limitNumber = typeof limit === 'string' ? parseInt(limit) : Number(limit);
     const halfLimit = Math.floor(limitNumber / 2);
     
+    // Add random offset to get different results each time (0-25 random offset)
+    const randomOffset = Math.floor(Math.random() * 26);
+    
     const [gifsResponse, stickersResponse] = await Promise.all([
-      // Search GIFs
-      fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${halfLimit}&rating=${rating}&lang=en`),
-      // Search stickers (often includes static images)
-      fetch(`https://api.giphy.com/v1/stickers/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${halfLimit}&rating=${rating}&lang=en`)
+      // Search GIFs with random offset
+      fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${halfLimit}&offset=${randomOffset}&rating=${rating}&lang=en`),
+      // Search stickers with different random offset
+      fetch(`https://api.giphy.com/v1/stickers/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=${halfLimit}&offset=${randomOffset + 5}&rating=${rating}&lang=en`)
     ]);
 
     console.log('GIPHY API searches:', { 
@@ -70,7 +73,8 @@ router.get('/search', async (req, res) => {
       pagination: gifsData.pagination || stickersData.pagination
     };
 
-    console.log(`GIPHY search returned ${transformedData.data.length} results for "${q}"`);
+    console.log(`GIPHY search returned ${transformedData.data.length} results for "${q}" (offset: ${randomOffset})`);
+    console.log('Result IDs:', transformedData.data.slice(0, 5).map(item => item.id));
     res.json(transformedData);
   } catch (error) {
     console.error('GIPHY search error:', error);
