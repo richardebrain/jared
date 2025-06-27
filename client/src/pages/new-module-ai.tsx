@@ -1701,6 +1701,47 @@ export default function NewModuleAI() {
                 </div>
               )}
 
+              {publishSettings.type === "mandatory" && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Mandatory Onboarding Settings</h3>
+                  <div className="space-y-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={publishSettings.mandatoryForAllNewHires}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, mandatoryForAllNewHires: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span>Required for all new teacher onboarding</span>
+                    </label>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Onboarding Order Position
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={publishSettings.onboardingOrder}
+                        onChange={(e) => setPublishSettings(prev => ({ ...prev, onboardingOrder: parseInt(e.target.value) || 1 }))}
+                        className="w-24 p-2 border rounded-lg"
+                        placeholder="1"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Order in which this module appears in the onboarding sequence (1-10)
+                      </p>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-medium text-blue-900 mb-2">New Hire Onboarding</h4>
+                      <p className="text-sm text-blue-700">
+                        This module will be automatically assigned to all new teachers when they join your school. 
+                        They must complete this module as part of their onboarding process.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between pt-6 border-t">
                 <Button
                   variant="outline"
