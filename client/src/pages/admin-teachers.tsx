@@ -336,29 +336,26 @@ export default function AdminTeachersPage() {
         </Card>
       </div>
 
-      {/* Teachers Grid */}
+      {/* Teachers Table */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-muted rounded-full" />
-                  <div className="space-y-2">
-                    <div className="w-32 h-4 bg-muted rounded" />
-                    <div className="w-24 h-3 bg-muted rounded" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center gap-4 animate-pulse">
+                  <div className="w-48 h-4 bg-muted rounded" />
+                  <div className="w-24 h-4 bg-muted rounded" />
+                  <div className="w-32 h-4 bg-muted rounded" />
+                  <div className="flex-1 flex gap-2">
+                    <div className="w-20 h-8 bg-muted rounded" />
+                    <div className="w-20 h-8 bg-muted rounded" />
+                    <div className="w-20 h-8 bg-muted rounded" />
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="w-full h-3 bg-muted rounded" />
-                  <div className="w-3/4 h-3 bg-muted rounded" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       ) : filteredTeachers.length === 0 ? (
         <Card className="p-8">
           <div className="text-center">
@@ -372,232 +369,245 @@ export default function AdminTeachersPage() {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTeachers.map((teacher: Teacher) => (
-            <Card key={teacher.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={teacher.profilePicture} alt={teacher.firstName} />
-                    <AvatarFallback>
-                      {teacher.firstName?.charAt(0)}{teacher.lastName?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">
-                      {teacher.firstName} {teacher.lastName}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">@{teacher.username}</p>
-                    <Badge className={`mt-1 text-xs ${getLevelColor(teacher.level || 1)}`}>
-                      {getTeacherLevelLabel(teacher.level || 1)}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>Last active:</span>
-                  </div>
-                  <span className="font-medium">{formatLastActive(teacher.lastActive)}</span>
-                </div>
-                
-                {/* Role Status and Management */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Role:</span>
-                    {teacher.isAdmin ? (
-                      <Badge variant="default" className="bg-red-100 text-red-800">
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        Platform Admin
-                      </Badge>
-                    ) : teacher.isSchoolAdmin ? (
-                      <Badge variant="default" className="bg-blue-100 text-blue-800">
-                        <Shield className="h-3 w-3 mr-1" />
-                        School Admin
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-gray-50 text-gray-700">
-                        Teacher
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {/* Role Management Buttons */}
-                  <div className="flex gap-2">
-                    {!teacher.isSchoolAdmin && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateRoleMutation.mutate({
-                          userId: teacher.id,
-                          isAdmin: false,
-                          isSchoolAdmin: true
-                        })}
-                        disabled={updateRoleMutation.isPending}
-                        className="flex-1"
-                      >
-                        <Shield className="h-3 w-3 mr-1" />
-                        Make School Admin
-                      </Button>
-                    )}
-                    
-                    {!teacher.isAdmin && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateRoleMutation.mutate({
-                          userId: teacher.id,
-                          isAdmin: true,
-                          isSchoolAdmin: false
-                        })}
-                        disabled={updateRoleMutation.isPending}
-                        className="flex-1"
-                      >
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        Make Platform Admin
-                      </Button>
-                    )}
-                    
-                    {(teacher.isAdmin || teacher.isSchoolAdmin) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateRoleMutation.mutate({
-                          userId: teacher.id,
-                          isAdmin: false,
-                          isSchoolAdmin: false
-                        })}
-                        disabled={updateRoleMutation.isPending}
-                        className="flex-1"
-                      >
-                        Remove Admin Role
-                      </Button>
-                    )}
-                  </div>
-                </div>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-4 font-semibold">Teacher</th>
+                    <th className="text-left p-4 font-semibold">Last Active</th>
+                    <th className="text-left p-4 font-semibold">Role</th>
+                    <th className="text-left p-4 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTeachers.map((teacher: Teacher) => (
+                    <tr key={teacher.id} className="border-b hover:bg-muted/50 transition-colors">
+                      {/* Teacher Name Column */}
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={teacher.profilePicture} alt={teacher.firstName} />
+                            <AvatarFallback>
+                              {teacher.firstName?.charAt(0)}{teacher.lastName?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-semibold">
+                              {teacher.firstName} {teacher.lastName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">@{teacher.username}</div>
+                            <Badge className={`mt-1 text-xs ${getLevelColor(teacher.level || 1)}`}>
+                              {getTeacherLevelLabel(teacher.level || 1)}
+                            </Badge>
+                          </div>
+                        </div>
+                      </td>
 
-                {/* Full Teacher Stats Button - Available for all teachers */}
-                <div className="pt-2">
-                  <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full"
-                    >
-                      <Award className="h-3 w-3 mr-2" />
-                      Full Teacher Stats
-                    </Button>
-                  </Link>
-                </div>
+                      {/* Last Active Column */}
+                      <td className="p-4">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span>{formatLastActive(teacher.lastActive)}</span>
+                        </div>
+                      </td>
 
-                {/* Password Reset Button */}
-                <div className="pt-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        disabled={resetPasswordMutation.isPending}
-                        onClick={() => {
-                          setSelectedTeacherForReset(teacher);
-                          setCustomPassword('');
-                        }}
-                      >
-                        <Key className="h-3 w-3 mr-2" />
-                        {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Reset Password for {selectedTeacherForReset?.firstName} {selectedTeacherForReset?.lastName}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Set a new password for <strong>{selectedTeacherForReset?.firstName} {selectedTeacherForReset?.lastName}</strong>. 
-                          The new password will be sent to their email address ({selectedTeacherForReset?.email}) and they can use it to log in immediately.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <div className="py-4">
-                        <Label htmlFor="newPassword" className="text-sm font-medium">
-                          New Password
-                        </Label>
-                        <Input
-                          id="newPassword"
-                          type="text"
-                          value={customPassword}
-                          onChange={(e) => setCustomPassword(e.target.value)}
-                          placeholder="Enter new password for user"
-                          className="mt-2"
-                          disabled={resetPasswordMutation.isPending}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          This password will be emailed to the user and they can use it to log in immediately.
-                        </p>
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => {
-                          setSelectedTeacherForReset(null);
-                          setCustomPassword('');
-                        }}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            if (selectedTeacherForReset && customPassword.trim()) {
-                              resetPasswordMutation.mutate({ 
-                                userId: selectedTeacherForReset.id, 
-                                customPassword: customPassword.trim() 
-                              });
-                            }
-                          }}
-                          disabled={resetPasswordMutation.isPending || !customPassword.trim()}
-                        >
-                          {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password & Send Email"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                      {/* Role Column */}
+                      <td className="p-4">
+                        <div className="space-y-2">
+                          {teacher.isAdmin ? (
+                            <Badge variant="default" className="bg-red-100 text-red-800">
+                              <ShieldCheck className="h-3 w-3 mr-1" />
+                              Platform Admin
+                            </Badge>
+                          ) : teacher.isSchoolAdmin ? (
+                            <Badge variant="default" className="bg-blue-100 text-blue-800">
+                              <Shield className="h-3 w-3 mr-1" />
+                              School Admin
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700">
+                              Teacher
+                            </Badge>
+                          )}
+                          
+                          {/* Role Management Buttons - Compact */}
+                          <div className="flex gap-1 flex-wrap">
+                            {!teacher.isSchoolAdmin && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateRoleMutation.mutate({
+                                  userId: teacher.id,
+                                  isAdmin: false,
+                                  isSchoolAdmin: true
+                                })}
+                                disabled={updateRoleMutation.isPending}
+                                className="text-xs px-2 py-1 h-6"
+                              >
+                                <Shield className="h-3 w-3 mr-1" />
+                                School Admin
+                              </Button>
+                            )}
+                            
+                            {!teacher.isAdmin && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateRoleMutation.mutate({
+                                  userId: teacher.id,
+                                  isAdmin: true,
+                                  isSchoolAdmin: false
+                                })}
+                                disabled={updateRoleMutation.isPending}
+                                className="text-xs px-2 py-1 h-6"
+                              >
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Platform Admin
+                              </Button>
+                            )}
+                            
+                            {(teacher.isAdmin || teacher.isSchoolAdmin) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateRoleMutation.mutate({
+                                  userId: teacher.id,
+                                  isAdmin: false,
+                                  isSchoolAdmin: false
+                                })}
+                                disabled={updateRoleMutation.isPending}
+                                className="text-xs px-2 py-1 h-6"
+                              >
+                                Remove Admin
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
-                {/* Delete User Button */}
-                <div className="pt-2 border-t">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        className="w-full"
-                        disabled={teacher.isOwner}
-                      >
-                        <Trash2 className="h-3 w-3 mr-2" />
-                        Delete User
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete User Account</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete <strong>{teacher.firstName} {teacher.lastName}</strong>'s account? 
-                          This action cannot be undone and will permanently remove all their data, progress, and content.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteUserMutation.mutate(teacher.id)}
-                          disabled={deleteUserMutation.isPending}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                      {/* Actions Column */}
+                      <td className="p-4">
+                        <div className="flex gap-2 flex-wrap">
+                          {/* Full Teacher Stats Button */}
+                          <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="text-xs"
+                            >
+                              <Award className="h-3 w-3 mr-1" />
+                              Full Stats
+                            </Button>
+                          </Link>
+
+                          {/* Password Reset Button */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-xs"
+                                disabled={resetPasswordMutation.isPending}
+                                onClick={() => {
+                                  setSelectedTeacherForReset(teacher);
+                                  setCustomPassword('');
+                                }}
+                              >
+                                <Key className="h-3 w-3 mr-1" />
+                                Reset Password
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Reset Password for {selectedTeacherForReset?.firstName} {selectedTeacherForReset?.lastName}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Set a new password for <strong>{selectedTeacherForReset?.firstName} {selectedTeacherForReset?.lastName}</strong>. 
+                                  The new password will be sent to their email address ({selectedTeacherForReset?.email}) and they can use it to log in immediately.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <div className="py-4">
+                                <Label htmlFor="newPassword" className="text-sm font-medium">
+                                  New Password
+                                </Label>
+                                <Input
+                                  id="newPassword"
+                                  type="text"
+                                  value={customPassword}
+                                  onChange={(e) => setCustomPassword(e.target.value)}
+                                  placeholder="Enter new password for user"
+                                  className="mt-2"
+                                  disabled={resetPasswordMutation.isPending}
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  This password will be emailed to the user and they can use it to log in immediately.
+                                </p>
+                              </div>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => {
+                                  setSelectedTeacherForReset(null);
+                                  setCustomPassword('');
+                                }}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    if (selectedTeacherForReset && customPassword.trim()) {
+                                      resetPasswordMutation.mutate({ 
+                                        userId: selectedTeacherForReset.id, 
+                                        customPassword: customPassword.trim() 
+                                      });
+                                    }
+                                  }}
+                                  disabled={resetPasswordMutation.isPending || !customPassword.trim()}
+                                >
+                                  {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password & Send Email"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+
+                          {/* Delete User Button */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="text-xs"
+                                disabled={teacher.isOwner}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete <strong>{teacher.firstName} {teacher.lastName}</strong>'s account? 
+                                  This action cannot be undone and will permanently remove all their data, progress, and content.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteUserMutation.mutate(teacher.id)}
+                                  disabled={deleteUserMutation.isPending}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
