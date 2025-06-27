@@ -13,6 +13,8 @@ import Dashboard from "@/pages/dashboard";
 import EnhancedDashboard from "@/pages/dashboard-enhanced";
 import Login from "@/pages/login";
 import LoginSimple from "@/pages/login-simple";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import Register from "@/pages/register";
 import BusinessSignup from "@/pages/business-signup";
 import LandingPage from "@/pages/landing";
@@ -178,6 +180,14 @@ function Router(props: {
 
       <Route path="/business-signup">
         <BusinessSignup />
+      </Route>
+
+      <Route path="/forgot-password">
+        <ForgotPassword />
+      </Route>
+
+      <Route path="/reset-password">
+        <ResetPassword />
       </Route>
 
       {/* Emergency login route - bypasses auth context completely */}

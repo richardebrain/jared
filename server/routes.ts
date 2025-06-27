@@ -7,6 +7,7 @@ import { db } from "./db";
 import express from "express";
 import session from "express-session";
 import { checkAndNotifyExpiringCredentials } from "./services/notificationService";
+import { sendAdminPasswordResetEmail } from "./services/emailService";
 import { MailService } from '@sendgrid/mail';
 import connectPgSimple from "connect-pg-simple";
 
@@ -2484,6 +2485,82 @@ Continue for all 5 questions...
     } catch (error) {
       console.error("Error updating user role:", error);
       res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // Admin Password Reset (Admin only)
+  app.post("/api/admin/reset-password/:userId", requireAuth, async (req, res) => {
+    try {
+      const currentUserId = req.session.userId;
+      const targetUserId = parseInt(req.params.userId);
+
+      // Get current user to verify permissions
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Check permissions - only admins can reset passwords
+      if (!currentUser.isOwner && !currentUser.isAdmin && !currentUser.isSchoolAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. Admin privileges required to reset passwords." 
+        });
+      }
+
+      // Get target user
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "Target user not found" });
+      }
+
+      // School admins can only manage users in their school
+      if (!currentUser.isOwner && currentUser.schoolId !== targetUser.schoolId) {
+        return res.status(403).json({ 
+          message: "Access denied. You can only manage users in your school." 
+        });
+      }
+
+      // Generate a secure random password
+      const crypto = require('crypto');
+      const newPassword = crypto.randomBytes(8).toString('hex'); // 16 character password
+      
+      // Hash the new password
+      const bcrypt = require('bcrypt');
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password in database
+      await db.update(users)
+        .set({
+          password: hashedPassword,
+          resetToken: null,
+          resetTokenExpires: null
+        })
+        .where(eq(users.id, targetUserId));
+
+      // Send email to user with new password
+      try {
+        await sendSimplePasswordResetEmail(
+          targetUser.email || targetUser.username, 
+          targetUser.firstName || 'User', 
+          newPassword
+        );
+      } catch (emailError) {
+        console.error("Failed to send password reset email:", emailError);
+        // Still return success since password was reset, but mention email issue
+        return res.json({ 
+          message: "Password reset successfully, but email delivery failed. Please provide the new password manually.",
+          newPassword: newPassword // Include password in response if email fails
+        });
+      }
+
+      res.json({ 
+        message: `Password reset successfully. New password sent to ${targetUser.email || targetUser.username}`,
+        emailSent: true
+      });
+
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
     }
   });
 
