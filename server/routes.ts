@@ -2089,7 +2089,6 @@ Continue for all 5 questions...
         }
 
         // Hash new password
-        const bcrypt = await import('bcrypt');
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Update password and clear reset token
@@ -2532,8 +2531,7 @@ Continue for all 5 questions...
       const newPassword = customPassword.trim();
       
       // Hash the new password
-      const bcrypt = await import('bcrypt');
-      const hashedPassword = await bcrypt.default.hash(newPassword, 10);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update password in database
       await db.update(users)
