@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Music, Sparkles, Clock, AlertTriangle, CheckCircle, Library, Play } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 
 interface SongStatus {
@@ -46,7 +46,7 @@ export default function MusicMaker() {
   const { toast } = useToast();
 
   // Query to fetch user's saved songs
-  const { data: userSongs = [], isLoading: songsLoading } = useQuery({
+  const { data: userSongs = [], isLoading: songsLoading } = useQuery<Song[]>({
     queryKey: ['/api/musicmaker/songs'],
   });
 
@@ -67,6 +67,9 @@ export default function MusicMaker() {
             setIsGenerating(false);
             setTaskId(null);
             clearInterval(pollInterval);
+            
+            // Refresh the songs list to show the new song
+            queryClient.invalidateQueries({ queryKey: ['/api/musicmaker/songs'] });
             
             toast({
               title: "Song Ready!",

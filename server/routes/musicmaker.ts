@@ -267,17 +267,25 @@ router.get('/status/:taskId', async (req, res) => {
             .where(eq(songs.taskId, taskId));
           
           if (existingSongs.length === 0) {
+            // Extract original prompt from the gpt_description_prompt if available
+            const originalPrompt = taskData.input?.gpt_description_prompt || 
+                                  taskData.input?.prompt || 
+                                  'Generated Song';
+            
+            // Clean up the prompt - remove our instruction prefix if it exists
+            const cleanPrompt = originalPrompt.replace(/^Create a fun, educational children's song about: /, '').replace(/\. Make it appropriate.*$/, '');
+            
             // Save the completed song to database
             await db.insert(songs).values({
               userId,
               title: firstSong.title || firstSong.name || 'Custom Song',
-              prompt: taskData.input?.prompt || 'Generated Song',
+              prompt: cleanPrompt,
               audioUrl,
               taskId,
               status: 'completed'
             });
             
-            console.log('Song saved to database:', taskId);
+            console.log('Song saved to database:', taskId, 'with prompt:', cleanPrompt);
           }
         } catch (saveError) {
           console.error('Failed to save song to database:', saveError);
