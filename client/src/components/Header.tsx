@@ -450,10 +450,7 @@ export default function Header() {
                 <i className="ri-user-smile-line mr-2"></i>
                 My Avatar (Coming Soon)
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings")}>
-                <i className="ri-settings-line mr-2"></i>
-                Settings
-              </DropdownMenuItem>
+
               
               {isOwner && (
                 <>
