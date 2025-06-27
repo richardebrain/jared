@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Smile, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Smile, Loader2, Film, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface VisualContent {
@@ -41,8 +42,10 @@ interface VisualContentFinderProps {
 
 export default function VisualContentFinder({ open, onOpenChange, onMemeSelected }: VisualContentFinderProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [giphyResults, setGiphyResults] = useState<GiphyContent[]>([]);
+  const [gifResults, setGifResults] = useState<GiphyContent[]>([]);
+  const [imageResults, setImageResults] = useState<GiphyContent[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'gifs' | 'images'>('gifs');
   const [searchKey, setSearchKey] = useState(0); // Force re-render key
   const { toast } = useToast();
 
@@ -50,8 +53,10 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
   useEffect(() => {
     if (open) {
       setSearchTerm('');
-      setGiphyResults([]);
+      setGifResults([]);
+      setImageResults([]);
       setLoading(false);
+      setActiveTab('gifs');
       setSearchKey(prev => prev + 1); // Force fresh state
     }
   }, [open]);
@@ -68,7 +73,8 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     }
 
     // Clear old results immediately and start loading
-    setGiphyResults([]);
+    setGifResults([]);
+    setImageResults([]);
     setLoading(true);
     
     try {
@@ -89,14 +95,8 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       console.log('GIPHY search successful for:', searchQuery);
       console.log('Setting giphyResults to:', data.data?.length, 'items');
       
-      // Force state update with completely new results and increment search key
-      setGiphyResults(prev => {
-        console.log('Previous results:', prev.length);
-        console.log('Previous IDs:', prev.slice(0, 3).map(item => item.id));
-        console.log('New results:', data.data?.length || 0);
-        console.log('New IDs:', data.data?.slice(0, 3).map((item: any) => item.id) || []);
-        return data.data || [];
-      });
+      // For now, keep using the legacy endpoint, but update to GIF results
+      setGifResults(data.data || []);
       setSearchKey(prev => prev + 1); // Force re-render
     } catch (error) {
       console.error('GIPHY search error:', error);
@@ -105,7 +105,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
         description: `Failed to search visual content: ${error.message}`,
         variant: "destructive"
       });
-      setGiphyResults([]);
+      setGifResults([]);
     } finally {
       setLoading(false);
     }
