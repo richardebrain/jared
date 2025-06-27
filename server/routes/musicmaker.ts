@@ -117,7 +117,7 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // Call GoAPI to generate the song using Udio music generation
+    // Call GoAPI to generate the song using Udio music generation with enhanced quality settings
     try {
       const response = await fetch('https://api.goapi.ai/api/v1/task', {
         method: 'POST',
@@ -129,10 +129,23 @@ router.post('/generate', async (req, res) => {
           model: 'music-u',
           task_type: 'generate_music',
           input: {
-            gpt_description_prompt: `Create a fun, educational children's song about: ${prompt}. Make it appropriate for preschoolers with simple words and a catchy melody. Use upbeat, cheerful music that kids will love to sing along with.`,
-            negative_tags: 'scary, violent, inappropriate, adult content',
+            gpt_description_prompt: `Create a high-quality, professional children's educational song about: ${prompt}. 
+
+Musical Style: Upbeat pop with acoustic instruments (guitar, piano, light percussion)
+Vocal Style: Clear, warm children's vocals with harmonies
+Tempo: Moderate 120-130 BPM, perfect for movement and dancing
+Structure: Verse-Chorus-Verse-Chorus-Bridge-Chorus with clear transitions
+Lyrics: Simple, repetitive, educational content with rhyming patterns
+Production: Clean, polished studio quality with balanced mix
+Instruments: Acoustic guitar, piano, light drums, bass, occasional xylophone
+Target: Preschool children ages 3-6 years old
+
+Make it catchy, memorable, and appropriate for educational settings.`,
+            negative_tags: 'scary, violent, inappropriate, adult content, heavy metal, rap, electronic, techno, distorted vocals, loud drums',
             lyrics_type: 'generate',
-            seed: -1
+            seed: -1,
+            style: 'children, educational, acoustic, upbeat, clean production',
+            tags: ['children', 'educational', 'acoustic', 'upbeat', 'preschool', 'learning', 'fun']
           },
           config: {
             service_mode: 'public',
