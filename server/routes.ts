@@ -7100,6 +7100,7 @@ Continue for all 5 questions...
         assessmentHistory: assessmentHistory.rows || []
       };
 
+      console.log(`Activity summary for user ${userId}:`, JSON.stringify(activitySummary, null, 2));
       res.json(activitySummary);
     } catch (error) {
       console.error('Error fetching user activity summary:', error);
