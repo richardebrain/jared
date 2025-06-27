@@ -6911,20 +6911,20 @@ Continue for all 5 questions...
       // Get user's completed modules with points and ECE hours
       const completedModules = await db.execute(sql`
         SELECT 
-          up.moduleId,
-          up.pointsEarned,
-          up.finalScore,
+          up.module_id as moduleId,
+          up.points_earned as pointsEarned,
+          up.final_score as finalScore,
           up.completed,
-          up.lastAccessed,
+          up.last_accessed as lastAccessed,
           lm.title as moduleTitle,
-          lm.eceHours,
-          lm.eceCategory,
+          lm.ece_hours as eceHours,
+          lm.ece_category as eceCategory,
           lm.category as moduleCategory,
           lm.difficulty
         FROM user_progress up
-        JOIN learning_modules lm ON up.moduleId = lm.id
-        WHERE up.userId = ${userId} AND up.completed = true
-        ORDER BY up.lastAccessed DESC
+        JOIN learning_modules lm ON up.module_id = lm.id
+        WHERE up.user_id = ${userId} AND up.completed = true
+        ORDER BY up.last_accessed DESC
       `);
 
       // Get ECE hours summary
@@ -6934,7 +6934,7 @@ Continue for all 5 questions...
           SUM(duration) as totalMinutes,
           COUNT(*) as completionCount
         FROM ece_hours 
-        WHERE userId = ${userId}
+        WHERE user_id = ${userId}
         GROUP BY category
         ORDER BY totalMinutes DESC
       `);
@@ -6942,41 +6942,41 @@ Continue for all 5 questions...
       // Get game completions
       const gameCompletions = await db.execute(sql`
         SELECT 
-          gc.gameId,
+          gc.game_id as gameId,
           gc.score,
-          gc.pointsEarned,
-          gc.completedAt,
+          gc.points_earned as pointsEarned,
+          gc.completed_at as completedAt,
           eg.title as gameTitle,
           eg.category as gameCategory,
           eg.difficulty as gameDifficulty
         FROM game_completions gc
-        JOIN educational_games eg ON gc.gameId = eg.id
-        WHERE gc.userId = ${userId}
-        ORDER BY gc.completedAt DESC
+        JOIN educational_games eg ON gc.game_id = eg.id
+        WHERE gc.user_id = ${userId}
+        ORDER BY gc.completed_at DESC
         LIMIT 20
       `);
 
       // Get total points breakdown
       const pointsBreakdown = await db.execute(sql`
         SELECT 
-          SUM(CASE WHEN up.pointsEarned > 0 THEN up.pointsEarned ELSE 0 END) as modulePoints,
-          (SELECT SUM(CASE WHEN gc.pointsEarned > 0 THEN gc.pointsEarned ELSE 0 END) 
-           FROM game_completions gc WHERE gc.userId = ${userId}) as gamePoints,
+          SUM(CASE WHEN up.points_earned > 0 THEN up.points_earned ELSE 0 END) as modulePoints,
+          (SELECT SUM(CASE WHEN gc.points_earned > 0 THEN gc.points_earned ELSE 0 END) 
+           FROM game_completions gc WHERE gc.user_id = ${userId}) as gamePoints,
           (SELECT points FROM users WHERE id = ${userId}) as totalPoints
         FROM user_progress up
-        WHERE up.userId = ${userId}
+        WHERE up.user_id = ${userId}
       `);
 
       // Get assessment completions
       const assessmentHistory = await db.execute(sql`
         SELECT 
           type,
-          overallScore,
-          completedAt,
-          CASE WHEN overallScore >= 70 THEN 'Passed' ELSE 'Failed' END as status
+          overall_score as overallScore,
+          completed_at as completedAt,
+          CASE WHEN overall_score >= 70 THEN 'Passed' ELSE 'Failed' END as status
         FROM assessments 
-        WHERE userId = ${userId} AND completed = true
-        ORDER BY completedAt DESC
+        WHERE user_id = ${userId} AND completed = true
+        ORDER BY completed_at DESC
         LIMIT 10
       `);
 
