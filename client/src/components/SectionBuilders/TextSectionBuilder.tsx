@@ -392,7 +392,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
               <div className="mt-4 border-t pt-4">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Added Images & Memes:</h4>
                 <div className="grid grid-cols-2 gap-3">
-                  {content.blocks[0].images.map((image, index) => (
+                  {content.blocks[0].images.map((image: any, index: number) => (
                     <div key={index} className="border rounded-lg p-2 bg-white">
                       <img
                         src={image.url}
