@@ -4,7 +4,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Grid3X3, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Grid3X3, AlertTriangle, RefreshCw } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -59,13 +60,15 @@ const getDifficultyLabel = (level: number): string => {
 };
 
 export function QuestionCoverageMatrix({ onFilterSelect, currentFilters }: QuestionCoverageMatrixProps) {
-  const { data: matrixData, isLoading, error } = useQuery<{ success: boolean; data: MatrixData }>({
+  const { data: matrixData, isLoading, error, refetch, isFetching } = useQuery<{ success: boolean; data: MatrixData }>({
     queryKey: ['question-coverage-matrix'],
     queryFn: async () => {
       return await apiRequest('/api/admin/question-pool/coverage-matrix?admin_password=BIGSURF55');
     },
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refresh every minute
+    staleTime: 5000, // 5 seconds - much more aggressive
+    refetchInterval: 15000, // Refresh every 15 seconds instead of 60
+    refetchOnWindowFocus: true, // Refresh when tab becomes active
+    refetchOnMount: true, // Always refetch on mount
   });
 
   if (error) {
@@ -176,13 +179,33 @@ export function QuestionCoverageMatrix({ onFilterSelect, currentFilters }: Quest
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Grid3X3 className="h-5 w-5 text-blue-500" />
-          Question Coverage Matrix
-        </CardTitle>
-        <CardDescription>
-          Coverage of <strong>approved and available questions</strong> across domains and difficulty levels. Click cells to filter the questions table below.
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Grid3X3 className="h-5 w-5 text-blue-500" />
+              Question Coverage Matrix
+              {isFetching && (
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-muted-foreground">Updating...</span>
+                </div>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Coverage of <strong>approved and available questions</strong> across domains and difficulty levels. Click cells to filter the questions table below.
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+            Refresh Matrix
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <TooltipProvider>
