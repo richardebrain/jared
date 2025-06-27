@@ -86,6 +86,7 @@ interface ActivitySummary {
   pointsBreakdown: {
     modulePoints: number;
     gamePoints: number;
+    assessmentPoints: number;
     totalPoints: number;
   };
   assessmentHistory: Array<{
@@ -342,7 +343,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
                     {activitySummary.pointsBreakdown.modulePoints || 0}
@@ -354,6 +355,12 @@ export default function AdminTeacherAssessmentResultsSimple() {
                     {activitySummary.pointsBreakdown.gamePoints || 0}
                   </p>
                   <p className="text-sm text-gray-600">Game Points</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-amber-600">
+                    {activitySummary.pointsBreakdown.assessmentPoints || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Assessment Points</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-purple-600">
