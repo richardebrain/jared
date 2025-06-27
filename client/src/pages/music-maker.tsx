@@ -4,15 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Music, Sparkles, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Music, Sparkles, Clock, AlertTriangle, CheckCircle, Library, Play } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 interface SongStatus {
   usedThisWeek: boolean;
   requestsThisWeek: number;
   currentWeek: string;
+}
+
+interface Song {
+  id: number;
+  userId: number;
+  title: string;
+  prompt: string;
+  audioUrl: string;
+  taskId?: string;
+  status: string;
+  generatedAt: string;
+  createdAt: string;
 }
 
 interface SongGenerationResponse {
@@ -31,6 +44,11 @@ export default function MusicMaker() {
   const [songStatus, setSongStatus] = useState<SongStatus | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Query to fetch user's saved songs
+  const { data: userSongs = [], isLoading: songsLoading } = useQuery({
+    queryKey: ['/api/musicmaker/songs'],
+  });
 
   // Fetch song generation status on component mount
   useEffect(() => {
@@ -334,6 +352,66 @@ export default function MusicMaker() {
             </Card>
           </div>
         </div>
+
+        {/* My Songs Section */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Library className="h-5 w-5 text-purple-600" />
+              My Songs
+            </CardTitle>
+            <CardDescription>
+              Your previously generated songs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {songsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-gray-500">Loading your songs...</div>
+              </div>
+            ) : userSongs.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Music className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>No songs generated yet</p>
+                <p className="text-sm">Create your first song above!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {userSongs.map((song: Song) => (
+                  <Card key={song.id} className="p-4">
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{song.title}</h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">{song.prompt}</p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {new Date(song.createdAt).toLocaleDateString()}
+                        </span>
+                        
+                        {song.audioUrl && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const audio = new Audio(song.audioUrl);
+                              audio.play().catch(console.error);
+                            }}
+                            className="flex items-center gap-1"
+                          >
+                            <Play className="h-3 w-3" />
+                            Play
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
