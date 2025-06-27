@@ -207,6 +207,71 @@ export default function NewModuleCreator() {
         </div>
       </div>
 
+      {/* Quick Start Guide */}
+      <div className="mb-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Wand2 className="h-5 w-5 text-blue-600" />
+          Quick Start Guide
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">1</div>
+            <h4 className="font-medium mb-1">Choose Method</h4>
+            <p className="text-sm text-gray-600">Select AI, Manual, or Import based on your needs</p>
+          </div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">2</div>
+            <h4 className="font-medium mb-1">Select Template</h4>
+            <p className="text-sm text-gray-600">Pick the format that best fits your content</p>
+          </div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
+            <h4 className="font-medium mb-1">Build & Publish</h4>
+            <p className="text-sm text-gray-600">Create your content and share with your team</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Creation Methods */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">Choose Your Creation Method</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {creationMethods.map((method) => {
+            const IconComponent = method.icon;
+            return (
+              <Card 
+                key={method.id}
+                className={`cursor-pointer transition-all hover:shadow-lg ${method.color} hover:scale-105`}
+                onClick={() => handleMethodSelect(method.id, method.route)}
+              >
+                <CardHeader className="text-center">
+                  <div className="mx-auto mb-4 p-3 bg-white rounded-full w-fit">
+                    <IconComponent className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <CardTitle className="text-xl">{method.title}</CardTitle>
+                  <CardDescription className="text-center">
+                    {method.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {method.features.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Button className="w-full mt-4" variant="outline">
+                    Choose {method.title}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
       {/* My Modules Section */}
       <div className="mb-12">
         <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
@@ -340,79 +405,14 @@ export default function NewModuleCreator() {
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-8 border-2 border-dashed border-blue-200">
               <FileEdit className="h-12 w-12 text-blue-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No modules yet</h3>
-              <p className="text-gray-600 mb-4">Start creating your first module using one of the methods below</p>
+              <p className="text-gray-600 mb-4">Start creating your first module using one of the methods above</p>
               <div className="flex items-center justify-center gap-2 text-sm text-blue-600">
                 <span>Get started by choosing a creation method</span>
-                <span className="animate-bounce">↓</span>
+                <span className="animate-bounce">↑</span>
               </div>
             </div>
           </div>
         )}
-      </div>
-
-      {/* Creation Methods */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-semibold mb-6">Choose Your Creation Method</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {creationMethods.map((method) => {
-            const IconComponent = method.icon;
-            return (
-              <Card 
-                key={method.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${method.color} hover:scale-105`}
-                onClick={() => handleMethodSelect(method.id, method.route)}
-              >
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 p-3 bg-white rounded-full w-fit">
-                    <IconComponent className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <CardTitle className="text-xl">{method.title}</CardTitle>
-                  <CardDescription className="text-center">
-                    {method.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {method.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Button className="w-full mt-4" variant="outline">
-                    Choose {method.title}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Quick Start Guide */}
-      <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Wand2 className="h-5 w-5 text-blue-600" />
-          Quick Start Guide
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">1</div>
-            <h4 className="font-medium mb-1">Choose Method</h4>
-            <p className="text-sm text-gray-600">Select AI, Manual, or Import based on your needs</p>
-          </div>
-          <div className="text-center">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">2</div>
-            <h4 className="font-medium mb-1">Select Template</h4>
-            <p className="text-sm text-gray-600">Pick the format that best fits your content</p>
-          </div>
-          <div className="text-center">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
-            <h4 className="font-medium mb-1">Build & Publish</h4>
-            <p className="text-sm text-gray-600">Create your content and share with your team</p>
-          </div>
-        </div>
       </div>
 
 
