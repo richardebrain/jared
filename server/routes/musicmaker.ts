@@ -392,4 +392,26 @@ router.delete('/songs/:songId', async (req, res) => {
   }
 });
 
+// Reset weekly song limit (for testing)
+router.post('/reset-weekly-limit', async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Reset the user's weekly song count
+    await db.execute(sql`
+      UPDATE users 
+      SET song_requests_this_week = 0, last_song_week = NULL 
+      WHERE id = ${userId}
+    `);
+
+    res.json({ success: true, message: 'Weekly song limit reset successfully' });
+  } catch (error) {
+    console.error('Error resetting weekly limit:', error);
+    res.status(500).json({ error: 'Failed to reset weekly limit' });
+  }
+});
+
 export { router as musicmakerRouter };

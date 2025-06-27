@@ -251,6 +251,29 @@ export default function MusicMaker() {
     }
   };
 
+  const resetWeeklyLimit = async () => {
+    try {
+      await apiRequest('/api/musicmaker/reset-weekly-limit', {
+        method: 'POST'
+      });
+      
+      // Refresh status
+      await fetchSongStatus();
+      
+      toast({
+        title: "Weekly Limit Reset",
+        description: "You can now generate a new song this week!"
+      });
+    } catch (error) {
+      console.error('Error resetting weekly limit:', error);
+      toast({
+        title: "Reset Failed",
+        description: "Unable to reset weekly limit. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -314,9 +337,21 @@ export default function MusicMaker() {
                     </p>
                   </div>
                 </div>
-                <Badge variant={songStatus.usedThisWeek ? "secondary" : "default"}>
-                  {songStatus.usedThisWeek ? "Used" : "Available"}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={songStatus.usedThisWeek ? "secondary" : "default"}>
+                    {songStatus.usedThisWeek ? "Used" : "Available"}
+                  </Badge>
+                  {songStatus.usedThisWeek && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={resetWeeklyLimit}
+                      className="text-xs"
+                    >
+                      Reset Limit
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
