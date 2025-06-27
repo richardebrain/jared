@@ -67,8 +67,8 @@ export default function AdminMessagingPage() {
   const [messageType, setMessageType] = useState<string>('announcement');
   
   // Bonus box state
+  const [isBonusBox, setIsBonusBox] = useState(false);
   const [boxType, setBoxType] = useState<'bonus' | 'bronze' | 'silver' | 'gold'>('bonus');
-  const [bonusPoints, setBonusPoints] = useState('');
   const [bonusMessage, setBonusMessage] = useState('');
   
   const { toast } = useToast();
@@ -133,7 +133,6 @@ export default function AdminMessagingPage() {
     mutationFn: async (bonusData: {
       recipientId: number;
       boxType: string;
-      points: number;
       message?: string;
     }) => {
       const response = await apiRequest('POST', '/api/bonus-boxes/send', bonusData);
@@ -144,8 +143,9 @@ export default function AdminMessagingPage() {
         title: "Bonus Box Sent Successfully",
         description: `${boxType.charAt(0).toUpperCase() + boxType.slice(1)} box sent!`,
       });
-      setBonusPoints('');
       setBonusMessage('');
+      setIsBonusBox(false);
+      setSelectedTeachers([]);
     },
     onError: () => {
       toast({
@@ -198,20 +198,9 @@ export default function AdminMessagingPage() {
   };
 
   const handleSendBonusBox = (teacherId: number) => {
-    const points = parseInt(bonusPoints);
-    if (!points || points < 1 || points > 50) {
-      toast({
-        title: "Invalid Points",
-        description: "Please enter a valid point value (1-50).",
-        variant: "destructive",
-      });
-      return;
-    }
-
     sendBonusBoxMutation.mutate({
       recipientId: teacherId,
       boxType: boxType,
-      points: points,
       message: bonusMessage.trim() || undefined,
     });
   };
@@ -360,86 +349,7 @@ export default function AdminMessagingPage() {
             </CardContent>
           </Card>
 
-          {/* Send Bonus Box */}
-          <Card className="border-purple-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5 text-purple-600" />
-                Send Bonus Box
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Box Type</label>
-                  <Select value={boxType} onValueChange={(value: 'bonus' | 'bronze' | 'silver' | 'gold') => setBoxType(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bonus">
-                        <div className="flex items-center gap-2">
-                          <Gift className="h-4 w-4 text-purple-600" />
-                          <span>Bonus Box (1-30 points)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="bronze">
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-orange-600" />
-                          <span>Bronze Box (1-20 points)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="silver">
-                        <div className="flex items-center gap-2">
-                          <Award className="h-4 w-4 text-gray-600" />
-                          <span>Silver Box (10-30 points)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="gold">
-                        <div className="flex items-center gap-2">
-                          <Trophy className="h-4 w-4 text-yellow-600" />
-                          <span>Gold Box (20-50 points)</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Points</label>
-                  <Input
-                    type="number"
-                    value={bonusPoints}
-                    onChange={(e) => setBonusPoints(e.target.value)}
-                    placeholder="Enter points..."
-                    min="1"
-                    max="50"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {getBoxPoints(boxType)}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Message (Optional)</label>
-                <Textarea
-                  value={bonusMessage}
-                  onChange={(e) => setBonusMessage(e.target.value)}
-                  placeholder="Add a personal message..."
-                  rows={2}
-                  maxLength={200}
-                />
-                <div className="text-xs text-muted-foreground mt-1">
-                  {bonusMessage.length}/200 characters
-                </div>
-              </div>
-
-              <div className="text-sm text-muted-foreground">
-                Send a surprise bonus box to individual teachers by clicking the gift icon next to their name in the teacher list.
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Message Form */}
           <Card>
