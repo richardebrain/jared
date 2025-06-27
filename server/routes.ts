@@ -2532,8 +2532,8 @@ Continue for all 5 questions...
       const newPassword = customPassword.trim();
       
       // Hash the new password
-      const bcrypt = require('bcrypt');
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.default.hash(newPassword, 10);
 
       // Update password in database
       await db.update(users)
