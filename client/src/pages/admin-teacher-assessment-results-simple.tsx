@@ -688,7 +688,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {activitySummary.gameCompletions.slice(0, 5).map((game, index) => (
+                  {activitySummary.gameCompletions.slice(0, 2).map((game, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                       <div>
                         <h4 className="font-medium text-gray-900">{game.gameTitle}</h4>
