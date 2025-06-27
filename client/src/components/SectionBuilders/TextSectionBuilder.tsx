@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus, X, Upload } from 'lucide-react';
+import { Edit3, Save, BookOpen, FileText, RefreshCw, Image, Plus, X, Upload, Smile } from 'lucide-react';
 import ModuleImageGenerator from '@/components/ModuleImageGenerator';
+import MemeFinder from '@/components/MemeFinder';
 import VoiceInputTextarea from '@/components/VoiceInputTextarea';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,6 +22,7 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
   const { toast } = useToast();
   const [textContent, setTextContent] = useState('');
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [showMemeFinder, setShowMemeFinder] = useState(false);
   const [sectionImages, setSectionImages] = useState<Array<{url: string, description: string}>>([]);
 
   useEffect(() => {
@@ -155,6 +157,33 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
     onContentChange(updatedContent);
   };
 
+  const handleMemeSelected = (meme: { url: string; description: string }) => {
+    const newImage = { 
+      url: meme.url, 
+      description: meme.description 
+    };
+    const updatedImages = [...sectionImages, newImage];
+    setSectionImages(updatedImages);
+    
+    // Auto-save the content with new meme immediately
+    const contentString = typeof textContent === 'string' ? textContent : '';
+    const updatedContent = {
+      blocks: [{
+        type: 'text',
+        title: 'Text Section',
+        content: contentString,
+        images: updatedImages,
+        preview: contentString.substring(0, 200) + (contentString.length > 200 ? '...' : '')
+      }]
+    };
+    
+    // Immediately persist the content change
+    onContentChange(updatedContent);
+    
+    // Show success feedback
+    console.log('Meme added and auto-saved:', newImage.description);
+  };
+
   const getWordCount = () => {
     if (typeof textContent !== 'string') return 0;
     return textContent.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -286,6 +315,15 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
                 >
                   <Image className="h-4 w-4 mr-2" />
                   Generate Image
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMemeFinder(true)}
+                  className="bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700"
+                >
+                  <Smile className="h-4 w-4 mr-2" />
+                  Find a Meme
                 </Button>
               </div>
             </div>

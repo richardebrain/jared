@@ -1,0 +1,91 @@
+Here’s the exact brief to drop into your Replit agent so it knows how to wire GIPHY into your MentorMe Module Builder:
+
+Project: “MemePicker” Integration for MentorMe Module Builder
+
+Goal
+Embed a “Find a Meme” panel in the module editor so managers can search GIPHY for on-theme childcare memes and drop them straight into any slide.
+
+1. Install GIPHY React SDK
+In your Replit shell, run:
+
+bash
+Copy
+Edit
+npm install @giphy/js-sdk-core @giphy/react-components
+2. Initialize the GIPHY Client
+Create (or update) a file src/giphyClient.ts:
+
+ts
+Copy
+Edit
+import { GiphyFetch } from '@giphy/js-sdk-core';
+
+export const giphy = new GiphyFetch('YOUR_API_KEY');
+– Replace 'YOUR_API_KEY' with your GIPHY developer key.
+
+3. Build a MemePicker React Component
+Location: src/components/MemePicker.tsx
+
+Responsibilities:
+
+Search Box – Text input bound to state searchTerm.
+
+Thumbnail Grid – Use @giphy/react-components’ <Grid> or <SearchGrid> to display results for searchTerm.
+
+Select Handler – On click of any GIF, call onSelect(memeUrl: string).
+
+Props
+
+onSelect: (url: string) => void
+
+initialTerm?: string
+
+4. Integrate MemePicker into the Module Builder UI
+Slide Palette: Add a new slide type “Meme” (icon: Giphy logo).
+
+When “Meme” Is Added:
+
+Render <MemePicker onSelect={url => insertMemeSlide(url)} /> in the slide editor.
+
+Hide all other controls until a meme is picked.
+
+insertMemeSlide(url):
+
+Creates a slide object { type: 'meme', contentUrl: url } in your module’s JSON.
+
+Switches the editor to a preview of that slide (showing the embedded GIF).
+
+5. State & Data Flow
+Module State: Your existing builder stores an array of slides in React state or context.
+
+Slide Object: Extend slide schema with
+
+ts
+Copy
+Edit
+interface MemeSlide { 
+  id: string;
+  type: 'meme';
+  contentUrl: string;
+}
+Pick → Insert: MemePicker calls onSelect(url), which does:
+
+setSlides([...slides, { id: uuid(), type: 'meme', contentUrl: url }])
+
+setActiveSlide(newSlideId)
+
+6. Caching & Rate-Limit Safety
+Cache Last Searches in local component state or IndexedDB.
+
+Debounce Search Input (300 ms) so you don’t hammer GIPHY on every keystroke.
+
+Error Handling: If GIPHY returns an error or rate-limit, show a friendly “Try again in a moment” message.
+
+7. Preview & Export
+In-Editor Preview: Render <img src={contentUrl} /> inside the slide preview pane, with CSS to constrain max‐width/height.
+
+Exported Module: When you export to SCORM/HTML, output the GIF URL in an <img> tag so it shows live in your LMS.
+
+Tell Replit:
+
+“Install @giphy/js-sdk-core and @giphy/react-components. Create a giphyClient with my API key. Build a MemePicker React component that takes an onSelect(url) callback, debounces user input, and renders a GIPHY search grid. Add a ‘Meme’ slide type in the module builder that mounts MemePicker when selected, and on selection inserts a slide object { type:'meme', contentUrl:url } into the module state. Preview the GIF in-editor and export it as an <img> in the final module. Cache recent searches and handle GIPHY errors gracefully.”
