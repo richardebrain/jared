@@ -73,6 +73,8 @@ interface Teacher {
 export default function AdminTeachersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [customPassword, setCustomPassword] = useState('');
+  const [selectedTeacherForReset, setSelectedTeacherForReset] = useState<Teacher | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -137,10 +139,10 @@ export default function AdminTeachersPage() {
 
   // Password reset mutation
   const resetPasswordMutation = useMutation({
-    mutationFn: async (userId: number) => {
+    mutationFn: async ({ userId, customPassword }: { userId: number; customPassword: string }) => {
       return apiRequest(`/api/admin/reset-user-password`, {
         method: 'POST',
-        data: { userId }
+        data: { userId, customPassword }
       });
     },
     onSuccess: (data) => {
@@ -529,6 +531,10 @@ export default function AdminTeachersPage() {
                         size="sm" 
                         className="w-full"
                         disabled={resetPasswordMutation.isPending}
+                        onClick={() => {
+                          setSelectedTeacherForReset(teacher);
+                          setCustomPassword('');
+                        }}
                       >
                         <Key className="h-3 w-3 mr-2" />
                         {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
@@ -536,19 +542,46 @@ export default function AdminTeachersPage() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Reset User Password</AlertDialogTitle>
+                        <AlertDialogTitle>Reset Password for {selectedTeacherForReset?.firstName} {selectedTeacherForReset?.lastName}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to reset <strong>{teacher.firstName} {teacher.lastName}</strong>'s password? 
-                          A new temporary password will be generated and sent to their email address ({teacher.email}).
+                          Set a new password for <strong>{selectedTeacherForReset?.firstName} {selectedTeacherForReset?.lastName}</strong>. 
+                          The new password will be sent to their email address ({selectedTeacherForReset?.email}) and they can use it to log in immediately.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => resetPasswordMutation.mutate(teacher.id)}
+                      <div className="py-4">
+                        <Label htmlFor="newPassword" className="text-sm font-medium">
+                          New Password
+                        </Label>
+                        <Input
+                          id="newPassword"
+                          type="text"
+                          value={customPassword}
+                          onChange={(e) => setCustomPassword(e.target.value)}
+                          placeholder="Enter new password for user"
+                          className="mt-2"
                           disabled={resetPasswordMutation.isPending}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This password will be emailed to the user and they can use it to log in immediately.
+                        </p>
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => {
+                          setSelectedTeacherForReset(null);
+                          setCustomPassword('');
+                        }}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            if (selectedTeacherForReset && customPassword.trim()) {
+                              resetPasswordMutation.mutate({ 
+                                userId: selectedTeacherForReset.id, 
+                                customPassword: customPassword.trim() 
+                              });
+                            }
+                          }}
+                          disabled={resetPasswordMutation.isPending || !customPassword.trim()}
                         >
-                          {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                          {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password & Send Email"}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

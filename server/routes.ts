@@ -2488,41 +2488,48 @@ Continue for all 5 questions...
     }
   });
 
-  // Admin Password Reset (Admin only)
-  app.post("/api/admin/reset-password/:userId", requireAuth, async (req, res) => {
+  // Admin Custom Password Reset endpoint
+  app.post("/api/admin/reset-user-password", requireAuth, async (req, res) => {
     try {
+      const { userId, customPassword } = req.body;
       const currentUserId = req.session.userId;
-      const targetUserId = parseInt(req.params.userId);
 
-      // Get current user to verify permissions
-      const currentUser = await storage.getUser(currentUserId);
-      if (!currentUser) {
-        return res.status(401).json({ message: "User not found" });
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
       }
 
-      // Check permissions - only admins can reset passwords
-      if (!currentUser.isOwner && !currentUser.isAdmin && !currentUser.isSchoolAdmin) {
-        return res.status(403).json({ 
-          message: "Access denied. Admin privileges required to reset passwords." 
-        });
+      if (!customPassword || customPassword.trim().length === 0) {
+        return res.status(400).json({ message: "Custom password is required" });
+      }
+
+      // Get current user to check admin privileges
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser) {
+        return res.status(401).json({ message: "Current user not found" });
+      }
+      
+      // Check if user has admin privileges
+      if (!currentUser.isAdmin && !currentUser.isSchoolAdmin && !currentUser.isOwner) {
+        return res.status(403).json({ message: "Admin privileges required" });
       }
 
       // Get target user
+      const targetUserId = parseInt(userId);
       const targetUser = await storage.getUser(targetUserId);
+      
       if (!targetUser) {
-        return res.status(404).json({ message: "Target user not found" });
+        return res.status(404).json({ message: "User not found" });
       }
 
-      // School admins can only manage users in their school
-      if (!currentUser.isOwner && currentUser.schoolId !== targetUser.schoolId) {
+      // School admins can only reset passwords for users in their school
+      if (currentUser.isSchoolAdmin && !currentUser.isOwner && targetUser.schoolId !== currentUser.schoolId) {
         return res.status(403).json({ 
-          message: "Access denied. You can only manage users in your school." 
+          message: "You can only reset passwords for users in your school" 
         });
       }
 
-      // Generate a secure random password
-      const crypto = require('crypto');
-      const newPassword = crypto.randomBytes(8).toString('hex'); // 16 character password
+      // Use the custom password provided by admin
+      const newPassword = customPassword.trim();
       
       // Hash the new password
       const bcrypt = require('bcrypt');
