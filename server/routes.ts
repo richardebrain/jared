@@ -7042,7 +7042,7 @@ Continue for all 5 questions...
   // Get pending bonus boxes for user
   app.get('/api/bonus-boxes/pending', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.session.userId;
       
       const pendingBoxes = await db.execute(sql`
         SELECT 
