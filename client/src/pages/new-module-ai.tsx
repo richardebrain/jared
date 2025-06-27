@@ -36,6 +36,7 @@ import {
   Users,
   UserCheck,
   Globe,
+  GraduationCap,
   Brain,
   Wrench,
   Edit,
@@ -171,7 +172,7 @@ interface ModuleConfig {
 }
 
 interface PublishSettings {
-  type: "teachers" | "groups" | "library" | "community";
+  type: "teachers" | "groups" | "library" | "mandatory" | "community";
   selectedTeachers: string[];
   selectedGroups: string[];
   customMessage: string;
@@ -179,6 +180,8 @@ interface PublishSettings {
   allowComments: boolean;
   publishToSection: boolean;
   publishToCommunity: boolean;
+  mandatoryForAllNewHires: boolean;
+  onboardingOrder: number;
 }
 
 export default function NewModuleAI() {
@@ -221,6 +224,8 @@ export default function NewModuleAI() {
     allowComments: true,
     publishToSection: false,
     publishToCommunity: false,
+    mandatoryForAllNewHires: false,
+    onboardingOrder: 1,
   });
   const [sectionContents, setSectionContents] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -1504,7 +1509,7 @@ export default function NewModuleAI() {
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-5 gap-4">
                 <Button
                   variant={publishSettings.type === "teachers" ? "default" : "outline"}
                   onClick={() => setPublishSettings(prev => ({ ...prev, type: "teachers" }))}
@@ -1528,6 +1533,14 @@ export default function NewModuleAI() {
                 >
                   <BookOpen className="h-6 w-6 mb-2" />
                   <span className="text-sm">Module Section</span>
+                </Button>
+                <Button
+                  variant={publishSettings.type === "mandatory" ? "default" : "outline"}
+                  onClick={() => setPublishSettings(prev => ({ ...prev, type: "mandatory" }))}
+                  className="flex flex-col items-center p-4 h-auto"
+                >
+                  <GraduationCap className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Mandatory Onboarding</span>
                 </Button>
                 <Button
                   variant={publishSettings.type === "community" ? "default" : "outline"}
