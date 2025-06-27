@@ -55,7 +55,7 @@ export async function sendCredentialExpirationNotification(
     // Prepare email
     const msg = {
       to: user.email,
-      from: 'notifications@mentormeapp.com', // Replace with your verified sender
+      from: 'jared@mentormeprek.com', // Replace with your verified sender
       subject: `Important: Your ${credentialInfo.name} is expiring soon`,
       text: `Hello ${user.firstName},
 
