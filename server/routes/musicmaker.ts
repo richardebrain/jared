@@ -118,6 +118,10 @@ router.post('/generate', async (req, res) => {
     }
 
     // Call GoAPI to generate the song using Udio music generation with enhanced quality settings
+    const negativeTags = 'scary, violent, inappropriate, adult, metal, rap, electronic, distorted, loud';
+    console.log('Negative tags length:', negativeTags.length);
+    console.log('Negative tags:', negativeTags);
+    
     try {
       const response = await fetch('https://api.goapi.ai/api/v1/task', {
         method: 'POST',
@@ -141,7 +145,7 @@ Instruments: Acoustic guitar, piano, light drums, bass, occasional xylophone
 Target: Preschool children ages 3-6 years old
 
 Make it catchy, memorable, and appropriate for educational settings.`,
-            negative_tags: 'scary, violent, inappropriate, adult, metal, rap, electronic, distorted, loud',
+            negative_tags: negativeTags,
             lyrics_type: 'generate',
             seed: -1,
             style: 'children, educational, acoustic, upbeat, clean production',
