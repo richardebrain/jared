@@ -672,6 +672,24 @@ export default function AdminMessagingPage() {
                           </Badge>
                         </div>
                       </div>
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendBonusBox(teacher.id);
+                        }}
+                        disabled={sendBonusBoxMutation.isPending}
+                        className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                        title="Send Bonus Box"
+                      >
+                        {sendBonusBoxMutation.isPending ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+                        ) : (
+                          getBoxIcon(boxType)
+                        )}
+                      </Button>
                     </div>
                   ))}
                 </div>
