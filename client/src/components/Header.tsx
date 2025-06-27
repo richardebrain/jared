@@ -216,11 +216,11 @@ export default function Header() {
 
         {/* Mobile hamburger menu button - prominently placed */}
         <button 
-          className="md:hidden text-neutral-800 hover:text-amber-600 transition p-3 rounded-lg bg-amber-50 border border-amber-200 shadow-sm"
+          className="md:hidden text-white hover:text-amber-100 transition p-3 rounded-lg bg-amber-600 hover:bg-amber-700 border border-amber-700 shadow-md"
           onClick={toggleMobileMenu}
           aria-label="Toggle mobile menu"
         >
-          <i className={`${isMobileMenuOpen ? "ri-close-line" : "ri-menu-line"} text-2xl`}></i>
+          <i className={`${isMobileMenuOpen ? "ri-close-line" : "ri-menu-line"} text-2xl font-bold`}></i>
         </button>
         
         {/* Desktop navigation - hidden on mobile */}
