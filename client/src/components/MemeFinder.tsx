@@ -54,21 +54,22 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     }
   }, [open]);
 
-  // Simple search function with variable tracking
-  let searchTimeout: NodeJS.Timeout | null = null;
-
-  const performGiphySearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setGiphyResults([]);
-      setLoading(false);
+  // Search function that only runs when button is clicked
+  const performGiphySearch = async () => {
+    if (!searchTerm.trim()) {
+      toast({
+        title: "Enter Search Term",
+        description: "Please enter a search term to find visual content.",
+        variant: "destructive"
+      });
       return;
     }
 
     setLoading(true);
     
     try {
-      // Add educational keywords to improve relevance (shorter to avoid 414 URI too long)
-      const educationalQuery = `${searchQuery} education teaching`;
+      // Add educational keywords to improve relevance
+      const educationalQuery = `${searchTerm} education teaching`;
       
       const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13`);
       
@@ -79,7 +80,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       }
       
       const data = await response.json();
-      console.log('GIPHY search successful for:', searchQuery);
+      console.log('GIPHY search successful for:', searchTerm);
       console.log('Setting giphyResults to:', data.data?.length, 'items');
       
       // Force state update with new results
@@ -97,23 +98,10 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
     }
   };
 
-  // Search when term changes with simple debounce
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    
-    // Clear existing timeout
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-
-    if (value.trim()) {
-      // Set new timeout for search
-      searchTimeout = setTimeout(() => {
-        performGiphySearch(value);
-      }, 500);
-    } else {
-      setGiphyResults([]);
-      setLoading(false);
+  // Handle Enter key press in search input
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      performGiphySearch();
     }
   };
 
@@ -142,15 +130,29 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search for visual content (e.g., playground safety, classroom management, teaching moments, celebrations)..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
-            />
+          {/* Search Input with Button */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search for visual content (e.g., playground safety, classroom management, teaching moments, celebrations)..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pl-10"
+              />
+            </div>
+            <Button 
+              onClick={performGiphySearch}
+              disabled={loading || !searchTerm.trim()}
+              className="px-6"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Search"
+              )}
+            </Button>
           </div>
 
           {/* Results Grid */}
@@ -200,7 +202,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
             ) : (
               <div className="text-center py-8">
                 <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Start typing to search for visual content</p>
+                <p className="text-gray-600">Enter search terms and click "Search" to find visual content</p>
                 <p className="text-sm text-gray-500">Try "playground safety", "classroom management", or "teaching moments"</p>
               </div>
             )}
