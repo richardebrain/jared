@@ -6896,6 +6896,105 @@ Continue for all 5 questions...
     }
   });
 
+  // Get comprehensive user activity data
+  app.get('/api/admin/teachers/:userId/activity-summary', requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const currentUserId = req.session.userId as number;
+      
+      // Verify admin access
+      const currentUser = await storage.getUser(currentUserId);
+      if (!currentUser?.isAdmin && !currentUser?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get user's completed modules with points and ECE hours
+      const completedModules = await db.execute(sql`
+        SELECT 
+          up.moduleId,
+          up.pointsEarned,
+          up.finalScore,
+          up.completed,
+          up.lastAccessed,
+          lm.title as moduleTitle,
+          lm.eceHours,
+          lm.eceCategory,
+          lm.category as moduleCategory,
+          lm.difficulty
+        FROM user_progress up
+        JOIN learning_modules lm ON up.moduleId = lm.id
+        WHERE up.userId = ${userId} AND up.completed = true
+        ORDER BY up.lastAccessed DESC
+      `);
+
+      // Get ECE hours summary
+      const eceHoursSummary = await db.execute(sql`
+        SELECT 
+          category,
+          SUM(duration) as totalMinutes,
+          COUNT(*) as completionCount
+        FROM ece_hours 
+        WHERE userId = ${userId}
+        GROUP BY category
+        ORDER BY totalMinutes DESC
+      `);
+
+      // Get game completions
+      const gameCompletions = await db.execute(sql`
+        SELECT 
+          gc.gameId,
+          gc.score,
+          gc.pointsEarned,
+          gc.completedAt,
+          eg.title as gameTitle,
+          eg.category as gameCategory,
+          eg.difficulty as gameDifficulty
+        FROM game_completions gc
+        JOIN educational_games eg ON gc.gameId = eg.id
+        WHERE gc.userId = ${userId}
+        ORDER BY gc.completedAt DESC
+        LIMIT 20
+      `);
+
+      // Get total points breakdown
+      const pointsBreakdown = await db.execute(sql`
+        SELECT 
+          SUM(CASE WHEN up.pointsEarned > 0 THEN up.pointsEarned ELSE 0 END) as modulePoints,
+          (SELECT SUM(CASE WHEN gc.pointsEarned > 0 THEN gc.pointsEarned ELSE 0 END) 
+           FROM game_completions gc WHERE gc.userId = ${userId}) as gamePoints,
+          (SELECT points FROM users WHERE id = ${userId}) as totalPoints
+        FROM user_progress up
+        WHERE up.userId = ${userId}
+      `);
+
+      // Get assessment completions
+      const assessmentHistory = await db.execute(sql`
+        SELECT 
+          type,
+          overallScore,
+          completedAt,
+          CASE WHEN overallScore >= 70 THEN 'Passed' ELSE 'Failed' END as status
+        FROM assessments 
+        WHERE userId = ${userId} AND completed = true
+        ORDER BY completedAt DESC
+        LIMIT 10
+      `);
+
+      const activitySummary = {
+        completedModules: completedModules.rows || [],
+        eceHoursSummary: eceHoursSummary.rows || [],
+        gameCompletions: gameCompletions.rows || [],
+        pointsBreakdown: pointsBreakdown.rows?.[0] || { modulePoints: 0, gamePoints: 0, totalPoints: 0 },
+        assessmentHistory: assessmentHistory.rows || []
+      };
+
+      res.json(activitySummary);
+    } catch (error) {
+      console.error('Error fetching user activity summary:', error);
+      res.status(500).json({ message: 'Failed to fetch activity summary' });
+    }
+  });
+
   app.post(
     "/api/admin/update-teacher-certifications",
     requireAuth,

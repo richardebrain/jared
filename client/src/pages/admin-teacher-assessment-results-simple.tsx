@@ -16,7 +16,13 @@ import {
   Target,
   Award,
   CheckCircle,
-  TrendingUp
+  TrendingUp,
+  BookOpen,
+  Star,
+  Clock,
+  Trophy,
+  Calendar,
+  GraduationCap
 } from 'lucide-react';
 
 interface TeacherAssessmentData {
