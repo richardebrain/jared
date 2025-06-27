@@ -201,8 +201,29 @@ export default function Header() {
               <img src={mentormeLogo} alt="MentorMe" className="h-12 rounded-md" />
             </div>
           </Link>
+          
+          {/* Beary AI button - visible on mobile after logos */}
+          <div className="md:hidden ml-4">
+            <Button 
+              onClick={() => setLocation('/ai-tools')}
+              className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-md transition-all duration-200"
+            >
+              <i className="ri-robot-line mr-1"></i>
+              Beary AI
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile hamburger menu button - prominently placed */}
+        <button 
+          className="md:hidden text-neutral-800 hover:text-amber-600 transition p-3 rounded-lg bg-amber-50 border border-amber-200 shadow-sm"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle mobile menu"
+        >
+          <i className={`${isMobileMenuOpen ? "ri-close-line" : "ri-menu-line"} text-2xl`}></i>
+        </button>
         
+        {/* Desktop navigation - hidden on mobile */}
         <nav className="hidden md:flex items-center bg-amber-50 rounded-full px-2 shadow-inner max-w-[600px] overflow-x-auto">
           <Link href="/">
             <div className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${location === "/" 
@@ -245,7 +266,8 @@ export default function Header() {
           */}
         </nav>
         
-        <div className="flex items-center space-x-2 md:space-x-4">
+        {/* Desktop user menu - hidden on mobile */}
+        <div className="hidden md:flex items-center space-x-2 md:space-x-4">
           <div className="flex items-center space-x-1 md:space-x-2">
             {/* Notification Bell - hidden on small mobile, visible on larger screens */}
             <DropdownMenu>
@@ -504,15 +526,6 @@ export default function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          {/* Mobile menu button */}
-          <button 
-            className="md:hidden text-neutral-800 hover:text-primary transition p-2 ml-2"
-            onClick={toggleMobileMenu}
-            aria-label="Toggle mobile menu"
-          >
-            <i className={`${isMobileMenuOpen ? "ri-close-line" : "ri-menu-line"} text-2xl`}></i>
-          </button>
         </div>
       </div>
       
