@@ -336,6 +336,155 @@ export default function AdminTeacherAssessmentResultsSimple() {
             </div>
           </div>
         </div>
+        
+        {/* Comprehensive Teacher Profile Information */}
+        {(teacher || activitySummary) && (
+          <Card className="mt-6 mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Teacher Profile & Statistics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Basic Information</h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Full Name</label>
+                      <p className="font-medium">
+                        {teacher ? `${teacher.firstName} ${teacher.lastName}` : 
+                         activitySummary ? `${activitySummary.firstName} ${activitySummary.lastName}` : 'Not Available'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Email</label>
+                      <p className="font-medium">
+                        {teacher?.email || activitySummary?.email || 'Not Available'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Username</label>
+                      <p className="font-medium">@{teacher?.username || 'Not Available'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Job Title</label>
+                      <p className="font-medium">{teacher?.jobTitle || 'Not Specified'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Level & Progress */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Professional Level</h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Current Level</label>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-100 text-blue-800">
+                          Level {teacher?.level || 1}
+                        </Badge>
+                        <span className="text-sm font-medium">
+                          {teacher?.level === 1 ? 'Assistant Teacher' :
+                           teacher?.level === 2 ? 'Associate Teacher' :
+                           teacher?.level === 3 ? 'Lead Teacher' :
+                           teacher?.level === 4 ? 'Senior Teacher' :
+                           teacher?.level === 5 ? 'Master Teacher' : 'Assistant Teacher'}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Language Preference</label>
+                      <p className="font-medium">{teacher?.language || 'English'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Native Language</label>
+                      <p className="font-medium">{teacher?.nativeLanguage || 'Not Specified'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Time Zone</label>
+                      <p className="font-medium">{teacher?.timeZone || 'Not Specified'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Points & Engagement */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Points & Engagement</h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Current Points</label>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {activitySummary?.pointsBreakdown?.currentPoints || teacher?.points || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Lifetime Points</label>
+                      <p className="font-medium text-green-600">
+                        {activitySummary?.pointsBreakdown?.lifetimePoints || teacher?.lifetimePoints || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Bear Bucks</label>
+                      <p className="font-medium text-amber-600">
+                        {activitySummary?.pointsBreakdown?.bearBucks || teacher?.bearBucks || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Current Streak</label>
+                      <p className="font-medium">{teacher?.streak || 0} days</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activity & Status */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Activity & Status</h4>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Last Active</label>
+                      <p className="font-medium">
+                        {teacher?.lastActive ? new Date(teacher.lastActive).toLocaleDateString() : 'Never'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Account Created</label>
+                      <p className="font-medium">
+                        {teacher?.createdAt ? new Date(teacher.createdAt).toLocaleDateString() : 'Not Available'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Achievements</label>
+                      <p className="font-medium">{teacher?.achievementCount || 0} earned</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Role Status</label>
+                      <div className="flex gap-1">
+                        {teacher?.isAdmin && (
+                          <Badge variant="default" className="bg-red-100 text-red-800 text-xs">
+                            Platform Admin
+                          </Badge>
+                        )}
+                        {teacher?.isSchoolAdmin && (
+                          <Badge variant="default" className="bg-blue-100 text-blue-800 text-xs">
+                            School Admin
+                          </Badge>
+                        )}
+                        {!teacher?.isAdmin && !teacher?.isSchoolAdmin && (
+                          <Badge variant="outline" className="bg-gray-50 text-gray-700 text-xs">
+                            Teacher
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Assessment Overview - Only show if assessment data exists */}
@@ -446,6 +595,115 @@ export default function AdminTeacherAssessmentResultsSimple() {
       {/* Activity Summary */}
       {activitySummary && !activityLoading && (
         <div className="space-y-6">
+          {/* Learning Progress Overview */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-blue-500" />
+                Learning Progress & Professional Development
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* ECE Hours Breakdown */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">ECE Hours Breakdown</h4>
+                  {activitySummary.eceHoursSummary && activitySummary.eceHoursSummary.length > 0 ? (
+                    <div className="space-y-2">
+                      {activitySummary.eceHoursSummary.map((category, index) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span className="text-sm font-medium capitalize">
+                            {category.category?.replace('-', ' ') || 'Unknown'}
+                          </span>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                            {Math.round(parseInt(category.totalminutes || '0') / 60 * 10) / 10}h
+                          </Badge>
+                        </div>
+                      ))}
+                      <div className="pt-2 border-t">
+                        <div className="flex justify-between items-center font-semibold">
+                          <span>Total ECE Hours</span>
+                          <span className="text-blue-600">
+                            {Math.round(activitySummary.eceHoursSummary.reduce((total, cat) => 
+                              total + parseInt(cat.totalminutes || '0'), 0) / 60 * 10) / 10}h
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No ECE hours recorded yet</p>
+                  )}
+                </div>
+
+                {/* Module Completion Stats */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Module Completion</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium">Modules Completed</span>
+                        <span className="text-2xl font-bold text-green-600">
+                          {activitySummary.completedModules?.length || 0}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Professional development courses finished
+                      </div>
+                    </div>
+                    
+                    {activitySummary.completedModules && activitySummary.completedModules.length > 0 && (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Average Score</span>
+                          <span className="font-bold text-blue-600">
+                            {Math.round(activitySummary.completedModules.reduce((acc, mod) => 
+                              acc + (mod.finalscore || 0), 0) / activitySummary.completedModules.length)}%
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Across all completed modules
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Game Engagement */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Game Engagement</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium">Games Played</span>
+                        <span className="text-2xl font-bold text-purple-600">
+                          {activitySummary.gameCompletions?.length || 0}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Total game sessions completed
+                      </div>
+                    </div>
+                    
+                    {activitySummary.gameCompletions && activitySummary.gameCompletions.length > 0 && (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Average Score</span>
+                          <span className="font-bold text-purple-600">
+                            {Math.round(activitySummary.gameCompletions.reduce((acc, game) => 
+                              acc + (game.score || 0), 0) / activitySummary.gameCompletions.length)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Across all game sessions
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Points Summary */}
           <Card>
             <CardHeader>
