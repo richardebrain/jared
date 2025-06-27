@@ -57,6 +57,45 @@ interface TeacherAssessmentData {
   };
 }
 
+interface ActivitySummary {
+  completedModules: Array<{
+    moduleId: number;
+    moduleTitle: string;
+    pointsEarned: number;
+    finalScore: number;
+    lastAccessed: string;
+    eceHours: number;
+    eceCategory: string;
+    moduleCategory: string;
+    difficulty: string;
+  }>;
+  eceHoursSummary: Array<{
+    category: string;
+    totalMinutes: number;
+    completionCount: number;
+  }>;
+  gameCompletions: Array<{
+    gameId: number;
+    gameTitle: string;
+    score: number;
+    pointsEarned: number;
+    completedAt: string;
+    gameCategory: string;
+    gameDifficulty: string;
+  }>;
+  pointsBreakdown: {
+    modulePoints: number;
+    gamePoints: number;
+    totalPoints: number;
+  };
+  assessmentHistory: Array<{
+    type: string;
+    overallScore: number;
+    completedAt: string;
+    status: string;
+  }>;
+}
+
 export default function AdminTeacherAssessmentResultsSimple() {
   const { user, isAuthenticated, isSchoolAdmin, isAdmin, isOwner } = useAuth();
   const { toast } = useToast();
@@ -70,6 +109,13 @@ export default function AdminTeacherAssessmentResultsSimple() {
     queryKey: [`/api/admin/teachers/${teacherId}/assessment-results`],
     enabled: !!teacherId && hasAdminAccess,
     staleTime: 1000 * 60 * 5,
+  });
+
+  // Fetch comprehensive activity summary
+  const { data: activitySummary, isLoading: activityLoading } = useQuery<ActivitySummary>({
+    queryKey: [`/api/admin/teachers/${teacherId}/activity-summary`],
+    enabled: !!teacherId && hasAdminAccess,
+    staleTime: 1000 * 60 * 2,
   });
 
   const formatDate = (dateString: string) => {
@@ -283,6 +329,193 @@ export default function AdminTeacherAssessmentResultsSimple() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Activity Summary */}
+      {activitySummary && !activityLoading && (
+        <div className="space-y-6">
+          {/* Points Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-orange-500" />
+                Points Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-blue-600">
+                    {activitySummary.pointsBreakdown.modulePoints || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Module Points</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-600">
+                    {activitySummary.pointsBreakdown.gamePoints || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Game Points</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {activitySummary.pointsBreakdown.totalPoints || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Total Points</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Completed Modules */}
+          {activitySummary.completedModules && activitySummary.completedModules.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-blue-500" />
+                  Completed Modules ({activitySummary.completedModules.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {activitySummary.completedModules.slice(0, 10).map((module, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{module.moduleTitle}</h4>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className="text-sm text-gray-600">
+                            Score: {module.finalScore}%
+                          </span>
+                          {module.eceHours && (
+                            <Badge variant="outline" className="text-xs">
+                              <GraduationCap className="h-3 w-3 mr-1" />
+                              {module.eceHours}h ECE
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-xs">
+                            {module.difficulty}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-orange-600">
+                          +{module.pointsEarned} points
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(module.lastAccessed)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {activitySummary.completedModules.length > 10 && (
+                    <p className="text-sm text-gray-500 text-center mt-3">
+                      +{activitySummary.completedModules.length - 10} more modules completed
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ECE Hours Summary */}
+          {activitySummary.eceHoursSummary && activitySummary.eceHoursSummary.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-green-500" />
+                  ECE Hours by Category
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {activitySummary.eceHoursSummary.map((category, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="font-medium">{category.category}</span>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">
+                          {Math.round(category.totalMinutes / 60 * 10) / 10} hours
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {category.completionCount} completions
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Game Completions */}
+          {activitySummary.gameCompletions && activitySummary.gameCompletions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  Recent Game Completions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {activitySummary.gameCompletions.slice(0, 5).map((game, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{game.gameTitle}</h4>
+                        <p className="text-sm text-gray-600">
+                          Score: {game.score} | Difficulty: {game.gameDifficulty}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-orange-600">
+                          +{game.pointsEarned} points
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(game.completedAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Assessment History */}
+          {activitySummary.assessmentHistory && activitySummary.assessmentHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  Assessment History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {activitySummary.assessmentHistory.map((assessment, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{assessment.type}</h4>
+                        <p className="text-sm text-gray-600">
+                          Score: {assessment.overallScore}%
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <Badge 
+                          variant={assessment.status === 'Passed' ? 'default' : 'destructive'}
+                          className="mb-1"
+                        >
+                          {assessment.status}
+                        </Badge>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(assessment.completedAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }
