@@ -398,6 +398,13 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
         moduleTitle="Text Section"
         sectionContext="Educational Content"
       />
+
+      {/* Meme Finder Dialog */}
+      <MemeFinder
+        open={showMemeFinder}
+        onOpenChange={setShowMemeFinder}
+        onMemeSelected={handleMemeSelected}
+      />
     </div>
   );
 }
