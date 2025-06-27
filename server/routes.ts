@@ -2539,7 +2539,7 @@ Continue for all 5 questions...
 
       // Send email to user with new password
       try {
-        await sendSimplePasswordResetEmail(
+        await sendAdminPasswordResetEmail(
           targetUser.email || targetUser.username, 
           targetUser.firstName || 'User', 
           newPassword
