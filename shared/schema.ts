@@ -661,6 +661,34 @@ export const insertUserAvatarItemSchema = createInsertSchema(userAvatarItems).om
   purchasedAt: true,
 });
 
+// Songs schema for saving generated music
+export const songs = pgTable("songs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  prompt: text("prompt").notNull(), // Original user prompt
+  audioUrl: text("audio_url").notNull(), // URL to the generated audio file
+  taskId: text("task_id"), // GoAPI task ID for reference
+  status: text("status").notNull().default("completed"), // processing, completed, failed
+  generatedAt: timestamp("generated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSongSchema = createInsertSchema(songs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const songsRelations = relations(songs, ({ one }) => ({
+  user: one(users, {
+    fields: [songs.userId],
+    references: [users.id]
+  })
+}));
+
+export type Song = typeof songs.$inferSelect;
+export type InsertSong = z.infer<typeof insertSongSchema>;
+
 // Newsletter schema
 export const newsletters = pgTable("newsletters", {
   id: serial("id").primaryKey(),

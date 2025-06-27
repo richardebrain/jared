@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { users } from '../../shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { users, songs, insertSongSchema } from '../../shared/schema';
+import { eq, sql, desc } from 'drizzle-orm';
 
 const router = Router();
 
@@ -223,6 +223,11 @@ router.post('/generate', async (req, res) => {
 router.get('/status/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
+    const userId = req.session.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     
     if (!process.env.GOAPI_KEY) {
       return res.status(500).json({ 
@@ -253,9 +258,35 @@ router.get('/status/:taskId', async (req, res) => {
       if (taskData.status === 'completed' && taskData.output?.songs?.length > 0) {
         // Song is completed - get the first song's audio URL
         const firstSong = taskData.output.songs[0];
+        const audioUrl = firstSong.audio_url || firstSong.song_url;
+        
+        try {
+          // Check if this song is already saved
+          const existingSongs = await db.select()
+            .from(songs)
+            .where(eq(songs.taskId, taskId));
+          
+          if (existingSongs.length === 0) {
+            // Save the completed song to database
+            await db.insert(songs).values({
+              userId,
+              title: firstSong.title || firstSong.name || 'Custom Song',
+              prompt: taskData.input?.prompt || 'Generated Song',
+              audioUrl,
+              taskId,
+              status: 'completed'
+            });
+            
+            console.log('Song saved to database:', taskId);
+          }
+        } catch (saveError) {
+          console.error('Failed to save song to database:', saveError);
+          // Continue with response even if save fails
+        }
+        
         res.json({
           status: 'completed',
-          audioUrl: firstSong.audio_url || firstSong.song_url
+          audioUrl
         });
       } else if (taskData.status === 'failed') {
         res.json({
@@ -278,6 +309,26 @@ router.get('/status/:taskId', async (req, res) => {
   } catch (error) {
     console.error('Error checking song status:', error);
     res.status(500).json({ error: 'Failed to check song status' });
+  }
+});
+
+// Get user's saved songs
+router.get('/songs', async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const userSongs = await db.select()
+      .from(songs)
+      .where(eq(songs.userId, userId))
+      .orderBy(desc(songs.createdAt));
+
+    res.json(userSongs);
+  } catch (error) {
+    console.error('Error fetching user songs:', error);
+    res.status(500).json({ error: 'Failed to fetch songs' });
   }
 });
 
