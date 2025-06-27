@@ -53,7 +53,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
         // Add educational keywords to improve relevance
         const educationalQuery = `${searchQuery} education teaching classroom kids children`;
         
-        const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=g`);
+        const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13`);
         
         if (!response.ok) {
           throw new Error('Failed to search GIPHY');
