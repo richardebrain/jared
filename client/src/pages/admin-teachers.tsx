@@ -150,6 +150,9 @@ export default function AdminTeachersPage() {
         title: "Password Reset",
         description: data.message || "Password has been reset and email sent to user",
       });
+      // Reset state after successful password reset
+      setSelectedTeacherForReset(null);
+      setCustomPassword('');
     },
     onError: (error: any) => {
       toast({
