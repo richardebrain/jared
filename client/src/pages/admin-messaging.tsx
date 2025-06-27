@@ -492,35 +492,6 @@ export default function AdminMessagingPage() {
                 </>
               )}
 
-              {/* Regular message fields - only show when NOT sending bonus box */}
-              {!isBonusBox && (
-                <>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Subject</label>
-                    <Input
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="Enter message subject..."
-                      maxLength={100}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Message</label>
-                    <Textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Type your message here..."
-                      rows={6}
-                      maxLength={1000}
-                    />
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {message.length}/1000 characters
-                    </div>
-                  </div>
-                </>
-              )}
-
               <div className="flex items-center justify-between pt-4">
                 <div className="text-sm text-muted-foreground">
                   {selectedTeachers.length} teacher(s) selected
