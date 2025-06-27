@@ -299,16 +299,11 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
       {/* Bonus Box Popup */}
       {showBonusBoxPopup && bonusBoxes.length > 0 && (
         <BonusBoxPopup
-          bonusBox={bonusBoxes[0]}
-          onComplete={(pointsAwarded) => {
-            // Remove the opened box from the list
-            setBonusBoxes(prev => prev.slice(1));
-            
-            // If no more boxes, close popup and main welcome
-            if (bonusBoxes.length <= 1) {
-              setShowBonusBoxPopup(false);
-              onClose();
-            }
+          bonusBoxes={bonusBoxes}
+          onClose={() => {
+            // All boxes have been processed, close popup and main welcome
+            setShowBonusBoxPopup(false);
+            onClose();
           }}
         />
       )}

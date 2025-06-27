@@ -56,6 +56,11 @@ const boxConfig = {
 };
 
 export default function BonusBoxPopup({ bonusBoxes, onClose }: BonusBoxPopupProps) {
+  // Early return if bonusBoxes is not valid
+  if (!bonusBoxes || !Array.isArray(bonusBoxes) || bonusBoxes.length === 0) {
+    return null;
+  }
+
   const [currentBoxIndex, setCurrentBoxIndex] = useState(0);
   const [isOpening, setIsOpening] = useState(false);
   const { toast } = useToast();
@@ -104,8 +109,6 @@ export default function BonusBoxPopup({ bonusBoxes, onClose }: BonusBoxPopupProp
       setIsOpening(false);
     }
   });
-
-  if (bonusBoxes.length === 0) return null;
 
   const currentBox = bonusBoxes[currentBoxIndex];
   const config = boxConfig[currentBox.box_type];
