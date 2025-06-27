@@ -1976,6 +1976,145 @@ Continue for all 5 questions...
     });
   }
 
+  // Password Reset Functionality
+  if (!skipAuthEndpoints) {
+    // Request password reset - sends email with reset link
+    app.post("/api/auth/forgot-password", async (req, res) => {
+      try {
+        const { email } = req.body;
+        
+        if (!email) {
+          return res.status(400).json({ 
+            message: "Email is required",
+            details: "Please provide your email address to reset your password."
+          });
+        }
+
+        // Find user by email
+        const user = await storage.getUserByEmail(email.trim().toLowerCase());
+        
+        if (!user) {
+          // Don't reveal if email exists for security
+          return res.status(200).json({
+            message: "Password reset email sent",
+            details: "If an account with this email exists, you will receive a password reset link."
+          });
+        }
+
+        // Generate reset token (6-digit code for simplicity)
+        const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+        // Store reset token in database
+        await storage.updateUser(user.id, {
+          resetToken,
+          resetTokenExpires: resetExpires
+        });
+
+        // Send email with reset code
+        try {
+          const { sendPasswordResetEmail } = await import('./services/emailService');
+          await sendPasswordResetEmail(user.email, user.firstName || user.username, resetToken);
+          
+          console.log(`Password reset email sent to ${user.email} for user ${user.id}`);
+        } catch (emailError) {
+          console.error('Failed to send reset email:', emailError);
+          // Continue anyway - user will see success message
+        }
+
+        res.status(200).json({
+          message: "Password reset email sent",
+          details: "Check your email for a 6-digit reset code. The code expires in 30 minutes."
+        });
+
+      } catch (error) {
+        console.error('Password reset request error:', error);
+        res.status(500).json({
+          message: "Internal server error",
+          details: "Failed to process password reset request. Please try again."
+        });
+      }
+    });
+
+    // Verify reset token and set new password
+    app.post("/api/auth/reset-password", async (req, res) => {
+      try {
+        const { email, resetToken, newPassword } = req.body;
+        
+        if (!email || !resetToken || !newPassword) {
+          return res.status(400).json({ 
+            message: "Missing required fields",
+            details: "Email, reset code, and new password are required."
+          });
+        }
+
+        if (newPassword.length < 6) {
+          return res.status(400).json({
+            message: "Password too short",
+            details: "Password must be at least 6 characters long."
+          });
+        }
+
+        // Find user by email
+        const user = await storage.getUserByEmail(email.trim().toLowerCase());
+        
+        if (!user) {
+          return res.status(400).json({
+            message: "Invalid reset request",
+            details: "No password reset request found for this email."
+          });
+        }
+
+        // Check if reset token is valid and not expired
+        if (!user.resetToken || !user.resetTokenExpires) {
+          return res.status(400).json({
+            message: "No reset request found",
+            details: "No active password reset request found. Please request a new reset code."
+          });
+        }
+
+        if (user.resetToken !== resetToken.trim()) {
+          return res.status(400).json({
+            message: "Invalid reset code",
+            details: "The reset code you entered is incorrect. Please check and try again."
+          });
+        }
+
+        if (new Date() > new Date(user.resetTokenExpires)) {
+          return res.status(400).json({
+            message: "Reset code expired",
+            details: "Your reset code has expired. Please request a new password reset."
+          });
+        }
+
+        // Hash new password
+        const bcrypt = await import('bcrypt');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear reset token
+        await storage.updateUser(user.id, {
+          password: hashedPassword,
+          resetToken: null,
+          resetTokenExpires: null
+        });
+
+        console.log(`Password successfully reset for user ${user.id} (${user.email})`);
+
+        res.status(200).json({
+          message: "Password reset successful",
+          details: "Your password has been updated. You can now log in with your new password."
+        });
+
+      } catch (error) {
+        console.error('Password reset error:', error);
+        res.status(500).json({
+          message: "Internal server error",
+          details: "Failed to reset password. Please try again."
+        });
+      }
+    });
+  }
+
   // Session monitoring endpoints for enhanced security
   app.get("/api/admin/session-stats", requireAuth, async (req, res) => {
     try {
