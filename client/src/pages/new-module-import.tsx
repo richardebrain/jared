@@ -159,27 +159,41 @@ export default function NewModuleImport() {
     try {
       const selectedSlidesData = selectedSlides.map(index => parsedSlides[index]);
       
-      const response = await fetch('/api/modules', {
+      // Create module structure for the new publishing endpoint
+      const moduleData = {
+        title: moduleConfig.title,
+        description: moduleConfig.description,
+        category: moduleConfig.category || 'professional-development',
+        difficulty: moduleConfig.difficulty || 'medium',
+        estimatedTime: moduleConfig.estimatedTime || '15',
+        customPoints: moduleConfig.customPoints || '',
+        moduleType: 'powerpoint-import',
+        sections: selectedSlidesData.map((slide, index) => ({
+          title: slide.title || `Slide ${slide.slideNumber}`,
+          content: {
+            blocks: [{
+              type: 'text',
+              content: slide.content || '',
+              notes: slide.notes || ''
+            }]
+          },
+          type: slide.videoLinks && slide.videoLinks.length > 0 ? 'video' : 'text',
+          duration: Math.ceil(parseInt(moduleConfig.estimatedTime || '15') / selectedSlidesData.length),
+          videoUrl: slide.videoLinks && slide.videoLinks.length > 0 ? slide.videoLinks[0] : '',
+          imageUrl: '',
+          activities: []
+        }))
+      };
+
+      const response = await fetch('/api/modules/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: moduleConfig.title,
-          description: moduleConfig.description,
-          category: moduleConfig.category || 'professional-development',
-          difficulty: moduleConfig.difficulty || 'medium',
-          estimatedTime: moduleConfig.estimatedTime || '15',
-          customPoints: moduleConfig.customPoints || '',
-          shareWithCommunity: moduleConfig.shareWithCommunity || false,
-          sections: selectedSlidesData.map((slide, index) => ({
-            title: slide.title || `Slide ${slide.slideNumber}`,
-            content: slide.content || '',
-            type: slide.videoLinks && slide.videoLinks.length > 0 ? 'video' : 'text',
-            duration: Math.ceil(parseInt(moduleConfig.estimatedTime || '15') / selectedSlidesData.length),
-            videoUrl: slide.videoLinks && slide.videoLinks.length > 0 ? slide.videoLinks[0] : '',
-            imageUrl: '',
-            activities: [],
-            notes: slide.notes || ''
-          }))
+          module: moduleData,
+          type: 'personal',
+          includeInLibrary: true,
+          publishToCommunity: moduleConfig.shareWithCommunity || false,
+          allowComments: true
         })
       });
 
