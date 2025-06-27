@@ -883,6 +883,42 @@ export default function AppOwnerDashboard() {
           <AssessmentResultsManagement />
         </TabsContent>
       </Tabs>
+
+      {/* Delete School Confirmation Dialog */}
+      <Dialog open={deleteSchoolDialogOpen} onOpenChange={setDeleteSchoolDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete School</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete "{schoolToDelete?.name}"?
+              <br /><br />
+              <strong className="text-red-600">This action cannot be undone.</strong> This will:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Delete the school and all associated data</li>
+                <li>Remove all teachers and users from this school</li>
+                <li>Delete all modules, assessments, and progress data</li>
+                <li>Cancel any active subscriptions</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteSchoolDialogOpen(false)}
+              disabled={deleteSchoolMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteSchool}
+              disabled={deleteSchoolMutation.isPending}
+            >
+              {deleteSchoolMutation.isPending ? "Deleting..." : "Delete School"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
