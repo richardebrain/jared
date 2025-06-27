@@ -43,6 +43,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
   const [searchTerm, setSearchTerm] = useState('');
   const [giphyResults, setGiphyResults] = useState<GiphyContent[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchKey, setSearchKey] = useState(0); // Force re-render key
   const { toast } = useToast();
 
   // Reset component state when dialog opens
@@ -51,6 +52,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       setSearchTerm('');
       setGiphyResults([]);
       setLoading(false);
+      setSearchKey(prev => prev + 1); // Force fresh state
     }
   }, [open]);
 
@@ -65,13 +67,17 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       return;
     }
 
+    // Clear old results immediately and start loading
+    setGiphyResults([]);
     setLoading(true);
     
     try {
       // Add educational keywords to improve relevance
       const educationalQuery = `${searchTerm} education teaching`;
       
-      const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13`);
+      // Add timestamp to ensure fresh request
+      const timestamp = Date.now();
+      const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13&t=${timestamp}`);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -83,8 +89,13 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
       console.log('GIPHY search successful for:', searchTerm);
       console.log('Setting giphyResults to:', data.data?.length, 'items');
       
-      // Force state update with new results
-      setGiphyResults(data.data || []);
+      // Force state update with completely new results and increment search key
+      setGiphyResults(prev => {
+        console.log('Previous results:', prev.length);
+        console.log('New results:', data.data?.length || 0);
+        return data.data || [];
+      });
+      setSearchKey(prev => prev + 1); // Force re-render
     } catch (error) {
       console.error('GIPHY search error:', error);
       toast({
@@ -163,7 +174,7 @@ export default function VisualContentFinder({ open, onOpenChange, onMemeSelected
                 <span className="ml-2 text-gray-600">Searching visual content...</span>
               </div>
             ) : giphyResults.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div key={searchKey} className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {giphyResults.map((meme) => (
                   <Card
                     key={meme.id}
