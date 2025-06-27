@@ -477,20 +477,6 @@ export default function Header() {
               {isOwner && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/admin")}>
-                    <i className="ri-admin-line mr-2"></i>
-                    System Administrator
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {isAdmin && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/settings/owner-dashboard")}>
-                    <i className="ri-building-line mr-2"></i>
-                    School Management
-                  </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/app-owner-dashboard")}>
                     <i className="ri-shield-keyhole-line mr-2"></i>
                     System Administration

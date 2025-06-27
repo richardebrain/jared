@@ -50,6 +50,8 @@ export default function AppOwnerDashboard() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [expandedSchools, setExpandedSchools] = useState<number[]>([]);
+  const [deleteSchoolDialogOpen, setDeleteSchoolDialogOpen] = useState(false);
+  const [schoolToDelete, setSchoolToDelete] = useState<any>(null);
 
   // Handle backwards compatibility for old "assessments" tab
   const handleTabChange = (value: string) => {
@@ -143,8 +145,47 @@ export default function AppOwnerDashboard() {
     },
   });
 
+  // Delete school mutation
+  const deleteSchoolMutation = useMutation({
+    mutationFn: async (schoolId: number) => {
+      return await apiRequest(`/api/owner/schools/${schoolId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "School Deleted",
+        description: `${data.deletedSchool} and all associated data have been permanently deleted.`,
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/owner/schools"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/owner/metrics"] });
+      setDeleteSchoolDialogOpen(false);
+      setSchoolToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete school. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error deleting school:", error);
+    },
+  });
+
   const handleGrantOwnerAccess = (userId: number, isOwner: boolean) => {
     updateOwnerMutation.mutate({ userId, isOwner });
+  };
+
+  const handleDeleteSchool = (school: any) => {
+    setSchoolToDelete(school);
+    setDeleteSchoolDialogOpen(true);
+  };
+
+  const confirmDeleteSchool = () => {
+    if (schoolToDelete) {
+      deleteSchoolMutation.mutate(schoolToDelete.id);
+    }
   };
 
   const toggleSchoolExpanded = (schoolId: number) => {
@@ -516,9 +557,15 @@ export default function AppOwnerDashboard() {
                                   <User className="h-4 w-4 mr-2" />
                                   View School Admin
                                 </Button>
-                                <Button variant="ghost" size="sm" className="justify-start text-red-500 hover:text-red-700">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="justify-start text-red-500 hover:text-red-700"
+                                  onClick={() => handleDeleteSchool(school)}
+                                  disabled={deleteSchoolMutation.isPending}
+                                >
                                   <XCircle className="h-4 w-4 mr-2" />
-                                  Deactivate School
+                                  {deleteSchoolMutation.isPending ? "Deleting..." : "Delete School"}
                                 </Button>
                               </div>
                             </div>

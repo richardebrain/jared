@@ -3,6 +3,7 @@ import { db } from '../db';
 import { eceReportingSettings, eceHours, users, schools } from '@shared/schema';
 import { eq, and, sql, desc } from 'drizzle-orm';
 import { sendEceMonthlyReport } from '../routes.js';
+import { checkAndNotifyExpiringCredentials } from './notificationService.js';
 
 export class ScheduledTaskService {
   private static instance: ScheduledTaskService;
@@ -36,6 +37,14 @@ export class ScheduledTaskService {
     cron.schedule('0 9 15 * *', async () => {
       console.log('📅 Running backup monthly ECE report task...');
       await this.sendMonthlyEceReports();
+    }, {
+      timezone: "America/New_York"
+    });
+
+    // Schedule credentials expiration check - run every day at 12:00 AM
+    cron.schedule('0 0 * * *', async () => {
+      console.log('📅 Running credentials expiration check...');
+      await checkAndNotifyExpiringCredentials(30);
     }, {
       timezone: "America/New_York"
     });
