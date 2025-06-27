@@ -141,7 +141,7 @@ Instruments: Acoustic guitar, piano, light drums, bass, occasional xylophone
 Target: Preschool children ages 3-6 years old
 
 Make it catchy, memorable, and appropriate for educational settings.`,
-            negative_tags: 'scary, violent, inappropriate, adult content, heavy metal, rap, electronic, techno, distorted vocals, loud drums',
+            negative_tags: 'scary, violent, inappropriate, adult, metal, rap, electronic, distorted, loud',
             lyrics_type: 'generate',
             seed: -1,
             style: 'children, educational, acoustic, upbeat, clean production',
