@@ -62,6 +62,9 @@ interface TeacherAssessmentData {
 }
 
 interface ActivitySummary {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   completedModules: Array<{
     moduleId: number;
     moduleTitle: string;
@@ -269,7 +272,11 @@ export default function AdminTeacherAssessmentResultsSimple() {
     );
   }
 
-  if (error || !data || !data.success) {
+  // Handle both cases: no assessment data and other errors
+  const hasAssessmentData = data && data.success;
+  const isAssessmentNotCompleted = error && (error.message?.includes('404') || error.message?.includes('No completed assessment'));
+  
+  if (error && !isAssessmentNotCompleted) {
     return (
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         <div className="mb-6">
@@ -284,9 +291,9 @@ export default function AdminTeacherAssessmentResultsSimple() {
         <Card className="p-8">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Assessment Results Not Available</h3>
+            <h3 className="text-lg font-semibold mb-2">Error Loading Data</h3>
             <p className="text-muted-foreground">
-              {error ? 'Failed to load assessment results.' : 'No assessment results found for this teacher.'}
+              Failed to load teacher information. Please try again.
             </p>
           </div>
         </Card>
@@ -294,7 +301,10 @@ export default function AdminTeacherAssessmentResultsSimple() {
     );
   }
 
-  const { teacher, assessment, results } = data;
+  // Extract teacher data from either source
+  const teacher = hasAssessmentData ? data!.teacher : null;
+  const assessment = hasAssessmentData ? data!.assessment : null;
+  const results = hasAssessmentData ? data!.results : null;
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -314,9 +324,15 @@ export default function AdminTeacherAssessmentResultsSimple() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {teacher.firstName} {teacher.lastName}
+                {teacher ? `${teacher.firstName} ${teacher.lastName}` : 
+                 activitySummary ? `${activitySummary.firstName || ''} ${activitySummary.lastName || ''}` : 
+                 `Teacher #${teacherId}`}
               </h1>
-              <p className="text-gray-600">{teacher.jobTitle} • {teacher.email}</p>
+              <p className="text-gray-600">
+                {teacher ? `${teacher.jobTitle} • ${teacher.email}` : 
+                 activitySummary ? `${activitySummary.email}` : 
+                 'Full Teacher Stats'}
+              </p>
             </div>
           </div>
         </div>

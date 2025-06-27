@@ -396,33 +396,6 @@ export default function AdminTeachersPage() {
               </CardHeader>
               
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Points:</span>
-                    <p className="font-semibold">{teacher.points || 0}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Streak:</span>
-                    <p className="font-semibold">{teacher.streak || 0} days</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Bear Bucks:</span>
-                    <p className="font-semibold">{teacher.bearBucks || 0}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Level:</span>
-                    <p className="font-semibold">{teacher.level || 1}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Progress to Next Level</span>
-                    <span className="font-medium">{Math.round(getProgressPercentage(teacher.points || 0))}%</span>
-                  </div>
-                  <Progress value={getProgressPercentage(teacher.points || 0)} className="h-2" />
-                </div>
-                
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Clock className="h-3 w-3" />
@@ -506,24 +479,19 @@ export default function AdminTeachersPage() {
                   </div>
                 </div>
 
-                {/* Assessment Results Summary */}
-                <TeacherAssessmentSummary assessmentResults={teacher.assessmentResults} />
-                
-                {/* View Assessment Results Button */}
-                {teacher.assessmentResults?.completed && (
-                  <div className="pt-2">
-                    <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        className="w-full"
-                      >
-                        <Award className="h-3 w-3 mr-2" />
-                        Full Teacher Stats
-                      </Button>
-                    </Link>
-                  </div>
-                )}
+                {/* Full Teacher Stats Button - Available for all teachers */}
+                <div className="pt-2">
+                  <Link href={`/admin/teachers/${teacher.id}/assessment-results`}>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="w-full"
+                    >
+                      <Award className="h-3 w-3 mr-2" />
+                      Full Teacher Stats
+                    </Button>
+                  </Link>
+                </div>
 
                 {/* Password Reset Button */}
                 <div className="pt-2">
