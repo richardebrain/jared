@@ -6,18 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Smile, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Meme {
+interface VisualContent {
   id: string;
   url: string;
   title: string;
-  category: string;
+  type: string;
   description?: string;
 }
 
-interface GiphyMeme {
+interface GiphyContent {
   id: string;
   url: string;
   title: string;
+  type: string;
   images: {
     fixed_height: {
       url: string;
@@ -25,18 +26,21 @@ interface GiphyMeme {
     original: {
       url: string;
     };
+    fixed_width?: {
+      url: string;
+    };
   };
 }
 
-interface MemeFinderProps {
+interface VisualContentFinderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onMemeSelected: (meme: { url: string; description: string }) => void;
+  onMemeSelected: (content: { url: string; description: string }) => void;
 }
 
-export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeFinderProps) {
+export default function VisualContentFinder({ open, onOpenChange, onMemeSelected }: VisualContentFinderProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [giphyResults, setGiphyResults] = useState<GiphyMeme[]>([]);
+  const [giphyResults, setGiphyResults] = useState<GiphyContent[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -68,7 +72,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
         console.error('GIPHY search error:', error);
         toast({
           title: "Search Error",
-          description: `Failed to search GIPHY: ${error.message}`,
+          description: `Failed to search visual content: ${error.message}`,
           variant: "destructive"
         });
         setGiphyResults([]);
@@ -93,15 +97,15 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
     debouncedGiphySearch(value);
   };
 
-  const handleGiphyMemeSelect = (giphyMeme: GiphyMeme) => {
+  const handleContentSelect = (content: GiphyContent) => {
     onMemeSelected({
-      url: giphyMeme.images.original.url,
-      description: giphyMeme.title || 'Educational GIF from GIPHY'
+      url: content.images.original.url,
+      description: content.title || 'Educational visual content from GIPHY'
     });
     
     toast({
-      title: "Meme Added!",
-      description: `Educational meme added to your module section.`
+      title: "Visual Content Added!",
+      description: `Educational ${content.type || 'visual content'} added to your module section.`
     });
     
     onOpenChange(false);
@@ -113,7 +117,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Smile className="h-5 w-5 text-orange-500" />
-            Find Educational Memes
+            Visual Content Finder
           </DialogTitle>
         </DialogHeader>
         
@@ -122,7 +126,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search for educational memes (e.g., playground safety, classroom management, teaching moments)..."
+              placeholder="Search for visual content (e.g., playground safety, classroom management, teaching moments, celebrations)..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
@@ -134,7 +138,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
-                <span className="ml-2 text-gray-600">Searching memes...</span>
+                <span className="ml-2 text-gray-600">Searching visual content...</span>
               </div>
             ) : giphyResults.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -142,7 +146,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
                   <Card
                     key={meme.id}
                     className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                    onClick={() => handleGiphyMemeSelect(meme)}
+                    onClick={() => handleContentSelect(meme)}
                   >
                     <CardContent className="p-3">
                       <div className="aspect-square mb-2 rounded-lg overflow-hidden bg-gray-100">
