@@ -40,7 +40,7 @@ import AdminTools from "@/components/AdminTools";
 import DailyChallenge from "@/components/DailyChallenge";
 import AchievementPopup from "@/components/AchievementPopup";
 import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
-import PersonalizedMiniLessons from "@/components/PersonalizedMiniLessons";
+
 import CommunityModules from "@/components/CommunityModules";
 import UserTutorial from "@/components/UserTutorial";
 import { useTutorial } from "@/hooks/useTutorial";
@@ -783,27 +783,10 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Personalized Mini-Lessons */}
-              <div className="space-y-4 mt-8">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                  <Book className="h-5 w-5 mr-2 text-emerald-600" />
-                  Personalized Mini-Lessons
-                </h2>
-                <p className="text-neutral-600 mb-4">
-                  These short, targeted lessons are created specifically for you based on assessment questions you missed, 
-                  featuring enriched content with teaching explanations, scientific background, and practical applications.
-                </p>
-                <div className="mb-6">
-                  {user && (
-                    <PersonalizedMiniLessons userId={user.id} />
-                  )}
-                </div>
-                
-                {/* Recent Shout-Outs and Newsletter Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <RecentShoutOuts limit={3} />
-                  <MonthlyNewsletter />
-                </div>
+              {/* Recent Shout-Outs and Newsletter Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 mb-6">
+                <RecentShoutOuts limit={3} />
+                <MonthlyNewsletter />
               </div>
               
               {/* Modules For Your Growth */}
