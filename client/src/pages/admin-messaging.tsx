@@ -360,38 +360,137 @@ export default function AdminMessagingPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Message Type</label>
-                  <Select value={messageType} onValueChange={setMessageType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="announcement">Announcement</SelectItem>
-                      <SelectItem value="reminder">Reminder</SelectItem>
-                      <SelectItem value="welcome">Welcome</SelectItem>
-                      <SelectItem value="appreciation">Appreciation</SelectItem>
-                      <SelectItem value="urgent">Urgent Notice</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Priority</label>
-                  <Select value={priority} onValueChange={setPriority}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Bonus Box Toggle */}
+              <div className="flex items-center space-x-2 p-3 border rounded-lg bg-gradient-to-r from-purple-50 to-pink-50">
+                <Checkbox
+                  id="bonusBox"
+                  checked={isBonusBox}
+                  onCheckedChange={(checked) => setIsBonusBox(checked === true)}
+                />
+                <label
+                  htmlFor="bonusBox"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                >
+                  <Gift className="h-4 w-4 text-purple-600" />
+                  Send as Bonus Box (awards random points based on box type)
+                </label>
               </div>
+
+              {/* Bonus Box Configuration */}
+              {isBonusBox && (
+                <div className="grid grid-cols-1 gap-4 p-4 border rounded-lg bg-purple-50">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Box Type</label>
+                    <Select value={boxType} onValueChange={(value: 'bonus' | 'bronze' | 'silver' | 'gold') => setBoxType(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bonus">
+                          <div className="flex items-center gap-2">
+                            <Gift className="h-4 w-4 text-purple-600" />
+                            <span>Bonus Box (1-30 points)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="bronze">
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4 text-orange-600" />
+                            <span>Bronze Box (1-20 points)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="silver">
+                          <div className="flex items-center gap-2">
+                            <Award className="h-4 w-4 text-gray-600" />
+                            <span>Silver Box (10-30 points)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="gold">
+                          <div className="flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-yellow-600" />
+                            <span>Gold Box (20-50 points)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Bonus Box Message</label>
+                    <Textarea
+                      value={bonusMessage}
+                      onChange={(e) => setBonusMessage(e.target.value)}
+                      placeholder="Add a personal message for the bonus box..."
+                      rows={2}
+                      maxLength={200}
+                    />
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {bonusMessage.length}/200 characters
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Message Configuration */}
+              {!isBonusBox && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Message Type</label>
+                      <Select value={messageType} onValueChange={setMessageType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="announcement">Announcement</SelectItem>
+                          <SelectItem value="reminder">Reminder</SelectItem>
+                          <SelectItem value="welcome">Welcome</SelectItem>
+                          <SelectItem value="appreciation">Appreciation</SelectItem>
+                          <SelectItem value="urgent">Urgent Notice</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Priority</label>
+                      <Select value={priority} onValueChange={setPriority}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Subject</label>
+                    <Input
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Enter message subject..."
+                      maxLength={100}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Message</label>
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Type your message here..."
+                      rows={6}
+                      maxLength={1000}
+                    />
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {message.length}/1000 characters
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="text-sm font-medium mb-2 block">Subject</label>
@@ -421,22 +520,48 @@ export default function AdminMessagingPage() {
                 <div className="text-sm text-muted-foreground">
                   {selectedTeachers.length} teacher(s) selected
                 </div>
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!subject.trim() || !message.trim() || selectedTeachers.length === 0 || sendMessageMutation.isPending}
-                >
-                  {sendMessageMutation.isPending ? (
-                    <>
-                      <Clock className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Message
-                    </>
-                  )}
-                </Button>
+                
+                {isBonusBox ? (
+                  <Button
+                    onClick={() => {
+                      // Send bonus box to each selected teacher
+                      selectedTeachers.forEach((teacherId) => {
+                        handleSendBonusBox(teacherId);
+                      });
+                    }}
+                    disabled={selectedTeachers.length === 0 || sendBonusBoxMutation.isPending}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  >
+                    {sendBonusBoxMutation.isPending ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Sending Bonus Boxes...
+                      </>
+                    ) : (
+                      <>
+                        <Gift className="h-4 w-4 mr-2" />
+                        Send Bonus Boxes
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!subject.trim() || !message.trim() || selectedTeachers.length === 0 || sendMessageMutation.isPending}
+                  >
+                    {sendMessageMutation.isPending ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
