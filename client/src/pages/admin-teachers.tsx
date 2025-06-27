@@ -33,7 +33,8 @@ import {
   Filter,
   Shield,
   ShieldCheck,
-  Trash2
+  Trash2,
+  Key
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
@@ -128,6 +129,29 @@ export default function AdminTeachersPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Password reset mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest(`/api/admin/reset-user-password`, {
+        method: 'POST',
+        data: { userId }
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Password Reset",
+        description: data.message || "Password has been reset and email sent to user",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset password",
         variant: "destructive",
       });
     },
@@ -494,6 +518,41 @@ export default function AdminTeachersPage() {
                     </Link>
                   </div>
                 )}
+
+                {/* Password Reset Button */}
+                <div className="pt-2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        disabled={resetPasswordMutation.isPending}
+                      >
+                        <Key className="h-3 w-3 mr-2" />
+                        {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reset User Password</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to reset <strong>{teacher.firstName} {teacher.lastName}</strong>'s password? 
+                          A new temporary password will be generated and sent to their email address ({teacher.email}).
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => resetPasswordMutation.mutate(teacher.id)}
+                          disabled={resetPasswordMutation.isPending}
+                        >
+                          {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
 
                 {/* Delete User Button */}
                 <div className="pt-2 border-t">
