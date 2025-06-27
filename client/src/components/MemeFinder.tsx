@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Smile, Search, Download, X, Loader2, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useCallback } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Search, Smile, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Meme {
   id: string;
@@ -36,154 +34,11 @@ interface MemeFinderProps {
   onMemeSelected: (meme: { url: string; description: string }) => void;
 }
 
-// Curated collection of educational and childcare-themed memes
-const EDUCATIONAL_MEMES: Meme[] = [
-  {
-    id: '1',
-    url: 'https://i.imgflip.com/3i7wxp.jpg',
-    title: 'Success Kid - Learning Achievement',
-    category: 'Success',
-    description: 'Child celebrating learning success'
-  },
-  {
-    id: '2', 
-    url: 'https://i.imgflip.com/1bij.jpg',
-    title: 'One Does Not Simply... Teach Preschoolers',
-    category: 'Teaching',
-    description: 'Teaching challenges humor'
-  },
-  {
-    id: '3',
-    url: 'https://i.imgflip.com/8696f.jpg',
-    title: 'Distracted Boyfriend - New Teaching Method',
-    category: 'Innovation',
-    description: 'Trying new teaching approaches'
-  },
-  {
-    id: '4',
-    url: 'https://i.imgflip.com/61kujf.jpg',
-    title: 'Drake No/Yes - Traditional vs Modern Teaching',
-    category: 'Methods',
-    description: 'Comparing teaching methods'
-  },
-  {
-    id: '5',
-    url: 'https://i.imgflip.com/1g8my4.jpg',
-    title: 'This is Fine - Classroom Management',
-    category: 'Classroom',
-    description: 'Managing classroom chaos with humor'
-  },
-  {
-    id: '6',
-    url: 'https://i.imgflip.com/26am.jpg',
-    title: 'Futurama Fry - Parent-Teacher Conferences',
-    category: 'Communication',
-    description: 'Navigating parent interactions'
-  },
-  {
-    id: '7',
-    url: 'https://i.imgflip.com/16iyn1.jpg',
-    title: 'Confused Math Lady - New Curriculum',
-    category: 'Curriculum',
-    description: 'Learning new educational requirements'
-  },
-  {
-    id: '8',
-    url: 'https://i.imgflip.com/1tl71a.jpg',
-    title: 'Expanding Brain - Child Development Stages',
-    category: 'Development',
-    description: 'Understanding child development progression'
-  },
-  {
-    id: '9',
-    url: 'https://i.imgflip.com/2cp1.jpg',
-    title: 'Awkward Moment Seal - Playground Incidents',
-    category: 'Playground',
-    description: 'Handling unexpected situations'
-  },
-  {
-    id: '10',
-    url: 'https://i.imgflip.com/1ihzfe.jpg',
-    title: 'Scroll of Truth - Early Childhood Facts',
-    category: 'Education',
-    description: 'Important early childhood insights'
-  },
-  {
-    id: '11',
-    url: 'https://i.imgflip.com/1g7q64.jpg',
-    title: 'Spongebob Mocking - Difficult Parents',
-    category: 'Humor',
-    description: 'Dealing with challenging interactions'
-  },
-  {
-    id: '12',
-    url: 'https://i.imgflip.com/24y43o.jpg',
-    title: 'Surprised Pikachu - Budget Cuts',
-    category: 'Resources',
-    description: 'Unexpected resource limitations'
-  },
-  {
-    id: '13',
-    url: 'https://i.imgflip.com/1e7ql7.jpg',
-    title: 'Roll Safe - Smart Teaching Strategies',
-    category: 'Strategy',
-    description: 'Clever teaching solutions'
-  },
-  {
-    id: '14',
-    url: 'https://i.imgflip.com/1c1uej.jpg',
-    title: 'Leonardo DiCaprio Cheers - Professional Development',
-    category: 'Growth',
-    description: 'Celebrating learning achievements'
-  },
-  {
-    id: '15',
-    url: 'https://i.imgflip.com/2h7me5.jpg',
-    title: 'Woman Yelling at Cat - Curriculum Debates',
-    category: 'Debate',
-    description: 'Educational methodology discussions'
-  }
-];
-
-const CATEGORIES = ['All', 'Success', 'Teaching', 'Innovation', 'Methods', 'Classroom', 'Communication', 'Curriculum', 'Development', 'Playground', 'Education', 'Humor', 'Resources', 'Strategy', 'Growth', 'Debate'];
-
 export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeFinderProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [filteredMemes, setFilteredMemes] = useState<Meme[]>(EDUCATIONAL_MEMES);
-  const [loading, setLoading] = useState(false);
-  const [giphySearchTerm, setGiphySearchTerm] = useState('');
   const [giphyResults, setGiphyResults] = useState<GiphyMeme[]>([]);
-  const [giphyLoading, setGiphyLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('curated');
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  // Debounced search function for curated memes
-  const debouncedSearch = useCallback(
-    debounce((term: string, category: string) => {
-      setLoading(true);
-      
-      let filtered = EDUCATIONAL_MEMES;
-      
-      // Filter by category
-      if (category !== 'All') {
-        filtered = filtered.filter(meme => meme.category === category);
-      }
-      
-      // Filter by search term
-      if (term.trim()) {
-        filtered = filtered.filter(meme => 
-          meme.title.toLowerCase().includes(term.toLowerCase()) ||
-          meme.category.toLowerCase().includes(term.toLowerCase()) ||
-          (meme.description && meme.description.toLowerCase().includes(term.toLowerCase()))
-        );
-      }
-      
-      setFilteredMemes(filtered);
-      setLoading(false);
-    }, 300),
-    []
-  );
 
   // GIPHY search function
   const searchGiphy = useCallback(
@@ -193,7 +48,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
         return;
       }
 
-      setGiphyLoading(true);
+      setLoading(true);
       try {
         // Add educational keywords to improve relevance
         const educationalQuery = `${searchQuery} education teaching classroom kids children`;
@@ -215,7 +70,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
         });
         setGiphyResults([]);
       } finally {
-        setGiphyLoading(false);
+        setLoading(false);
       }
     },
     [toast]
@@ -229,26 +84,10 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
     [searchGiphy]
   );
 
-  useEffect(() => {
-    debouncedSearch(searchTerm, selectedCategory);
-  }, [searchTerm, selectedCategory, debouncedSearch]);
-
-  useEffect(() => {
-    debouncedGiphySearch(giphySearchTerm);
-  }, [giphySearchTerm, debouncedGiphySearch]);
-
-  const handleMemeSelect = (meme: Meme) => {
-    onMemeSelected({
-      url: meme.url,
-      description: meme.description || meme.title
-    });
-    
-    toast({
-      title: "Meme Added!",
-      description: `"${meme.title}" has been added to your module`,
-    });
-    
-    onOpenChange(false);
+  // Search when term changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    debouncedGiphySearch(value);
   };
 
   const handleGiphyMemeSelect = (giphyMeme: GiphyMeme) => {
@@ -258,15 +97,11 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
     });
     
     toast({
-      title: "GIF Added!",
-      description: `Educational GIF added to your module section.`
+      title: "Meme Added!",
+      description: `Educational meme added to your module section.`
     });
     
     onOpenChange(false);
-  };
-
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
   };
 
   return (
@@ -280,35 +115,15 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Search and Filter Controls */}
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search memes by topic, category, or description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            {/* Category Filter */}
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className={`cursor-pointer transition-colors ${
-                    selectedCategory === category 
-                      ? "bg-orange-500 hover:bg-orange-600" 
-                      : "hover:bg-orange-50"
-                  }`}
-                  onClick={() => handleCategorySelect(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search for educational memes (e.g., playground safety, classroom management, teaching moments)..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10"
+            />
           </div>
 
           {/* Results Grid */}
@@ -318,18 +133,18 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
                 <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
                 <span className="ml-2 text-gray-600">Searching memes...</span>
               </div>
-            ) : filteredMemes.length > 0 ? (
+            ) : giphyResults.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {filteredMemes.map((meme) => (
+                {giphyResults.map((meme) => (
                   <Card
                     key={meme.id}
                     className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                    onClick={() => handleMemeSelect(meme)}
+                    onClick={() => handleGiphyMemeSelect(meme)}
                   >
                     <CardContent className="p-3">
                       <div className="aspect-square mb-2 rounded-lg overflow-hidden bg-gray-100">
                         <img
-                          src={meme.url}
+                          src={meme.images.fixed_height.url}
                           alt={meme.title}
                           className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
                           onError={(e) => {
@@ -342,18 +157,24 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
                           {meme.title}
                         </p>
                         <Badge variant="outline" className="text-xs">
-                          {meme.category}
+                          GIPHY
                         </Badge>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
+            ) : searchTerm.trim() ? (
+              <div className="text-center py-8">
+                <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No memes found for "{searchTerm}"</p>
+                <p className="text-sm text-gray-500">Try different keywords like "teaching", "classroom", or "kids"</p>
+              </div>
             ) : (
               <div className="text-center py-8">
                 <Smile className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">No memes found for your search</p>
-                <p className="text-sm text-gray-500">Try different keywords or categories</p>
+                <p className="text-gray-600">Start typing to search for educational memes</p>
+                <p className="text-sm text-gray-500">Try "playground safety", "classroom management", or "teaching moments"</p>
               </div>
             )}
           </div>
@@ -363,7 +184,7 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
               <Smile className="h-4 w-4 text-blue-600 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium">Pro Tip:</p>
-                <p>These memes are specifically curated for early childhood education. Use them to add humor and engagement to your training modules!</p>
+                <p>Search results are filtered for educational content and appropriate ratings. Use them to add humor and engagement to your training modules!</p>
               </div>
             </div>
           </div>
