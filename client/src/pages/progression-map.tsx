@@ -810,6 +810,15 @@ export default function ProgressionMap() {
                           <span className="font-bold text-red-600">2-Part Required</span>
                         </div>
                       )}
+                      {requirements.onboardingRequired && (
+                        <div className="flex items-center justify-between text-sm bg-white/50 p-2 rounded">
+                          <span className="font-medium">📚 Onboarding Training:</span>
+                          <span className="font-bold text-indigo-600">
+                            {onboardingProgress?.completedOnboardingModules || 0}/
+                            {onboardingProgress?.totalOnboardingModules || 0} Complete
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -906,6 +915,19 @@ export default function ProgressionMap() {
                           <div className="text-sm text-red-700 font-medium">In-Person Assessment</div>
                         </div>
                       )}
+                      
+                      {teacherLevels[selectedLevel].onboardingRequired && (
+                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200 text-center">
+                          <div className="text-indigo-500 mb-2">
+                            <BookOpen className="h-8 w-8 mx-auto" />
+                          </div>
+                          <div className="text-xl font-bold text-indigo-600">
+                            {onboardingProgress?.completedOnboardingModules || 0}/
+                            {onboardingProgress?.totalOnboardingModules || 0}
+                          </div>
+                          <div className="text-sm text-indigo-700 font-medium">Onboarding Modules</div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -958,7 +980,10 @@ export default function ProgressionMap() {
           
           {/* BearBucks Rewards */}
           <div className="max-w-2xl mx-auto">
-            <BearBucksRewards />
+            <BearBucksRewards 
+              points={user?.points || 0}
+              bearBucks={user?.bearBucks || 0}
+            />
           </div>
           
           {/* Motivational Section */}
