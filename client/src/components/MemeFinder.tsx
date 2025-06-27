@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Smile, Search, Download, X, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Smile, Search, Download, X, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Meme {
@@ -13,6 +14,20 @@ interface Meme {
   title: string;
   category: string;
   description?: string;
+}
+
+interface GiphyMeme {
+  id: string;
+  url: string;
+  title: string;
+  images: {
+    fixed_height: {
+      url: string;
+    };
+    original: {
+      url: string;
+    };
+  };
 }
 
 interface MemeFinderProps {
@@ -137,9 +152,13 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [filteredMemes, setFilteredMemes] = useState<Meme[]>(EDUCATIONAL_MEMES);
   const [loading, setLoading] = useState(false);
+  const [giphySearchTerm, setGiphySearchTerm] = useState('');
+  const [giphyResults, setGiphyResults] = useState<GiphyMeme[]>([]);
+  const [giphyLoading, setGiphyLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('curated');
   const { toast } = useToast();
 
-  // Debounced search function
+  // Debounced search function for curated memes
   const debouncedSearch = useCallback(
     debounce((term: string, category: string) => {
       setLoading(true);
@@ -166,9 +185,57 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
     []
   );
 
+  // GIPHY search function
+  const searchGiphy = useCallback(
+    async (searchQuery: string) => {
+      if (!searchQuery.trim()) {
+        setGiphyResults([]);
+        return;
+      }
+
+      setGiphyLoading(true);
+      try {
+        // Add educational keywords to improve relevance
+        const educationalQuery = `${searchQuery} education teaching classroom kids children`;
+        
+        const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=g`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to search GIPHY');
+        }
+        
+        const data = await response.json();
+        setGiphyResults(data.data || []);
+      } catch (error) {
+        console.error('GIPHY search error:', error);
+        toast({
+          title: "Search Error",
+          description: "Failed to search GIPHY. Please try again.",
+          variant: "destructive"
+        });
+        setGiphyResults([]);
+      } finally {
+        setGiphyLoading(false);
+      }
+    },
+    [toast]
+  );
+
+  // Debounced GIPHY search
+  const debouncedGiphySearch = useCallback(
+    debounce((query: string) => {
+      searchGiphy(query);
+    }, 500),
+    [searchGiphy]
+  );
+
   useEffect(() => {
     debouncedSearch(searchTerm, selectedCategory);
   }, [searchTerm, selectedCategory, debouncedSearch]);
+
+  useEffect(() => {
+    debouncedGiphySearch(giphySearchTerm);
+  }, [giphySearchTerm, debouncedGiphySearch]);
 
   const handleMemeSelect = (meme: Meme) => {
     onMemeSelected({
@@ -179,6 +246,20 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
     toast({
       title: "Meme Added!",
       description: `"${meme.title}" has been added to your module`,
+    });
+    
+    onOpenChange(false);
+  };
+
+  const handleGiphyMemeSelect = (giphyMeme: GiphyMeme) => {
+    onMemeSelected({
+      url: giphyMeme.images.original.url,
+      description: giphyMeme.title || 'Educational GIF from GIPHY'
+    });
+    
+    toast({
+      title: "GIF Added!",
+      description: `Educational GIF added to your module section.`
     });
     
     onOpenChange(false);
