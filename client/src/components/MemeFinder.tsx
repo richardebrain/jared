@@ -50,22 +50,25 @@ export default function MemeFinder({ open, onOpenChange, onMemeSelected }: MemeF
 
       setLoading(true);
       try {
-        // Add educational keywords to improve relevance
-        const educationalQuery = `${searchQuery} education teaching classroom kids children`;
+        // Add educational keywords to improve relevance (shorter to avoid 414 URI too long)
+        const educationalQuery = `${searchQuery} education teaching`;
         
         const response = await fetch(`/api/giphy/search?q=${encodeURIComponent(educationalQuery)}&limit=20&rating=pg-13`);
         
         if (!response.ok) {
-          throw new Error('Failed to search GIPHY');
+          const errorText = await response.text();
+          console.error('GIPHY API response error:', response.status, errorText);
+          throw new Error(`GIPHY API error: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('GIPHY search successful:', data);
         setGiphyResults(data.data || []);
       } catch (error) {
         console.error('GIPHY search error:', error);
         toast({
           title: "Search Error",
-          description: "Failed to search GIPHY. Please try again.",
+          description: `Failed to search GIPHY: ${error.message}`,
           variant: "destructive"
         });
         setGiphyResults([]);

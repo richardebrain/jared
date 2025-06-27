@@ -24,10 +24,15 @@ router.get('/search', async (req, res) => {
     giphyUrl.searchParams.set('rating', rating.toString());
     giphyUrl.searchParams.set('lang', 'en');
 
+    // Log the URL for debugging
+    console.log('GIPHY API URL:', giphyUrl.toString());
+    
     // Fetch from GIPHY API
     const response = await fetch(giphyUrl.toString());
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`GIPHY API error: ${response.status} - ${errorText}`);
       throw new Error(`GIPHY API error: ${response.status}`);
     }
 
