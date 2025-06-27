@@ -386,6 +386,27 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
             ) : (
               <p className="text-gray-400 italic">Your content preview will appear here as you type...</p>
             )}
+            
+            {/* Display selected images and memes */}
+            {content?.blocks?.[0]?.images && content.blocks[0].images.length > 0 && (
+              <div className="mt-4 border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Added Images & Memes:</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {content.blocks[0].images.map((image, index) => (
+                    <div key={index} className="border rounded-lg p-2 bg-white">
+                      <img
+                        src={image.url}
+                        alt={image.description || 'Module image'}
+                        className="w-full h-32 object-contain rounded"
+                      />
+                      <p className="text-xs text-gray-600 mt-2 text-center">
+                        {image.description || 'Image'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
