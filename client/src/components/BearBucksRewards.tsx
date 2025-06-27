@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CoinsIcon, ShoppingBag, Gift, Calendar, AlertCircle } from "lucide-react";
+import { CoinsIcon, ShoppingBag, Gift, Calendar, AlertCircle, Shield } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";

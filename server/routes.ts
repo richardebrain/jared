@@ -7054,7 +7054,7 @@ Continue for all 5 questions...
         LIMIT 20
       `);
 
-      // Get total points breakdown including assessment points
+      // Get total points breakdown including assessment points, current points, bearBucks, and lifetime points
       const pointsBreakdown = await db.execute(sql`
         SELECT 
           COALESCE(SUM(CASE WHEN up.points_earned > 0 THEN up.points_earned ELSE 0 END), 0) as modulePoints,
@@ -7062,7 +7062,9 @@ Continue for all 5 questions...
            FROM game_completions gc WHERE gc.user_id = ${userId}) as gamePoints,
           (SELECT COALESCE(SUM(CASE WHEN ar.points_earned > 0 THEN ar.points_earned ELSE 0 END), 0) 
            FROM assessment_responses ar WHERE ar.user_id = ${userId}) as assessmentPoints,
-          (SELECT COALESCE(points, 0) FROM users WHERE id = ${userId}) as totalPoints
+          (SELECT COALESCE(points, 0) FROM users WHERE id = ${userId}) as currentPoints,
+          (SELECT COALESCE(lifetime_points, 0) FROM users WHERE id = ${userId}) as lifetimePoints,
+          (SELECT COALESCE(bear_bucks, 0) FROM users WHERE id = ${userId}) as bearBucks
         FROM user_progress up
         WHERE up.user_id = ${userId}
       `);
@@ -7084,7 +7086,14 @@ Continue for all 5 questions...
         completedModules: completedModules.rows || [],
         eceHoursSummary: eceHoursSummary.rows || [],
         gameCompletions: gameCompletions.rows || [],
-        pointsBreakdown: pointsBreakdown.rows?.[0] || { modulePoints: 0, gamePoints: 0, assessmentPoints: 0, totalPoints: 0 },
+        pointsBreakdown: pointsBreakdown.rows?.[0] || { 
+          modulePoints: 0, 
+          gamePoints: 0, 
+          assessmentPoints: 0, 
+          currentPoints: 0, 
+          lifetimePoints: 0, 
+          bearBucks: 0 
+        },
         assessmentHistory: assessmentHistory.rows || []
       };
 

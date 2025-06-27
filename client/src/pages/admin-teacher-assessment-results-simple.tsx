@@ -22,7 +22,11 @@ import {
   Clock,
   Trophy,
   Calendar,
-  GraduationCap
+  GraduationCap,
+  CoinsIcon,
+  DollarSign,
+  Minus,
+  RotateCcw
 } from 'lucide-react';
 
 interface TeacherAssessmentData {
@@ -87,7 +91,9 @@ interface ActivitySummary {
     modulePoints: number;
     gamePoints: number;
     assessmentPoints: number;
-    totalPoints: number;
+    currentPoints: number;
+    lifetimePoints: number;
+    bearBucks: number;
   };
   assessmentHistory: Array<{
     type: string;
@@ -343,7 +349,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-600">
                     {activitySummary.pointsBreakdown.modulePoints || 0}
@@ -362,11 +368,111 @@ export default function AdminTeacherAssessmentResultsSimple() {
                   </p>
                   <p className="text-sm text-gray-600">Assessment Points</p>
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-purple-600">
-                    {activitySummary.pointsBreakdown.totalPoints || 0}
+                    {activitySummary.pointsBreakdown.currentPoints || 0}
                   </p>
-                  <p className="text-sm text-gray-600">Total Points</p>
+                  <p className="text-sm text-gray-600">Current Points</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-indigo-600">
+                    {activitySummary.pointsBreakdown.lifetimePoints || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Lifetime Points</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-amber-700">
+                    {activitySummary.pointsBreakdown.bearBucks || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Bear Bucks</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bear Bucks Admin Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CoinsIcon className="h-5 w-5 text-amber-600" />
+                Bear Bucks Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
+                  <div>
+                    <p className="font-semibold text-amber-800">Current Bear Bucks Balance</p>
+                    <p className="text-2xl font-bold text-amber-700">
+                      {activitySummary?.pointsBreakdown?.bearBucks || 0}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-green-600 border-green-300 hover:bg-green-50"
+                      onClick={() => {
+                        // TODO: Implement cash out functionality
+                        toast({
+                          title: "Cash Out Bear Bucks",
+                          description: "Cash out functionality coming soon",
+                        });
+                      }}
+                    >
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      Cash Out
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => {
+                        // TODO: Implement zero out functionality
+                        toast({
+                          title: "Zero Out Bear Bucks",
+                          description: "Zero out functionality coming soon",
+                        });
+                      }}
+                    >
+                      <Minus className="h-4 w-4 mr-1" />
+                      Zero Out
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                      onClick={() => {
+                        // TODO: Implement adjust functionality
+                        toast({
+                          title: "Adjust Bear Bucks",
+                          description: "Adjust amount functionality coming soon",
+                        });
+                      }}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      Adjust
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Current Points:</span>
+                    <span className="font-medium">{activitySummary?.pointsBreakdown?.currentPoints || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Lifetime Points:</span>
+                    <span className="font-medium">{activitySummary?.pointsBreakdown?.lifetimePoints || 0}</span>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+                  <p><strong>Note:</strong> Bear Bucks are earned by converting current points (2 points = 1 Bear Buck). 
+                  Lifetime points remain unchanged during conversion and are used for progression tracking.</p>
                 </div>
               </div>
             </CardContent>
