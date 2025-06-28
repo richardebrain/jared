@@ -136,6 +136,15 @@ export async function deleteSchool(schoolId: number) {
         );
         console.log("✓ Deleted core values shout outs (coreValuesShoutOuts.nominatorId/nomineeId → users.id)");
 
+        // Teacher messages (handles both sender and recipient foreign key relationships) 
+        await tx.delete(teacherMessages).where(
+          or(
+            inArray(teacherMessages.senderId, userIds),
+            inArray(teacherMessages.recipientId, userIds)
+          )
+        );
+        console.log("✓ Deleted teacher messages (teacherMessages.senderId/recipientId → users.id)");
+
         // Assessment and school administration data (references users.id) - only if tables exist
         try {
           await tx.delete(assessmentRetakePermissions).where(inArray(assessmentRetakePermissions.userId, userIds));
@@ -197,30 +206,18 @@ export async function deleteSchool(schoolId: number) {
       // STEP 4: Handle learning modules following schema relationship (learningModules.schoolId → schools.id)
       console.log("Step 4: Processing learning modules following schema relationships...");
       
-      // Get community modules to preserve following schema-based approach
+      // Get community modules before deletion (following schema-based approach)
       const communityModulesList = await tx.select().from(communityModules).where(eq(communityModules.sharedBySchoolId, schoolId));
-      console.log(`Found ${communityModulesList.length} community modules to preserve`);
+      console.log(`Found ${communityModulesList.length} community modules from this school`);
+      
+      // Delete community_modules records first (following schema: communityModules.sharedBySchoolId → schools.id)
+      await tx.delete(communityModules).where(eq(communityModules.sharedBySchoolId, schoolId));
+      console.log("✓ Deleted community modules records (communityModules.sharedBySchoolId → schools.id)");
 
-      if (communityModulesList.length > 0) {
-        // Update community modules to remove school foreign key reference (preserve modules)
-        const communityModuleIds = communityModulesList.map(cm => cm.moduleId);
-        await tx.update(learningModules)
-          .set({ schoolId: null }) // Remove foreign key reference but preserve module
-          .where(inArray(learningModules.id, communityModuleIds));
-        console.log("✓ Updated community modules to remove school foreign key reference (preserved in community)");
-      }
-
-      // Delete non-community modules (following schema: learningModules.schoolId → schools.id)
-      const schoolModules = await tx.select().from(learningModules).where(eq(learningModules.schoolId, schoolId));
-      const nonCommunityModules = schoolModules.filter(module => 
-        !communityModulesList.some(cm => cm.moduleId === module.id)
-      );
-
-      if (nonCommunityModules.length > 0) {
-        const moduleIdsToDelete = nonCommunityModules.map(m => m.id);
-        await tx.delete(learningModules).where(inArray(learningModules.id, moduleIdsToDelete));
-        console.log(`✓ Deleted ${nonCommunityModules.length} non-community modules (learningModules.schoolId → schools.id)`);
-      }
+      // Delete ALL learning modules from this school (following schema: learningModules.schoolId → schools.id)
+      // Note: Community modules are now standalone and the records were cleaned up above
+      await tx.delete(learningModules).where(eq(learningModules.schoolId, schoolId));
+      console.log("✓ Deleted all learning modules (learningModules.schoolId → schools.id)");
 
       // STEP 5: Delete users (following schema: users.schoolId → schools.id)
       console.log("Step 5: Deleting users following schema relationship...");
@@ -235,22 +232,12 @@ export async function deleteSchool(schoolId: number) {
       console.log("✅ Schema-aware school deletion transaction completed successfully");
     });
 
-    // Get community modules that were preserved (this count was from before deletion)
-    // Since we deleted the school but preserved community modules, we need to count from saved data
-    const preservedModulesQuery = await db.execute(sql`
-      SELECT COUNT(*) as count 
-      FROM community_modules cm 
-      INNER JOIN learning_modules lm ON cm.module_id = lm.id 
-      WHERE cm.shared_by_school_id = ${schoolId}
-      AND lm.school_id IS NULL
-    `);
-
     return {
       success: true,
       message: "School and all related data deleted successfully using schema-aware approach",
       deletedSchool: school[0].name,
       deletedUsers: schoolUsers.length,
-      preservedCommunityModules: preservedModulesQuery.rows[0]?.count || 0,
+      communityModulesFromSchool: communityModulesList.length,
       deletionApproach: "schema-based-foreign-key-relationships"
     };
 
