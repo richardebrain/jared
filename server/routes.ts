@@ -526,6 +526,9 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
       // Continue anyway as this is just a refresh
     }
 
+    // Attach user to request for use in subsequent middleware/routes
+    req.user = user;
+    
     console.log(`Auth successful - User ID: ${req.session.userId}`);
     next();
   } catch (error) {
