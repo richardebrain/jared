@@ -53,190 +53,183 @@ export async function deleteSchool(schoolId: number) {
 
     console.log(`Found ${schoolUsers.length} users in school to be deleted`);
 
-    // Use transaction to ensure all-or-nothing deletion
+    // Use transaction following schema-defined foreign key relationships
     await db.transaction(async (tx) => {
-      console.log("Starting school deletion transaction...");
+      console.log("Starting schema-aware school deletion transaction...");
 
-      // STEP 1: Delete school-related data (tables that reference schools)
-      console.log("Step 1: Deleting school-related data...");
-
-      // 1. Delete teacher invitations for this school
-      await tx.delete(teacherInvitations).where(eq(teacherInvitations.schoolId, schoolId));
-      console.log("Deleted teacher invitations");
-
-      // 2. Delete newsletters for this school
-      await tx.delete(newsletters).where(eq(newsletters.schoolId, schoolId));
-      console.log("Deleted newsletters");
-
-      // 3. Delete ECE reporting settings for this school
-      await tx.delete(eceReportingSettings).where(eq(eceReportingSettings.schoolId, schoolId));
-      console.log("Deleted ECE reporting settings");
-
-      // 4. Delete teacher messages for this school
-      await tx.delete(teacherMessages).where(eq(teacherMessages.schoolId, schoolId));
-      console.log("Deleted teacher messages");
-
-      // 5. Delete question availability settings for this school
-      await tx.delete(questionAvailability).where(eq(questionAvailability.schoolId, schoolId));
-      console.log("Deleted question availability settings");
-
-      // 6. Delete assessment config for this school
-      await tx.delete(assessmentConfig).where(eq(assessmentConfig.schoolId, schoolId));
-      console.log("Deleted assessment config");
-
-      // 7. Delete community module awards for this school
-      await tx.delete(communityModuleAwards).where(eq(communityModuleAwards.schoolId, schoolId));
-      console.log("Deleted community module awards");
-
-      // 8. Delete lesson plans for this school
-      await tx.delete(lessonPlans).where(eq(lessonPlans.schoolId, schoolId));
-      console.log("Deleted lesson plans");
-
-      // 9. Delete ECE hours for this school
-      await tx.delete(eceHours).where(eq(eceHours.schoolId, schoolId));
-      console.log("Deleted ECE hours");
-
-   
-      console.log("Deleted teacher self assessments");
-
-      // 11. Handle learning modules - preserve community modules, delete others
-      const schoolModules = await tx.select().from(learningModules).where(eq(learningModules.schoolId, schoolId));
-      console.log(`Found ${schoolModules.length} learning modules for this school`);
-
-      // Check which modules are shared to community
-      const communityModulesList = await tx.select().from(communityModules).where(eq(communityModules.sharedBySchoolId, schoolId));
-      console.log(`Found ${communityModulesList.length} community modules from this school`);
-
-      // Delete modules that are NOT shared to community
-      const modulesToDelete = schoolModules.filter(module => 
-        !communityModulesList.some(cm => cm.moduleId === module.id)
-      );
-
-      if (modulesToDelete.length > 0) {
-        const moduleIdsToDelete = modulesToDelete.map(m => m.id);
-        await tx.delete(learningModules).where(inArray(learningModules.id, moduleIdsToDelete));
-        console.log(`Deleted ${modulesToDelete.length} non-community modules`);
-      }
-
-      // STEP 2: Delete user-related data for all users in this school
-      console.log("Step 2: Deleting user-related data...");
-
+      // STEP 1: Identify all users in this school for relationship-based cleanup
       const userIds = schoolUsers.map(user => user.id);
+      console.log(`User IDs to process: ${userIds.join(', ')}`);
 
+      // STEP 2: Delete data with foreign key references to users (following schema relations)
       if (userIds.length > 0) {
-        // Delete user achievements
-        await tx.delete(userAchievements).where(inArray(userAchievements.userId, userIds));
-        console.log("Deleted user achievements");
+        console.log("Step 2: Cleaning up user-related data following schema relationships...");
 
-        // Delete user progress
+        // Assessment and learning related data (references users.id)
         await tx.delete(userProgress).where(inArray(userProgress.userId, userIds));
-        console.log("Deleted user progress");
+        console.log("✓ Deleted user progress (userProgress.userId → users.id)");
 
-        // Delete user items
-        await tx.delete(userItems).where(inArray(userItems.userId, userIds));
-        console.log("Deleted user items");
+        await tx.delete(userAchievements).where(inArray(userAchievements.userId, userIds));
+        console.log("✓ Deleted user achievements (userAchievements.userId → users.id)");
 
-        // Delete user avatar items
+        // Avatar and customization data (references users.id)
         await tx.delete(userAvatarItems).where(inArray(userAvatarItems.userId, userIds));
-        console.log("Deleted user avatar items");
+        console.log("✓ Deleted user avatar items (userAvatarItems.userId → users.id)");
 
-        // Delete user avatars
         await tx.delete(userAvatars).where(inArray(userAvatars.userId, userIds));
-        console.log("Deleted user avatars");
+        console.log("✓ Deleted user avatars (userAvatars.userId → users.id)");
 
-        // Delete game completions
+        // Store and reward data (references users.id)
+        await tx.delete(userItems).where(inArray(userItems.userId, userIds));
+        console.log("✓ Deleted user items (userItems.userId → users.id)");
+
+        await tx.delete(spinGameRewards).where(inArray(spinGameRewards.userId, userIds));
+        console.log("✓ Deleted spin game rewards (spinGameRewards.userId → users.id)");
+
+        await tx.delete(streakRewards).where(inArray(streakRewards.userId, userIds));
+        console.log("✓ Deleted streak rewards (streakRewards.userId → users.id)");
+
+        // Activity and engagement data (references users.id)
         await tx.delete(gameCompletions).where(inArray(gameCompletions.userId, userIds));
-        console.log("Deleted game completions");
+        console.log("✓ Deleted game completions (gameCompletions.userId → users.id)");
 
-        // Delete comment votes
-        await tx.delete(commentVotes).where(inArray(commentVotes.userId, userIds));
-        console.log("Deleted comment votes");
-
-        // Delete discussion comments
-        await tx.delete(discussionComments).where(inArray(discussionComments.userId, userIds));
-        console.log("Deleted discussion comments");
-
-        // Delete video ratings
-        await tx.delete(videoRatings).where(inArray(videoRatings.userId, userIds));
-        console.log("Deleted video ratings");
-
-        // Delete discussion threads
-        await tx.delete(discussionThreads).where(inArray(discussionThreads.userId, userIds));
-        console.log("Deleted discussion threads");
-
-        // Delete assessment retake permissions
-        await tx.delete(assessmentRetakePermissions).where(inArray(assessmentRetakePermissions.userId, userIds));
-        console.log("Deleted assessment retake permissions");
-
-        // Delete daily logins
         await tx.delete(dailyLogins).where(inArray(dailyLogins.userId, userIds));
-        console.log("Deleted daily logins");
+        console.log("✓ Deleted daily logins (dailyLogins.userId → users.id)");
 
-        // Delete bear bucks transactions
+        await tx.delete(moduleRatings).where(inArray(moduleRatings.userId, userIds));
+        console.log("✓ Deleted module ratings (moduleRatings.userId → users.id)");
+
+        await tx.delete(videoRatings).where(inArray(videoRatings.userId, userIds));
+        console.log("✓ Deleted video ratings (videoRatings.userId → users.id)");
+
+        await tx.delete(videoQuizCompletions).where(inArray(videoQuizCompletions.userId, userIds));
+        console.log("✓ Deleted video quiz completions (videoQuizCompletions.userId → users.id)");
+
+        // Discussion and social data (references users.id)
+        await tx.delete(commentVotes).where(inArray(commentVotes.userId, userIds));
+        console.log("✓ Deleted comment votes (commentVotes.userId → users.id)");
+
+        await tx.delete(discussionComments).where(inArray(discussionComments.userId, userIds));
+        console.log("✓ Deleted discussion comments (discussionComments.userId → users.id)");
+
+        await tx.delete(discussionThreads).where(inArray(discussionThreads.userId, userIds));
+        console.log("✓ Deleted discussion threads (discussionThreads.userId → users.id)");
+
+        await tx.delete(eduTokUserInteractions).where(inArray(eduTokUserInteractions.userId, userIds));
+        console.log("✓ Deleted edu tok interactions (eduTokUserInteractions.userId → users.id)");
+
+        // Transaction data (handles both sender and recipient foreign key relationships)
         await tx.delete(bearBucksTransactions).where(
           or(
             inArray(bearBucksTransactions.recipientId, userIds),
             inArray(bearBucksTransactions.senderId, userIds)
           )
         );
-        console.log("Deleted bear bucks transactions");
+        console.log("✓ Deleted bear bucks transactions (bearBucksTransactions.recipientId/senderId → users.id)");
 
-        // Delete core values shout outs
+        // Nomination data (handles both nominator and nominee foreign key relationships) 
         await tx.delete(coreValuesShoutOuts).where(
           or(
             inArray(coreValuesShoutOuts.nominatorId, userIds),
             inArray(coreValuesShoutOuts.nomineeId, userIds)
           )
         );
-        console.log("Deleted core values shout outs");
+        console.log("✓ Deleted core values shout outs (coreValuesShoutOuts.nominatorId/nomineeId → users.id)");
 
-        // Delete edu tok user interactions
-        await tx.delete(eduTokUserInteractions).where(inArray(eduTokUserInteractions.userId, userIds));
-        console.log("Deleted edu tok user interactions");
-
-        // Delete video quiz completions
-        await tx.delete(videoQuizCompletions).where(inArray(videoQuizCompletions.userId, userIds));
-        console.log("Deleted video quiz completions");
-
-        // Delete module ratings
-        await tx.delete(moduleRatings).where(inArray(moduleRatings.userId, userIds));
-        console.log("Deleted module ratings");
-
-        // // Delete assessment results
-        // await tx.delete(assessmentResults).where(inArray(assessmentResults.userId, userIds));
-        console.log("Deleted assessment results");
-
-        // Delete spin game rewards
-        await tx.delete(spinGameRewards).where(inArray(spinGameRewards.userId, userIds));
-        console.log("Deleted spin game rewards");
-
-        // Delete streak rewards
-        await tx.delete(streakRewards).where(inArray(streakRewards.userId, userIds));
-        console.log("Deleted streak rewards");
+        // Assessment and school administration data (references users.id)
+        await tx.delete(assessmentRetakePermissions).where(inArray(assessmentRetakePermissions.userId, userIds));
+        console.log("✓ Deleted assessment retake permissions (assessmentRetakePermissions.userId → users.id)");
       }
 
-      // STEP 3: Delete users
-      console.log("Step 3: Deleting users...");
+      // STEP 3: Delete data with foreign key references to schools (following schema relations)
+      console.log("Step 3: Cleaning up school-related data following schema relationships...");
+
+      // Direct school references based on schema foreign key constraints
+      await tx.delete(teacherInvitations).where(eq(teacherInvitations.schoolId, schoolId));
+      console.log("✓ Deleted teacher invitations (teacherInvitations.schoolId → schools.id)");
+
+      await tx.delete(newsletters).where(eq(newsletters.schoolId, schoolId));
+      console.log("✓ Deleted newsletters (newsletters.schoolId → schools.id)");
+
+      await tx.delete(eceReportingSettings).where(eq(eceReportingSettings.schoolId, schoolId));
+      console.log("✓ Deleted ECE reporting settings (eceReportingSettings.schoolId → schools.id)");
+
+      await tx.delete(teacherMessages).where(eq(teacherMessages.schoolId, schoolId));
+      console.log("✓ Deleted teacher messages (teacherMessages.schoolId → schools.id)");
+
+      await tx.delete(questionAvailability).where(eq(questionAvailability.schoolId, schoolId));
+      console.log("✓ Deleted question availability (questionAvailability.schoolId → schools.id)");
+
+      await tx.delete(assessmentConfig).where(eq(assessmentConfig.schoolId, schoolId));
+      console.log("✓ Deleted assessment config (assessmentConfig.schoolId → schools.id)");
+
+      await tx.delete(communityModuleAwards).where(eq(communityModuleAwards.schoolId, schoolId));
+      console.log("✓ Deleted community module awards (communityModuleAwards.schoolId → schools.id)");
+
+      await tx.delete(lessonPlans).where(eq(lessonPlans.schoolId, schoolId));
+      console.log("✓ Deleted lesson plans (lessonPlans.schoolId → schools.id)");
+
+      await tx.delete(eceHours).where(eq(eceHours.schoolId, schoolId));
+      console.log("✓ Deleted ECE hours (eceHours.schoolId → schools.id)");
+
+      // STEP 4: Handle learning modules following schema relationship (learningModules.schoolId → schools.id)
+      console.log("Step 4: Processing learning modules following schema relationships...");
+      
+      // Get community modules to preserve following schema-based approach
+      const communityModulesList = await tx.select().from(communityModules).where(eq(communityModules.sharedBySchoolId, schoolId));
+      console.log(`Found ${communityModulesList.length} community modules to preserve`);
+
+      if (communityModulesList.length > 0) {
+        // Update community modules to remove school foreign key reference (preserve modules)
+        const communityModuleIds = communityModulesList.map(cm => cm.moduleId);
+        await tx.update(learningModules)
+          .set({ schoolId: null }) // Remove foreign key reference but preserve module
+          .where(inArray(learningModules.id, communityModuleIds));
+        console.log("✓ Updated community modules to remove school foreign key reference (preserved in community)");
+      }
+
+      // Delete non-community modules (following schema: learningModules.schoolId → schools.id)
+      const schoolModules = await tx.select().from(learningModules).where(eq(learningModules.schoolId, schoolId));
+      const nonCommunityModules = schoolModules.filter(module => 
+        !communityModulesList.some(cm => cm.moduleId === module.id)
+      );
+
+      if (nonCommunityModules.length > 0) {
+        const moduleIdsToDelete = nonCommunityModules.map(m => m.id);
+        await tx.delete(learningModules).where(inArray(learningModules.id, moduleIdsToDelete));
+        console.log(`✓ Deleted ${nonCommunityModules.length} non-community modules (learningModules.schoolId → schools.id)`);
+      }
+
+      // STEP 5: Delete users (following schema: users.schoolId → schools.id)
+      console.log("Step 5: Deleting users following schema relationship...");
       await tx.delete(users).where(eq(users.schoolId, schoolId));
-      console.log(`Deleted ${schoolUsers.length} users`);
+      console.log(`✓ Deleted ${schoolUsers.length} users (users.schoolId → schools.id)`);
 
-      // STEP 4: Delete the school
-      console.log("Step 4: Deleting school...");
+      // STEP 6: Delete the school (final step - no more foreign key dependencies)
+      console.log("Step 6: Deleting school record...");
       await tx.delete(schools).where(eq(schools.id, schoolId));
-      console.log("School deleted successfully");
+      console.log("✓ Deleted school (schools.id - primary key)");
 
-      console.log("School deletion transaction completed successfully");
-
-      // 10. Delete teacher self assessments for this school
-      await tx.delete(teacherSelfAssessments).where(eq(teacherSelfAssessments.userId, userId));
+      console.log("✅ Schema-aware school deletion transaction completed successfully");
     });
+
+    // Get community modules that were preserved (this count was from before deletion)
+    // Since we deleted the school but preserved community modules, we need to count from saved data
+    const preservedModulesQuery = await db.execute(sql`
+      SELECT COUNT(*) as count 
+      FROM community_modules cm 
+      INNER JOIN learning_modules lm ON cm.module_id = lm.id 
+      WHERE cm.shared_by_school_id = ${schoolId}
+      AND lm.school_id IS NULL
+    `);
 
     return {
       success: true,
-      message: "School and all related data deleted successfully",
+      message: "School and all related data deleted successfully using schema-aware approach",
       deletedSchool: school[0].name,
       deletedUsers: schoolUsers.length,
-      // preservedCommunityModules: communityModulesList?.length || 0
+      preservedCommunityModules: preservedModulesQuery.rows[0]?.count || 0,
+      deletionApproach: "schema-based-foreign-key-relationships"
     };
 
   } catch (error) {
