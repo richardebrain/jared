@@ -27,7 +27,10 @@ import {
   lessonPlans, type LessonPlan, type InsertLessonPlan,
   earlyLearningStandards, type EarlyLearningStandard, type InsertEarlyLearningStandard,
   videoRatings, type VideoRating, type InsertVideoRating,
-  moduleDrafts, type ModuleDraft, type InsertModuleDraft
+  moduleDrafts, type ModuleDraft, type InsertModuleDraft,
+  children, type Child, type InsertChild,
+  portfolioEntries, type PortfolioEntry, type InsertPortfolioEntry,
+  naeyc_standards, type NAEYCStandard, type InsertNAEYCStandard
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -237,6 +240,27 @@ export interface IStorage {
   createModuleDraft(draft: InsertModuleDraft): Promise<ModuleDraft>;
   updateModuleDraft(id: number, draftData: Partial<InsertModuleDraft>): Promise<ModuleDraft>;
   deleteModuleDraft(id: number): Promise<void>;
+  
+  // Child Portfolio operations
+  getChildrenBySchool(schoolId: number): Promise<Child[]>;
+  getChild(id: number): Promise<Child | undefined>;
+  createChild(child: InsertChild): Promise<Child>;
+  updateChild(id: number, childData: Partial<InsertChild>): Promise<Child>;
+  deleteChild(id: number): Promise<void>;
+  
+  // Portfolio Entry operations
+  getPortfolioEntriesByChild(childId: number): Promise<PortfolioEntry[]>;
+  getPortfolioEntriesByTeacher(teacherId: number): Promise<PortfolioEntry[]>;
+  getPortfolioEntriesBySchool(schoolId: number): Promise<PortfolioEntry[]>;
+  getPortfolioEntry(id: number): Promise<PortfolioEntry | undefined>;
+  createPortfolioEntry(entry: InsertPortfolioEntry): Promise<PortfolioEntry>;
+  updatePortfolioEntry(id: number, entryData: Partial<InsertPortfolioEntry>): Promise<PortfolioEntry>;
+  deletePortfolioEntry(id: number): Promise<void>;
+  
+  // NAEYC Standards operations
+  getAllNAEYCStandards(): Promise<NAEYCStandard[]>;
+  getNAEYCStandardsByCategory(category: string): Promise<NAEYCStandard[]>;
+  createNAEYCStandard(standard: InsertNAEYCStandard): Promise<NAEYCStandard>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2671,6 +2695,94 @@ export class DatabaseStorage implements IStorage {
       console.error("Error completing tutorial:", error);
       return false;
     }
+  }
+
+  // Child Portfolio operations
+  async getChildrenBySchool(schoolId: number): Promise<Child[]> {
+    return await db.select().from(children)
+      .where(and(eq(children.schoolId, schoolId), eq(children.isActive, true)))
+      .orderBy(children.firstName, children.lastName);
+  }
+
+  async getChild(id: number): Promise<Child | undefined> {
+    const [child] = await db.select().from(children).where(eq(children.id, id));
+    return child || undefined;
+  }
+
+  async createChild(child: InsertChild): Promise<Child> {
+    const [newChild] = await db.insert(children).values(child).returning();
+    return newChild;
+  }
+
+  async updateChild(id: number, childData: Partial<InsertChild>): Promise<Child> {
+    const [updatedChild] = await db.update(children)
+      .set(childData)
+      .where(eq(children.id, id))
+      .returning();
+    return updatedChild;
+  }
+
+  async deleteChild(id: number): Promise<void> {
+    await db.delete(children).where(eq(children.id, id));
+  }
+
+  // Portfolio Entry operations
+  async getPortfolioEntriesByChild(childId: number): Promise<PortfolioEntry[]> {
+    return await db.select().from(portfolioEntries)
+      .where(eq(portfolioEntries.childId, childId))
+      .orderBy(desc(portfolioEntries.entryDate), desc(portfolioEntries.createdAt));
+  }
+
+  async getPortfolioEntriesByTeacher(teacherId: number): Promise<PortfolioEntry[]> {
+    return await db.select().from(portfolioEntries)
+      .where(eq(portfolioEntries.teacherId, teacherId))
+      .orderBy(desc(portfolioEntries.entryDate), desc(portfolioEntries.createdAt));
+  }
+
+  async getPortfolioEntriesBySchool(schoolId: number): Promise<PortfolioEntry[]> {
+    return await db.select().from(portfolioEntries)
+      .where(eq(portfolioEntries.schoolId, schoolId))
+      .orderBy(desc(portfolioEntries.entryDate), desc(portfolioEntries.createdAt));
+  }
+
+  async getPortfolioEntry(id: number): Promise<PortfolioEntry | undefined> {
+    const [entry] = await db.select().from(portfolioEntries).where(eq(portfolioEntries.id, id));
+    return entry || undefined;
+  }
+
+  async createPortfolioEntry(entry: InsertPortfolioEntry): Promise<PortfolioEntry> {
+    const [newEntry] = await db.insert(portfolioEntries).values(entry).returning();
+    return newEntry;
+  }
+
+  async updatePortfolioEntry(id: number, entryData: Partial<InsertPortfolioEntry>): Promise<PortfolioEntry> {
+    const [updatedEntry] = await db.update(portfolioEntries)
+      .set(entryData)
+      .where(eq(portfolioEntries.id, id))
+      .returning();
+    return updatedEntry;
+  }
+
+  async deletePortfolioEntry(id: number): Promise<void> {
+    await db.delete(portfolioEntries).where(eq(portfolioEntries.id, id));
+  }
+
+  // NAEYC Standards operations
+  async getAllNAEYCStandards(): Promise<NAEYCStandard[]> {
+    return await db.select().from(naeyc_standards)
+      .where(eq(naeyc_standards.isActive, true))
+      .orderBy(naeyc_standards.category, naeyc_standards.standardCode);
+  }
+
+  async getNAEYCStandardsByCategory(category: string): Promise<NAEYCStandard[]> {
+    return await db.select().from(naeyc_standards)
+      .where(and(eq(naeyc_standards.category, category), eq(naeyc_standards.isActive, true)))
+      .orderBy(naeyc_standards.standardCode);
+  }
+
+  async createNAEYCStandard(standard: InsertNAEYCStandard): Promise<NAEYCStandard> {
+    const [newStandard] = await db.insert(naeyc_standards).values(standard).returning();
+    return newStandard;
   }
 }
 

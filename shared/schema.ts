@@ -2197,3 +2197,31 @@ export type InsertPortfolioEntry = z.infer<typeof insertPortfolioEntrySchema>;
 
 export type NAEYCStandard = typeof naeyc_standards.$inferSelect;
 export type InsertNAEYCStandard = z.infer<typeof insertNAEYCStandardSchema>;
+
+// Relations for child portfolio system
+export const childrenRelations = relations(children, ({ one, many }) => ({
+  school: one(schools, {
+    fields: [children.schoolId],
+    references: [schools.id]
+  }),
+  createdByUser: one(users, {
+    fields: [children.createdBy],
+    references: [users.id]
+  }),
+  portfolioEntries: many(portfolioEntries)
+}));
+
+export const portfolioEntriesRelations = relations(portfolioEntries, ({ one }) => ({
+  child: one(children, {
+    fields: [portfolioEntries.childId],
+    references: [children.id]
+  }),
+  teacher: one(users, {
+    fields: [portfolioEntries.teacherId],
+    references: [users.id]
+  }),
+  school: one(schools, {
+    fields: [portfolioEntries.schoolId],
+    references: [schools.id]
+  })
+}));
