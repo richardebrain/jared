@@ -233,7 +233,7 @@ export default function ToolsPage() {
             Access is limited to children you create or those shared with your school.
           </p>
           <Button 
-            onClick={() => window.open('/portfolio-builder', '_blank', 'noopener,noreferrer')}
+            onClick={() => window.open(window.location.origin + '/portfolio-builder', '_blank')}
             className="flex items-center gap-2"
           >
             <Camera className="h-4 w-4" />
