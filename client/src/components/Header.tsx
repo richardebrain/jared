@@ -254,6 +254,13 @@ export default function Header() {
               Videos
             </div>
           </Link>
+          <Link to="/portfolio">
+            <div className={`whitespace-nowrap font-medium px-3.5 py-1.5 rounded-full mx-1 text-sm ${location === "/portfolio" 
+              ? "bg-amber-600 text-white shadow-sm" 
+              : "text-neutral-700 hover:bg-amber-100"} transition-all duration-200 cursor-pointer`}>
+              Portfolio
+            </div>
+          </Link>
 
           {/* Games section hidden until more games are available
           <Link href="/games">
