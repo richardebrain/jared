@@ -10719,11 +10719,20 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   // CHILD PORTFOLIO ROUTES
   // ========================================
 
-  // Get children by school
+  // Get children - admins see all, teachers see only their own + shared
   app.get("/api/children", requireAuth, async (req, res) => {
     try {
       const user = req.user!;
-      const children = await storage.getChildrenBySchool(user.schoolId!);
+      let children;
+      
+      if (user.isAdmin || user.isSchoolAdmin) {
+        // Admins can see all children in their school
+        children = await storage.getChildrenBySchool(user.schoolId!);
+      } else {
+        // Teachers can only see children they created or those shared with school
+        children = await storage.getChildrenByTeacher(user.id, user.schoolId!);
+      }
+      
       res.json(children);
     } catch (error) {
       console.error("Error fetching children:", error);
@@ -10749,10 +10758,18 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
-  // Update child
+  // Update child - only creator or admin can update
   app.put("/api/children/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const user = req.user!;
+      
+      // Check if user has access to this child
+      const hasAccess = await storage.checkChildAccess(id, user.id, user.isAdmin || user.isSchoolAdmin);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied - you can only edit children you created" });
+      }
+      
       const updatedChild = await storage.updateChild(id, req.body);
       res.json(updatedChild);
     } catch (error) {
@@ -10761,10 +10778,18 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
-  // Delete child
+  // Delete child - only creator or admin can delete
   app.delete("/api/children/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const user = req.user!;
+      
+      // Check if user has access to this child
+      const hasAccess = await storage.checkChildAccess(id, user.id, user.isAdmin || user.isSchoolAdmin);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied - you can only delete children you created" });
+      }
+      
       await storage.deleteChild(id);
       res.json({ success: true });
     } catch (error) {
@@ -10773,10 +10798,44 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
-  // Get portfolio entries by child
+  // Update child sharing permissions - only creator can change sharing
+  app.put("/api/children/:id/sharing", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user!;
+      const { sharedWithSchool } = req.body;
+      
+      // First check if the child exists and belongs to this user
+      const [child] = await db.select().from(children).where(eq(children.id, id));
+      if (!child) {
+        return res.status(404).json({ error: "Child not found" });
+      }
+      
+      // Only the creator can change sharing permissions (not even admins)
+      if (child.createdBy !== user.id) {
+        return res.status(403).json({ error: "Only the teacher who created this child can change sharing settings" });
+      }
+      
+      const updatedChild = await storage.updateChild(id, { sharedWithSchool });
+      res.json(updatedChild);
+    } catch (error) {
+      console.error("Error updating child sharing:", error);
+      res.status(500).json({ error: "Failed to update sharing settings" });
+    }
+  });
+
+  // Get portfolio entries by child - with access control
   app.get("/api/children/:id/portfolio", requireAuth, async (req, res) => {
     try {
       const childId = parseInt(req.params.id);
+      const user = req.user!;
+      
+      // Check if user has access to this child
+      const hasAccess = await storage.checkChildAccess(childId, user.id, user.isAdmin || user.isSchoolAdmin);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied - you can only view portfolios for children you created or shared children" });
+      }
+      
       const entries = await storage.getPortfolioEntriesByChild(childId);
       res.json(entries);
     } catch (error) {

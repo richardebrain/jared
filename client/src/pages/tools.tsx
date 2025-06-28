@@ -225,7 +225,22 @@ export default function ToolsPage() {
       title: "Child Portfolio Builder",
       description: "AI-powered photo analysis and portfolio creation",
       icon: <Camera className="h-6 w-6" />,
-      component: <PortfolioBuilder />
+      component: (
+        <div className="flex flex-col items-center justify-center py-8">
+          <h3 className="text-xl font-semibold mb-4">Child Portfolio Builder</h3>
+          <p className="text-gray-600 mb-6 text-center max-w-md">
+            Create and manage child portfolios with AI-powered photo analysis. 
+            Access is limited to children you create or those shared with your school.
+          </p>
+          <Button 
+            onClick={() => window.open('/portfolio-builder', '_blank', 'noopener,noreferrer')}
+            className="flex items-center gap-2"
+          >
+            <Camera className="h-4 w-4" />
+            Open Portfolio Builder
+          </Button>
+        </div>
+      )
     },
     {
       id: "meeting-scheduler",

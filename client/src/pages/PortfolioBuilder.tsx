@@ -19,7 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X, Share } from 'lucide-react';
 
 interface Child {
   id: number;
@@ -28,6 +29,8 @@ interface Child {
   dateOfBirth: string;
   schoolId: number;
   isActive: boolean;
+  sharedWithSchool: boolean;
+  createdBy: number;
 }
 
 interface PortfolioEntry {
