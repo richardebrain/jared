@@ -1,4 +1,12 @@
 import { useState, useRef } from 'react';
+
+// Add Speech Recognition API declarations
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
+  }
+}
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon } from 'lucide-react';
+import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 interface Child {
@@ -79,6 +87,13 @@ export default function PortfolioBuilder() {
     teacherNotes: '',
     photos: [] as string[],
   });
+  
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceText, setVoiceText] = useState('');
+  const [showVoiceConfirmation, setShowVoiceConfirmation] = useState(false);
+  const [pendingVoiceNote, setPendingVoiceNote] = useState('');
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -242,6 +257,101 @@ export default function PortfolioBuilder() {
     };
 
     createEntryMutation.mutate(entryData);
+  };
+
+  // Voice input functions
+  const startVoiceRecording = () => {
+    if (!selectedChild) {
+      toast({
+        title: 'Select a Child First',
+        description: 'Please select a child before recording voice notes.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setVoiceText('');
+      };
+
+      recognition.onresult = (event) => {
+        const lastResult = event.results[event.results.length - 1];
+        if (lastResult.isFinal) {
+          const transcript = lastResult[0].transcript.trim();
+          setVoiceText(transcript);
+          setPendingVoiceNote(transcript);
+          setShowVoiceConfirmation(true);
+          stopVoiceRecording();
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        toast({
+          title: 'Voice Recognition Error',
+          description: 'Unable to process voice input. Please try again.',
+          variant: 'destructive',
+        });
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recognition);
+      recognition.start();
+    } else {
+      toast({
+        title: 'Voice Recognition Not Supported',
+        description: 'Your browser does not support voice recognition.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (recognition) {
+      recognition.stop();
+    }
+    setIsListening(false);
+  };
+
+  const confirmVoiceNote = () => {
+    if (!pendingVoiceNote) return;
+    
+    // Add the voice note to the description field
+    setPortfolioForm(prev => ({
+      ...prev,
+      description: prev.description ? 
+        `${prev.description}\n\nVoice Note: ${pendingVoiceNote}` : 
+        `Voice Note: ${pendingVoiceNote}`
+    }));
+
+    toast({
+      title: 'Voice Note Added',
+      description: 'Voice note has been added to the portfolio description.',
+    });
+
+    // Reset state
+    setShowVoiceConfirmation(false);
+    setPendingVoiceNote('');
+    setVoiceText('');
+  };
+
+  const cancelVoiceNote = () => {
+    setShowVoiceConfirmation(false);
+    setPendingVoiceNote('');
+    setVoiceText('');
   };
 
   return (
@@ -461,6 +571,34 @@ export default function PortfolioBuilder() {
                         placeholder="Describe the learning activity and observations..."
                         rows={4}
                       />
+                      
+                      {/* Voice Input Button */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant={isListening ? "destructive" : "outline"}
+                          size="sm"
+                          onClick={isListening ? stopVoiceRecording : startVoiceRecording}
+                          disabled={!selectedChild}
+                        >
+                          {isListening ? (
+                            <>
+                              <MicOff className="h-4 w-4 mr-2" />
+                              Stop Recording
+                            </>
+                          ) : (
+                            <>
+                              <Mic className="h-4 w-4 mr-2" />
+                              Add Voice Note
+                            </>
+                          )}
+                        </Button>
+                        {isListening && (
+                          <span className="text-sm text-blue-600 animate-pulse">
+                            🎤 Listening... Speak about what's happening in the photo
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -568,6 +706,34 @@ export default function PortfolioBuilder() {
           </Tabs>
         </div>
       </div>
+
+      {/* Voice Confirmation Dialog */}
+      <Dialog open={showVoiceConfirmation} onOpenChange={setShowVoiceConfirmation}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Voice Note</DialogTitle>
+            <DialogDescription>
+              Would you like to add this voice note to {children.find(c => c.id === selectedChild)?.firstName}'s portfolio description?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium mb-2">Recorded Voice Note:</p>
+              <p className="text-sm text-gray-700">"{pendingVoiceNote}"</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={cancelVoiceNote}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button onClick={confirmVoiceNote}>
+                <Check className="h-4 w-4 mr-2" />
+                Add to Description
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
