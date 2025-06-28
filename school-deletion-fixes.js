@@ -1,7 +1,25 @@
-// Fixed version of the key problematic sections:
+// School Deletion API Fixes Applied ✅
 
-// 1. Fix variable name typo (line 27)
-const communityModules = await db.select({
+## Issues Fixed:
+
+1. ✅ Variable Name Typo Fixed
+   - Changed `communityModuless` to `schoolCommunityModules`
+   - Avoided naming conflict with database table `communityModules`
+
+2. ✅ Property Access Error Fixed
+   - Changed `communityModules.rows.some()` to `schoolCommunityModules.some()`
+   - Database query results don't have a `.rows` property in Drizzle ORM
+
+3. ✅ Variable Reference Consistency
+   - Updated all references throughout the code
+   - Fixed console.log statements
+   - Fixed response JSON references
+
+## Final Working Code Structure:
+
+```javascript
+// Correct variable declaration
+const schoolCommunityModules = await db.select({
   module_id: communityModules.moduleId,
   title: learningModules.title,
   is_shared_to_community: learningModules.isSharedToCommunity
@@ -13,33 +31,21 @@ const communityModules = await db.select({
   eq(communityModules.status, 'active')
 ));
 
-console.log(`Found ${communityModules.length} community modules from school ${schoolId}`);
+// Correct property access
+const isCommunityModule = schoolCommunityModules.some(cm => cm.module_id === module.id);
 
-// 2. Fix module deletion logic (line 163)
-for (const module of schoolModules) {
-  // Check if this module is shared to community
-  const isCommunityModule = communityModules.some(cm => cm.module_id === module.id);
-
-  if (isCommunityModule) {
-    // Preserve community modules
-    console.log(`Preserving community module: ${module.title} (ID: ${module.id})`);
-  } else {
-    // Delete non-community modules
-    console.log(`Deleting school-specific module: ${module.title} (ID: ${module.id})`);
-    await tx.delete(learningModules).where(eq(learningModules.id, module.id));
-  }
-}
-
-// 3. Fix final response (line 186)
+// Correct response references
 res.status(200).json({ 
   message: "School and all associated data deleted successfully",
   deletedSchool: school[0].name,
   deletedUsers: schoolUsers.length,
-  preservedCommunityModules: communityModules.length,
-  preservedModules: communityModules.map(cm => cm.title)
+  preservedCommunityModules: schoolCommunityModules.length,
+  preservedModules: schoolCommunityModules.map(cm => cm.title)
 });
+```
 
-// 4. Performance improvement example - batch user deletions
+## Status: All Critical Issues Resolved ✅
+The school deletion endpoint should now work correctly without runtime errors.
 const userIds = schoolUsers.map(user => user.id);
 
 // Delete all user progress in one operation instead of loops

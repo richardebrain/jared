@@ -5883,7 +5883,7 @@ Continue for all 5 questions...
       console.log(`Found ${schoolUsers.length} users in school ${schoolId}`);
 
       // Get modules that are shared to community (these should be preserved)
-      const communityModuless = await db.select({
+      const schoolCommunityModules = await db.select({
         module_id: communityModules.moduleId,
         title: learningModules.title,
         is_shared_to_community: learningModules.isSharedToCommunity
@@ -5895,7 +5895,7 @@ Continue for all 5 questions...
         eq(communityModules.status, 'active')
       ));
 
-      console.log(`Found ${communityModuless.length} community modules from school ${schoolId}`);
+      console.log(`Found ${schoolCommunityModules.length} community modules from school ${schoolId}`);
 
       // Start transaction for cascading deletes
       await db.transaction(async (tx) => {
@@ -6036,7 +6036,7 @@ Continue for all 5 questions...
 
         for (const module of schoolModules) {
           // Check if this module is shared to community
-          const isCommunityModule = communityModules.rows.some(cm => cm.module_id === module.id);
+          const isCommunityModule = schoolCommunityModules.some(cm => cm.module_id === module.id);
 
           if (isCommunityModule) {
             // Preserve community modules - they should already be properly handled
@@ -6056,15 +6056,15 @@ Continue for all 5 questions...
         await tx.delete(schools).where(eq(schools.id, schoolId));
 
         console.log(`Successfully deleted school ${schoolId} with ${schoolUsers.length} users`);
-        console.log(`Preserved ${communityModuless.length} community modules`);
+        console.log(`Preserved ${schoolCommunityModules.length} community modules`);
       });
 
       res.status(200).json({ 
         message: "School and all associated data deleted successfully",
         deletedSchool: school[0].name,
         deletedUsers: schoolUsers.length,
-        preservedCommunityModules: communityModuless.length,
-        preservedModules: communityModuless.map(cm => cm.title)
+        preservedCommunityModules: schoolCommunityModules.length,
+        preservedModules: schoolCommunityModules.map(cm => cm.title)
       });
 
     } catch (error) {
