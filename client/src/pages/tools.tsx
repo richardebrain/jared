@@ -8,13 +8,14 @@ import LessonPlanMaker from "@/components/LessonPlanMaker";
 import ParentResponseGenerator, { ParentScenario } from "@/components/ParentResponseGenerator";
 import TransitionTimerTool from "@/components/TransitionTimerTool";
 import { HelpMeWithThisKid } from "@/components/HelpMeWithThisKid";
+import PortfolioBuilder from "@/pages/PortfolioBuilder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Heart, Sparkles, UserCheck
+  Heart, Sparkles, UserCheck, Camera
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -219,7 +220,13 @@ export default function ToolsPage() {
       icon: <UserCheck className="h-6 w-6" />,
       component: <HelpMeWithThisKid />
     },
-
+    {
+      id: "portfolio-builder",
+      title: "Child Portfolio Builder",
+      description: "AI-powered photo analysis and portfolio creation",
+      icon: <Camera className="h-6 w-6" />,
+      component: <PortfolioBuilder />
+    },
     {
       id: "meeting-scheduler",
       title: "Director Meeting Scheduler",
