@@ -8,6 +8,7 @@ declare global {
   }
 }
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
 interface Child {
   id: number;
@@ -326,7 +326,7 @@ export default function PortfolioBuilder() {
     setIsListening(false);
   };
 
-  const confirmVoiceNote = () => {
+  const confirmVoiceNote = async () => {
     if (!pendingVoiceNote) return;
     
     // Add the voice note to the description field
@@ -337,10 +337,58 @@ export default function PortfolioBuilder() {
         `Voice Note: ${pendingVoiceNote}`
     }));
 
-    toast({
-      title: 'Voice Note Added',
-      description: 'Voice note has been added to the portfolio description.',
-    });
+    // If we have both a photo and voice input, use intelligent analysis
+    if (portfolioForm.photos.length > 0) {
+      try {
+        const base64Data = portfolioForm.photos[0].split(',')[1]; // Remove data:image/jpeg;base64, prefix
+        
+        const intelligentAnalysis = await apiRequest('/api/portfolio/analyze-with-voice', {
+          method: 'POST',
+          data: {
+            base64Image: base64Data,
+            voiceContext: pendingVoiceNote,
+          },
+        });
+
+        // Update analysis with intelligent assignment
+        setPhotoAnalysis(intelligentAnalysis);
+        
+        // If AI identified specific children, automatically select the first one
+        if (intelligentAnalysis.assignedChildObjects && intelligentAnalysis.assignedChildObjects.length > 0) {
+          setSelectedChild(intelligentAnalysis.assignedChildObjects[0].id);
+          
+          toast({
+            title: 'Smart Assignment Complete',
+            description: `AI analyzed your voice note and assigned this to ${intelligentAnalysis.assignedChildObjects[0].firstName}. Reason: ${intelligentAnalysis.childAssignment?.reasoning}`,
+          });
+        } else {
+          toast({
+            title: 'Voice Note Added',
+            description: 'Voice note added. AI analyzed the content but could not automatically assign to a specific child.',
+          });
+        }
+
+        // Update title and description with AI suggestions
+        setPortfolioForm(prev => ({
+          ...prev,
+          title: intelligentAnalysis.suggestedTitle || prev.title,
+          description: intelligentAnalysis.aiSummary || prev.description,
+        }));
+
+      } catch (error) {
+        console.error('Intelligent analysis failed:', error);
+        toast({
+          title: 'Voice Note Added',
+          description: 'Voice note added, but intelligent analysis failed. Please manually select the child.',
+          variant: 'destructive',
+        });
+      }
+    } else {
+      toast({
+        title: 'Voice Note Added',
+        description: 'Voice note has been added. Upload a photo for smart child assignment.',
+      });
+    }
 
     // Reset state
     setShowVoiceConfirmation(false);
@@ -653,6 +701,30 @@ export default function PortfolioBuilder() {
                         <h4 className="font-medium mb-2">Activity Detected</h4>
                         <Badge variant="outline">{photoAnalysis.activity.activityType}</Badge>
                       </div>
+
+                      {photoAnalysis.intelligentAssignment && photoAnalysis.childAssignment && (
+                        <div>
+                          <h4 className="font-medium mb-2 flex items-center gap-2">
+                            <Brain className="h-4 w-4" />
+                            Smart Child Assignment
+                          </h4>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                              {photoAnalysis.childAssignment.assignedChildren.map((childName, index) => (
+                                <Badge key={index} variant="default" className="bg-green-100 text-green-800 border-green-300">
+                                  {childName}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {photoAnalysis.childAssignment.reasoning}
+                            </p>
+                            <div className="text-xs text-muted-foreground">
+                              Confidence: {Math.round((photoAnalysis.childAssignment.confidence || 0) * 100)}%
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       <div>
                         <h4 className="font-medium mb-2">Learning Indicators</h4>

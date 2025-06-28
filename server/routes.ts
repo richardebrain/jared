@@ -10806,7 +10806,7 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
-  // Create portfolio entry with AI analysis
+  // Create portfolio entry with AI analysis (original endpoint)
   app.post("/api/portfolio/analyze", requireAuth, async (req, res) => {
     try {
       const { base64Image, childId, context } = req.body;
@@ -10842,6 +10842,61 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     } catch (error) {
       console.error("Error analyzing portfolio photo:", error);
       res.status(500).json({ error: "Failed to analyze photo: " + error.message });
+    }
+  });
+
+  // Smart portfolio analysis with voice + photo for intelligent child assignment
+  app.post("/api/portfolio/analyze-with-voice", requireAuth, async (req, res) => {
+    try {
+      const { base64Image, voiceContext } = req.body;
+      const user = req.user!;
+
+      if (!voiceContext || voiceContext.trim() === '') {
+        return res.status(400).json({ error: "Voice context is required for intelligent analysis" });
+      }
+
+      // Get children in the school for AI analysis
+      const schoolChildren = await storage.getChildrenBySchool(user.schoolId!);
+      
+      // Import AI analysis function
+      const { analyzePortfolioWithVoice, generatePortfolioTitle } = await import('./services/portfolioAI.js');
+      
+      // Analyze the photo with voice context for intelligent child assignment
+      const analysis = await analyzePortfolioWithVoice(base64Image, voiceContext, schoolChildren);
+      
+      // Find actual child objects for the assigned children
+      const assignedChildObjects = [];
+      if (analysis.childAssignment?.assignedChildren) {
+        for (const childName of analysis.childAssignment.assignedChildren) {
+          // Try to match child names (handle both "First Last" and "First" formats)
+          const matchedChild = schoolChildren.find(child => {
+            const fullName = `${child.firstName} ${child.lastName}`;
+            const firstName = child.firstName;
+            return fullName.toLowerCase().includes(childName.toLowerCase()) ||
+                   firstName.toLowerCase() === childName.toLowerCase();
+          });
+          if (matchedChild) {
+            assignedChildObjects.push(matchedChild);
+          }
+        }
+      }
+
+      // Generate a contextual title based on voice input and activity
+      const title = await generatePortfolioTitle(
+        analysis.activity.activityType,
+        assignedChildObjects.length > 0 ? assignedChildObjects[0].firstName : "Child",
+        voiceContext
+      );
+
+      res.json({
+        ...analysis,
+        suggestedTitle: title,
+        assignedChildObjects: assignedChildObjects,
+        intelligentAssignment: true
+      });
+    } catch (error) {
+      console.error("Error analyzing portfolio with voice:", error);
+      res.status(500).json({ error: "Failed to analyze photo with voice context: " + error.message });
     }
   });
 

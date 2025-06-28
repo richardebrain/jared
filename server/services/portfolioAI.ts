@@ -23,12 +23,113 @@ export interface StandardsAlignment {
   reasoning: string;
 }
 
+export interface ChildAssignment {
+  assignedChildren: string[];
+  reasoning: string;
+  confidence: number;
+}
+
 export interface AIPortfolioAnalysis {
   children: ChildIdentification;
   activity: ActivityAnalysis;
   standards: StandardsAlignment;
   aiSummary: string;
   confidence: number;
+  childAssignment?: ChildAssignment;
+}
+
+/**
+ * Analyze photo and voice input to intelligently assign portfolio entries to children
+ */
+export async function analyzePortfolioWithVoice(
+  base64Image: string,
+  voiceContext: string,
+  childrenInClass: { firstName: string; lastName: string }[]
+): Promise<AIPortfolioAnalysis> {
+  try {
+    const childrenNames = childrenInClass.map(child => `${child.firstName} ${child.lastName}`);
+    
+    const prompt = `You are an expert early childhood educator analyzing a classroom photo and teacher voice notes to create a child portfolio entry. 
+
+CHILDREN IN CLASS: ${childrenNames.join(', ')}
+
+TEACHER'S VOICE NOTES: "${voiceContext}"
+
+PHOTO ANALYSIS TASK:
+1. Analyze the photo to identify which children are visible and what activity is happening
+2. Cross-reference the voice notes with what you see in the photo
+3. Determine which specific children this portfolio entry should be assigned to based on BOTH the visual evidence AND the voice context
+
+INTELLIGENT ASSIGNMENT RULES:
+- If voice notes mention specific child names (e.g., "Caleb stacked 15 blocks"), prioritize those children
+- If voice notes describe an activity but don't name children, use facial recognition to identify children in the photo
+- Consider both direct mentions and contextual clues (e.g., "the boy in the red shirt building towers")
+- If multiple children are involved, assign to all relevant children
+- Provide confidence scoring and reasoning for assignments
+
+Please analyze and return detailed JSON with:
+1. Visual child identification from photo
+2. Activity analysis and learning indicators
+3. NAEYC standards alignment
+4. INTELLIGENT CHILD ASSIGNMENT based on voice + visual analysis
+5. Overall confidence and reasoning
+
+Respond with valid JSON only.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: prompt
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ],
+        },
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 2000,
+    });
+
+    const analysis = JSON.parse(response.choices[0].message.content);
+    
+    return {
+      children: {
+        detectedChildren: analysis.children?.detectedChildren || [],
+        confidence: analysis.children?.confidence || 0.7
+      },
+      activity: {
+        activityType: analysis.activity?.activityType || 'Learning Activity',
+        recognizedObjects: analysis.activity?.recognizedObjects || [],
+        learningIndicators: analysis.activity?.learningIndicators || [],
+        emotions: analysis.activity?.emotions || [],
+        confidence: analysis.activity?.confidence || 0.7
+      },
+      standards: {
+        naeyc_standards: analysis.standards?.naeyc_standards || [],
+        custom_standards: analysis.standards?.custom_standards || [],
+        reasoning: analysis.standards?.reasoning || ''
+      },
+      childAssignment: {
+        assignedChildren: analysis.childAssignment?.assignedChildren || [],
+        reasoning: analysis.childAssignment?.reasoning || 'Assignment based on AI analysis',
+        confidence: analysis.childAssignment?.confidence || 0.8
+      },
+      aiSummary: analysis.aiSummary || 'Portfolio entry created from photo and voice analysis',
+      confidence: analysis.confidence || 0.8
+    };
+  } catch (error) {
+    console.error('Error analyzing portfolio with voice:', error);
+    throw new Error('Failed to analyze portfolio entry');
+  }
 }
 
 /**
