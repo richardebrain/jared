@@ -5883,19 +5883,15 @@ Continue for all 5 questions...
       console.log(`Found ${schoolUsers.length} users in school ${schoolId}`);
 
       // Get modules that are shared to community (these should be preserved)
-      const schoolCommunityModules = await db.select({
-        module_id: communityModules.moduleId,
-        title: learningModules.title,
-        is_shared_to_community: learningModules.isSharedToCommunity
-      })
-      .from(communityModules)
-      .innerJoin(learningModules, eq(communityModules.moduleId, learningModules.id))
-      .where(and(
-        eq(communityModules.sharedBySchoolId, schoolId),
-        eq(communityModules.status, 'active')
-      ));
+      const schoolCommunityModules = await db.execute(sql`
+        SELECT cm.module_id, lm.title, lm.is_shared_to_community
+        FROM community_modules cm
+        INNER JOIN learning_modules lm ON cm.module_id = lm.id
+        WHERE cm.shared_by_school_id = ${schoolId}
+        AND cm.status = 'active'
+      `);
 
-      console.log(`Found ${schoolCommunityModules.length} community modules from school ${schoolId}`);
+      console.log(`Found ${schoolCommunityModules.rows.length} community modules from school ${schoolId}`);
 
       // Start transaction for cascading deletes
       await db.transaction(async (tx) => {
@@ -6036,7 +6032,7 @@ Continue for all 5 questions...
 
         for (const module of schoolModules) {
           // Check if this module is shared to community
-          const isCommunityModule = schoolCommunityModules.some(cm => cm.module_id === module.id);
+          const isCommunityModule = schoolCommunityModules.rows.some(cm => cm.module_id === module.id);
 
           if (isCommunityModule) {
             // Preserve community modules - they should already be properly handled
@@ -6056,15 +6052,15 @@ Continue for all 5 questions...
         await tx.delete(schools).where(eq(schools.id, schoolId));
 
         console.log(`Successfully deleted school ${schoolId} with ${schoolUsers.length} users`);
-        console.log(`Preserved ${schoolCommunityModules.length} community modules`);
+        console.log(`Preserved ${schoolCommunityModules.rows.length} community modules`);
       });
 
       res.status(200).json({ 
         message: "School and all associated data deleted successfully",
         deletedSchool: school[0].name,
         deletedUsers: schoolUsers.length,
-        preservedCommunityModules: schoolCommunityModules.length,
-        preservedModules: schoolCommunityModules.map(cm => cm.title)
+        preservedCommunityModules: schoolCommunityModules.rows.length,
+        preservedModules: schoolCommunityModules.rows.map(cm => cm.title)
       });
 
     } catch (error) {
