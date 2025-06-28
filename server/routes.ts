@@ -76,6 +76,35 @@ if (process.env.SENDGRID_API_KEY) {
 //   }
 // }
 
+export async function deleteSchool(schoolId: number) {
+  await db.transaction(async (tx) => {
+    const schoolUsers = await tx.query.users.findMany({
+      where: eq(users.schoolId, schoolId),
+    });
+    const userIds = schoolUsers.map(u => u.id);
+
+    if (userIds.length > 0) {
+      await tx.delete(assessmentResponses).where(
+        inArray(assessmentResponses.userId, userIds)
+      );
+    }
+
+    await tx.delete(users).where(eq(users.schoolId, schoolId));
+    await tx.delete(newsletters).where(eq(newsletters.schoolId, schoolId));
+    await tx.delete(teacherInvitations).where(eq(teacherInvitations.schoolId, schoolId));
+
+    await tx.delete(learningModules).where(
+      and(
+        eq(learningModules.schoolId, schoolId),
+        eq(learningModules.isSharedToCommunity, false)
+      )
+    );
+
+    await tx.delete(schools).where(eq(schools.id, schoolId));
+  });
+}
+
+
 // SendGrid email service for ECE monthly reports
 export async function sendEceMonthlyReport(
   recipients: string[],
@@ -336,7 +365,8 @@ import {
 ,
 teacherSelfAssessments,
 coreValuesShoutOuts,  moduleRatings,
-communityModules
+communityModules,
+assessmentResponses
 
 } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
@@ -378,6 +408,7 @@ import imageGenerationRoutes from "./api/imageGenerationRoutes";
 import giphyRoutes from "./api/giphyRoutes";
 import pixabayRoutes from "./routes/pixabay";
 import { setupSecurityMiddleware } from "./middleware/security";
+import { createSchoolDeletionEndpoint } from "./services/cleanSchoolDeletion.js";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -5803,17 +5834,19 @@ Continue for all 5 questions...
   });
 
   // Delete a school (App Owner only)
+
+  // Delete a school (App Owner only)
   // app.delete("/api/owner/schools/:schoolId", requireOwner, async (req, res) => {
   //   try {
   //     const schoolId = parseInt(req.params.schoolId);
-      
+
   //     if (!schoolId || isNaN(schoolId)) {
   //       return res.status(400).json({ message: "Valid school ID is required" });
   //     }
 
   //     // Get school information first
   //     const school = await db.select().from(schools).where(eq(schools.id, schoolId));
-      
+
   //     if (school.length === 0) {
   //       return res.status(404).json({ message: "School not found" });
   //     }
@@ -5822,8 +5855,23 @@ Continue for all 5 questions...
 
   //     // Get all users in this school before deletion
   //     const schoolUsers = await db.select().from(users).where(eq(users.schoolId, schoolId));
-      
+
   //     console.log(`Found ${schoolUsers.length} users in school ${schoolId}`);
+
+  //     // Get modules that are shared to community (these should be preserved)
+  //     const communityModuless = await db.select({
+  //       module_id: communityModules.moduleId,
+  //       title: learningModules.title,
+  //       is_shared_to_community: learningModules.isSharedToCommunity
+  //     })
+  //     .from(communityModules)
+  //     .innerJoin(learningModules, eq(communityModules.moduleId, learningModules.id))
+  //     .where(and(
+  //       eq(communityModules.sharedBySchoolId, schoolId),
+  //       eq(communityModules.status, 'active')
+  //     ));
+
+  //     console.log(`Found ${communityModuless.length} community modules from school ${schoolId}`);
 
   //     // Start transaction for cascading deletes
   //     await db.transaction(async (tx) => {
@@ -5832,22 +5880,174 @@ Continue for all 5 questions...
   //         await tx.delete(userProgress).where(eq(userProgress.userId, user.id));
   //       }
 
-  //       // 2. Delete school-specific modules
+  //       // 2. Delete user achievements for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(userAchievements).where(eq(userAchievements.userId, user.id));
+  //       }
+
+  //       // 3. Delete user items for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(userItems).where(eq(userItems.userId, user.id));
+  //       }
+
+  //       // 4. Delete user avatar items for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(userAvatarItems).where(eq(userAvatarItems.userId, user.id));
+  //       }
+
+  //       // 5. Delete user avatars for all school users (removed - table doesn't exist)
+  //       // Note: userAvatars table was removed from schema, so no deletion needed
+
+  //       // 6. Delete user ECE hours for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(eceHours).where(eq(eceHours.userId, user.id));
+  //       }
+
+  //       // 7. Delete user assessment results for all school users (through assessments)
+  //       for (const user of schoolUsers) {
+  //         // Get all assessments for this user
+  //         const userAssessments = await tx.select({ id: assessments.id }).from(assessments).where(eq(assessments.userId, user.id));
+  //         // Delete assessment results for each assessment
+  //         for (const assessment of userAssessments) {
+  //           await tx.delete(assessmentResults).where(eq(assessmentResults.assessmentId, assessment.id));
+  //         }
+  //       }
+
+  //       // 8. Delete user assessments for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(assessments).where(eq(assessments.userId, user.id));
+  //       }
+
+  //       // 9. Delete user game completions for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(gameCompletions).where(eq(gameCompletions.userId, user.id));
+  //       }
+
+  //       // 10. Delete user video quiz completions for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(videoQuizCompletions).where(eq(videoQuizCompletions.userId, user.id));
+  //       }
+
+  //       // 11. Delete user discussion threads for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(discussionThreads).where(eq(discussionThreads.authorId, user.id));
+  //       }
+
+  //       // 12. Delete user discussion comments for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(discussionComments).where(eq(discussionComments.authorId, user.id));
+  //       }
+
+  //       // 13. Delete user comment votes for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(commentVotes).where(eq(commentVotes.userId, user.id));
+  //       }
+
+  //       // 14. Delete user video ratings for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(videoRatings).where(eq(videoRatings.userId, user.id));
+  //       }
+
+  //       // 15. Delete user module ratings for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(moduleRatings).where(eq(moduleRatings.userId, user.id));
+  //       }
+
+  //       // 16. Delete user core values shout outs for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(coreValuesShoutOuts).where(eq(coreValuesShoutOuts.nominatorId, user.id));
+  //         await tx.delete(coreValuesShoutOuts).where(eq(coreValuesShoutOuts.nomineeId, user.id));
+  //       }
+
+  //       // 17. Delete user teacher self assessments for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(teacherSelfAssessments).where(eq(teacherSelfAssessments.userId, user.id));
+  //       }
+
+  //       // 18. Delete user daily logins for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(dailyLogins).where(eq(dailyLogins.userId, user.id));
+  //       }
+
+  //       // 19. Delete user bear bucks transactions for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(bearBucksTransactions).where(eq(bearBucksTransactions.recipientId, user.id));
+  //         await tx.delete(bearBucksTransactions).where(eq(bearBucksTransactions.senderId, user.id));
+  //       }
+
+  //       // 20. Delete user meetings for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(meetings).where(eq(meetings.hostId, user.id));
+  //         await tx.delete(meetings).where(eq(meetings.guestId, user.id));
+  //       }
+
+  //       // 21. Delete user assessments for all school users
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(assessments).where(eq(assessments.userId, user.id));
+  //       }
+
+  //       // 22. Delete assessments for this school (where user belongs to the school)
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(assessments).where(eq(assessments.userId, user.id));
+  //       }
+
+  //       // 23. Delete school-specific modules (non-community)
   //       await tx.delete(learningModules).where(eq(learningModules.schoolId, schoolId));
 
-  //       // 3. Delete all users in the school
+  //       // 24. Delete module drafts for this school (where user belongs to the school)
+  //       for (const user of schoolUsers) {
+  //         await tx.delete(moduleDrafts).where(eq(moduleDrafts.userId, user.id));
+  //       }
+
+  //       // 25. Delete school-specific lesson plans
+  //       await tx.delete(lessonPlans).where(eq(lessonPlans.schoolId, schoolId));
+
+  //       // 26. Delete school-specific newsletters
+  //       await tx.delete(newsletters).where(eq(newsletters.schoolId, schoolId));
+
+  //       // 27. Handle learning modules - preserve community modules, delete others
+  //       const schoolModules = await tx.select().from(learningModules).where(eq(learningModules.schoolId, schoolId));
+
+  //       for (const module of schoolModules) {
+  //         // Check if this module is shared to community
+  //         const isCommunityModule = communityModuless.some(cm => cm.module_id === module.id);
+
+  //         if (isCommunityModule) {
+  //           // Preserve community modules - they should already be properly handled
+  //           console.log(`Preserving community module: ${module.title} (ID: ${module.id})`);
+  //           // No action needed - community modules stay as they are
+  //         } else {
+  //           // Delete non-community module
+  //           console.log(`Deleting school-specific module: ${module.title} (ID: ${module.id})`);
+  //           await tx.delete(learningModules).where(eq(learningModules.id, module.id));
+  //         }
+  //       }
+
+  //       // 28. Delete school-specific teacher invitations
+  //       await tx.delete(teacherInvitations).where(eq(teacherInvitations.schoolId, schoolId));
+
+  //       // 29. Delete school-specific teacher messages
+  //       await tx.delete(teacherMessages).where(eq(teacherMessages.schoolId, schoolId));
+
+  //       // 30. Delete school-specific ECE reporting settings
+  //       await tx.delete(eceReportingSettings).where(eq(eceReportingSettings.schoolId, schoolId));
+
+  //       // 31. Delete all users in the school
   //       await tx.delete(users).where(eq(users.schoolId, schoolId));
 
-  //       // 4. Finally delete the school
+  //       // 32. Finally delete the school
   //       await tx.delete(schools).where(eq(schools.id, schoolId));
-        
+
   //       console.log(`Successfully deleted school ${schoolId} with ${schoolUsers.length} users`);
+  //       console.log(`Preserved ${communityModuless.length} community modules`);
   //     });
 
   //     res.status(200).json({ 
   //       message: "School and all associated data deleted successfully",
   //       deletedSchool: school[0].name,
-  //       deletedUsers: schoolUsers.length
+  //       deletedUsers: schoolUsers.length,
+  //       preservedCommunityModules: communityModuless.length,
+  //       preservedModules: communityModuless.map(cm => cm.title)
   //     });
 
   //   } catch (error) {
@@ -5859,218 +6059,7 @@ Continue for all 5 questions...
   //   }
   // });
 
-  // Delete a school (App Owner only)
-  app.delete("/api/owner/schools/:schoolId", requireOwner, async (req, res) => {
-    try {
-      const schoolId = parseInt(req.params.schoolId);
-
-      if (!schoolId || isNaN(schoolId)) {
-        return res.status(400).json({ message: "Valid school ID is required" });
-      }
-
-      // Get school information first
-      const school = await db.select().from(schools).where(eq(schools.id, schoolId));
-
-      if (school.length === 0) {
-        return res.status(404).json({ message: "School not found" });
-      }
-
-      console.log(`App owner deleting school: ${school[0].name} (ID: ${schoolId})`);
-
-      // Get all users in this school before deletion
-      const schoolUsers = await db.select().from(users).where(eq(users.schoolId, schoolId));
-
-      console.log(`Found ${schoolUsers.length} users in school ${schoolId}`);
-
-      // Get modules that are shared to community (these should be preserved)
-      const schoolCommunityModules = await db.execute(sql`
-        SELECT cm.module_id, lm.title, lm.is_shared_to_community
-        FROM community_modules cm
-        INNER JOIN learning_modules lm ON cm.module_id = lm.id
-        WHERE cm.shared_by_school_id = ${schoolId}
-        AND cm.status = 'active'
-      `);
-
-      console.log(`Found ${schoolCommunityModules.rows.length} community modules from school ${schoolId}`);
-
-      // Start transaction for cascading deletes
-      await db.transaction(async (tx) => {
-        // 1. Delete user progress for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(userProgress).where(eq(userProgress.userId, user.id));
-        }
-
-        // 2. Delete user achievements for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(userAchievements).where(eq(userAchievements.userId, user.id));
-        }
-
-        // 3. Delete user items for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(userItems).where(eq(userItems.userId, user.id));
-        }
-
-        // 4. Delete user avatars for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(userAvatarItems).where(eq(userAvatarItems.userId, user.id));
-          await tx.delete(userAvatars).where(eq(userAvatars.userId, user.id));
-        }
-
-        // 5. Delete user streaks for all school users (removed - table doesn't exist)
-        // Note: userStreaks table was removed from schema, so no deletion needed
-
-        // 6. Delete user ECE hours for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(eceHours).where(eq(eceHours.userId, user.id));
-        }
-
-        // 7. Delete user assessment results for all school users (through assessments)
-        for (const user of schoolUsers) {
-          // Get all assessments for this user
-          const userAssessments = await tx.select({ id: assessments.id }).from(assessments).where(eq(assessments.userId, user.id));
-          // Delete assessment results for each assessment
-          for (const assessment of userAssessments) {
-            await tx.delete(assessmentResults).where(eq(assessmentResults.assessmentId, assessment.id));
-          }
-        }
-
-        // 8. Delete user game completions for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(gameCompletions).where(eq(gameCompletions.userId, user.id));
-        }
-
-        // 9. Delete user video quiz completions for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(videoQuizCompletions).where(eq(videoQuizCompletions.userId, user.id));
-        }
-
-        // 10. Delete user discussion comments and votes for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(commentVotes).where(eq(commentVotes.userId, user.id));
-          await tx.delete(discussionComments).where(eq(discussionComments.userId, user.id));
-        }
-
-        // 11. Delete user discussion threads for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(discussionThreads).where(eq(discussionThreads.authorId, user.id));
-        }
-
-        // 12. Delete user video ratings for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(videoRatings).where(eq(videoRatings.userId, user.id));
-        }
-
-        // 13. Delete user module ratings for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(moduleRatings).where(eq(moduleRatings.userId, user.id));
-        }
-
-        // 14. Delete user core values shout outs for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(coreValuesShoutOuts).where(eq(coreValuesShoutOuts.nominatorId, user.id));
-          await tx.delete(coreValuesShoutOuts).where(eq(coreValuesShoutOuts.nomineeId, user.id));
-        }
-
-        // 15. Delete user teacher self assessments for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(teacherSelfAssessments).where(eq(teacherSelfAssessments.userId, user.id));
-        }
-
-        // 16. Delete user EduTok interactions for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(eduTokUserInteractions).where(eq(eduTokUserInteractions.userId, user.id));
-        }
-
-        // 17. Delete user assessment retake permissions for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(assessmentRetakePermissions).where(eq(assessmentRetakePermissions.userId, user.id));
-          await tx.delete(assessmentRetakePermissions).where(eq(assessmentRetakePermissions.requestedBy, user.id));
-          await tx.delete(assessmentRetakePermissions).where(eq(assessmentRetakePermissions.approvedBy, user.id));
-        }
-
-        // 18. Delete user daily logins for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(dailyLogins).where(eq(dailyLogins.userId, user.id));
-        }
-
-        // 19. Delete user bear bucks transactions for all school users
-        for (const user of schoolUsers) {
-          await tx.delete(bearBucksTransactions).where(eq(bearBucksTransactions.recipientId, user.id));
-          await tx.delete(bearBucksTransactions).where(eq(bearBucksTransactions.senderId, user.id));
-        }
-
-        // 20. Delete teacher invitations for this school
-        await tx.delete(teacherInvitations).where(eq(teacherInvitations.schoolId, schoolId));
-
-        // 21. Delete meetings for this school (where host or guest belongs to the school)
-        for (const user of schoolUsers) {
-          await tx.delete(meetings).where(eq(meetings.hostId, user.id));
-          await tx.delete(meetings).where(eq(meetings.guestId, user.id));
-        }
-
-        // 22. Delete assessments for this school (where user belongs to the school)
-        for (const user of schoolUsers) {
-          await tx.delete(assessments).where(eq(assessments.userId, user.id));
-        }
-
-        // 23. Delete lesson plans for this school
-        await tx.delete(lessonPlans).where(eq(lessonPlans.schoolId, schoolId));
-
-        // 24. Delete module drafts for this school (where user belongs to the school)
-        for (const user of schoolUsers) {
-          await tx.delete(moduleDrafts).where(eq(moduleDrafts.userId, user.id));
-        }
-
-        // 25. Delete newsletters for this school
-        await tx.delete(newsletters).where(eq(newsletters.schoolId, schoolId));
-
-        // 26. Delete teacher messages for this school
-        await tx.delete(teacherMessages).where(eq(teacherMessages.schoolId, schoolId));
-
-        // 27. Handle learning modules - preserve community modules, delete others
-        const schoolModules = await tx.select().from(learningModules).where(eq(learningModules.schoolId, schoolId));
-
-        for (const module of schoolModules) {
-          // Check if this module is shared to community
-          const isCommunityModule = schoolCommunityModules.rows.some(cm => cm.module_id === module.id);
-
-          if (isCommunityModule) {
-            // Preserve community modules - they should already be properly handled
-            console.log(`Preserving community module: ${module.title} (ID: ${module.id})`);
-            // No action needed - community modules stay as they are
-          } else {
-            // Delete non-community modules
-            console.log(`Deleting school-specific module: ${module.title} (ID: ${module.id})`);
-            await tx.delete(learningModules).where(eq(learningModules.id, module.id));
-          }
-        }
-
-        // 28. Delete all users in the school
-        await tx.delete(users).where(eq(users.schoolId, schoolId));
-
-        // 29. Finally delete the school
-        await tx.delete(schools).where(eq(schools.id, schoolId));
-
-        console.log(`Successfully deleted school ${schoolId} with ${schoolUsers.length} users`);
-        console.log(`Preserved ${schoolCommunityModules.rows.length} community modules`);
-      });
-
-      res.status(200).json({ 
-        message: "School and all associated data deleted successfully",
-        deletedSchool: school[0].name,
-        deletedUsers: schoolUsers.length,
-        preservedCommunityModules: schoolCommunityModules.rows.length,
-        preservedModules: schoolCommunityModules.rows.map(cm => cm.title)
-      });
-
-    } catch (error) {
-      console.error("Error deleting school:", error);
-      res.status(500).json({ 
-        message: "Error deleting school", 
-        details: error.message 
-      });
-    }
-  });
+  app.delete("/api/owner/schools/:schoolId", requireOwner, createSchoolDeletionEndpoint(requireOwner));
 
   // School Dashboard API endpoints
   // Get school data
