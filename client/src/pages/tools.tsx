@@ -98,7 +98,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, onClick, 
 };
 
 export default function ToolsPage() {
-  const [activeTab, setActiveTab] = useState("help-me-with-this-kid");
+  const [activeTab, setActiveTab] = useState("parent-responses");
   const [viewMode, setViewMode] = useState<"cards" | "tabs">("tabs");
 
   // Tools definitions
