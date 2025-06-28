@@ -28,6 +28,7 @@ interface Child {
   lastName: string;
   dateOfBirth: string;
   schoolId: number;
+  sharedWithSchool: boolean;
   isActive: boolean;
   sharedWithSchool: boolean;
   createdBy: number;
@@ -186,6 +187,30 @@ export default function PortfolioBuilder() {
         description: 'New portfolio entry has been saved successfully.',
       });
     },
+  });
+
+  // Mutation for updating child sharing settings
+  const updateSharingMutation = useMutation({
+    mutationFn: ({ childId, sharedWithSchool }: { childId: number, sharedWithSchool: boolean }) => 
+      apiRequest(`/api/children/${childId}/sharing`, {
+        method: 'PATCH',
+        data: { sharedWithSchool }
+      }),
+    onSuccess: () => {
+      toast({
+        title: 'Sharing Updated',
+        description: 'Child sharing settings have been updated.',
+      });
+      // Refresh children list
+      queryClient.invalidateQueries({ queryKey: ['/api/children'] });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update sharing settings.',
+        variant: 'destructive',
+      });
+    }
   });
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -489,16 +514,40 @@ export default function PortfolioBuilder() {
                   No children in your class yet. Add a child to get started.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {children.map((child: Child) => (
-                    <Button
-                      key={child.id}
-                      variant={selectedChild === child.id ? "default" : "outline"}
-                      className="w-full justify-start"
-                      onClick={() => setSelectedChild(child.id)}
-                    >
-                      {child.firstName} {child.lastName}
-                    </Button>
+                    <div key={child.id} className="border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <Button
+                          variant={selectedChild === child.id ? "default" : "outline"}
+                          className="flex-grow justify-start mr-2"
+                          onClick={() => setSelectedChild(child.id)}
+                        >
+                          {child.firstName} {child.lastName}
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Share className="h-3 w-3" />
+                          <span>Share with school teachers</span>
+                        </div>
+                        <Switch
+                          checked={child.sharedWithSchool}
+                          onCheckedChange={(checked) => 
+                            updateSharingMutation.mutate({
+                              childId: child.id,
+                              sharedWithSchool: checked
+                            })
+                          }
+                          disabled={updateSharingMutation.isPending}
+                        />
+                      </div>
+                      {child.sharedWithSchool && (
+                        <div className="mt-1 text-xs text-green-600">
+                          Shared with your school
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

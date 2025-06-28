@@ -10799,7 +10799,7 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   });
 
   // Update child sharing permissions - only creator can change sharing
-  app.put("/api/children/:id/sharing", requireAuth, async (req, res) => {
+  app.patch("/api/children/:id/sharing", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const user = req.user!;
