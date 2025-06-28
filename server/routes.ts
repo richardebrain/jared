@@ -10712,5 +10712,199 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // ========================================
+  // CHILD PORTFOLIO ROUTES
+  // ========================================
+
+  // Get children by school
+  app.get("/api/children", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const children = await storage.getChildrenBySchool(user.schoolId!);
+      res.json(children);
+    } catch (error) {
+      console.error("Error fetching children:", error);
+      res.status(500).json({ error: "Failed to fetch children" });
+    }
+  });
+
+  // Create a new child
+  app.post("/api/children", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const childData = {
+        ...req.body,
+        schoolId: user.schoolId!,
+        createdBy: user.id,
+      };
+
+      const newChild = await storage.createChild(childData);
+      res.status(201).json(newChild);
+    } catch (error) {
+      console.error("Error creating child:", error);
+      res.status(500).json({ error: "Failed to create child" });
+    }
+  });
+
+  // Update child
+  app.put("/api/children/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedChild = await storage.updateChild(id, req.body);
+      res.json(updatedChild);
+    } catch (error) {
+      console.error("Error updating child:", error);
+      res.status(500).json({ error: "Failed to update child" });
+    }
+  });
+
+  // Delete child
+  app.delete("/api/children/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteChild(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting child:", error);
+      res.status(500).json({ error: "Failed to delete child" });
+    }
+  });
+
+  // Get portfolio entries by child
+  app.get("/api/children/:id/portfolio", requireAuth, async (req, res) => {
+    try {
+      const childId = parseInt(req.params.id);
+      const entries = await storage.getPortfolioEntriesByChild(childId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching portfolio entries:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio entries" });
+    }
+  });
+
+  // Get portfolio entries by teacher
+  app.get("/api/portfolio/my-entries", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const entries = await storage.getPortfolioEntriesByTeacher(user.id);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching teacher portfolio entries:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio entries" });
+    }
+  });
+
+  // Get portfolio entries by school
+  app.get("/api/portfolio/school-entries", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const entries = await storage.getPortfolioEntriesBySchool(user.schoolId!);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching school portfolio entries:", error);
+      res.status(500).json({ error: "Failed to fetch portfolio entries" });
+    }
+  });
+
+  // Create portfolio entry with AI analysis
+  app.post("/api/portfolio/analyze", requireAuth, async (req, res) => {
+    try {
+      const { base64Image, childId, context } = req.body;
+      const user = req.user!;
+
+      // Get children in the school for AI analysis
+      const schoolChildren = await storage.getChildrenBySchool(user.schoolId!);
+      
+      // Import AI analysis function
+      const { analyzePortfolioPhoto, generatePortfolioTitle } = await import('./services/portfolioAI.js');
+      
+      // Analyze the photo with AI
+      const analysis = await analyzePortfolioPhoto(base64Image, schoolChildren, context);
+      
+      // Get the specific child if provided
+      let targetChild = null;
+      if (childId) {
+        targetChild = await storage.getChild(childId);
+      }
+
+      // Generate a title
+      const title = await generatePortfolioTitle(
+        analysis.activity.activityType,
+        targetChild ? `${targetChild.firstName} ${targetChild.lastName}` : "Child",
+        context
+      );
+
+      res.json({
+        ...analysis,
+        suggestedTitle: title,
+        targetChild,
+      });
+    } catch (error) {
+      console.error("Error analyzing portfolio photo:", error);
+      res.status(500).json({ error: "Failed to analyze photo: " + error.message });
+    }
+  });
+
+  // Create portfolio entry
+  app.post("/api/portfolio/entries", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const entryData = {
+        ...req.body,
+        teacherId: user.id,
+        schoolId: user.schoolId!,
+      };
+
+      const newEntry = await storage.createPortfolioEntry(entryData);
+      res.status(201).json(newEntry);
+    } catch (error) {
+      console.error("Error creating portfolio entry:", error);
+      res.status(500).json({ error: "Failed to create portfolio entry" });
+    }
+  });
+
+  // Update portfolio entry
+  app.put("/api/portfolio/entries/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedEntry = await storage.updatePortfolioEntry(id, req.body);
+      res.json(updatedEntry);
+    } catch (error) {
+      console.error("Error updating portfolio entry:", error);
+      res.status(500).json({ error: "Failed to update portfolio entry" });
+    }
+  });
+
+  // Delete portfolio entry
+  app.delete("/api/portfolio/entries/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deletePortfolioEntry(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting portfolio entry:", error);
+      res.status(500).json({ error: "Failed to delete portfolio entry" });
+    }
+  });
+
+  // Get NAEYC standards
+  app.get("/api/naeyc-standards", requireAuth, async (req, res) => {
+    try {
+      const { category } = req.query;
+      
+      let standards;
+      if (category) {
+        standards = await storage.getNAEYCStandardsByCategory(category as string);
+      } else {
+        standards = await storage.getAllNAEYCStandards();
+      }
+      
+      res.json(standards);
+    } catch (error) {
+      console.error("Error fetching NAEYC standards:", error);
+      res.status(500).json({ error: "Failed to fetch NAEYC standards" });
+    }
+  });
+
   // Routes registered successfully
 }
