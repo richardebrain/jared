@@ -2108,6 +2108,7 @@ export const children = pgTable("children", {
   parentEmail: text("parent_email"),
   referencePhotoUrl: text("reference_photo_url"), // For AI facial recognition
   isActive: boolean("is_active").default(true),
+  sharedWithSchool: boolean("shared_with_school").default(false), // Allow sharing with other teachers
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({

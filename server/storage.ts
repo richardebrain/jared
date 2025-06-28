@@ -2704,6 +2704,19 @@ export class DatabaseStorage implements IStorage {
       .orderBy(children.firstName, children.lastName);
   }
 
+  async getChildrenByTeacher(teacherId: number, schoolId: number): Promise<Child[]> {
+    return await db.select().from(children)
+      .where(and(
+        eq(children.schoolId, schoolId),
+        eq(children.isActive, true),
+        or(
+          eq(children.createdBy, teacherId),  // Children created by this teacher
+          eq(children.sharedWithSchool, true) // Children shared with the school
+        )
+      ))
+      .orderBy(children.firstName, children.lastName);
+  }
+
   async getChild(id: number): Promise<Child | undefined> {
     const [child] = await db.select().from(children).where(eq(children.id, id));
     return child || undefined;
@@ -2724,6 +2737,17 @@ export class DatabaseStorage implements IStorage {
 
   async deleteChild(id: number): Promise<void> {
     await db.delete(children).where(eq(children.id, id));
+  }
+
+  async checkChildAccess(childId: number, userId: number, isAdmin: boolean = false): Promise<boolean> {
+    const [child] = await db.select().from(children).where(eq(children.id, childId));
+    if (!child) return false;
+    
+    // Admin has access to all children in their school
+    if (isAdmin) return true;
+    
+    // Teacher has access to children they created or children shared with school
+    return child.createdBy === userId || child.sharedWithSchool === true;
   }
 
   // Portfolio Entry operations
