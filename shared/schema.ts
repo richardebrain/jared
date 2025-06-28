@@ -2095,9 +2095,105 @@ export const assessmentRetakePermissionsRelations = relations(assessmentRetakePe
   })
 }));
 
+// Child Portfolios System for ECE Teachers
+
+// Children profiles for portfolio tracking
+export const children = pgTable("children", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  birthDate: date("birth_date"),
+  parentGuardianName: text("parent_guardian_name"),
+  parentEmail: text("parent_email"),
+  referencePhotoUrl: text("reference_photo_url"), // For AI facial recognition
+  isActive: boolean("is_active").default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  schoolIdx: index("children_school_idx").on(table.schoolId),
+  activeIdx: index("children_active_idx").on(table.isActive),
+  createdByIdx: index("children_created_by_idx").on(table.createdBy),
+}));
+
+export const insertChildSchema = createInsertSchema(children).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Portfolio entries for documenting child activities
+export const portfolioEntries = pgTable("portfolio_entries", {
+  id: serial("id").primaryKey(),
+  childId: integer("child_id").notNull().references(() => children.id),
+  teacherId: integer("teacher_id").notNull().references(() => users.id),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  photoUrl: text("photo_url"),
+  activityType: text("activity_type"), // AI-detected activity (e.g., "block building", "painting")
+  recognizedObjects: text("recognized_objects").array(), // AI-detected objects in photo
+  aiSummary: text("ai_summary"), // AI-generated description
+  naeyc_standards: text("naeyc_standards").array(), // Aligned NAEYC standards
+  custom_standards: text("custom_standards").array(), // Custom standards
+  observationNotes: text("observation_notes"), // Teacher's manual notes
+  tags: text("tags").array(),
+  entryDate: date("entry_date").notNull(),
+  isApproved: boolean("is_approved").default(false), // Teacher approval after AI analysis
+  processingStatus: text("processing_status").default("pending"), // pending, processed, error
+  aiAnalysisData: json("ai_analysis_data").$type<{
+    confidence?: number;
+    detectedChildren?: string[];
+    activities?: string[];
+    emotions?: string[];
+    learningIndicators?: string[];
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  childIdx: index("portfolio_entries_child_idx").on(table.childId),
+  teacherIdx: index("portfolio_entries_teacher_idx").on(table.teacherId),
+  schoolIdx: index("portfolio_entries_school_idx").on(table.schoolId),
+  dateIdx: index("portfolio_entries_date_idx").on(table.entryDate),
+  statusIdx: index("portfolio_entries_status_idx").on(table.processingStatus),
+}));
+
+export const insertPortfolioEntrySchema = createInsertSchema(portfolioEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
+// NAEYC Standards reference for automatic mapping
+export const naeyc_standards = pgTable("naeyc_standards", {
+  id: serial("id").primaryKey(),
+  standardCode: text("standard_code").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: text("category"), // e.g., "Cognitive Development", "Physical Development"
+  subcategory: text("subcategory"),
+  keywords: text("keywords").array(), // For AI matching
+  ageGroup: text("age_group"), // e.g., "Preschool", "Infant/Toddler"
+  isActive: boolean("is_active").default(true),
+}, (table) => ({
+  categoryIdx: index("naeyc_standards_category_idx").on(table.category),
+  ageGroupIdx: index("naeyc_standards_age_group_idx").on(table.ageGroup),
+  activeIdx: index("naeyc_standards_active_idx").on(table.isActive),
+}));
+
+export const insertNAEYCStandardSchema = createInsertSchema(naeyc_standards).omit({
+  id: true,
+});
+
 // Export types for new tables
 export type BearBucksTransaction = typeof bearBucksTransactions.$inferSelect;
 export type InsertBearBucksTransaction = z.infer<typeof insertBearBucksTransactionSchema>;
 
 export type DailyLogin = typeof dailyLogins.$inferSelect;
 export type InsertDailyLogin = z.infer<typeof insertDailyLoginSchema>;
+
+export type Child = typeof children.$inferSelect;
+export type InsertChild = z.infer<typeof insertChildSchema>;
+
+export type PortfolioEntry = typeof portfolioEntries.$inferSelect;
+export type InsertPortfolioEntry = z.infer<typeof insertPortfolioEntrySchema>;
+
+export type NAEYCStandard = typeof naeyc_standards.$inferSelect;
+export type InsertNAEYCStandard = z.infer<typeof insertNAEYCStandardSchema>;

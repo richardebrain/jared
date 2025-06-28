@@ -237,7 +237,6 @@ export async function deleteSchool(schoolId: number) {
       message: "School and all related data deleted successfully using schema-aware approach",
       deletedSchool: school[0].name,
       deletedUsers: schoolUsers.length,
-      communityModulesFromSchool: communityModulesList.length,
       deletionApproach: "schema-based-foreign-key-relationships"
     };
 
