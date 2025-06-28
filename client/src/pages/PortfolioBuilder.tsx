@@ -68,6 +68,14 @@ interface AIAnalysis {
   confidence: number;
   suggestedTitle: string;
   targetChild?: Child;
+  // New properties for intelligent voice analysis
+  intelligentAssignment?: boolean;
+  childAssignment?: {
+    assignedChildren: string[];
+    reasoning: string;
+    confidence: number;
+  };
+  assignedChildObjects?: Child[];
 }
 
 export default function PortfolioBuilder() {
