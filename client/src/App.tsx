@@ -103,6 +103,7 @@ import TestPage from "@/pages/test-page";
 import EmergencyLogin from "@/pages/emergency-login";
 import PortfolioBuilder from "@/pages/PortfolioBuilder";
 import ChildProfile from "@/pages/ChildProfile";
+import CompreFaceSettings from "@/pages/CompreFaceSettings";
 
 // Create a wrapper component that uses AuthProvider internally
 function AuthenticatedRouter() {
@@ -781,6 +782,12 @@ function Router(props: {
       <Route path="/admin/perfect-manager">
         <ProtectedRoute schoolAdminOnly={true}>
           <PerfectManager />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/admin/compreface-settings">
+        <ProtectedRoute adminOnly={true}>
+          <CompreFaceSettings />
         </ProtectedRoute>
       </Route>
 

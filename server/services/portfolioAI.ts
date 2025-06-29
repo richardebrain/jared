@@ -163,27 +163,67 @@ export async function analyzePortfolioPhoto(
     
     console.log(`[Enhanced Facial Recognition] Analyzing photo. ${childrenWithFacialData.length} children have biometric data for comparison.`);
     
-    // Check if we should use the enhanced facial feature extractor
+    // Check if we should use CompreFace for facial recognition
     if (childrenWithFacialData.length > 0) {
-      console.log(`[Enhanced Analysis] Using comprehensive facial feature analysis for ${childrenWithFacialData.length} children`);
+      console.log(`[Facial Recognition] Attempting CompreFace analysis for ${childrenWithFacialData.length} children with biometric data`);
       
       try {
-        // Import and use the enhanced facial feature extractor
+        // Try CompreFace first (most accurate)
+        const { compreFaceService } = await import('./compreFaceService.js');
+        
+        if (compreFaceService.isConfigured()) {
+          console.log(`[CompreFace] Using CompreFace for facial recognition`);
+          
+          const matches = await compreFaceService.recognizeFaces(base64Image);
+          
+          if (matches.length > 0) {
+            const bestMatch = matches[0];
+            
+            // Find the child data by ID
+            const matchedChild = childrenWithFacialData.find(child => child.id === bestMatch.childId);
+            
+            if (matchedChild && bestMatch.similarity >= 0.7) {
+              console.log(`[CompreFace] High confidence match found: ${bestMatch.childName} (similarity: ${bestMatch.similarity})`);
+              
+              return {
+                children: {
+                  detectedChildren: [bestMatch.childName],
+                  confidence: bestMatch.similarity
+                },
+                activity: {
+                  activityType: 'Learning Activity',
+                  recognizedObjects: [],
+                  learningIndicators: [],
+                  emotions: [],
+                  confidence: 0.85
+                },
+                standards: {
+                  naeyc_standards: [],
+                  custom_standards: [],
+                  reasoning: 'Analysis based on CompreFace facial recognition'
+                },
+                aiSummary: `Portfolio entry automatically assigned to ${bestMatch.childName} using CompreFace facial recognition (similarity: ${Math.round(bestMatch.similarity * 100)}%). Face detected at coordinates (${bestMatch.faceBox.x}, ${bestMatch.faceBox.y}).`,
+                confidence: bestMatch.similarity
+              };
+            }
+          }
+        } else {
+          console.log(`[CompreFace] Service not configured, falling back to enhanced facial features`);
+        }
+        
+        // Fall back to enhanced facial feature extractor
         const { compareFacesWithFeatures } = await import('./facialFeatureExtractor.js');
         
-        // Use enhanced biometric comparison
         const recognitionResults = await compareFacesWithFeatures(base64Image, childrenWithFacialData, context);
         
         console.log(`[Enhanced Analysis] Facial recognition results:`, recognitionResults);
         
-        // If we have high-confidence matches from enhanced analysis, use them
         if (recognitionResults.matches && recognitionResults.matches.length > 0) {
           const bestMatch = recognitionResults.matches[0];
           
           if (bestMatch.confidence >= 0.65) {
             console.log(`[Enhanced Analysis] High confidence match found: ${bestMatch.childName} (${bestMatch.confidence})`);
             
-            // Create enhanced analysis with biometric data
             return {
               children: {
                 detectedChildren: [bestMatch.childName],
@@ -206,8 +246,8 @@ export async function analyzePortfolioPhoto(
             };
           }
         }
-      } catch (featureError) {
-        console.log(`[Enhanced Analysis] Facial feature analysis failed, falling back to basic vision analysis:`, featureError);
+      } catch (faceError) {
+        console.log(`[Facial Recognition] Advanced analysis failed, falling back to basic vision analysis:`, faceError);
       }
     }
     

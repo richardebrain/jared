@@ -73,6 +73,9 @@ export interface ExtractedFacialFeatures {
   extractedAt: string;
   aiModel: string;
   analysisDepth: string;
+  
+  // CompreFace integration
+  compreFaceRegistered?: boolean;
 }
 
 /**

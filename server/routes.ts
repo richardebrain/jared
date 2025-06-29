@@ -10872,7 +10872,22 @@ Respond as a wise, experienced coach who understands both the challenges of mana
 
       console.log(`[Feature Extraction API] Starting feature extraction for ${child.firstName} ${child.lastName}`);
 
-      // Import and use the facial feature extractor
+      // Try CompreFace integration first
+      let compreFaceSuccess = false;
+      try {
+        const { compreFaceService } = await import('./services/compreFaceService.js');
+        if (compreFaceService.isConfigured()) {
+          console.log(`[CompreFace] Adding face for ${child.firstName} ${child.lastName}`);
+          compreFaceSuccess = await compreFaceService.addFace(base64Image, id, `${child.firstName}_${child.lastName}`);
+          if (compreFaceSuccess) {
+            console.log(`[CompreFace] Successfully added face to CompreFace`);
+          }
+        }
+      } catch (compreFaceError) {
+        console.error('[CompreFace] Error adding face:', compreFaceError);
+      }
+
+      // Import and use the facial feature extractor (fallback and additional data)
       const { extractFacialFeatures } = await import('./services/facialFeatureExtractor.js');
       
       // Remove data:image/jpeg;base64, prefix if present
@@ -10884,8 +10899,12 @@ Respond as a wise, experienced coach who understands both the challenges of mana
         `${child.firstName} ${child.lastName}`
       );
 
+      // Add CompreFace status to features
+      extractedFeatures.compreFaceRegistered = compreFaceSuccess;
+
       console.log(`[Feature Extraction API] Features extracted successfully for ${child.firstName} ${child.lastName}`);
       console.log(`[Feature Extraction API] Confidence: ${extractedFeatures.confidence}`);
+      console.log(`[Feature Extraction API] CompreFace registered: ${compreFaceSuccess}`);
 
       // Update the child record with extracted features
       const updatedChild = await storage.updateChild(id, { 
@@ -10896,7 +10915,8 @@ Respond as a wise, experienced coach who understands both the challenges of mana
         success: true,
         features: extractedFeatures,
         message: `Facial features extracted and stored for ${child.firstName} ${child.lastName}`,
-        child: updatedChild
+        child: updatedChild,
+        compreFaceRegistered: compreFaceSuccess
       });
 
     } catch (error) {
@@ -10905,6 +10925,132 @@ Respond as a wise, experienced coach who understands both the challenges of mana
         error: "Failed to extract facial features",
         details: error.message 
       });
+    }
+  });
+
+  // CompreFace management endpoints
+  app.get('/api/compreface/status', requireAuth, async (req, res) => {
+    try {
+      const { compreFaceService } = await import('./services/compreFaceService.js');
+      
+      const isConfigured = compreFaceService.isConfigured();
+      let isHealthy = false;
+      let subjects = [];
+
+      if (isConfigured) {
+        isHealthy = await compreFaceService.healthCheck();
+        if (isHealthy) {
+          subjects = await compreFaceService.listSubjects();
+        }
+      }
+
+      res.json({
+        configured: isConfigured,
+        healthy: isHealthy,
+        subjectCount: subjects.length,
+        subjects: subjects
+      });
+
+    } catch (error) {
+      console.error('[CompreFace] Status check error:', error);
+      res.status(500).json({ error: 'Failed to check CompreFace status' });
+    }
+  });
+
+  app.post('/api/compreface/register-all-children', requireAuth, async (req, res) => {
+    try {
+      const { compreFaceService } = await import('./services/compreFaceService.js');
+      
+      if (!compreFaceService.isConfigured()) {
+        return res.status(400).json({ error: 'CompreFace is not configured' });
+      }
+
+      // Get all children with reference photos for this user's class
+      const children = await storage.getChildrenInClass(req.session.userId);
+      const childrenWithPhotos = children.filter(child => child.referencePhotoUrl && child.referencePhotoUrl.trim() !== '');
+
+      console.log(`[CompreFace] Registering ${childrenWithPhotos.length} children with reference photos`);
+
+      const results = [];
+      for (const child of childrenWithPhotos) {
+        try {
+          const success = await compreFaceService.addFace(
+            child.referencePhotoUrl,
+            child.id,
+            `${child.firstName}_${child.lastName}`
+          );
+          
+          results.push({
+            childId: child.id,
+            name: `${child.firstName} ${child.lastName}`,
+            success: success
+          });
+
+          // Update facial features to mark CompreFace registration
+          if (success && child.facialFeatures) {
+            const updatedFeatures = { ...child.facialFeatures, compreFaceRegistered: true };
+            await storage.updateChild(child.id, { facialFeatures: updatedFeatures });
+          }
+
+        } catch (error) {
+          console.error(`[CompreFace] Error registering ${child.firstName} ${child.lastName}:`, error);
+          results.push({
+            childId: child.id,
+            name: `${child.firstName} ${child.lastName}`,
+            success: false,
+            error: error.message
+          });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      console.log(`[CompreFace] Successfully registered ${successCount}/${childrenWithPhotos.length} children`);
+
+      res.json({
+        success: true,
+        message: `Registered ${successCount}/${childrenWithPhotos.length} children with CompreFace`,
+        results: results
+      });
+
+    } catch (error) {
+      console.error('[CompreFace] Bulk registration error:', error);
+      res.status(500).json({ error: 'Failed to register children with CompreFace' });
+    }
+  });
+
+  app.delete('/api/compreface/children/:id', requireAuth, async (req, res) => {
+    try {
+      const childId = parseInt(req.params.id);
+      const { compreFaceService } = await import('./services/compreFaceService.js');
+      
+      if (!compreFaceService.isConfigured()) {
+        return res.status(400).json({ error: 'CompreFace is not configured' });
+      }
+
+      // Get child info
+      const child = await storage.getChildById(childId);
+      if (!child) {
+        return res.status(404).json({ error: 'Child not found' });
+      }
+
+      const success = await compreFaceService.removeFace(childId, `${child.firstName}_${child.lastName}`);
+
+      if (success) {
+        // Update facial features to remove CompreFace registration
+        if (child.facialFeatures) {
+          const updatedFeatures = { ...child.facialFeatures, compreFaceRegistered: false };
+          await storage.updateChild(childId, { facialFeatures: updatedFeatures });
+        }
+      }
+
+      res.json({
+        success: success,
+        message: success ? 'Child removed from CompreFace' : 'Failed to remove child from CompreFace'
+      });
+
+    } catch (error) {
+      console.error('[CompreFace] Remove child error:', error);
+      res.status(500).json({ error: 'Failed to remove child from CompreFace' });
     }
   });
 
