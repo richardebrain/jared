@@ -108,6 +108,10 @@ export default function PortfolioBuilder() {
   const [showVoiceConfirmation, setShowVoiceConfirmation] = useState(false);
   const [pendingVoiceNote, setPendingVoiceNote] = useState('');
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  
+  // Additional state for smart analysis
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -248,16 +252,17 @@ export default function PortfolioBuilder() {
         const base64 = reader.result as string;
         const base64Data = base64.split(',')[1]; // Remove data:image/jpeg;base64, prefix
         
+        // Store the uploaded file for potential manual fallback
+        setUploadedFile(file);
+        
         // Add to photos array
         setPortfolioForm(prev => ({
           ...prev,
           photos: [...prev.photos, base64],
         }));
 
-        // Analyze with AI if child is selected
-        if (selectedChild) {
-          await analyzePhotoMutation.mutateAsync({ base64Image: base64Data });
-        }
+        // Use smart analysis to automatically detect child and create portfolio entry
+        await smartAnalyzePhoto(base64Data, pendingVoiceNote);
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -438,6 +443,62 @@ export default function PortfolioBuilder() {
     setShowVoiceConfirmation(false);
     setPendingVoiceNote('');
     setVoiceText('');
+  };
+
+  // Smart photo analysis that automatically detects children and creates portfolio entries
+  const smartAnalyzePhoto = async (base64Image: string, voiceContext?: string) => {
+    try {
+      const response = await apiRequest('/api/portfolio/smart-analyze', {
+        method: 'POST',
+        data: {
+          base64Image: base64Image,
+          voiceContext: voiceContext || '',
+        },
+      });
+
+      if (response.success && response.detectedChild) {
+        // Successfully detected child and created portfolio entry
+        toast({
+          title: 'Portfolio Entry Created Successfully!',
+          description: `Detected ${response.detectedChild.firstName} ${response.detectedChild.lastName} and created entry in ${response.portfolioSection} section.`,
+        });
+        
+        // Clear the form since the entry was automatically created
+        setPortfolioForm({
+          title: '',
+          description: '',
+          entryDate: new Date().toISOString().split('T')[0],
+          teacherNotes: '',
+          photos: [],
+        });
+        setPendingVoiceNote('');
+        setVoiceText('');
+        setUploadedFile(null);
+        setPhotoAnalysis(null);
+        
+        // Refresh children data to update portfolio counts
+        queryClient.invalidateQueries({ queryKey: ['/api/children'] });
+        
+      } else {
+        // Could not auto-detect, show manual selection interface
+        setAnalysisResult(response);
+        setPhotoAnalysis(response.analysis);
+        
+        toast({
+          title: 'Manual Selection Required',
+          description: response.message || 'Could not automatically identify the child. Please select manually below.',
+          variant: 'default',
+        });
+      }
+
+    } catch (error) {
+      console.error('Error in smart photo analysis:', error);
+      toast({
+        title: 'Analysis Failed',
+        description: 'Could not analyze the photo. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleReferencePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -748,10 +809,10 @@ export default function PortfolioBuilder() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Camera className="h-5 w-5" />
-                    Photo Upload & Analysis
+                    Smart Photo Analysis
                   </CardTitle>
                   <CardDescription>
-                    Upload photos and let AI automatically analyze learning activities
+                    Upload photos and AI will automatically detect children and create portfolio entries
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -763,20 +824,19 @@ export default function PortfolioBuilder() {
                         onChange={handlePhotoUpload}
                         accept="image/*"
                         className="hidden"
-                        disabled={!selectedChild}
                       />
                       <Button
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={!selectedChild || isAnalyzing}
+                        disabled={isAnalyzing}
                         className="w-full"
                         size="lg"
                       >
                         <Upload className="h-5 w-5 mr-2" />
-                        {isAnalyzing ? 'Analyzing Photo...' : 'Upload & Analyze Photo'}
+                        {isAnalyzing ? 'Analyzing & Creating Entry...' : 'Upload Photo (Auto-Detect Child)'}
                       </Button>
-                      {!selectedChild && (
-                        <p className="text-sm text-gray-500 mt-2">Select a child first to enable photo upload</p>
-                      )}
+                      <p className="text-sm text-green-600 mt-2 text-center">
+                        ✨ AI automatically detects children and creates portfolio entries
+                      </p>
                     </div>
 
                     {/* Display uploaded photos */}
@@ -880,8 +940,13 @@ export default function PortfolioBuilder() {
                       className="w-full"
                       size="lg"
                     >
-                      {createEntryMutation.isPending ? 'Saving...' : 'Save Portfolio Entry'}
+                      {createEntryMutation.isPending ? 'Saving...' : 'Save Manual Entry'}
                     </Button>
+                    {!selectedChild && (
+                      <p className="text-sm text-amber-600 text-center mt-2">
+                        Select a child above for manual entry, or use photo upload for automatic detection
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
