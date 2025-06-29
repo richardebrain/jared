@@ -89,8 +89,8 @@ export async function apiRequest<T = any>(
     const method = urlOrMethod.toUpperCase();
     const url = configOrUrl;
     
-    // Use longer timeout for AI content generation
-    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') ? 60000 : 10000;
+    // Use longer timeout for AI content generation and photo analysis
+    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') || url.includes('/smart-analyze') ? 60000 : 10000;
     finalConfig = {
       method: method as any,
       url,
@@ -103,8 +103,8 @@ export async function apiRequest<T = any>(
     const url = urlOrMethod;
     const config = (configOrUrl as AxiosRequestConfig) || {};
     
-    // Use longer timeout for AI content generation
-    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') ? 60000 : 10000;
+    // Use longer timeout for AI content generation and photo analysis
+    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') || url.includes('/smart-analyze') ? 60000 : 10000;
     finalConfig = {
       url,
       ...config,
