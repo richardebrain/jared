@@ -10986,6 +10986,124 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Smart auto-detect and create portfolio entry (no manual child selection required)
+  app.post("/api/portfolio/smart-analyze", requireAuth, async (req, res) => {
+    try {
+      const { base64Image, voiceContext } = req.body;
+      const user = req.user!;
+
+      // Get children in the school for AI analysis
+      const schoolChildren = await storage.getChildrenBySchool(user.schoolId!);
+      
+      // Import AI analysis functions
+      const { analyzePortfolioWithVoice, analyzePortfolioPhoto, generatePortfolioTitle } = await import('./services/portfolioAI.js');
+      
+      let analysis;
+      let detectedChild = null;
+      
+      // If we have voice context, use intelligent voice + photo analysis
+      if (voiceContext && voiceContext.trim() !== '') {
+        analysis = await analyzePortfolioWithVoice(base64Image, voiceContext, schoolChildren);
+        
+        // Find the best matched child from voice + photo analysis
+        if (analysis.childAssignment?.assignedChildren && analysis.childAssignment.assignedChildren.length > 0) {
+          const childName = analysis.childAssignment.assignedChildren[0];
+          detectedChild = schoolChildren.find(child => {
+            const fullName = `${child.firstName} ${child.lastName}`;
+            const firstName = child.firstName;
+            return fullName.toLowerCase().includes(childName.toLowerCase()) ||
+                   firstName.toLowerCase() === childName.toLowerCase();
+          });
+        }
+      } else {
+        // Use photo-only analysis for facial recognition
+        analysis = await analyzePortfolioPhoto(base64Image, schoolChildren);
+        
+        // Try to detect child from facial recognition in the photo
+        if (analysis.children?.detectedChildren && analysis.children.detectedChildren.length > 0) {
+          const detectedName = analysis.children.detectedChildren[0];
+          detectedChild = schoolChildren.find(child => {
+            const fullName = `${child.firstName} ${child.lastName}`;
+            return fullName.toLowerCase().includes(detectedName.toLowerCase());
+          });
+        }
+      }
+
+      // Helper function to determine portfolio section
+      const determinePortfolioSection = (activityType, standards) => {
+        const activity = activityType.toLowerCase();
+        
+        if (activity.includes('physical') || activity.includes('motor') || activity.includes('movement')) {
+          return 'Physical Development';
+        } else if (activity.includes('social') || activity.includes('emotional') || activity.includes('play')) {
+          return 'Social-Emotional Development';
+        } else if (activity.includes('language') || activity.includes('literacy') || activity.includes('reading') || activity.includes('communication')) {
+          return 'Language Development';
+        } else if (activity.includes('cognitive') || activity.includes('math') || activity.includes('science') || activity.includes('problem')) {
+          return 'Cognitive Development';
+        } else if (activity.includes('creative') || activity.includes('art') || activity.includes('music')) {
+          return 'Creative Arts';
+        } else {
+          return 'General Learning';
+        }
+      };
+
+      // If we successfully detected a child, create the portfolio entry automatically
+      if (detectedChild) {
+        const title = await generatePortfolioTitle(
+          analysis.activity.activityType,
+          `${detectedChild.firstName} ${detectedChild.lastName}`,
+          voiceContext || 'Activity documentation'
+        );
+
+        // Determine the appropriate portfolio section based on activity type
+        const portfolioSection = determinePortfolioSection(analysis.activity.activityType, analysis.standards?.naeyc_standards);
+
+        // Create the portfolio entry
+        const entryData = {
+          childId: detectedChild.id,
+          title: title,
+          description: analysis.aiSummary,
+          category: portfolioSection,
+          entryDate: new Date().toISOString().split('T')[0],
+          teacherNotes: voiceContext || '',
+          photos: [`data:image/jpeg;base64,${base64Image}`],
+          learningStandards: analysis.standards?.naeyc_standards || [],
+          teacherId: user.id,
+          schoolId: user.schoolId!,
+        };
+
+        const newEntry = await storage.createPortfolioEntry(entryData);
+
+        res.json({
+          success: true,
+          detectedChild: detectedChild,
+          portfolioSection: portfolioSection,
+          portfolioEntry: newEntry,
+          analysis: analysis,
+          confidence: analysis.confidence || 0.8
+        });
+      } else {
+        // Return analysis for manual selection
+        res.json({
+          success: false,
+          detectedChild: null,
+          analysis: analysis,
+          availableChildren: schoolChildren.map(child => ({
+            id: child.id,
+            firstName: child.firstName,
+            lastName: child.lastName
+          })),
+          message: 'Could not automatically detect child. Manual selection required.'
+        });
+      }
+
+    } catch (error) {
+      console.error("Error in smart portfolio analysis:", error);
+      res.status(500).json({ error: "Failed to analyze and create portfolio entry: " + error.message });
+    }
+  });
+
   // Create portfolio entry
   app.post("/api/portfolio/entries", requireAuth, async (req, res) => {
     try {

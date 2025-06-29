@@ -2183,6 +2183,68 @@ export const insertNAEYCStandardSchema = createInsertSchema(naeyc_standards).omi
   id: true,
 });
 
+// Milestone tracking for child development
+export const milestoneTracking = pgTable("milestone_tracking", {
+  id: serial("id").primaryKey(),
+  childId: integer("child_id").notNull().references(() => children.id),
+  milestoneId: text("milestone_id").notNull(), // Reference to the milestone identifier
+  milestoneTitle: text("milestone_title").notNull(),
+  category: text("category").notNull(), // e.g., "Cognitive Development", "Physical Development"
+  ageGroup: text("age_group").notNull(), // e.g., "2-3 years", "3-4 years"
+  
+  // Tracking fields
+  isAchieved: boolean("is_achieved").default(false),
+  achievedDate: date("achieved_date"), // Date when milestone was achieved
+  witnessedBy: text("witnessed_by"), // Name of person who witnessed the milestone
+  isAIDetected: boolean("is_ai_detected").default(false), // Whether AI detected this milestone
+  notes: text("notes"), // Additional notes about the milestone achievement
+  
+  // Portfolio context
+  portfolioEntryId: integer("portfolio_entry_id").references(() => portfolioEntries.id), // Link to portfolio entry if applicable
+  
+  // Metadata
+  recordedBy: integer("recorded_by").notNull().references(() => users.id), // Teacher who recorded this
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  childIdx: index("milestone_tracking_child_idx").on(table.childId),
+  categoryIdx: index("milestone_tracking_category_idx").on(table.category),
+  ageGroupIdx: index("milestone_tracking_age_group_idx").on(table.ageGroup),
+  achievedIdx: index("milestone_tracking_achieved_idx").on(table.isAchieved),
+  recordedByIdx: index("milestone_tracking_recorded_by_idx").on(table.recordedBy),
+}));
+
+export const insertMilestoneTrackingSchema = createInsertSchema(milestoneTracking).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Child age progression tracking
+export const childAgeProgression = pgTable("child_age_progression", {
+  id: serial("id").primaryKey(),
+  childId: integer("child_id").notNull().references(() => children.id),
+  previousAgeGroup: text("previous_age_group").notNull(), // e.g., "2-3 years"
+  newAgeGroup: text("new_age_group").notNull(), // e.g., "3-4 years"
+  progressionDate: date("progression_date").notNull(), // Date when child was moved to new age group
+  milestonesCompleted: integer("milestones_completed").default(0), // Number of milestones completed in previous age group
+  totalMilestones: integer("total_milestones").default(0), // Total milestones available in previous age group
+  completionPercentage: doublePrecision("completion_percentage").default(0), // Percentage of milestones completed
+  notes: text("notes"), // Notes about the progression
+  recordedBy: integer("recorded_by").notNull().references(() => users.id), // Teacher who recorded this progression
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  childIdx: index("child_age_progression_child_idx").on(table.childId),
+  ageGroupIdx: index("child_age_progression_age_group_idx").on(table.newAgeGroup),
+  progressionDateIdx: index("child_age_progression_progression_date_idx").on(table.progressionDate),
+  recordedByIdx: index("child_age_progression_recorded_by_idx").on(table.recordedBy),
+}));
+
+export const insertChildAgeProgressionSchema = createInsertSchema(childAgeProgression).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types for new tables
 export type BearBucksTransaction = typeof bearBucksTransactions.$inferSelect;
 export type InsertBearBucksTransaction = z.infer<typeof insertBearBucksTransactionSchema>;
@@ -2192,6 +2254,12 @@ export type InsertDailyLogin = z.infer<typeof insertDailyLoginSchema>;
 
 export type Child = typeof children.$inferSelect;
 export type InsertChild = z.infer<typeof insertChildSchema>;
+
+export type MilestoneTracking = typeof milestoneTracking.$inferSelect;
+export type InsertMilestoneTracking = z.infer<typeof insertMilestoneTrackingSchema>;
+
+export type ChildAgeProgression = typeof childAgeProgression.$inferSelect;
+export type InsertChildAgeProgression = z.infer<typeof insertChildAgeProgressionSchema>;
 
 export type PortfolioEntry = typeof portfolioEntries.$inferSelect;
 export type InsertPortfolioEntry = z.infer<typeof insertPortfolioEntrySchema>;

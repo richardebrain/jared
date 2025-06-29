@@ -30,7 +30,9 @@ import {
   moduleDrafts, type ModuleDraft, type InsertModuleDraft,
   children, type Child, type InsertChild,
   portfolioEntries, type PortfolioEntry, type InsertPortfolioEntry,
-  naeyc_standards, type NAEYCStandard, type InsertNAEYCStandard
+  naeyc_standards, type NAEYCStandard, type InsertNAEYCStandard,
+  milestoneTracking, type MilestoneTracking, type InsertMilestoneTracking,
+  childAgeProgression, type ChildAgeProgression, type InsertChildAgeProgression
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lt, or, sql } from "drizzle-orm";
@@ -256,6 +258,22 @@ export interface IStorage {
   createPortfolioEntry(entry: InsertPortfolioEntry): Promise<PortfolioEntry>;
   updatePortfolioEntry(id: number, entryData: Partial<InsertPortfolioEntry>): Promise<PortfolioEntry>;
   deletePortfolioEntry(id: number): Promise<void>;
+  
+  // Milestone Tracking operations
+  getMilestonesByChild(childId: number): Promise<MilestoneTracking[]>;
+  getMilestonesByChildAndCategory(childId: number, category: string): Promise<MilestoneTracking[]>;
+  getMilestonesByAgeGroup(childId: number, ageGroup: string): Promise<MilestoneTracking[]>;
+  getMilestone(id: number): Promise<MilestoneTracking | undefined>;
+  createMilestone(milestone: InsertMilestoneTracking): Promise<MilestoneTracking>;
+  updateMilestone(id: number, milestoneData: Partial<InsertMilestoneTracking>): Promise<MilestoneTracking>;
+  deleteMilestone(id: number): Promise<void>;
+  getMilestoneStats(childId: number, ageGroup: string): Promise<{ completed: number; total: number; percentage: number }>;
+  
+  // Child Age Progression operations
+  getChildProgressions(childId: number): Promise<ChildAgeProgression[]>;
+  getLatestProgression(childId: number): Promise<ChildAgeProgression | undefined>;
+  createChildProgression(progression: InsertChildAgeProgression): Promise<ChildAgeProgression>;
+  updateChildAge(childId: number, newAgeGroup: string, progressionNotes?: string): Promise<Child>;
   
   // NAEYC Standards operations
   getAllNAEYCStandards(): Promise<NAEYCStandard[]>;
