@@ -600,44 +600,54 @@ export default function PortfolioBuilder() {
         });
       }
 
-      // Fallback to existing voice-based analysis
-      const response = await apiRequest('/api/portfolio/smart-analyze', {
-        method: 'POST',
-        timeout: 60000,
-        data: {
-          base64Image: base64Image,
-          voiceContext: voiceContext || '',
-        },
-      });
+      // Fallback: only use voice analysis if we have voice context
+      if (voiceContext && voiceContext.trim() !== '') {
+        console.log('[Portfolio] Using voice-based analysis as fallback...');
+        const response = await apiRequest('/api/portfolio/smart-analyze', {
+          method: 'POST',
+          timeout: 60000,
+          data: {
+            base64Image: base64Image,
+            voiceContext: voiceContext,
+          },
+        });
 
-      if (response.success && response.detectedChild) {
-        toast({
-          title: 'Portfolio Entry Created Successfully!',
-          description: `Detected ${response.detectedChild.firstName} ${response.detectedChild.lastName} and created entry in ${response.portfolioSection} section.`,
-        });
-        
-        // Clear the form
-        setPortfolioForm({
-          title: '',
-          description: '',
-          entryDate: new Date().toISOString().split('T')[0],
-          teacherNotes: '',
-          photos: [],
-        });
-        setPendingVoiceNote('');
-        setVoiceText('');
-        setUploadedFile(null);
-        setPhotoAnalysis(null);
-        
-        queryClient.invalidateQueries({ queryKey: ['/api/children'] });
-        
+        if (response.success && response.detectedChild) {
+          toast({
+            title: 'Portfolio Entry Created Successfully!',
+            description: `Detected ${response.detectedChild.firstName} ${response.detectedChild.lastName} and created entry in ${response.portfolioSection} section.`,
+          });
+          
+          // Clear the form
+          setPortfolioForm({
+            title: '',
+            description: '',
+            entryDate: new Date().toISOString().split('T')[0],
+            teacherNotes: '',
+            photos: [],
+          });
+          setPendingVoiceNote('');
+          setVoiceText('');
+          setUploadedFile(null);
+          setPhotoAnalysis(null);
+          
+          queryClient.invalidateQueries({ queryKey: ['/api/children'] });
+          
+        } else {
+          setAnalysisResult(response);
+          setPhotoAnalysis(response.analysis);
+          
+          toast({
+            title: 'Manual Selection Required',
+            description: response.message || 'Could not automatically identify the child. Please select manually below.',
+            variant: 'default',
+          });
+        }
       } else {
-        setAnalysisResult(response);
-        setPhotoAnalysis(response.analysis);
-        
+        // No voice context available - just show manual selection
         toast({
           title: 'Manual Selection Required',
-          description: response.message || 'Could not automatically identify the child. Please select manually below.',
+          description: 'Face detection did not find a match. Please select a child manually and add your own description.',
           variant: 'default',
         });
       }

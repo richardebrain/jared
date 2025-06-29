@@ -138,7 +138,7 @@ class FaceDetectionService {
   /**
    * Find matching faces for a given descriptor
    */
-  findMatches(queryDescriptor: Float32Array, threshold: number = 0.6): FaceMatch[] {
+  findMatches(queryDescriptor: Float32Array, threshold: number = 0.7): FaceMatch[] {
     console.log(`[Face Detection] Starting match comparison with threshold ${threshold}`);
     
     if (this.storedDescriptors.length === 0) {
