@@ -11170,6 +11170,64 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Simplified in-app face recognition endpoint
+  app.post("/api/portfolio/analyze-faces", requireAuth, async (req, res) => {
+    try {
+      const { imageData, childIds } = req.body;
+      
+      if (!imageData) {
+        return res.status(400).json({ error: 'Image data is required' });
+      }
+
+      console.log('[Portfolio Analysis] Starting simplified face recognition analysis');
+
+      // Load children with facial features if available
+      const children = childIds && childIds.length > 0 
+        ? await storage.getChildrenByIds(req.user!.schoolId, childIds)
+        : await storage.getChildrenBySchool(req.user!.schoolId!);
+      
+      console.log(`[Portfolio Analysis] Found ${children.length} children for comparison`);
+
+      // Initialize simple face recognition with stored descriptors
+      const { simpleFaceRecognition } = await import('./services/simpleFaceRecognition.js');
+      
+      // Load any pre-stored facial features
+      const childrenWithFeatures = children.filter(child => 
+        child.facialFeatures && child.facialFeatures.faceDescriptor
+      );
+      
+      if (childrenWithFeatures.length > 0) {
+        simpleFaceRecognition.loadFromStoredFeatures(childrenWithFeatures);
+        console.log(`[Portfolio Analysis] Loaded ${childrenWithFeatures.length} stored face descriptors`);
+      }
+
+      // Return analysis with face recognition capability info
+      res.json({
+        success: true,
+        analysis: {
+          faceRecognitionAvailable: simpleFaceRecognition.hasDescriptors(),
+          storedFaceCount: simpleFaceRecognition.getDescriptorCount(),
+          requiresClientSideProcessing: true,
+          children: childrenWithFeatures.map(child => ({
+            id: child.id,
+            name: `${child.firstName} ${child.lastName}`,
+            hasDescriptor: !!child.facialFeatures?.faceDescriptor
+          })),
+          message: simpleFaceRecognition.hasDescriptors() 
+            ? `Ready for face matching with ${simpleFaceRecognition.getDescriptorCount()} stored face descriptors`
+            : 'No stored face descriptors available. Please upload reference photos for children first.'
+        }
+      });
+
+    } catch (error) {
+      console.error('[Portfolio Analysis] Error in simplified face recognition:', error);
+      res.status(500).json({ 
+        error: 'Analysis failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Smart portfolio analysis with voice + photo for intelligent child assignment
   app.post("/api/portfolio/analyze-with-voice", requireAuth, async (req, res) => {
     try {

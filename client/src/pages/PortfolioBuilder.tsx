@@ -451,12 +451,90 @@ export default function PortfolioBuilder() {
     setVoiceText('');
   };
 
-  // Smart photo analysis that automatically detects children and creates portfolio entries
+  // Smart photo analysis with simplified face recognition and fallback to voice analysis
   const smartAnalyzePhoto = async (base64Image: string, voiceContext?: string) => {
     try {
+      // First try the simplified face recognition approach if children have reference photos
+      if (children.some(c => c.referencePhotoUrl)) {
+        try {
+          console.log('[Portfolio] Attempting face recognition with in-app system...');
+          
+          // Import and initialize face detection service
+          const { faceDetectionService } = await import('../services/faceDetection');
+          await faceDetectionService.initialize();
+          
+          // Load child descriptors from reference photos
+          const childrenWithPhotos = children.filter(c => c.referencePhotoUrl);
+          await faceDetectionService.loadChildDescriptors(childrenWithPhotos);
+          
+          // Process the uploaded image
+          const descriptors = await faceDetectionService.processImageDataUrl(base64Image);
+          
+          if (descriptors.length > 0) {
+            // Find matches for the first detected face
+            const matches = faceDetectionService.findMatches(descriptors[0], 0.6);
+            
+            if (matches.length > 0) {
+              const bestMatch = matches[0];
+              const matchedChild = children.find(c => c.id === bestMatch.childId);
+              
+              if (matchedChild) {
+                console.log(`[Portfolio] Face recognition success: ${matchedChild.firstName} ${matchedChild.lastName}`);
+                
+                // Auto-create portfolio entry with the detected child
+                const entryData = {
+                  title: portfolioForm.title || `Learning moment with ${matchedChild.firstName}`,
+                  description: portfolioForm.description || (voiceContext ? `Activity: ${voiceContext}` : 'Learning activity captured'),
+                  photoUrl: base64Image,
+                  childId: matchedChild.id,
+                  category: 'learning_moment',
+                  aiDetected: true,
+                  aiConfidence: bestMatch.confidence,
+                  entryDate: portfolioForm.entryDate,
+                  teacherNotes: portfolioForm.teacherNotes || voiceContext || '',
+                };
+                
+                const newEntry = await apiRequest('/api/portfolio/entries', {
+                  method: 'POST',
+                  data: entryData,
+                });
+                
+                toast({
+                  title: 'Portfolio Entry Created!',
+                  description: `Detected ${matchedChild.firstName} ${matchedChild.lastName} with ${Math.round(bestMatch.confidence * 100)}% confidence and created portfolio entry.`,
+                });
+                
+                // Clear the form
+                setPortfolioForm({
+                  title: '',
+                  description: '',
+                  entryDate: new Date().toISOString().split('T')[0],
+                  teacherNotes: '',
+                  photos: [],
+                });
+                setPendingVoiceNote('');
+                setVoiceText('');
+                setUploadedFile(null);
+                setPhotoAnalysis(null);
+                
+                // Refresh children data
+                queryClient.invalidateQueries({ queryKey: ['/api/children'] });
+                
+                return; // Success - exit early
+              }
+            }
+          }
+          
+          console.log('[Portfolio] Face recognition found no matches, falling back to voice analysis...');
+        } catch (faceError) {
+          console.warn('[Portfolio] Face recognition failed, falling back to voice analysis:', faceError);
+        }
+      }
+
+      // Fallback to existing voice-based analysis
       const response = await apiRequest('/api/portfolio/smart-analyze', {
         method: 'POST',
-        timeout: 60000, // 60 second timeout for AI analysis
+        timeout: 60000,
         data: {
           base64Image: base64Image,
           voiceContext: voiceContext || '',
@@ -464,13 +542,12 @@ export default function PortfolioBuilder() {
       });
 
       if (response.success && response.detectedChild) {
-        // Successfully detected child and created portfolio entry
         toast({
           title: 'Portfolio Entry Created Successfully!',
           description: `Detected ${response.detectedChild.firstName} ${response.detectedChild.lastName} and created entry in ${response.portfolioSection} section.`,
         });
         
-        // Clear the form since the entry was automatically created
+        // Clear the form
         setPortfolioForm({
           title: '',
           description: '',
@@ -483,11 +560,9 @@ export default function PortfolioBuilder() {
         setUploadedFile(null);
         setPhotoAnalysis(null);
         
-        // Refresh children data to update portfolio counts
         queryClient.invalidateQueries({ queryKey: ['/api/children'] });
         
       } else {
-        // Could not auto-detect, show manual selection interface
         setAnalysisResult(response);
         setPhotoAnalysis(response.analysis);
         
