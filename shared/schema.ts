@@ -2107,6 +2107,21 @@ export const children = pgTable("children", {
   parentGuardianName: text("parent_guardian_name"),
   parentEmail: text("parent_email"),
   referencePhotoUrl: text("reference_photo_url"), // For AI facial recognition
+  // Pre-computed facial features for faster matching
+  facialFeatures: json("facial_features").$type<{
+    faceShape?: string; // "round", "oval", "square", etc.
+    eyeColor?: string;
+    eyeShape?: string;
+    hairColor?: string;
+    hairTexture?: string;
+    skinTone?: string;
+    facialStructure?: string;
+    distinctiveFeatures?: string[];
+    ageRange?: string;
+    confidence?: number; // 0-1 confidence in feature extraction
+    extractedAt?: string; // timestamp when features were extracted
+    aiModel?: string; // which AI model was used for extraction
+  }>(),
   isActive: boolean("is_active").default(true),
   sharedWithSchool: boolean("shared_with_school").default(false), // Allow sharing with other teachers
   createdBy: integer("created_by").notNull().references(() => users.id),

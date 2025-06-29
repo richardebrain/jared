@@ -10848,6 +10848,66 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Extract facial features from reference photo
+  app.post("/api/children/:id/extract-features", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user!;
+      const { base64Image } = req.body;
+      
+      if (!base64Image) {
+        return res.status(400).json({ error: "Base64 image is required" });
+      }
+
+      // Check if the child exists and user has access
+      const [child] = await db.select().from(children).where(eq(children.id, id));
+      if (!child) {
+        return res.status(404).json({ error: "Child not found" });
+      }
+      
+      // Check if user has permission (creator or same school admin)
+      if (child.createdBy !== user.id && !user.isSchoolAdmin) {
+        return res.status(403).json({ error: "You don't have permission to extract features for this child" });
+      }
+
+      console.log(`[Feature Extraction API] Starting feature extraction for ${child.firstName} ${child.lastName}`);
+
+      // Import and use the facial feature extractor
+      const { extractFacialFeatures } = await import('./services/facialFeatureExtractor.js');
+      
+      // Remove data:image/jpeg;base64, prefix if present
+      const imageBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+      
+      // Extract comprehensive facial features
+      const extractedFeatures = await extractFacialFeatures(
+        imageBase64,
+        `${child.firstName} ${child.lastName}`
+      );
+
+      console.log(`[Feature Extraction API] Features extracted successfully for ${child.firstName} ${child.lastName}`);
+      console.log(`[Feature Extraction API] Confidence: ${extractedFeatures.confidence}`);
+
+      // Update the child record with extracted features
+      const updatedChild = await storage.updateChild(id, { 
+        facialFeatures: extractedFeatures 
+      });
+
+      res.json({
+        success: true,
+        features: extractedFeatures,
+        message: `Facial features extracted and stored for ${child.firstName} ${child.lastName}`,
+        child: updatedChild
+      });
+
+    } catch (error) {
+      console.error("[Feature Extraction API] Error:", error);
+      res.status(500).json({ 
+        error: "Failed to extract facial features",
+        details: error.message 
+      });
+    }
+  });
+
   // Get portfolio entries by child - with access control
   app.get("/api/children/:id/portfolio", requireAuth, async (req, res) => {
     try {
