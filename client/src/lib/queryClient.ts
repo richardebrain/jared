@@ -21,7 +21,7 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
   
   try {
     // Optimized timeouts for faster login performance
-    const timeout = path.includes('/api/ai') || path.includes('/generate') ? 60000 : 3000; // 60s for AI/generation, 3s for others
+    const timeout = path.includes('/api/ai') || path.includes('/generate') || path.includes('/smart-analyze') ? 60000 : 3000; // 60s for AI/generation/analysis, 3s for others
     const response = await axios.get(path, {
       withCredentials: true, // Important for cookies/sessions
       timeout: timeout,

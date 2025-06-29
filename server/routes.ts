@@ -11028,6 +11028,11 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       // Get children in the school for AI analysis
       const schoolChildren = await storage.getChildrenBySchool(user.schoolId!);
       
+      // Check how many children have reference photos for facial recognition
+      const childrenWithPhotos = schoolChildren.filter(child => child.referencePhotoUrl && child.referencePhotoUrl.trim() !== '');
+      
+      console.log(`[AI Analysis] School has ${schoolChildren.length} children, ${childrenWithPhotos.length} have reference photos for facial recognition`);
+      
       // Import AI analysis functions
       const { analyzePortfolioWithVoice, analyzePortfolioPhoto, generatePortfolioTitle } = await import('./services/portfolioAI.js');
       
