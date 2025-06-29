@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X, Share, Eye } from 'lucide-react';
+import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X, Share, Eye, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface Child {
@@ -853,25 +853,49 @@ export default function PortfolioBuilder() {
                         size="lg"
                       >
                         <Upload className="h-5 w-5 mr-2" />
-                        {isAnalyzing ? 'Analyzing & Creating Entry...' : 'Upload Photo (Auto-Detect Child)'}
+                        Upload Photo
                       </Button>
-                      <p className="text-sm text-green-600 mt-2 text-center">
-                        ✨ AI automatically detects children and creates portfolio entries
+                      <p className="text-sm text-blue-600 mt-2 text-center">
+                        📸 Step 1: Upload your photo, then click "Analyze Photo" below
                       </p>
                     </div>
 
                     {/* Display uploaded photos */}
                     {portfolioForm.photos.length > 0 && (
-                      <div className="grid grid-cols-2 gap-4">
-                        {portfolioForm.photos.map((photo, index) => (
-                          <div key={index} className="relative">
-                            <img
-                              src={photo}
-                              alt={`Upload ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border"
-                            />
-                          </div>
-                        ))}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          {portfolioForm.photos.map((photo, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={photo}
+                                alt={`Upload ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-lg border"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Analysis trigger button */}
+                        {uploadedPhotoData && (
+                          <Button
+                            onClick={() => smartAnalyzePhoto(uploadedPhotoData, pendingVoiceNote)}
+                            disabled={isAnalyzing}
+                            className="w-full bg-green-600 hover:bg-green-700"
+                            size="lg"
+                          >
+                            {isAnalyzing ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                                Analyzing Photo...
+                              </>
+                            ) : (
+                              <>
+                                <Brain className="h-5 w-5 mr-2" />
+                                Analyze Photo & Detect Children
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
