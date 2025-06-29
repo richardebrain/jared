@@ -519,6 +519,7 @@ export default function PortfolioBuilder() {
       });
     } finally {
       setIsAnalyzing(false);
+      setUploadedPhotoData(null); // Clear the analysis data after attempt
     }
   };
 
