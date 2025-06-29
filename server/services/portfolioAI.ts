@@ -212,9 +212,25 @@ export async function analyzePortfolioPhoto(
         }
         
         // Fall back to enhanced facial feature extractor
-        const { compareFacesWithFeatures } = await import('./facialFeatureExtractor.js');
+        const { extractFacialFeatures, compareFacialFeatures } = await import('./facialFeatureExtractor.js');
         
-        const recognitionResults = await compareFacesWithFeatures(base64Image, childrenWithFacialData, context);
+        // Extract features from the uploaded photo
+        const uploadedFeatures = await extractFacialFeatures(base64Image);
+        
+        // Compare against children with facial data
+        const recognitionResults = {
+          matches: childrenWithFacialData.map(child => {
+            if (!child.facialFeatures) return null;
+            
+            const similarity = compareFacialFeatures(uploadedFeatures, child.facialFeatures);
+            return {
+              childId: child.id,
+              childName: `${child.firstName} ${child.lastName}`,
+              confidence: similarity,
+              reasoning: `Biometric analysis match with ${Math.round(similarity * 100)}% confidence`
+            };
+          }).filter(Boolean).sort((a, b) => b.confidence - a.confidence)
+        };
         
         console.log(`[Enhanced Analysis] Facial recognition results:`, recognitionResults);
         
@@ -284,7 +300,7 @@ ${childrenWithFacialData.map((child, index) => {
 }).join('\n\n')}
 
 FACIAL RECOGNITION INSTRUCTIONS:
-1. Compare EVERY face in the uploaded photo against ALL ${childrenWithPhotos.length} reference photos
+1. Compare EVERY face in the uploaded photo against ALL ${childrenWithFacialData.length} reference photos
 2. Look for multiple children if the photo shows more than one child
 3. For each face detected, identify the BEST MATCH from the reference photos based on:
    - Facial structure and bone structure
@@ -376,8 +392,8 @@ Please respond in JSON format with the following structure:
     ];
 
     // Add reference photos for facial recognition comparison
-    if (childrenWithPhotos.length > 0) {
-      childrenWithPhotos.forEach(child => {
+    if (childrenWithFacialData.length > 0) {
+      childrenWithFacialData.forEach(child => {
         messageContent.push({
           type: "text",
           text: `REFERENCE PHOTO FOR ${child.firstName} ${child.lastName}:`
