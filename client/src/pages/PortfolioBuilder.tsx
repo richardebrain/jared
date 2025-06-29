@@ -453,32 +453,63 @@ export default function PortfolioBuilder() {
 
   // Smart photo analysis with simplified face recognition and fallback to voice analysis
   const smartAnalyzePhoto = async (base64Image: string, voiceContext?: string) => {
+    setIsAnalyzing(true);
+    
     try {
       // First try the simplified face recognition approach if children have reference photos
-      if (children.some(c => c.referencePhotoUrl)) {
+      const childrenWithPhotos = children.filter(c => c.referencePhotoUrl);
+      console.log(`[Portfolio] Found ${childrenWithPhotos.length} children with reference photos`);
+      
+      if (childrenWithPhotos.length > 0) {
         try {
           console.log('[Portfolio] Attempting face recognition with in-app system...');
           
           // Import and initialize face detection service
           const { faceDetectionService } = await import('../services/faceDetection');
+          console.log('[Portfolio] Face detection service imported');
+          
+          // Initialize with error handling and user feedback
+          toast({
+            title: 'Initializing Face Recognition',
+            description: 'Loading AI models for face detection...',
+            variant: 'default',
+          });
+          
           await faceDetectionService.initialize();
+          console.log('[Portfolio] Face detection service initialized');
           
           // Load child descriptors from reference photos
-          const childrenWithPhotos = children.filter(c => c.referencePhotoUrl);
-          await faceDetectionService.loadChildDescriptors(childrenWithPhotos);
+          toast({
+            title: 'Processing Reference Photos',
+            description: `Loading face data for ${childrenWithPhotos.length} children...`,
+            variant: 'default',
+          });
           
-          // Process the uploaded image
+          await faceDetectionService.loadChildDescriptors(childrenWithPhotos);
+          console.log(`[Portfolio] Loaded descriptors for ${childrenWithPhotos.length} children`);
+          
+          // Process the uploaded image with detailed logging
+          toast({
+            title: 'Analyzing Photo',
+            description: 'Detecting faces in the uploaded image...',
+            variant: 'default',
+          });
+          
+          console.log('[Portfolio] Processing uploaded image for face detection...');
           const descriptors = await faceDetectionService.processImageDataUrl(base64Image);
+          console.log(`[Portfolio] Found ${descriptors.length} faces in uploaded image`);
           
           if (descriptors.length > 0) {
             // Find matches for the first detected face
             const matches = faceDetectionService.findMatches(descriptors[0], 0.6);
+            console.log(`[Portfolio] Found ${matches.length} potential matches`);
             
             if (matches.length > 0) {
               const bestMatch = matches[0];
               const matchedChild = children.find(c => c.id === bestMatch.childId);
+              console.log(`[Portfolio] Best match: ${bestMatch.childName} with confidence ${bestMatch.confidence}`);
               
-              if (matchedChild) {
+              if (matchedChild && bestMatch.confidence > 0.7) {
                 console.log(`[Portfolio] Face recognition success: ${matchedChild.firstName} ${matchedChild.lastName}`);
                 
                 // Auto-create portfolio entry with the detected child
@@ -494,14 +525,16 @@ export default function PortfolioBuilder() {
                   teacherNotes: portfolioForm.teacherNotes || voiceContext || '',
                 };
                 
+                console.log('[Portfolio] Creating portfolio entry...');
                 const newEntry = await apiRequest('/api/portfolio/entries', {
                   method: 'POST',
                   data: entryData,
                 });
+                console.log('[Portfolio] Portfolio entry created successfully');
                 
                 toast({
                   title: 'Portfolio Entry Created!',
-                  description: `Detected ${matchedChild.firstName} ${matchedChild.lastName} with ${Math.round(bestMatch.confidence * 100)}% confidence and created portfolio entry.`,
+                  description: `Face recognition detected ${matchedChild.firstName} ${matchedChild.lastName} with ${Math.round(bestMatch.confidence * 100)}% confidence.`,
                 });
                 
                 // Clear the form
@@ -521,14 +554,32 @@ export default function PortfolioBuilder() {
                 queryClient.invalidateQueries({ queryKey: ['/api/children'] });
                 
                 return; // Success - exit early
+              } else {
+                console.log(`[Portfolio] Match confidence too low (${bestMatch.confidence}) or child not found`);
               }
+            } else {
+              console.log('[Portfolio] No face matches found above threshold');
             }
+          } else {
+            console.log('[Portfolio] No faces detected in uploaded image');
           }
           
           console.log('[Portfolio] Face recognition found no matches, falling back to voice analysis...');
         } catch (faceError) {
-          console.warn('[Portfolio] Face recognition failed, falling back to voice analysis:', faceError);
+          console.error('[Portfolio] Face recognition failed:', faceError);
+          toast({
+            title: 'Face Recognition Issue',
+            description: 'Face detection had an issue. Trying voice analysis instead.',
+            variant: 'default',
+          });
         }
+      } else {
+        console.log('[Portfolio] No children with reference photos, skipping face recognition');
+        toast({
+          title: 'No Reference Photos',
+          description: 'Add reference photos to children profiles to enable face recognition.',
+          variant: 'default',
+        });
       }
 
       // Fallback to existing voice-based analysis
