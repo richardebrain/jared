@@ -137,15 +137,44 @@ Respond with valid JSON only.`;
  */
 export async function analyzePortfolioPhoto(
   base64Image: string,
-  childrenInClass: { firstName: string; lastName: string }[],
+  childrenInClass: { firstName: string; lastName: string; referencePhotoUrl?: string }[],
   context?: string
 ): Promise<AIPortfolioAnalysis> {
   try {
+    // Separate children with and without reference photos
+    const childrenWithPhotos = childrenInClass.filter(child => child.referencePhotoUrl && child.referencePhotoUrl.trim() !== '');
     const childrenNames = childrenInClass.map(child => `${child.firstName} ${child.lastName}`);
     
-    const prompt = `You are an expert early childhood educator analyzing a classroom photo for a child portfolio. Please analyze this image and provide detailed information about:
+    console.log(`[Facial Recognition] Analyzing photo. ${childrenWithPhotos.length} children have reference photos for comparison.`);
+    
+    // Create a comprehensive prompt that includes facial recognition for children with reference photos
+    let facialRecognitionSection = '';
+    if (childrenWithPhotos.length > 0) {
+      facialRecognitionSection = `
 
-1. CHILD IDENTIFICATION: Identify which children are visible in the photo. The children in this class are: ${childrenNames.join(', ')}. If you cannot clearly identify specific children, describe what you see (e.g., "2 children engaged in activity").
+FACIAL RECOGNITION TASK:
+Compare the faces in the uploaded photo with these reference photos:
+${childrenWithPhotos.map(child => `- ${child.firstName} ${child.lastName}: See reference photo below`).join('\n')}
+
+When comparing faces, look for:
+- Facial structure and features
+- Eye shape and color
+- Hair color and style  
+- General appearance
+- Age-appropriate features
+
+If you recognize a face from the reference photos, identify that specific child by name with high confidence.`;
+    }
+    
+    const prompt = `You are an expert early childhood educator with facial recognition capabilities analyzing a classroom photo for a child portfolio. Please analyze this image and provide detailed information about:
+
+1. CHILD IDENTIFICATION: 
+   - The children in this class are: ${childrenNames.join(', ')}
+   - For children with reference photos, perform facial recognition comparison
+   - If you can clearly identify specific children by comparing their faces to reference photos, name them specifically
+   - If you cannot clearly identify specific children, describe what you see (e.g., "2 children engaged in activity")
+   
+${facialRecognitionSection}
 
 2. ACTIVITY ANALYSIS: Identify what learning activity is happening, what objects/materials are being used, and what learning behaviors you observe.
 
@@ -160,8 +189,10 @@ ${context ? `Additional context: ${context}` : ''}
 Please respond in JSON format with the following structure:
 {
   "children": {
-    "detectedChildren": ["child names or descriptions"],
-    "confidence": 0.0-1.0
+    "detectedChildren": ["specific child names if recognized, or general descriptions"],
+    "confidence": 0.0-1.0,
+    "facialRecognitionUsed": true/false,
+    "recognitionDetails": "explanation of facial recognition process"
   },
   "activity": {
     "activityType": "activity name",
@@ -179,30 +210,52 @@ Please respond in JSON format with the following structure:
   "confidence": 0.0-1.0
 }`;
 
+    // Build the content array with main photo and reference photos
+    const messageContent: any[] = [
+      {
+        type: "text",
+        text: prompt
+      },
+      {
+        type: "image_url",
+        image_url: {
+          url: `data:image/jpeg;base64,${base64Image}`
+        }
+      }
+    ];
+
+    // Add reference photos for facial recognition comparison
+    if (childrenWithPhotos.length > 0) {
+      childrenWithPhotos.forEach(child => {
+        messageContent.push({
+          type: "text",
+          text: `REFERENCE PHOTO FOR ${child.firstName} ${child.lastName}:`
+        });
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: child.referencePhotoUrl!
+          }
+        });
+      });
+    }
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "user",
-          content: [
-            {
-              type: "text",
-              text: prompt
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`
-              }
-            }
-          ],
+          content: messageContent,
         },
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1500,
+      max_tokens: 2000,
     });
 
     const analysisResult = JSON.parse(response.choices[0].message.content || '{}');
+    
+    console.log(`[Facial Recognition] Analysis complete. Detected children: ${JSON.stringify(analysisResult.children?.detectedChildren)}`);
+    console.log(`[Facial Recognition] Recognition details: ${analysisResult.children?.recognitionDetails}`);
     
     return {
       children: {
