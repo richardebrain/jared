@@ -147,23 +147,39 @@ export async function analyzePortfolioPhoto(
     
     console.log(`[Facial Recognition] Analyzing photo. ${childrenWithPhotos.length} children have reference photos for comparison.`);
     
-    // Create a comprehensive prompt that includes facial recognition for children with reference photos
+    // Create a comprehensive prompt for multi-child facial recognition
     let facialRecognitionSection = '';
     if (childrenWithPhotos.length > 0) {
       facialRecognitionSection = `
 
-FACIAL RECOGNITION TASK:
-Compare the faces in the uploaded photo with these reference photos:
-${childrenWithPhotos.map(child => `- ${child.firstName} ${child.lastName}: See reference photo below`).join('\n')}
+ADVANCED FACIAL RECOGNITION TASK:
+You have ${childrenWithPhotos.length} reference photos to compare against. Please perform comprehensive facial recognition analysis:
 
-When comparing faces, look for:
-- Facial structure and features
-- Eye shape and color
-- Hair color and style  
-- General appearance
-- Age-appropriate features
+CHILDREN WITH REFERENCE PHOTOS:
+${childrenWithPhotos.map((child, index) => `${index + 1}. ${child.firstName} ${child.lastName} (Reference Photo ${index + 1})`).join('\n')}
 
-If you recognize a face from the reference photos, identify that specific child by name with high confidence.`;
+FACIAL RECOGNITION INSTRUCTIONS:
+1. Compare EVERY face in the uploaded photo against ALL ${childrenWithPhotos.length} reference photos
+2. Look for multiple children if the photo shows more than one child
+3. For each face detected, identify the BEST MATCH from the reference photos based on:
+   - Facial structure and bone structure
+   - Eye shape, color, and spacing
+   - Nose shape and size
+   - Mouth shape and smile characteristics
+   - Hair color, texture, and style
+   - Overall facial proportions
+   - Age-appropriate developmental features
+
+4. CONFIDENCE SCORING: Rate each match from 0.0 to 1.0
+   - 0.9+ = Very confident match (clear facial feature alignment)
+   - 0.7-0.89 = Good match (several matching features)
+   - 0.5-0.69 = Possible match (some matching features)
+   - Below 0.5 = Uncertain/no clear match
+
+5. MULTIPLE MATCHES: If you detect multiple children in the photo, identify ALL children you can match
+6. NO MATCHES: If you cannot confidently match any faces, describe what you see ("unidentified child", "child with brown hair", etc.)
+
+IMPORTANT: Only return names for children you can confidently match to reference photos. Be specific about which facial features led to the identification.`;
     }
     
     const prompt = `You are an expert early childhood educator with facial recognition capabilities analyzing a classroom photo for a child portfolio. Please analyze this image and provide detailed information about:
@@ -190,9 +206,19 @@ Please respond in JSON format with the following structure:
 {
   "children": {
     "detectedChildren": ["specific child names if recognized, or general descriptions"],
+    "facialMatches": [
+      {
+        "childName": "Exact name from reference photos",
+        "confidence": 0.0-1.0,
+        "matchingFeatures": ["list of specific facial features that matched"],
+        "reasoning": "detailed explanation of why this match was made"
+      }
+    ],
     "confidence": 0.0-1.0,
     "facialRecognitionUsed": true/false,
-    "recognitionDetails": "explanation of facial recognition process"
+    "recognitionDetails": "explanation of facial recognition process and overall results",
+    "totalFacesDetected": number,
+    "totalReferencePhotosCompared": number
   },
   "activity": {
     "activityType": "activity name",
@@ -254,7 +280,9 @@ Please respond in JSON format with the following structure:
 
     const analysisResult = JSON.parse(response.choices[0].message.content || '{}');
     
-    console.log(`[Facial Recognition] Analysis complete. Detected children: ${JSON.stringify(analysisResult.children?.detectedChildren)}`);
+    console.log(`[Facial Recognition] Analysis complete. Total faces detected: ${analysisResult.children?.totalFacesDetected || 0}`);
+    console.log(`[Facial Recognition] Reference photos compared: ${analysisResult.children?.totalReferencePhotosCompared || 0}`);
+    console.log(`[Facial Recognition] Facial matches found: ${JSON.stringify(analysisResult.children?.facialMatches || [])}`);
     console.log(`[Facial Recognition] Recognition details: ${analysisResult.children?.recognitionDetails}`);
     
     return {
