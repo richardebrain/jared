@@ -232,13 +232,12 @@ export default function ToolsPage() {
             Create and manage child portfolios with AI-powered photo analysis. 
             Access is limited to children you create or those shared with your school.
           </p>
-          <Button 
-            onClick={() => window.open(window.location.origin + '/portfolio-builder', '_blank')}
-            className="flex items-center gap-2"
-          >
-            <Camera className="h-4 w-4" />
-            Open Portfolio Builder
-          </Button>
+          <Link href="/portfolio-builder">
+            <Button className="flex items-center gap-2">
+              <Camera className="h-4 w-4" />
+              Open Portfolio Builder
+            </Button>
+          </Link>
         </div>
       )
     },
