@@ -212,22 +212,58 @@ export async function analyzePortfolioPhoto(
         }
         
         // Fall back to enhanced facial feature extractor
-        const { extractFacialFeatures, compareFacialFeatures } = await import('./facialFeatureExtractor.js');
+        const { extractFacialFeatures } = await import('./facialFeatureExtractor.js');
         
         // Extract features from the uploaded photo
-        const uploadedFeatures = await extractFacialFeatures(base64Image);
+        const uploadedFeatures = await extractFacialFeatures(base64Image, 'Unknown Child');
         
-        // Compare against children with facial data
+        // Simple comparison against children with facial data
         const recognitionResults = {
           matches: childrenWithFacialData.map(child => {
             if (!child.facialFeatures) return null;
             
-            const similarity = compareFacialFeatures(uploadedFeatures, child.facialFeatures);
+            // Simple feature matching based on key characteristics
+            let matchScore = 0;
+            let totalFeatures = 0;
+            
+            const storedFeatures = child.facialFeatures;
+            
+            // Compare key facial features
+            if (uploadedFeatures.eyeColor && storedFeatures.eyeColor) {
+              totalFeatures++;
+              if (uploadedFeatures.eyeColor.toLowerCase() === storedFeatures.eyeColor.toLowerCase()) {
+                matchScore += 0.3;
+              }
+            }
+            
+            if (uploadedFeatures.hairColor && storedFeatures.hairColor) {
+              totalFeatures++;
+              if (uploadedFeatures.hairColor.toLowerCase() === storedFeatures.hairColor.toLowerCase()) {
+                matchScore += 0.25;
+              }
+            }
+            
+            if (uploadedFeatures.faceShape && storedFeatures.faceShape) {
+              totalFeatures++;
+              if (uploadedFeatures.faceShape.toLowerCase() === storedFeatures.faceShape.toLowerCase()) {
+                matchScore += 0.2;
+              }
+            }
+            
+            if (uploadedFeatures.skinTone && storedFeatures.skinTone) {
+              totalFeatures++;
+              if (uploadedFeatures.skinTone.toLowerCase() === storedFeatures.skinTone.toLowerCase()) {
+                matchScore += 0.15;
+              }
+            }
+            
+            const confidence = totalFeatures > 0 ? matchScore : 0;
+            
             return {
               childId: child.id,
               childName: `${child.firstName} ${child.lastName}`,
-              confidence: similarity,
-              reasoning: `Biometric analysis match with ${Math.round(similarity * 100)}% confidence`
+              confidence: confidence,
+              reasoning: `Biometric analysis match with ${Math.round(confidence * 100)}% confidence`
             };
           }).filter(Boolean).sort((a, b) => b.confidence - a.confidence)
         };
