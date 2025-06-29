@@ -20,7 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X, Share } from 'lucide-react';
+import { Camera, Upload, Users, Brain, Star, Calendar, PlusCircle, ImageIcon, Mic, MicOff, Check, X, Share, Eye } from 'lucide-react';
+import { Link } from 'wouter';
 
 interface Child {
   id: number;
@@ -525,6 +526,11 @@ export default function PortfolioBuilder() {
                         >
                           {child.firstName} {child.lastName}
                         </Button>
+                        <Link href={`/children/${child.id}`}>
+                          <Button variant="ghost" size="sm" className="p-2">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </div>
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <div className="flex items-center gap-2">
