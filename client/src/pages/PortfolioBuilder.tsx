@@ -859,6 +859,9 @@ export default function PortfolioBuilder() {
                       <p className="text-sm text-blue-600 mt-2 text-center">
                         📸 Step 1: Upload your photo, then click "Analyze Photo" below
                       </p>
+                      <p className="text-xs text-gray-500 mt-1 text-center">
+                        💡 For automatic child detection, upload profile photos in child management first
+                      </p>
                     </div>
 
                     {/* Display uploaded photos */}
