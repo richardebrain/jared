@@ -39,6 +39,7 @@ class FaceDetectionService {
       
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
         faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
@@ -61,14 +62,39 @@ class FaceDetectionService {
     }
 
     try {
+      console.log(`[Face Detection] Starting face detection on image ${imageElement.width}x${imageElement.height}`);
+      
       const detections = await faceapi
         .detectAllFaces(imageElement, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptors();
 
+      console.log(`[Face Detection] Found ${detections.length} faces with descriptors`);
+      
+      if (detections.length === 0) {
+        console.log('[Face Detection] No faces detected. Trying different detector options...');
+        
+        // Try with different detector options
+        const alternativeDetections = await faceapi
+          .detectAllFaces(imageElement, new faceapi.SsdMobilenetv1Options())
+          .withFaceLandmarks()
+          .withFaceDescriptors();
+          
+        console.log(`[Face Detection] Alternative detector found ${alternativeDetections.length} faces`);
+        
+        if (alternativeDetections.length > 0) {
+          return alternativeDetections.map(detection => detection.descriptor);
+        }
+      }
+
       return detections.map(detection => detection.descriptor);
     } catch (error) {
       console.error('[Face Detection] Error detecting faces:', error);
+      console.error('[Face Detection] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        imageSize: `${imageElement.width}x${imageElement.height}`
+      });
       return [];
     }
   }
