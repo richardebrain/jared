@@ -507,6 +507,10 @@ export default function PortfolioBuilder() {
           }
           
           if (descriptors.length > 0) {
+            console.log('[Portfolio] Face detected successfully, starting comparison process...');
+            console.log(`[Portfolio] Uploaded face descriptor length: ${descriptors[0].length}`);
+            console.log(`[Portfolio] Service has ${faceDetectionService.getDescriptorCount()} stored descriptors`);
+            
             // Find matches for the first detected face
             const matches = faceDetectionService.findMatches(descriptors[0], 0.6);
             console.log(`[Portfolio] Found ${matches.length} potential matches`);
@@ -514,7 +518,8 @@ export default function PortfolioBuilder() {
             if (matches.length > 0) {
               const bestMatch = matches[0];
               const matchedChild = children.find(c => c.id === bestMatch.childId);
-              console.log(`[Portfolio] Best match: ${bestMatch.childName} with confidence ${bestMatch.confidence}`);
+              console.log(`[Portfolio] Best match: ${bestMatch.childName} with distance ${bestMatch.distance} (lower is better)`);
+              console.log(`[Portfolio] Match confidence: ${bestMatch.confidence}`);
               
               if (matchedChild && bestMatch.confidence > 0.6) {
                 console.log(`[Portfolio] Face recognition success: ${matchedChild.firstName} ${matchedChild.lastName}`);
