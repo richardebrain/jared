@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -22,7 +23,9 @@ import {
   Users,
   Target,
   Award,
-  Activity
+  Activity,
+  Upload,
+  Edit3
 } from 'lucide-react';
 import { format, differenceInYears, differenceInMonths } from 'date-fns';
 
@@ -103,6 +106,10 @@ const PORTFOLIO_CATEGORIES = [
 export default function ChildProfile() {
   const params = useParams();
   const childId = parseInt(params.id as string);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch child data
   const { data: child, isLoading: childLoading } = useQuery({
@@ -115,6 +122,80 @@ export default function ChildProfile() {
     queryKey: ['/api/children', childId, 'portfolio'],
     queryFn: () => apiRequest(`/api/children/${childId}/portfolio`),
   });
+
+  // Profile picture upload mutation
+  const updateProfilePictureMutation = useMutation({
+    mutationFn: async (photoData: { base64Image: string }) => {
+      return apiRequest(`/api/children/${childId}/profile-picture`, {
+        method: 'PUT',
+        data: photoData,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Profile Picture Updated',
+        description: 'The profile picture has been successfully updated.',
+      });
+      // Refresh child data to show the new picture
+      queryClient.invalidateQueries({ queryKey: ['/api/children', childId] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Upload Failed',
+        description: 'Failed to update the profile picture. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle file upload
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please select an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File Too Large',
+        description: 'Please select an image under 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64Image = e.target?.result as string;
+      updateProfilePictureMutation.mutate({ base64Image });
+      setIsUploadingPhoto(false);
+    };
+    reader.onerror = () => {
+      toast({
+        title: 'Upload Error',
+        description: 'Failed to read the image file.',
+        variant: 'destructive',
+      });
+      setIsUploadingPhoto(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   if (childLoading) {
     return (
@@ -208,17 +289,43 @@ export default function ChildProfile() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {child.referencePhotoUrl ? (
-                  <img 
-                    src={child.referencePhotoUrl} 
-                    alt={`${child.firstName} ${child.lastName}`}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                <div className="relative">
+                  {child.referencePhotoUrl ? (
+                    <img 
+                      src={child.referencePhotoUrl} 
+                      alt={`${child.firstName} ${child.lastName}`}
+                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center border-2 border-gray-200">
+                      <User className="h-8 w-8 text-gray-600" />
+                    </div>
+                  )}
+                  
+                  {/* Profile Picture Upload Button */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={triggerFileUpload}
+                    disabled={isUploadingPhoto || updateProfilePictureMutation.isPending}
+                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 border-2 border-white bg-white shadow-sm"
+                  >
+                    {isUploadingPhoto || updateProfilePictureMutation.isPending ? (
+                      <div className="animate-spin h-3 w-3 border border-gray-300 border-t-amber-500 rounded-full"></div>
+                    ) : (
+                      <Camera className="h-3 w-3" />
+                    )}
+                  </Button>
+                  
+                  {/* Hidden File Input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
                   />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center border-2 border-gray-200">
-                    <User className="h-8 w-8 text-gray-600" />
-                  </div>
-                )}
+                </div>
                 <div>
                   <CardTitle className="text-2xl">{child.firstName} {child.lastName}</CardTitle>
                   <CardDescription className="flex items-center gap-4 mt-1">

@@ -10868,6 +10868,39 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Update child profile picture
+  app.put("/api/children/:id/profile-picture", requireAuth, async (req, res) => {
+    try {
+      const childId = parseInt(req.params.id);
+      const { base64Image } = req.body;
+      const user = req.user!;
+      
+      // Check if user has access to this child
+      const hasAccess = await storage.checkChildAccess(childId, user.id, user.isAdmin || user.isSchoolAdmin);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied - you can only update children you created" });
+      }
+      
+      if (!base64Image) {
+        return res.status(400).json({ error: "No image provided" });
+      }
+      
+      // Update the child's reference photo URL with the new image
+      const updatedChild = await storage.updateChild(childId, { 
+        referencePhotoUrl: base64Image 
+      });
+      
+      res.json({ 
+        success: true, 
+        child: updatedChild,
+        message: "Profile picture updated successfully" 
+      });
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      res.status(500).json({ error: "Failed to update profile picture" });
+    }
+  });
+
   // Get portfolio entries by teacher
   app.get("/api/portfolio/my-entries", requireAuth, async (req, res) => {
     try {
