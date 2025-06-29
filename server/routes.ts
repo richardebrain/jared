@@ -10798,6 +10798,30 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Get individual child data - with access control
+  app.get("/api/children/:id", requireAuth, async (req, res) => {
+    try {
+      const childId = parseInt(req.params.id);
+      const user = req.user!;
+      
+      // Check if user has access to this child
+      const hasAccess = await storage.checkChildAccess(childId, user.id, user.isAdmin || user.isSchoolAdmin);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied - you can only view children you created or shared children" });
+      }
+      
+      const child = await storage.getChild(childId);
+      if (!child) {
+        return res.status(404).json({ error: "Child not found" });
+      }
+      
+      res.json(child);
+    } catch (error) {
+      console.error("Error fetching child:", error);
+      res.status(500).json({ error: "Failed to fetch child data" });
+    }
+  });
+
   // Update child sharing permissions - only creator can change sharing
   app.patch("/api/children/:id/sharing", requireAuth, async (req, res) => {
     try {
