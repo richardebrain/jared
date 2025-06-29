@@ -44,7 +44,13 @@ export interface AIPortfolioAnalysis {
 export async function analyzePortfolioWithVoice(
   base64Image: string,
   voiceContext: string,
-  childrenInClass: { firstName: string; lastName: string }[]
+  childrenInClass: { 
+    id: number;
+    firstName: string; 
+    lastName: string; 
+    referencePhotoUrl?: string;
+    facialFeatures?: any; // Pre-computed facial features
+  }[]
 ): Promise<AIPortfolioAnalysis> {
   try {
     const childrenNames = childrenInClass.map(child => `${child.firstName} ${child.lastName}`);
@@ -137,26 +143,105 @@ Respond with valid JSON only.`;
  */
 export async function analyzePortfolioPhoto(
   base64Image: string,
-  childrenInClass: { firstName: string; lastName: string; referencePhotoUrl?: string }[],
+  childrenInClass: { 
+    id: number;
+    firstName: string; 
+    lastName: string; 
+    referencePhotoUrl?: string;
+    facialFeatures?: any; // Pre-computed facial features
+  }[],
   context?: string
 ): Promise<AIPortfolioAnalysis> {
   try {
-    // Separate children with and without reference photos
-    const childrenWithPhotos = childrenInClass.filter(child => child.referencePhotoUrl && child.referencePhotoUrl.trim() !== '');
+    // Separate children with facial features and/or reference photos for enhanced recognition
+    const childrenWithFacialData = childrenInClass.filter(child => 
+      (child.referencePhotoUrl && child.referencePhotoUrl.trim() !== '') || 
+      (child.facialFeatures && Object.keys(child.facialFeatures).length > 0)
+    );
+    
     const childrenNames = childrenInClass.map(child => `${child.firstName} ${child.lastName}`);
     
-    console.log(`[Facial Recognition] Analyzing photo. ${childrenWithPhotos.length} children have reference photos for comparison.`);
+    console.log(`[Enhanced Facial Recognition] Analyzing photo. ${childrenWithFacialData.length} children have biometric data for comparison.`);
+    
+    // Check if we should use the enhanced facial feature extractor
+    if (childrenWithFacialData.length > 0) {
+      console.log(`[Enhanced Analysis] Using comprehensive facial feature analysis for ${childrenWithFacialData.length} children`);
+      
+      try {
+        // Import and use the enhanced facial feature extractor
+        const { compareFacesWithFeatures } = await import('./facialFeatureExtractor.js');
+        
+        // Use enhanced biometric comparison
+        const recognitionResults = await compareFacesWithFeatures(base64Image, childrenWithFacialData, context);
+        
+        console.log(`[Enhanced Analysis] Facial recognition results:`, recognitionResults);
+        
+        // If we have high-confidence matches from enhanced analysis, use them
+        if (recognitionResults.matches && recognitionResults.matches.length > 0) {
+          const bestMatch = recognitionResults.matches[0];
+          
+          if (bestMatch.confidence >= 0.65) {
+            console.log(`[Enhanced Analysis] High confidence match found: ${bestMatch.childName} (${bestMatch.confidence})`);
+            
+            // Create enhanced analysis with biometric data
+            return {
+              children: {
+                detectedChildren: [bestMatch.childName],
+                confidence: bestMatch.confidence
+              },
+              activity: {
+                activityType: 'Learning Activity',
+                recognizedObjects: [],
+                learningIndicators: [],
+                emotions: [],
+                confidence: 0.8
+              },
+              standards: {
+                naeyc_standards: [],
+                custom_standards: [],
+                reasoning: 'Analysis based on enhanced biometric facial recognition'
+              },
+              aiSummary: `Portfolio entry automatically assigned to ${bestMatch.childName} using advanced facial recognition (confidence: ${Math.round(bestMatch.confidence * 100)}%). ${bestMatch.reasoning}`,
+              confidence: bestMatch.confidence
+            };
+          }
+        }
+      } catch (featureError) {
+        console.log(`[Enhanced Analysis] Facial feature analysis failed, falling back to basic vision analysis:`, featureError);
+      }
+    }
+    
+    // Fall back to basic OpenAI vision analysis
+    console.log(`[Basic Analysis] Using OpenAI vision analysis for child recognition`);
     
     // Create a comprehensive prompt for multi-child facial recognition
     let facialRecognitionSection = '';
-    if (childrenWithPhotos.length > 0) {
+    if (childrenWithFacialData.length > 0) {
       facialRecognitionSection = `
 
 ADVANCED FACIAL RECOGNITION TASK:
-You have ${childrenWithPhotos.length} reference photos to compare against. Please perform comprehensive facial recognition analysis:
+You have ${childrenWithFacialData.length} children with biometric data to compare against. Please perform comprehensive facial recognition analysis:
 
-CHILDREN WITH REFERENCE PHOTOS:
-${childrenWithPhotos.map((child, index) => `${index + 1}. ${child.firstName} ${child.lastName} (Reference Photo ${index + 1})`).join('\n')}
+CHILDREN WITH BIOMETRIC PROFILES:
+${childrenWithFacialData.map((child, index) => {
+  let profile = `${index + 1}. ${child.firstName} ${child.lastName}`;
+  if (child.facialFeatures) {
+    const features = child.facialFeatures;
+    profile += ` - Biometric Profile:
+   • Face Shape: ${features.faceShape || 'Unknown'}
+   • Eye Color: ${features.eyeColor || 'Unknown'}
+   • Eye Shape: ${features.eyeShape || 'Unknown'}
+   • Hair Color: ${features.hairColor || 'Unknown'}
+   • Hair Texture: ${features.hairTexture || 'Unknown'}
+   • Skin Tone: ${features.skinTone || 'Unknown'}
+   • Distinctive Features: ${features.distinctiveFeatures ? features.distinctiveFeatures.join(', ') : 'None noted'}
+   • Age Range: ${features.ageRange || 'Unknown'}`;
+  }
+  if (child.referencePhotoUrl) {
+    profile += ` (Reference Photo ${index + 1})`;
+  }
+  return profile;
+}).join('\n\n')}
 
 FACIAL RECOGNITION INSTRUCTIONS:
 1. Compare EVERY face in the uploaded photo against ALL ${childrenWithPhotos.length} reference photos
