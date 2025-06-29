@@ -112,6 +112,7 @@ export default function PortfolioBuilder() {
   // Additional state for smart analysis
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [uploadedPhotoData, setUploadedPhotoData] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -261,8 +262,13 @@ export default function PortfolioBuilder() {
           photos: [...prev.photos, base64],
         }));
 
-        // Use smart analysis to automatically detect child and create portfolio entry
-        await smartAnalyzePhoto(base64Data, pendingVoiceNote);
+        // Store for manual analysis trigger
+        setUploadedPhotoData(base64Data);
+        
+        toast({
+          title: 'Photo Uploaded Successfully',
+          description: 'Click "Analyze Photo" below to detect children and create portfolio entry.',
+        });
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -450,6 +456,7 @@ export default function PortfolioBuilder() {
     try {
       const response = await apiRequest('/api/portfolio/smart-analyze', {
         method: 'POST',
+        timeout: 60000, // 60 second timeout for AI analysis
         data: {
           base64Image: base64Image,
           voiceContext: voiceContext || '',
@@ -491,13 +498,27 @@ export default function PortfolioBuilder() {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in smart photo analysis:', error);
+      
+      // Provide more specific error messages based on error type
+      let errorMessage = 'Could not analyze the photo. Please try again.';
+      
+      if (error.message?.includes('timeout')) {
+        errorMessage = 'Photo analysis is taking longer than expected. The AI is still processing - please wait a moment and try again.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Network connection issue. Please check your internet and try again.';
+      } else if (error.message?.includes('401') || error.message?.includes('403')) {
+        errorMessage = 'Authentication error. Please refresh the page and try again.';
+      }
+      
       toast({
         title: 'Analysis Failed',
-        description: 'Could not analyze the photo. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
