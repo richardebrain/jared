@@ -1026,7 +1026,7 @@ export default function PortfolioBuilder() {
                         {/* Analysis trigger button */}
                         {uploadedPhotoData && (
                           <Button
-                            onClick={() => smartAnalyzePhoto(uploadedPhotoData, pendingVoiceNote)}
+                            onClick={() => smartAnalyzePhoto(portfolioForm.photos[0], pendingVoiceNote)}
                             disabled={isAnalyzing}
                             className="w-full bg-green-600 hover:bg-green-700"
                             size="lg"
