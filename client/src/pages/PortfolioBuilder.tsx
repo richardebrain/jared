@@ -91,7 +91,8 @@ export default function PortfolioBuilder() {
   const [newChildData, setNewChildData] = useState({
     firstName: '',
     lastName: '',
-    dateOfBirth: '',
+    birthDate: '',
+    referencePhotoUrl: '',
   });
   const [portfolioForm, setPortfolioForm] = useState({
     title: '',
@@ -134,7 +135,7 @@ export default function PortfolioBuilder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
       setShowNewChildDialog(false);
-      setNewChildData({ firstName: '', lastName: '', dateOfBirth: '' });
+      setNewChildData({ firstName: '', lastName: '', dateOfBirth: '', referencePhotoUrl: '' });
       toast({
         title: 'Child Added',
         description: 'New child has been added to your class.',
@@ -439,6 +440,54 @@ export default function PortfolioBuilder() {
     setVoiceText('');
   };
 
+  const handleReferencePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File Too Large',
+        description: 'Please select an image smaller than 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please select an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        setNewChildData(prev => ({
+          ...prev,
+          referencePhotoUrl: base64,
+        }));
+        toast({
+          title: 'Photo Uploaded',
+          description: 'Reference photo has been added for facial recognition.',
+        });
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast({
+        title: 'Upload Failed',
+        description: 'Failed to upload reference photo.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="mb-8">
@@ -488,14 +537,103 @@ export default function PortfolioBuilder() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                      <Label htmlFor="birthDate">Date of Birth</Label>
                       <Input
-                        id="dateOfBirth"
+                        id="birthDate"
                         type="date"
-                        value={newChildData.dateOfBirth}
-                        onChange={(e) => setNewChildData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                        value={newChildData.birthDate}
+                        onChange={(e) => setNewChildData(prev => ({ ...prev, birthDate: e.target.value }))}
                       />
                     </div>
+                    
+                    <div>
+                      <Label>Reference Photo (for facial recognition)</Label>
+                      <div className="space-y-3">
+                        {newChildData.referencePhotoUrl && (
+                          <div className="relative">
+                            <img
+                              src={newChildData.referencePhotoUrl}
+                              alt="Reference photo"
+                              className="w-32 h-32 object-cover rounded-lg border"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                              onClick={() => setNewChildData(prev => ({ ...prev, referencePhotoUrl: '' }))}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {!newChildData.referencePhotoUrl && (
+                          <div className="flex flex-col gap-3">
+                            {/* Desktop file upload */}
+                            <div className="hidden md:block">
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleReferencePhotoUpload}
+                                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                              />
+                            </div>
+                            
+                            {/* Mobile/tablet buttons */}
+                            <div className="md:hidden grid grid-cols-2 gap-2">
+                              <div className="relative">
+                                <input
+                                  id="camera-capture"
+                                  type="file"
+                                  accept="image/*"
+                                  capture="user"
+                                  onChange={handleReferencePhotoUpload}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <Button
+                                  variant="outline"
+                                  className="w-full h-12 flex items-center gap-2"
+                                  asChild
+                                >
+                                  <label htmlFor="camera-capture" className="cursor-pointer">
+                                    <Camera className="h-4 w-4" />
+                                    Take Photo
+                                  </label>
+                                </Button>
+                              </div>
+                              
+                              <div className="relative">
+                                <input
+                                  id="gallery-upload"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleReferencePhotoUpload}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <Button
+                                  variant="outline"
+                                  className="w-full h-12 flex items-center gap-2"
+                                  asChild
+                                >
+                                  <label htmlFor="gallery-upload" className="cursor-pointer">
+                                    <Upload className="h-4 w-4" />
+                                    Upload
+                                  </label>
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <p className="text-xs text-muted-foreground text-center">
+                              {typeof window !== 'undefined' && window.innerWidth <= 768 ? 
+                                'Take a photo or upload from gallery' : 
+                                'Upload a clear photo of the child\'s face'
+                              } for facial recognition features
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
                     <Button
                       onClick={() => createChildMutation.mutate(newChildData)}
                       disabled={!newChildData.firstName || !newChildData.lastName || createChildMutation.isPending}
