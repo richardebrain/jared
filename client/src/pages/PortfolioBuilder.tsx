@@ -135,7 +135,7 @@ export default function PortfolioBuilder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/children'] });
       setShowNewChildDialog(false);
-      setNewChildData({ firstName: '', lastName: '', dateOfBirth: '', referencePhotoUrl: '' });
+      setNewChildData({ firstName: '', lastName: '', birthDate: '', referencePhotoUrl: '' });
       toast({
         title: 'Child Added',
         description: 'New child has been added to your class.',
