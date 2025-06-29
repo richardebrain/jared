@@ -496,8 +496,15 @@ export default function PortfolioBuilder() {
           });
           
           console.log('[Portfolio] Processing uploaded image for face detection...');
+          console.log('[Portfolio] Image data size:', base64Image.length);
+          console.log('[Portfolio] Image format:', base64Image.substring(0, 50));
+          
           const descriptors = await faceDetectionService.processImageDataUrl(base64Image);
           console.log(`[Portfolio] Found ${descriptors.length} faces in uploaded image`);
+          
+          if (descriptors.length === 0) {
+            console.log('[Portfolio] No faces detected - this could indicate image quality issues or detection problems');
+          }
           
           if (descriptors.length > 0) {
             // Find matches for the first detected face
@@ -509,7 +516,7 @@ export default function PortfolioBuilder() {
               const matchedChild = children.find(c => c.id === bestMatch.childId);
               console.log(`[Portfolio] Best match: ${bestMatch.childName} with confidence ${bestMatch.confidence}`);
               
-              if (matchedChild && bestMatch.confidence > 0.7) {
+              if (matchedChild && bestMatch.confidence > 0.6) {
                 console.log(`[Portfolio] Face recognition success: ${matchedChild.firstName} ${matchedChild.lastName}`);
                 
                 // Auto-create portfolio entry with the detected child
@@ -567,9 +574,15 @@ export default function PortfolioBuilder() {
           console.log('[Portfolio] Face recognition found no matches, falling back to voice analysis...');
         } catch (faceError) {
           console.error('[Portfolio] Face recognition failed:', faceError);
+          console.error('[Portfolio] Face error details:', {
+            message: faceError?.message || 'Unknown error',
+            stack: faceError?.stack || 'No stack trace',
+            name: faceError?.name || 'Unknown error type'
+          });
+          
           toast({
             title: 'Face Recognition Issue',
-            description: 'Face detection had an issue. Trying voice analysis instead.',
+            description: `Face detection failed: ${faceError?.message || 'Unknown error'}. Trying voice analysis instead.`,
             variant: 'default',
           });
         }
