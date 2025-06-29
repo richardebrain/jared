@@ -129,30 +129,50 @@ class FaceDetectionService {
   }
 
   /**
+   * Get the number of stored descriptors
+   */
+  getDescriptorCount(): number {
+    return this.storedDescriptors.length;
+  }
+
+  /**
    * Find matching faces for a given descriptor
    */
   findMatches(queryDescriptor: Float32Array, threshold: number = 0.6): FaceMatch[] {
+    console.log(`[Face Detection] Starting match comparison with threshold ${threshold}`);
+    
     if (this.storedDescriptors.length === 0) {
       console.log('[Face Detection] No stored descriptors available for matching');
       return [];
     }
 
+    console.log(`[Face Detection] Comparing against ${this.storedDescriptors.length} stored descriptors`);
     const matches: FaceMatch[] = [];
 
     for (const stored of this.storedDescriptors) {
+      console.log(`[Face Detection] Comparing with ${stored.childName} (ID: ${stored.childId})`);
+      console.log(`[Face Detection] Query descriptor length: ${queryDescriptor.length}, Stored descriptor length: ${stored.descriptor.length}`);
+      
       const distance = faceapi.euclideanDistance(queryDescriptor, stored.descriptor);
+      console.log(`[Face Detection] Distance to ${stored.childName}: ${distance} (threshold: ${threshold})`);
       
       // Lower distance = better match (opposite of similarity)
       if (distance <= threshold) {
+        const confidence = Math.max(0, 1 - distance) * stored.confidence;
+        console.log(`[Face Detection] MATCH FOUND: ${stored.childName} with distance ${distance} and confidence ${confidence}`);
         matches.push({
           childId: stored.childId,
           childName: stored.childName,
           distance,
-          confidence: Math.max(0, 1 - distance) * stored.confidence
+          confidence
         });
+      } else {
+        console.log(`[Face Detection] No match for ${stored.childName} - distance ${distance} exceeds threshold ${threshold}`);
       }
     }
 
+    console.log(`[Face Detection] Total matches found: ${matches.length}`);
+    
     // Sort by distance (lowest first = best matches)
     return matches.sort((a, b) => a.distance - b.distance);
   }
@@ -167,17 +187,31 @@ class FaceDetectionService {
       
       img.onload = async () => {
         try {
+          console.log(`[Face Detection] Image loaded successfully: ${img.width}x${img.height}`);
+          console.log(`[Face Detection] Starting face detection...`);
           const descriptors = await this.detectFaces(img);
+          console.log(`[Face Detection] Face detection complete, found ${descriptors.length} faces`);
           resolve(descriptors);
         } catch (error) {
+          console.error('[Face Detection] Error during face detection:', error);
           reject(error);
         }
       };
       
-      img.onerror = () => {
-        reject(new Error('Failed to load image'));
+      img.onerror = (e) => {
+        console.error('[Face Detection] Image load error:', e);
+        console.error('[Face Detection] Data URL prefix:', dataUrl.substring(0, 100));
+        reject(new Error(`Failed to load image: ${e}`));
       };
       
+      // Validate data URL format
+      if (!dataUrl.startsWith('data:image/')) {
+        console.error('[Face Detection] Invalid data URL format:', dataUrl.substring(0, 50));
+        reject(new Error('Invalid data URL format - must start with data:image/'));
+        return;
+      }
+      
+      console.log(`[Face Detection] Loading image from data URL (${dataUrl.length} chars)`);
       img.src = dataUrl;
     });
   }
