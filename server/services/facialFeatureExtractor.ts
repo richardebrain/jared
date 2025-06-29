@@ -237,7 +237,113 @@ Respond in detailed JSON format:
       temperature: 0.1, // Low temperature for consistent feature extraction
     });
 
-    const featuresResult = JSON.parse(response.choices[0].message.content || '{}');
+    const content = response.choices[0].message.content || '{}';
+    
+    // Check if OpenAI refused the request with a text response
+    if (content.includes("I'm sorry") || content.includes("I cannot") || content.includes("I'm not able")) {
+      console.log(`[Feature Extraction] OpenAI declined facial analysis. Using generic features for ${childName}`);
+      
+      // Return generic features when facial recognition is declined
+      return {
+        faceShape: "unknown",
+        faceWidth: "medium",
+        faceLength: "medium",
+        jawlineShape: "unknown",
+        cheekboneProminence: "medium",
+        foreheadSize: "medium",
+        eyeColor: "unknown",
+        eyeShape: "unknown",
+        eyeSize: "medium",
+        eyeSpacing: "medium",
+        eyebrowShape: "unknown",
+        eyebrowThickness: "medium",
+        eyelashLength: "medium",
+        noseShape: "unknown",
+        noseSize: "medium",
+        noseBridge: "unknown",
+        nostrilShape: "unknown",
+        mouthShape: "unknown",
+        mouthSize: "medium",
+        lipThickness: "medium",
+        smileCharacteristics: "unknown",
+        teethVisibility: "unknown",
+        hairColor: "unknown",
+        hairTexture: "unknown",
+        hairLength: "unknown",
+        hairStyle: "unknown",
+        hairline: "unknown",
+        skinTone: "unknown",
+        skinTexture: "unknown",
+        complexion: "unknown",
+        distinctiveFeatures: [],
+        birthmarks: [],
+        dimples: [],
+        freckles: "unknown",
+        eyeToNoseRatio: "unknown",
+        noseToMouthRatio: "unknown",
+        faceSymmetry: "unknown",
+        ageRange: "unknown",
+        developmentalStage: "unknown",
+        confidence: 0.1,
+        extractedAt: new Date().toISOString(),
+        aiModel: "gpt-4o",
+        analysisDepth: "declined"
+      };
+    }
+
+    let featuresResult;
+    try {
+      featuresResult = JSON.parse(content);
+    } catch (parseError) {
+      console.log(`[Feature Extraction] JSON parsing failed for ${childName}. Content: ${content.substring(0, 100)}...`);
+      
+      // Return minimal features when parsing fails
+      return {
+        faceShape: "unknown",
+        faceWidth: "medium",
+        faceLength: "medium",
+        jawlineShape: "unknown",
+        cheekboneProminence: "medium",
+        foreheadSize: "medium",
+        eyeColor: "unknown",
+        eyeShape: "unknown",
+        eyeSize: "medium",
+        eyeSpacing: "medium",
+        eyebrowShape: "unknown",
+        eyebrowThickness: "medium",
+        eyelashLength: "medium",
+        noseShape: "unknown",
+        noseSize: "medium",
+        noseBridge: "unknown",
+        nostrilShape: "unknown",
+        mouthShape: "unknown",
+        mouthSize: "medium",
+        lipThickness: "medium",
+        smileCharacteristics: "unknown",
+        teethVisibility: "unknown",
+        hairColor: "unknown",
+        hairTexture: "unknown",
+        hairLength: "unknown",
+        hairStyle: "unknown",
+        hairline: "unknown",
+        skinTone: "unknown",
+        skinTexture: "unknown",
+        complexion: "unknown",
+        distinctiveFeatures: [],
+        birthmarks: [],
+        dimples: [],
+        freckles: "unknown",
+        eyeToNoseRatio: "unknown",
+        noseToMouthRatio: "unknown",
+        faceSymmetry: "unknown",
+        ageRange: "unknown",
+        developmentalStage: "unknown",
+        confidence: 0.1,
+        extractedAt: new Date().toISOString(),
+        aiModel: "gpt-4o",
+        analysisDepth: "parsing_failed"
+      };
+    }
     
     console.log(`[Feature Extraction] Successfully extracted features for ${childName}:`);
     console.log(`- Face Shape: ${featuresResult.faceShape}`);
