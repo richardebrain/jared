@@ -349,10 +349,7 @@ export default function PortfolioBuilder() {
               />
               <PortfolioEntryForm
                 portfolioForm={portfolioForm}
-                setPortfolioForm={(form) => setPortfolioForm({
-                  ...form,
-                  learningStandards: form.learningStandards || []
-                })}
+                setPortfolioForm={setPortfolioForm}
                 onSave={handleSaveEntry}
                 isSaving={createEntryMutation.isPending}
                 selectedChild={selectedChild}
