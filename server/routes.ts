@@ -10188,6 +10188,11 @@ Please provide empathy coaching guidance to help this director implement the man
       const result = await db.update(schools).set(updateObject).where(eq(schools.id, schoolId));
       
       console.log(`School settings updated successfully for school ${schoolId}`, result);
+      
+      // Verify the update by fetching the school again
+      const updatedSchool = await db.select().from(schools).where(eq(schools.id, schoolId));
+      console.log('Updated school data from database:', updatedSchool[0]);
+      console.log('Logo URL after update:', updatedSchool[0]?.logoUrl);
       res.json({ message: "School settings updated successfully" });
     } catch (error) {
       console.error("Error updating school settings:", error);

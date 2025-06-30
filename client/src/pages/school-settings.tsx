@@ -255,6 +255,7 @@ export default function SchoolSettingsPage() {
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       console.log('Updated formData:', newData);
+      console.log('Logo URL in updated formData:', newData.logoUrl);
       return newData;
     });
     setHasUnsavedChanges(true);
