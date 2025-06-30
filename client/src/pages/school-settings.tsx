@@ -82,9 +82,7 @@ export default function SchoolSettingsPage() {
 
   // Initialize form data when school data loads, but don't override if user has unsaved changes
   useEffect(() => {
-    console.log('useEffect triggered - school:', school?.logoUrl, 'hasUnsavedChanges:', hasUnsavedChanges);
     if (school && !hasUnsavedChanges) {
-      console.log('Setting formData from school data');
       setFormData(school);
     }
   }, [school, hasUnsavedChanges]);
@@ -102,21 +100,18 @@ export default function SchoolSettingsPage() {
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
     onSuccess: (response, updatedData) => {
-      console.log('Mutation success - updatedData:', updatedData);
-      
       // Clear unsaved changes flag since we've successfully saved
       setHasUnsavedChanges(false);
       
       // Update local formData to reflect the saved changes
-      setFormData(prev => {
-        const newData = { ...prev, ...updatedData };
-        console.log('Updating formData in mutation success:', newData);
-        return newData;
-      });
+      setFormData(prev => ({ ...prev, ...updatedData }));
       
-      // Invalidate both school settings and school info queries
-      queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user?.schoolId}`] });
+      // Manually update the cache instead of invalidating to prevent null state
+      queryClient.setQueryData(['/api/school/settings'], updatedData);
+      if (user?.schoolId) {
+        queryClient.setQueryData([`/api/school/info/${user.schoolId}`], updatedData);
+      }
+      
       toast({
         title: "School Settings Updated",
         description: "Your school information has been successfully updated.",
