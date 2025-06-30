@@ -101,6 +101,7 @@ import EceHoursTracker from "@/pages/ece-hours-tracker";
 import AssessmentRequired from "@/pages/assessment-required";
 import TestPage from "@/pages/test-page";
 import EmergencyLogin from "@/pages/emergency-login";
+import PortfolioDemo from "@/pages/portfolio-demo";
 import PortfolioBuilder from "@/pages/PortfolioBuilder";
 import ChildProfile from "@/pages/ChildProfile";
 import CompreFaceSettings from "@/pages/CompreFaceSettings";
@@ -196,6 +197,11 @@ function Router(props: {
       {/* Emergency login route - bypasses auth context completely */}
       <Route path="/emergency">
         <EmergencyLogin />
+      </Route>
+
+      {/* Portfolio Demo - Public route for demonstration */}
+      <Route path="/portfolio-demo">
+        <PortfolioDemo />
       </Route>
 
       {/* Temporary public route for testing state synchronization fix */}

@@ -453,7 +453,7 @@ export default function PortfolioDisplay({ child, entries, schoolYear = '2024-20
           Download PDF
         </Button>
         <Button variant="outline" className="flex items-center gap-2">
-          <Print className="h-4 w-4" />
+          <Printer className="h-4 w-4" />
           Print Portfolio
         </Button>
         <Button variant="outline" className="flex items-center gap-2">
