@@ -590,6 +590,52 @@ export default function SchoolSettingsPage() {
 
                     {/* Logo Upload Controls */}
                     <div className="flex-1 space-y-4">
+                      {/* File Upload Section */}
+                      <div className="space-y-2">
+                        <Label htmlFor="logoFile">Upload Logo File</Label>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            id="logoFile"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // Convert file to base64 or handle upload
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const result = event.target?.result as string;
+                                  handleInputChange('logoUrl', result);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="flex-1"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => document.getElementById('logoFile')?.click()}
+                          >
+                            Browse
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Upload an image file (PNG, JPG, GIF). Recommended size: 200x200px
+                        </p>
+                      </div>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-background px-2 text-muted-foreground">Or</span>
+                        </div>
+                      </div>
+
+                      {/* URL Input Section */}
                       <div className="space-y-2">
                         <Label htmlFor="logoUrl">Logo URL</Label>
                         <Input
@@ -600,7 +646,7 @@ export default function SchoolSettingsPage() {
                           onChange={(e) => handleInputChange('logoUrl', e.target.value)}
                         />
                         <p className="text-xs text-gray-500">
-                          Enter a direct URL to your school logo image
+                          Or enter a direct URL to your school logo image
                         </p>
                       </div>
                       
@@ -632,8 +678,17 @@ export default function SchoolSettingsPage() {
                 <div className="border-t pt-6" />
 
                 {/* Color Customization */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-base font-semibold">Brand Colors</Label>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Customize your school's brand colors that will be used throughout the platform interface, 
+                      including headers, buttons, and accent elements.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
                     <Label htmlFor="primaryColor">Primary Color</Label>
                     <div className="flex gap-2">
                       <Input
