@@ -10134,6 +10134,8 @@ Please provide empathy coaching guidance to help this director implement the man
 
       const updateData = req.body;
       const schoolId = user.schoolId || 1;
+      
+      console.log(`Updating school ${schoolId} with data:`, updateData);
 
       // Build update object with only provided fields
       const updateObject: any = {};
@@ -10157,12 +10159,20 @@ Please provide empathy coaching guidance to help this director implement the man
         return res.json({ message: "No updates provided" });
       }
 
-      await db.update(schools).set(updateObject).where(eq(schools.id, schoolId));
-
+      console.log(`Executing database update for school ${schoolId}:`, updateObject);
+      
+      // Simple database update without timeout wrapper to avoid race conditions
+      const result = await db.update(schools).set(updateObject).where(eq(schools.id, schoolId));
+      
+      console.log(`School settings updated successfully for school ${schoolId}`, result);
       res.json({ message: "School settings updated successfully" });
     } catch (error) {
       console.error("Error updating school settings:", error);
-      res.status(500).json({ message: "Internal server error" });
+      if (error.message === 'Database update timeout') {
+        res.status(408).json({ message: "Update request timed out. Please try again." });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
     }
   });
 

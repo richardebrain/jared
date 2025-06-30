@@ -103,8 +103,8 @@ export async function apiRequest<T = any>(
     const url = urlOrMethod;
     const config = (configOrUrl as AxiosRequestConfig) || {};
     
-    // Use longer timeout for AI content generation and photo analysis
-    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') || url.includes('/smart-analyze') ? 60000 : 10000;
+    // Use longer timeout for AI content generation, photo analysis, and school settings
+    const timeout = url.includes('/api/ai') || url.includes('/generate-lesson-plan') || url.includes('/generate') || url.includes('/smart-analyze') || url.includes('/school/settings') ? 60000 : 10000;
     finalConfig = {
       url,
       ...config,
