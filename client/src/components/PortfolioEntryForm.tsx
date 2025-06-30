@@ -12,6 +12,7 @@ interface PortfolioForm {
   entryDate: string;
   teacherNotes: string;
   photos: string[];
+  learningStandards?: string[];
 }
 
 interface PortfolioEntryFormProps {
@@ -83,6 +84,25 @@ export default function PortfolioEntryForm({
               onConfirm={onConfirmVoice}
               onCancel={onCancelVoice}
               voiceText={voiceText}
+            />
+          </div>
+          <div>
+            <Label htmlFor="learningStandards">Learning Standards (Optional)</Label>
+            <LearningStandardsDropdown
+              selectedStandards={portfolioForm.learningStandards || []}
+              onSelectionChange={(standards) => 
+                setPortfolioForm({ ...portfolioForm, learningStandards: standards })
+              }
+              onDescriptionUpdate={(description) => {
+                if (description) {
+                  setPortfolioForm({ 
+                    ...portfolioForm, 
+                    description: portfolioForm.description ? 
+                      `${portfolioForm.description}\n\n${description}` : 
+                      description 
+                  });
+                }
+              }}
             />
           </div>
           <div>

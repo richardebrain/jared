@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Loader2, ChevronDown, ChevronUp, X, BookOpen } from 'lucide-react';
 
 interface LearningStandard {
   id: number;
@@ -18,7 +22,10 @@ interface LearningStandard {
 
 interface LearningStandardsDropdownProps {
   value?: string;
-  onValueChange: (value: string) => void;
+  onValueChange?: (value: string) => void;
+  selectedStandards?: string[];
+  onSelectionChange?: (standards: string[]) => void;
+  onDescriptionUpdate?: (description: string) => void;
   ageGroup?: string;
   category?: string;
   label?: string;
@@ -28,6 +35,9 @@ interface LearningStandardsDropdownProps {
 export default function LearningStandardsDropdown({
   value,
   onValueChange,
+  selectedStandards = [],
+  onSelectionChange,
+  onDescriptionUpdate,
   ageGroup,
   category,
   label = "Learning Standard",

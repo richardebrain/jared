@@ -105,6 +105,7 @@ export default function PortfolioBuilder() {
     entryDate: new Date().toISOString().split('T')[0],
     teacherNotes: '',
     photos: [] as string[],
+    learningStandards: [] as string[],
   });
   const [photoAnalysis, setPhotoAnalysis] = useState<AIAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
