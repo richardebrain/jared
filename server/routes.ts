@@ -10134,26 +10134,29 @@ Please provide empathy coaching guidance to help this director implement the man
       const updateData = req.body;
       const schoolId = user.schoolId || 1;
 
-      // Update school information  
-      await db.execute(sql`
-        UPDATE schools 
-        SET 
-          name = COALESCE(${updateData.name}, name),
-          address = COALESCE(${updateData.address}, address),
-          city = COALESCE(${updateData.city}, city),
-          state = COALESCE(${updateData.state}, state),
-          zip_code = COALESCE(${updateData.zipCode}, zip_code),
-          contact_email = COALESCE(${updateData.contactEmail}, contact_email),
-          contact_phone = COALESCE(${updateData.contactPhone}, contact_phone),
-          logo_url = COALESCE(${updateData.logoUrl}, logo_url),
-          description = COALESCE(${updateData.description}, description),
-          website = COALESCE(${updateData.website}, website),
-          founded = COALESCE(${updateData.founded}, founded),
-          type = COALESCE(${updateData.type}, type),
-          capacity = COALESCE(${updateData.capacity}, capacity),
-          customization = COALESCE(${updateData.customization ? JSON.stringify(updateData.customization) : null}, customization)
-        WHERE id = ${schoolId}
-      `);
+      // Build update object with only provided fields
+      const updateObject: any = {};
+      
+      if (updateData.name !== undefined) updateObject.name = updateData.name;
+      if (updateData.address !== undefined) updateObject.address = updateData.address;
+      if (updateData.city !== undefined) updateObject.city = updateData.city;
+      if (updateData.state !== undefined) updateObject.state = updateData.state;
+      if (updateData.zipCode !== undefined) updateObject.zipCode = updateData.zipCode;
+      if (updateData.contactEmail !== undefined) updateObject.contactEmail = updateData.contactEmail;
+      if (updateData.contactPhone !== undefined) updateObject.contactPhone = updateData.contactPhone;
+      if (updateData.logoUrl !== undefined) updateObject.logoUrl = updateData.logoUrl;
+      if (updateData.description !== undefined) updateObject.description = updateData.description;
+      if (updateData.website !== undefined) updateObject.website = updateData.website;
+      if (updateData.founded !== undefined) updateObject.founded = updateData.founded;
+      if (updateData.type !== undefined) updateObject.type = updateData.type;
+      if (updateData.capacity !== undefined) updateObject.capacity = updateData.capacity;
+      if (updateData.customization !== undefined) updateObject.customization = JSON.stringify(updateData.customization);
+
+      if (Object.keys(updateObject).length === 0) {
+        return res.json({ message: "No updates provided" });
+      }
+
+      await db.update(schools).set(updateObject).where(eq(schools.id, schoolId));
 
       res.json({ message: "School settings updated successfully" });
     } catch (error) {
