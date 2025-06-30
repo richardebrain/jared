@@ -569,22 +569,20 @@ export default function SchoolSettingsPage() {
                     {/* Current Logo Display */}
                     <div className="flex flex-col items-center space-y-3">
                       <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        {(formData.logoUrl || school?.logoUrl || '/api/logo') ? (
-                          <img 
-                            src={formData.logoUrl || school?.logoUrl || '/raising-arizona-logo.jpg'} 
-                            alt="School Logo" 
-                            className="w-full h-full object-contain rounded-lg"
-                            onError={(e) => {
-                              // Fallback to building icon if image fails to load
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                        ) : null}
+                        <img 
+                          src={formData.logoUrl || school?.logoUrl || '/raising-arizona-logo.jpg'} 
+                          alt="School Logo" 
+                          className="w-full h-full object-contain rounded-lg"
+                          onError={(e) => {
+                            // Fallback to building icon if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
                         <div className="text-center hidden">
                           <Building2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">Current school logo</p>
+                          <p className="text-sm text-gray-500">No logo available</p>
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 text-center">
