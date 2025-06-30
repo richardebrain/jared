@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -570,7 +571,7 @@ export default function SchoolSettingsPage() {
                     <div className="flex flex-col items-center space-y-3">
                       <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                         <img 
-                          src={formData.logoUrl || school?.logoUrl || '/raising-arizona-logo.jpg'} 
+                          src={formData.logoUrl || school?.logoUrl || raisingArizonaLogo} 
                           alt="School Logo" 
                           className="w-full h-full object-contain rounded-lg"
                           onError={(e) => {
@@ -586,7 +587,7 @@ export default function SchoolSettingsPage() {
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 text-center">
-                        Current Logo<br/>
+                        Current Logo (as shown in header)<br/>
                         <span className="text-xs">Recommended: 200x200px</span>
                       </p>
                     </div>
@@ -645,7 +646,7 @@ export default function SchoolSettingsPage() {
                           id="logoUrl"
                           type="url"
                           placeholder="https://example.com/logo.png"
-                          value={formData.logoUrl || school?.logoUrl || '/raising-arizona-logo.jpg'}
+                          value={formData.logoUrl || school?.logoUrl || raisingArizonaLogo}
                           onChange={(e) => handleInputChange('logoUrl', e.target.value)}
                         />
                         <p className="text-xs text-gray-500">
