@@ -767,7 +767,7 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
-      <Route path="/school-settings">
+      <Route path="/admin/school-settings">
         <ProtectedRoute adminOnly={true}>
           <SchoolSettingsPage />
         </ProtectedRoute>
