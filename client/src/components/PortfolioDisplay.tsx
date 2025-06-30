@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Camera, FileText, Users, Brain, Star, Calendar, Download, Print, Share, CheckCircle, Circle } from 'lucide-react';
+import { Camera, FileText, Users, Brain, Star, Calendar, Download, Printer, Share, CheckCircle, Circle } from 'lucide-react';
 
 interface PortfolioEntry {
   id: number;

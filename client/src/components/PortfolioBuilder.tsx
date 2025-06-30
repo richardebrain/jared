@@ -117,7 +117,7 @@ export default function PortfolioBuilder() {
   const [pendingVoiceNote, setPendingVoiceNote] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'create' | 'analyze' | 'voice'>('create');
+  const [tab, setTab] = useState<'create' | 'analyze' | 'voice' | 'naeyc'>('create');
 
   // Fetch children in the school
   const { data: children = [], isLoading: childrenLoading } = useQuery({
