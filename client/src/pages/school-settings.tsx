@@ -569,18 +569,23 @@ export default function SchoolSettingsPage() {
                     {/* Current Logo Display */}
                     <div className="flex flex-col items-center space-y-3">
                       <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        {(formData.logoUrl || school?.logoUrl) ? (
+                        {(formData.logoUrl || school?.logoUrl || '/api/logo') ? (
                           <img 
-                            src={formData.logoUrl || school?.logoUrl} 
+                            src={formData.logoUrl || school?.logoUrl || '/raising-arizona-logo.jpg'} 
                             alt="School Logo" 
                             className="w-full h-full object-contain rounded-lg"
+                            onError={(e) => {
+                              // Fallback to building icon if image fails to load
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling?.classList.remove('hidden');
+                            }}
                           />
-                        ) : (
-                          <div className="text-center">
-                            <Building2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-500">No logo uploaded</p>
-                          </div>
-                        )}
+                        ) : null}
+                        <div className="text-center hidden">
+                          <Building2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">Current school logo</p>
+                        </div>
                       </div>
                       <p className="text-xs text-gray-500 text-center">
                         Current Logo<br/>
@@ -642,7 +647,7 @@ export default function SchoolSettingsPage() {
                           id="logoUrl"
                           type="url"
                           placeholder="https://example.com/logo.png"
-                          value={formData.logoUrl || school?.logoUrl || ''}
+                          value={formData.logoUrl || school?.logoUrl || '/raising-arizona-logo.jpg'}
                           onChange={(e) => handleInputChange('logoUrl', e.target.value)}
                         />
                         <p className="text-xs text-gray-500">
@@ -689,7 +694,7 @@ export default function SchoolSettingsPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                    <Label htmlFor="primaryColor">Primary Color</Label>
+                      <Label htmlFor="primaryColor">Primary Color</Label>
                     <div className="flex gap-2">
                       <Input
                         id="primaryColor"
@@ -734,6 +739,7 @@ export default function SchoolSettingsPage() {
                       />
                     </div>
                   </div>
+                </div>
                 </div>
 
                 <div className="space-y-4">

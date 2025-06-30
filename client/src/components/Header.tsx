@@ -78,6 +78,13 @@ export default function Header() {
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
 
+  // Fetch school data to get custom logo
+  const { data: schoolData } = useQuery({
+    queryKey: ["/api/school/info", user?.schoolId],
+    enabled: !!user?.schoolId,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
   // Fetch unread messages count for notification badge - reduced frequency
   const { data: unreadMessages } = useQuery({
     queryKey: ["/api/director-messages"],
