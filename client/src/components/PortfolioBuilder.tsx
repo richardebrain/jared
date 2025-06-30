@@ -27,6 +27,8 @@ import PortfolioEntryList from './PortfolioEntryList';
 import PhotoUploader from './PhotoUploader';
 import PortfolioEntryForm from './PortfolioEntryForm';
 import AIAnalysisPanel from './AIAnalysisPanel';
+import LearningStandardsDropdown from './LearningStandardsDropdown';
+import VoicePortfolioRecorder from './VoicePortfolioRecorder';
 
 interface Child {
   id: number;
@@ -113,7 +115,7 @@ export default function PortfolioBuilder() {
   const [pendingVoiceNote, setPendingVoiceNote] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'create' | 'analyze'>('create');
+  const [tab, setTab] = useState<'create' | 'analyze' | 'voice'>('create');
 
   // Fetch children in the school
   const { data: children = [], isLoading: childrenLoading } = useQuery({
@@ -324,9 +326,13 @@ export default function PortfolioBuilder() {
         </div>
         {/* Main Portfolio Creation Panel */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue={tab} value={tab} onValueChange={(v) => setTab(v as 'create' | 'analyze')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue={tab} value={tab} onValueChange={(v) => setTab(v as 'create' | 'analyze' | 'voice')} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="create">Create Entry</TabsTrigger>
+              <TabsTrigger value="voice" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Voice Creator
+              </TabsTrigger>
               <TabsTrigger value="analyze">AI Analysis</TabsTrigger>
             </TabsList>
             <TabsContent value="create" className="space-y-6">
@@ -354,6 +360,19 @@ export default function PortfolioBuilder() {
                 pendingVoiceNote={pendingVoiceNote}
                 onConfirmVoice={onConfirmVoice}
                 onCancelVoice={onCancelVoice}
+              />
+            </TabsContent>
+            <TabsContent value="voice" className="space-y-6">
+              <VoicePortfolioRecorder
+                uploadedPhoto={uploadedPhotoData}
+                onSuccess={(result) => {
+                  // Refresh the entries list to show the new entry
+                  queryClient.invalidateQueries({ queryKey: ['/api/portfolio/entries', selectedChild] });
+                  toast({
+                    title: "Portfolio Entry Created!",
+                    description: `Successfully created entry for ${result.detectedChild?.firstName} ${result.detectedChild?.lastName}`,
+                  });
+                }}
               />
             </TabsContent>
             <TabsContent value="analyze" className="space-y-6">

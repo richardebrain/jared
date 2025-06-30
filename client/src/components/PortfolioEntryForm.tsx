@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import VoiceInput from './VoiceInput';
+import LearningStandardsDropdown from './LearningStandardsDropdown';
 
 interface PortfolioForm {
   title: string;
