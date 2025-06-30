@@ -27,7 +27,10 @@ import {
   RefreshCw,
   X,
   Clock,
-  Mail as MailIcon
+  Mail as MailIcon,
+  Edit2,
+  Trash2,
+  Plus
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -79,6 +82,8 @@ export default function SchoolSettingsPage() {
 
   const [formData, setFormData] = useState<Partial<School>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [editingCoreValue, setEditingCoreValue] = useState<number | null>(null);
+  const [newCoreValue, setNewCoreValue] = useState('');
 
   // Initialize form data when school data loads, but don't override if user has unsaved changes
   useEffect(() => {
@@ -231,6 +236,44 @@ export default function SchoolSettingsPage() {
     });
     setHasUnsavedChanges(true);
     console.log('Set hasUnsavedChanges to true');
+  };
+
+  // Core value management functions
+  const handleAddCoreValue = () => {
+    if (newCoreValue.trim()) {
+      const currentValues = formData.customization?.coreValues || [
+        'Be Consistent', 'Be Prepared', 'Be Committed', 'Be Positive', 'Be Caring'
+      ];
+      handleInputChange('customization', {
+        ...formData.customization,
+        coreValues: [...currentValues, newCoreValue.trim()]
+      });
+      setNewCoreValue('');
+    }
+  };
+
+  const handleDeleteCoreValue = (index: number) => {
+    const currentValues = formData.customization?.coreValues || [
+      'Be Consistent', 'Be Prepared', 'Be Committed', 'Be Positive', 'Be Caring'
+    ];
+    const newValues = currentValues.filter((_, i) => i !== index);
+    handleInputChange('customization', {
+      ...formData.customization,
+      coreValues: newValues
+    });
+  };
+
+  const handleEditCoreValue = (index: number, newValue: string) => {
+    const currentValues = formData.customization?.coreValues || [
+      'Be Consistent', 'Be Prepared', 'Be Committed', 'Be Positive', 'Be Caring'
+    ];
+    const newValues = [...currentValues];
+    newValues[index] = newValue.trim();
+    handleInputChange('customization', {
+      ...formData.customization,
+      coreValues: newValues
+    });
+    setEditingCoreValue(null);
   };
 
   // Handle invitation form submission
@@ -773,24 +816,105 @@ export default function SchoolSettingsPage() {
 
                 <div className="space-y-4">
                   <Label>Core Values</Label>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {(school?.customization?.coreValues || [
+                  <p className="text-sm text-gray-600">
+                    These values will be used throughout the platform for teacher recognition and training modules.
+                  </p>
+                  
+                  {/* Current Core Values List */}
+                  <div className="space-y-2">
+                    {(formData.customization?.coreValues || school?.customization?.coreValues || [
                       'Be Consistent', 'Be Prepared', 'Be Committed', 'Be Positive', 'Be Caring'
                     ]).map((value, index) => (
-                      <Badge key={index} variant="outline" className="text-sm">
-                        {value}
-                      </Badge>
+                      <div key={index} className="flex items-center gap-2 p-2 border rounded-lg bg-gray-50">
+                        {editingCoreValue === index ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input
+                              value={value}
+                              onChange={(e) => {
+                                const currentValues = formData.customization?.coreValues || school?.customization?.coreValues || [
+                                  'Be Consistent', 'Be Prepared', 'Be Committed', 'Be Positive', 'Be Caring'
+                                ];
+                                const tempValues = [...currentValues];
+                                tempValues[index] = e.target.value;
+                                handleInputChange('customization', {
+                                  ...formData.customization,
+                                  coreValues: tempValues
+                                });
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleEditCoreValue(index, e.currentTarget.value);
+                                } else if (e.key === 'Escape') {
+                                  setEditingCoreValue(null);
+                                }
+                              }}
+                              className="flex-1"
+                              autoFocus
+                            />
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleEditCoreValue(index, value)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setEditingCoreValue(null)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 flex-1">
+                            <Badge variant="outline" className="text-sm flex-1 justify-start">
+                              {value}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setEditingCoreValue(index)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteCoreValue(index)}
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
-                  <Textarea
-                    placeholder="Enter core values separated by commas (e.g., Be Consistent, Be Prepared, Be Committed, Be Positive, Be Caring)"
-                    value={formData.customization?.coreValues?.join(', ') || ''}
-                    onChange={(e) => handleInputChange('customization', {
-                      ...formData.customization,
-                      coreValues: e.target.value.split(',').map(v => v.trim()).filter(v => v)
-                    })}
-                    rows={3}
-                  />
+
+                  {/* Add New Core Value */}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add new core value (e.g., Be Respectful)"
+                      value={newCoreValue}
+                      onChange={(e) => setNewCoreValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddCoreValue();
+                        }
+                      }}
+                    />
+                    <Button 
+                      onClick={handleAddCoreValue}
+                      disabled={!newCoreValue.trim()}
+                      className="shrink-0"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
                 </div>
 
                 <Button 
