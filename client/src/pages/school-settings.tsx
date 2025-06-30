@@ -97,7 +97,7 @@ export default function SchoolSettingsPage() {
 
   const updateSchoolMutation = useMutation({
     mutationFn: (data: Partial<School>) => 
-      apiRequest('/api/school/settings', { method: 'PATCH', body: data }),
+      apiRequest('/api/school/settings', { method: 'PATCH', data }),
     onSuccess: () => {
       // Invalidate both school settings and school info queries
       queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
