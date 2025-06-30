@@ -104,31 +104,31 @@ export default function SchoolSettingsPage() {
   const updateSchoolMutation = useMutation({
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
-    onSuccess: (response, updatedData) => {
+    onSuccess: async (response, updatedData) => {
       
-      // Clear unsaved changes flag since we've successfully saved
-      setHasUnsavedChanges(false);
-      
-      // Update local formData to reflect the saved changes
+      // Update local formData to reflect the saved changes FIRST
       setFormData(prev => ({ ...prev, ...updatedData }));
       
       // Invalidate all related queries to ensure all pages get fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/school/info'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/school/info'] });
       
       if (user?.schoolId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/school/info', user.schoolId] });
-        queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/school/info', user.schoolId] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
       }
       
       // Force refresh of any other queries that depend on school settings
-      queryClient.invalidateQueries({ 
+      await queryClient.invalidateQueries({ 
         predicate: (query) => {
           return query.queryKey[0] === '/api/school/settings' || 
                  query.queryKey[0] === '/api/school/info' ||
                  (typeof query.queryKey[0] === 'string' && query.queryKey[0].includes('school'));
         }
       });
+      
+      // Clear unsaved changes flag AFTER all cache invalidation is complete
+      setHasUnsavedChanges(false);
       
       toast({
         title: "School Settings Updated",
@@ -729,7 +729,7 @@ export default function SchoolSettingsPage() {
                           id="logoUrl"
                           type="url"
                           placeholder="https://example.com/logo.png"
-                          value={formData.logoUrl || school?.logoUrl || raisingArizonaLogo}
+                          value={formData.logoUrl || school?.logoUrl || ''}
                           onChange={(e) => handleInputChange('logoUrl', e.target.value)}
                         />
                         <p className="text-xs text-gray-500">
