@@ -936,6 +936,35 @@ export const schoolsRelations = relations(schools, ({ many }) => ({
   teacherMessages: many(teacherMessages)
 }));
 
+// Learning Standards table for portfolio entries
+export const learningStandards = pgTable("learning_standards", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(), // e.g., "SS1.A", "MATH2.3"
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // e.g., "Social Studies", "Mathematics", "Language Arts"
+  ageGroup: text("age_group").notNull(), // e.g., "3-4 years", "4-5 years", "5-6 years"
+  domain: text("domain"), // e.g., "Cognitive", "Physical", "Social-Emotional"
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  categoryIdx: index("learning_standards_category_idx").on(table.category),
+  ageGroupIdx: index("learning_standards_age_group_idx").on(table.ageGroup),
+  activeIdx: index("learning_standards_active_idx").on(table.isActive),
+  codeIdx: index("learning_standards_code_idx").on(table.code),
+}));
+
+export const insertLearningStandardSchema = createInsertSchema(learningStandards).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type LearningStandard = typeof learningStandards.$inferSelect;
+export type InsertLearningStandard = z.infer<typeof insertLearningStandardSchema>;
+
 // Assessment domains table for weighted question distribution
 export const assessmentDomains = pgTable("assessment_domains", {
   id: serial("id").primaryKey(),
@@ -2151,6 +2180,7 @@ export const portfolioEntries = pgTable("portfolio_entries", {
   aiSummary: text("ai_summary"), // AI-generated description
   naeyc_standards: text("naeyc_standards").array(), // Aligned NAEYC standards
   custom_standards: text("custom_standards").array(), // Custom standards
+  learningStandardId: integer("learning_standard_id").references(() => learningStandards.id), // Primary learning standard achieved
   observationNotes: text("observation_notes"), // Teacher's manual notes
   tags: text("tags").array(),
   entryDate: date("entry_date").notNull(),

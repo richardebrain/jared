@@ -11467,5 +11467,184 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Learning Standards API Routes
+  
+  // Get all learning standards
+  app.get("/api/learning-standards", requireAuth, async (req, res) => {
+    try {
+      const { category, ageGroup } = req.query;
+      
+      let query = `
+        SELECT id, code, title, description, category, age_group as "ageGroup", domain, 
+               is_active as "isActive", display_order as "displayOrder"
+        FROM learning_standards 
+        WHERE is_active = true
+      `;
+      
+      const params: any[] = [];
+      
+      if (category) {
+        query += ` AND category = $${params.length + 1}`;
+        params.push(category);
+      }
+      
+      if (ageGroup) {
+        query += ` AND age_group = $${params.length + 1}`;
+        params.push(ageGroup);
+      }
+      
+      query += ` ORDER BY category, display_order, code`;
+      
+      const result = await db.execute(sql.raw(query, params));
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching learning standards:", error);
+      res.status(500).json({ error: "Failed to fetch learning standards" });
+    }
+  });
+
+  // Enhanced voice transcription and portfolio creation
+  app.post("/api/portfolio/voice-analyze", requireAuth, async (req, res) => {
+    try {
+      const { audioBase64, photoBase64 } = req.body;
+      const user = req.user!;
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+
+      // Step 1: Transcribe the audio using OpenAI Whisper
+      const transcriptionResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "whisper-1",
+          audio: audioBase64,
+          response_format: "json"
+        }),
+      });
+
+      if (!transcriptionResponse.ok) {
+        throw new Error(`Transcription failed: ${transcriptionResponse.statusText}`);
+      }
+
+      const transcriptionData = await transcriptionResponse.json();
+      const transcribedText = transcriptionData.text;
+
+      console.log("[Voice Analysis] Transcribed text:", transcribedText);
+
+      // Step 2: Use GPT-4o to analyze the transcription and identify the child
+      const analysisResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert at analyzing teacher voice notes about children's activities and matching them with learning standards. 
+
+              Your task is to:
+              1. Extract the child's name from the voice note
+              2. Identify the activity or learning behavior described
+              3. Match it to appropriate learning standards
+              4. Determine the developmental domain (Cognitive, Physical, Social-Emotional, Language)
+              5. Suggest a portfolio section (e.g., "Art & Creativity", "Math & Science", "Language & Literacy", "Social Development")
+
+              Respond in JSON format with:
+              {
+                "childName": "detected child name",
+                "activity": "brief description of activity",
+                "description": "detailed portfolio entry description",
+                "learningDomain": "Cognitive|Physical|Social-Emotional|Language",
+                "portfolioSection": "suggested section name",
+                "suggestedStandards": ["standard codes that match this activity"],
+                "confidence": 0.95
+              }`
+            },
+            {
+              role: "user",
+              content: `Teacher's voice note: "${transcribedText}"`
+            }
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: 500,
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        throw new Error(`Analysis failed: ${analysisResponse.statusText}`);
+      }
+
+      const analysisData = await analysisResponse.json();
+      const analysis = JSON.parse(analysisData.choices[0].message.content);
+
+      console.log("[Voice Analysis] AI Analysis:", analysis);
+
+      // Step 3: Find the child in the database
+      const children = await storage.getChildrenBySchool(user.schoolId!);
+      const matchedChild = children.find(child => 
+        child.firstName.toLowerCase().includes(analysis.childName.toLowerCase()) ||
+        analysis.childName.toLowerCase().includes(child.firstName.toLowerCase())
+      );
+
+      if (!matchedChild) {
+        return res.json({
+          success: false,
+          transcription: transcribedText,
+          analysis,
+          error: "Child not found. Please create the child first or check the name pronunciation."
+        });
+      }
+
+      // Step 4: Create the portfolio entry automatically
+      const portfolioEntry = {
+        childId: matchedChild.id,
+        teacherId: user.id,
+        schoolId: user.schoolId!,
+        title: analysis.activity,
+        description: analysis.description,
+        entryDate: new Date().toISOString().split('T')[0],
+        teacherNotes: `Voice note: ${transcribedText}`,
+        aiSummary: analysis.description,
+        activityType: analysis.activity,
+        photoUrl: photoBase64 ? `data:image/jpeg;base64,${photoBase64}` : null,
+        processingStatus: "processed",
+        aiAnalysisData: {
+          confidence: analysis.confidence,
+          detectedChildren: [analysis.childName],
+          activities: [analysis.activity],
+          learningIndicators: analysis.suggestedStandards,
+          transcription: transcribedText,
+          voiceAnalysis: analysis
+        }
+      };
+
+      const newEntry = await storage.createPortfolioEntry(portfolioEntry);
+
+      res.json({
+        success: true,
+        transcription: transcribedText,
+        analysis,
+        detectedChild: matchedChild,
+        portfolioEntry: newEntry,
+        portfolioSection: analysis.portfolioSection
+      });
+
+    } catch (error) {
+      console.error("Error in voice portfolio analysis:", error);
+      res.status(500).json({ 
+        error: "Failed to process voice note", 
+        details: error.message 
+      });
+    }
+  });
+
   // Routes registered successfully
 }

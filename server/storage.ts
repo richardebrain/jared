@@ -31,6 +31,7 @@ import {
   children, type Child, type InsertChild,
   portfolioEntries, type PortfolioEntry, type InsertPortfolioEntry,
   naeyc_standards, type NAEYCStandard, type InsertNAEYCStandard,
+  learningStandards, type LearningStandard, type InsertLearningStandard,
   milestoneTracking, type MilestoneTracking, type InsertMilestoneTracking,
   childAgeProgression, type ChildAgeProgression, type InsertChildAgeProgression
 } from "@shared/schema";
