@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -41,8 +40,11 @@ export default function LearningStandardsDropdown({
   ageGroup,
   category,
   label = "Learning Standard",
-  placeholder = "Select a learning standard..."
+  placeholder = "Select learning standards..."
 }: LearningStandardsDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+
   const { data: standards = [], isLoading, error } = useQuery({
     queryKey: ['/api/learning-standards', { ageGroup, category }],
     queryFn: async () => {
@@ -56,6 +58,7 @@ export default function LearningStandardsDropdown({
       }
       return response.json() as Promise<LearningStandard[]>;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Group standards by category for better organization
@@ -67,7 +70,35 @@ export default function LearningStandardsDropdown({
     return acc;
   }, {} as Record<string, LearningStandard[]>);
 
-  const selectedStandard = standards.find(s => s.code === value);
+  const handleStandardToggle = (standardCode: string) => {
+    if (!onSelectionChange) return;
+    
+    const newSelection = selectedStandards.includes(standardCode)
+      ? selectedStandards.filter(code => code !== standardCode)
+      : [...selectedStandards, standardCode];
+    
+    onSelectionChange(newSelection);
+
+    // Auto-populate description if callback provided
+    if (onDescriptionUpdate && !selectedStandards.includes(standardCode)) {
+      const standard = standards.find(s => s.code === standardCode);
+      if (standard) {
+        onDescriptionUpdate(`Learning Standard: ${standard.code} - ${standard.title}\n${standard.description}`);
+      }
+    }
+  };
+
+  const handleCategoryToggle = (categoryName: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [categoryName]: !prev[categoryName]
+    }));
+  };
+
+  const removeStandard = (standardCode: string) => {
+    if (!onSelectionChange) return;
+    onSelectionChange(selectedStandards.filter(code => code !== standardCode));
+  };
 
   if (error) {
     return (
@@ -82,19 +113,57 @@ export default function LearningStandardsDropdown({
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <Select value={value || ""} onValueChange={onValueChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={
-            isLoading ? (
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Loading standards...</span>
-              </div>
-            ) : placeholder
-          } />
-        </SelectTrigger>
-        <SelectContent className="max-h-[300px]">
+      <Label className="flex items-center gap-2">
+        <BookOpen className="h-4 w-4" />
+        {label}
+      </Label>
+      
+      {/* Selected Standards Display */}
+      {selectedStandards.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {selectedStandards.map((code) => {
+            const standard = standards.find(s => s.code === code);
+            return (
+              <Badge 
+                key={code} 
+                variant="secondary" 
+                className="flex items-center gap-1 text-xs"
+              >
+                {standard ? `${standard.code}: ${standard.title.substring(0, 30)}...` : code}
+                <X 
+                  className="h-3 w-3 cursor-pointer hover:text-red-600" 
+                  onClick={() => removeStandard(code)}
+                />
+              </Badge>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Selection Button */}
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full justify-between"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading standards...
+          </div>
+        ) : selectedStandards.length > 0 ? (
+          `${selectedStandards.length} standard${selectedStandards.length === 1 ? '' : 's'} selected`
+        ) : (
+          placeholder
+        )}
+        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </Button>
+
+      {/* Standards Selection Panel */}
+      {isOpen && (
+        <div className="border rounded-md bg-white shadow-sm max-h-80 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center p-4">
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -102,50 +171,48 @@ export default function LearningStandardsDropdown({
             </div>
           ) : Object.keys(groupedStandards).length === 0 ? (
             <div className="p-4 text-center text-gray-500">
-              No learning standards available
+              No learning standards found for the selected criteria.
             </div>
           ) : (
-            Object.entries(groupedStandards).map(([categoryName, categoryStandards]) => (
-              <div key={categoryName}>
-                <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
-                  {categoryName}
-                </div>
-                {categoryStandards.map(standard => (
-                  <SelectItem 
-                    key={standard.code} 
-                    value={standard.code}
-                    className="pl-4"
-                  >
-                    <div className="flex flex-col">
-                      <div className="font-medium">
-                        {standard.code}: {standard.title}
+            <div className="p-2">
+              {Object.entries(groupedStandards).map(([categoryName, categoryStandards]) => (
+                <Collapsible 
+                  key={categoryName}
+                  open={openCategories[categoryName] ?? true}
+                  onOpenChange={() => handleCategoryToggle(categoryName)}
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left font-medium text-gray-700 hover:bg-gray-50 rounded">
+                    <span>{categoryName} ({categoryStandards.length})</span>
+                    {openCategories[categoryName] ?? true ? 
+                      <ChevronUp className="h-4 w-4" /> : 
+                      <ChevronDown className="h-4 w-4" />
+                    }
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1 pl-2">
+                    {categoryStandards.map((standard) => (
+                      <div 
+                        key={standard.code}
+                        className="flex items-start space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => handleStandardToggle(standard.code)}
+                      >
+                        <Checkbox
+                          checked={selectedStandards.includes(standard.code)}
+                          onChange={() => handleStandardToggle(standard.code)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm">{standard.code}</div>
+                          <div className="text-sm text-gray-600">{standard.title}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {standard.description.substring(0, 100)}...
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 truncate max-w-[400px]">
-                        {standard.description}
-                      </div>
-                      <div className="text-xs text-blue-600">
-                        {standard.ageGroup} • {standard.domain}
-                      </div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </div>
-            ))
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+            </div>
           )}
-        </SelectContent>
-      </Select>
-      
-      {selectedStandard && (
-        <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <div className="font-medium text-blue-900">
-            {selectedStandard.code}: {selectedStandard.title}
-          </div>
-          <div className="text-blue-700 mt-1">
-            {selectedStandard.description}
-          </div>
-          <div className="text-blue-600 text-xs mt-2">
-            {selectedStandard.ageGroup} • {selectedStandard.domain} • {selectedStandard.category}
-          </div>
         </div>
       )}
     </div>

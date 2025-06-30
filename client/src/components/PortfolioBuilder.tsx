@@ -172,6 +172,7 @@ export default function PortfolioBuilder() {
         entryDate: new Date().toISOString().split('T')[0],
         teacherNotes: '',
         photos: [],
+        learningStandards: [],
       });
       setPhotoAnalysis(null);
       toast({ title: 'Portfolio Entry Created', description: 'New portfolio entry has been saved successfully.' });
@@ -348,7 +349,10 @@ export default function PortfolioBuilder() {
               />
               <PortfolioEntryForm
                 portfolioForm={portfolioForm}
-                setPortfolioForm={setPortfolioForm}
+                setPortfolioForm={(form) => setPortfolioForm({
+                  ...form,
+                  learningStandards: form.learningStandards || []
+                })}
                 onSave={handleSaveEntry}
                 isSaving={createEntryMutation.isPending}
                 selectedChild={selectedChild}

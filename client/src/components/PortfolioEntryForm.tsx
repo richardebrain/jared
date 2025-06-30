@@ -12,7 +12,7 @@ interface PortfolioForm {
   entryDate: string;
   teacherNotes: string;
   photos: string[];
-  learningStandards?: string[];
+  learningStandards: string[];
 }
 
 interface PortfolioEntryFormProps {
