@@ -10167,9 +10167,14 @@ Please provide empathy coaching guidance to help this director implement the man
       if (updateData.type !== undefined) updateObject.type = updateData.type;
       if (updateData.capacity !== undefined) updateObject.capacity = updateData.capacity;
       if (updateData.customization !== undefined) {
-        updateObject.customization = JSON.stringify(updateData.customization);
+        // Ensure we're not double-stringifying JSON
+        if (typeof updateData.customization === 'string') {
+          updateObject.customization = updateData.customization;
+        } else {
+          updateObject.customization = JSON.stringify(updateData.customization);
+        }
         console.log('Saving customization data:', updateData.customization);
-        console.log('Stringified customization:', updateObject.customization);
+        console.log('Final customization for DB:', updateObject.customization);
       }
 
       if (Object.keys(updateObject).length === 0) {
