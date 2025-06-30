@@ -88,6 +88,7 @@ export default function CoreValuesShoutOutPage() {
     gcTime: 0, // Don't cache the data (renamed from cacheTime in v5)
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    refetchInterval: 5000, // Refresh every 5 seconds to catch changes
   });
 
   // Fetch all teachers/users

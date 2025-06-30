@@ -112,13 +112,23 @@ export default function SchoolSettingsPage() {
       // Update local formData to reflect the saved changes
       setFormData(prev => ({ ...prev, ...updatedData }));
       
-      // Manually update the cache instead of invalidating to prevent null state
-      queryClient.setQueryData(['/api/school/settings'], updatedData);
+      // Invalidate all related queries to ensure all pages get fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/school/info'] });
+      
       if (user?.schoolId) {
-        // Update the cache key that Header component uses
-        queryClient.setQueryData(['/api/school/info', user.schoolId], updatedData);
-        queryClient.setQueryData([`/api/school/info/${user.schoolId}`], updatedData);
+        queryClient.invalidateQueries({ queryKey: ['/api/school/info', user.schoolId] });
+        queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
       }
+      
+      // Force refresh of any other queries that depend on school settings
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey[0] === '/api/school/settings' || 
+                 query.queryKey[0] === '/api/school/info' ||
+                 (typeof query.queryKey[0] === 'string' && query.queryKey[0].includes('school'));
+        }
+      });
       
       toast({
         title: "School Settings Updated",
