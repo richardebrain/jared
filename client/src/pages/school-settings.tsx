@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import raisingArizonaLogo from "@assets/raising-arizona-logo.jpg";
@@ -79,6 +79,13 @@ export default function SchoolSettingsPage() {
 
   const [formData, setFormData] = useState<Partial<School>>({});
 
+  // Initialize form data when school data loads
+  useEffect(() => {
+    if (school) {
+      setFormData(school);
+    }
+  }, [school]);
+
   // Get the user's school ID
   const schoolId = user?.schoolId;
 
@@ -92,7 +99,9 @@ export default function SchoolSettingsPage() {
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', body: data }),
     onSuccess: () => {
+      // Invalidate both school settings and school info queries
       queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user?.schoolId}`] });
       toast({
         title: "School Settings Updated",
         description: "Your school information has been successfully updated.",
