@@ -10043,6 +10043,33 @@ Please provide empathy coaching guidance to help this director implement the man
     }
   });
 
+  // School info endpoint for header logo display
+  app.get("/api/school/info/:schoolId", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      
+      // Get school information from the schools table
+      const schoolQuery = await db.execute(sql`
+        SELECT id, name, logoUrl FROM schools WHERE id = ${schoolId} LIMIT 1
+      `);
+
+      const school = schoolQuery.rows[0];
+      
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+
+      res.json({
+        id: school.id,
+        name: school.name,
+        logoUrl: school.logoUrl || "/raising-arizona-logo.jpg"
+      });
+    } catch (error) {
+      console.error("Error fetching school info:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // School settings endpoints
   app.get("/api/school/settings", requireAuth, async (req, res) => {
     try {

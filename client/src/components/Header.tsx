@@ -197,6 +197,9 @@ export default function Header() {
   const userInitials = user && user.firstName && user.lastName
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` 
     : "U";
+
+  // Determine which school logo to display
+  const schoolLogo = schoolData?.logoUrl || raisingArizonaLogo;
   
   return (
     <header className="sticky top-0 bg-white shadow-md z-50">
@@ -204,7 +207,7 @@ export default function Header() {
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={raisingArizonaLogo} alt="Raising Arizona Preschool" className="h-12 mr-2 rounded-md" />
+              <img src={schoolLogo} alt="School Logo" className="h-12 mr-2 rounded-md" />
               <img src={mentormeLogo} alt="MentorMe" className="h-12 rounded-md" />
             </div>
           </Link>
