@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,10 +18,30 @@ import {
   Save,
   Settings,
   Users,
-  Calendar
+  Calendar,
+  UserPlus,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  X,
+  Clock,
+  Mail as MailIcon
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/lib/auth-context';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import TeamManagementTab from '@/components/TeamManagementTab';
 
 interface School {
   id: number;
@@ -47,12 +67,24 @@ interface School {
 export default function SchoolSettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isOwner, isSchoolAdmin, isAdmin } = useAuth();
+  const [emails, setEmails] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const { data: school, isLoading } = useQuery({
     queryKey: ['/api/school/settings'],
   });
 
   const [formData, setFormData] = useState<Partial<School>>({});
+
+  // Get the user's school ID
+  const schoolId = user?.schoolId;
+
+  // Query to get all invitations for this school
+  const { data: invitations = [], isLoading: isLoadingInvitations, refetch: refetchInvitations } = useQuery({
+    queryKey: [`/api/teacher-invitations/school/${schoolId}`],
+    enabled: !!schoolId && (isOwner || isSchoolAdmin || isAdmin),
+  });
 
   const updateSchoolMutation = useMutation({
     mutationFn: (data: Partial<School>) => 
@@ -73,6 +105,94 @@ export default function SchoolSettingsPage() {
     },
   });
 
+  // Mutation to upload emails and send invitations
+  const uploadMutation = useMutation({
+    mutationFn: async (emailsToInvite: string[]) => {
+      const response = await apiRequest(
+        "POST", 
+        "/api/teacher-invitations/upload", 
+        { emails: emailsToInvite, schoolId: schoolId }
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Invitations Sent",
+        description: `Successfully processed ${data.invitations.filter(i => i.success).length} out of ${data.invitations.length} invitations.`,
+        variant: "default",
+      });
+      setEmails("");
+      refetchInvitations();
+    },
+    onError: (error) => {
+      console.error("Error sending invitations:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send invitations. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsProcessing(false);
+    }
+  });
+
+  // Mutation to resend an invitation
+  const resendMutation = useMutation({
+    mutationFn: async (invitationId: number) => {
+      const response = await apiRequest(
+        "POST", 
+        `/api/teacher-invitations/resend/${invitationId}`, 
+        {}
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Invitation Resent",
+        description: data.message,
+        variant: "default",
+      });
+      refetchInvitations();
+    },
+    onError: (error) => {
+      console.error("Error resending invitation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to resend invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation to cancel an invitation
+  const cancelMutation = useMutation({
+    mutationFn: async (invitationId: number) => {
+      const response = await apiRequest(
+        "DELETE", 
+        `/api/teacher-invitations/${invitationId}`, 
+        {}
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Invitation Cancelled",
+        description: data.message,
+        variant: "default",
+      });
+      refetchInvitations();
+    },
+    onError: (error) => {
+      console.error("Error cancelling invitation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateSchoolMutation.mutate(formData);
@@ -82,19 +202,84 @@ export default function SchoolSettingsPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Handle invitation form submission
+  const handleInviteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Split emails into an array, clean up whitespace and empty lines
+    const emailList = emails
+      .split(/[,\n]/)
+      .map(email => email.trim())
+      .filter(email => email.length > 0);
+
+    if (emailList.length === 0) {
+      toast({
+        title: "No Emails Provided",
+        description: "Please enter at least one email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Show processing state
+    setIsProcessing(true);
+
+    // Send invitations
+    uploadMutation.mutate(emailList);
+  };
+
+  // Render invitation status badge
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+      case 'sent':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><MailIcon className="w-3 h-3 mr-1" /> Sent</Badge>;
+      case 'accepted':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Accepted</Badge>;
+      case 'expired':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200"><AlertCircle className="w-3 h-3 mr-1" /> Expired</Badge>;
+      case 'error':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><AlertCircle className="w-3 h-3 mr-1" /> Error</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Check if invitation is expired
+  const isExpired = (expiryDate: string) => {
+    if (!expiryDate) return false;
+    return new Date(expiryDate) < new Date();
+  };
+
+  // Check if user has permission to invite teachers
+  const hasInvitePermission = isOwner || isSchoolAdmin || isAdmin;
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/director-toolkit">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Director Toolkit
-            </Button>
-          </Link>
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-64"></div>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse">
@@ -180,10 +365,13 @@ export default function SchoolSettingsPage() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${hasInvitePermission ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <TabsTrigger value="general">General Information</TabsTrigger>
           <TabsTrigger value="contact">Contact Details</TabsTrigger>
           <TabsTrigger value="branding">Branding & Values</TabsTrigger>
+          {hasInvitePermission && (
+            <TabsTrigger value="team">Team Management</TabsTrigger>
+          )}
         </TabsList>
 
         {/* General Information Tab */}
@@ -456,6 +644,13 @@ export default function SchoolSettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Team Management Tab */}
+        {hasInvitePermission && schoolId && (
+          <TabsContent value="team" className="space-y-6">
+            <TeamManagementTab schoolId={schoolId} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
