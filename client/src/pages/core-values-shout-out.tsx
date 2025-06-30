@@ -42,8 +42,8 @@ import { Award, ChevronLeft, Heart, Home, Medal, Star, ThumbsUp, Trophy, UserChe
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 
-// Define the core values for Raising Arizona Preschool
-const coreValues = [
+// Define default core values as fallback
+const defaultCoreValues = [
   { value: "Be Consistent", label: "Be Consistent", icon: <Star className="h-5 w-5 text-blue-500" /> },
   { value: "Be Prepared", label: "Be Prepared", icon: <Medal className="h-5 w-5 text-amber-500" /> },
   { value: "Be Committed", label: "Be Committed", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
@@ -75,6 +75,12 @@ export default function CoreValuesShoutOutPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nominate");
 
+  // Fetch school data to get core values
+  const { data: schoolData } = useQuery({
+    queryKey: ["/api/school/info", user?.schoolId],
+    enabled: !!user?.schoolId,
+  });
+
   // Fetch all teachers/users
   const { data: teachers } = useQuery({
     queryKey: ["/api/users"],
@@ -92,6 +98,36 @@ export default function CoreValuesShoutOutPage() {
     queryKey: ["/api/core-values/nominations-received"],
     enabled: !!user,
   });
+
+  // Generate core values from school data or use defaults
+  const getCoreValues = () => {
+    if (schoolData?.customization?.coreValues && schoolData.customization.coreValues.length > 0) {
+      // Use school's custom core values with appropriate icons
+      return schoolData.customization.coreValues.map((value: string, index: number) => {
+        const icons = [
+          <Star className="h-5 w-5 text-blue-500" />,
+          <Medal className="h-5 w-5 text-amber-500" />,
+          <Trophy className="h-5 w-5 text-purple-500" />,
+          <Heart className="h-5 w-5 text-red-500" />,
+          <ThumbsUp className="h-5 w-5 text-green-500" />,
+          <UserCheck className="h-5 w-5 text-indigo-500" />,
+          <Award className="h-5 w-5 text-orange-500" />,
+          <Home className="h-5 w-5 text-pink-500" />
+        ];
+        
+        return {
+          value: value,
+          label: value,
+          icon: icons[index % icons.length] // Cycle through icons if more values than icons
+        };
+      });
+    }
+    
+    // Use default core values as fallback
+    return defaultCoreValues;
+  };
+
+  const coreValues = getCoreValues();
 
   // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
