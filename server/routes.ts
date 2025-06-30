@@ -11475,16 +11475,17 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       const { category, ageGroup } = req.query;
       
       let query = `
-        SELECT id, code, title, description, category, age_group as "ageGroup", domain, 
-               is_active as "isActive", display_order as "displayOrder"
-        FROM learning_standards 
-        WHERE is_active = true
+        SELECT id, standard_code as code, standard_text as title, description, standard_area as category, 
+               age_group as "ageGroup", strand as domain, 
+               true as "isActive", 1 as "displayOrder"
+        FROM early_learning_standards 
+        WHERE 1=1
       `;
       
       const params: any[] = [];
       
       if (category) {
-        query += ` AND category = $${params.length + 1}`;
+        query += ` AND standard_area = $${params.length + 1}`;
         params.push(category);
       }
       
@@ -11493,7 +11494,7 @@ Respond as a wise, experienced coach who understands both the challenges of mana
         params.push(ageGroup);
       }
       
-      query += ` ORDER BY category, display_order, code`;
+      query += ` ORDER BY standard_area, standard_code`;
       
       const result = await db.execute(sql.raw(query, params));
       res.json(result.rows);
