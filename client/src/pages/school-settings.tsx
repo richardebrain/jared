@@ -85,12 +85,15 @@ export default function SchoolSettingsPage() {
   const [editingCoreValue, setEditingCoreValue] = useState<number | null>(null);
   const [newCoreValue, setNewCoreValue] = useState('');
 
-  // Initialize form data when school data loads, but don't override if user has unsaved changes
+  // Track if we just completed a save to prevent form data reset
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Initialize form data when school data loads, but don't override if user has unsaved changes or just saved
   useEffect(() => {
-    if (school && !hasUnsavedChanges) {
+    if (school && !hasUnsavedChanges && !justSaved) {
       setFormData(school);
     }
-  }, [school, hasUnsavedChanges]);
+  }, [school, hasUnsavedChanges, justSaved]);
 
   // Get the user's school ID
   const schoolId = user?.schoolId;
@@ -105,6 +108,9 @@ export default function SchoolSettingsPage() {
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
     onSuccess: async (response, updatedData) => {
+      
+      // Set flag to prevent form reset during cache invalidation
+      setJustSaved(true);
       
       // Update local formData to reflect the saved changes FIRST
       setFormData(prev => ({ ...prev, ...updatedData }));
@@ -129,6 +135,11 @@ export default function SchoolSettingsPage() {
       
       // Clear unsaved changes flag AFTER all cache invalidation is complete
       setHasUnsavedChanges(false);
+      
+      // Reset the justSaved flag after a short delay to allow form data to persist
+      setTimeout(() => {
+        setJustSaved(false);
+      }, 1000);
       
       toast({
         title: "School Settings Updated",
