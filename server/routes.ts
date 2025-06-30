@@ -10141,7 +10141,7 @@ Please provide empathy coaching guidance to help this director implement the man
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
 
-      if (!user?.isAdmin) {
+      if (!user?.isAdmin && !user?.isSchoolAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
