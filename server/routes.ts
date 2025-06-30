@@ -10149,6 +10149,7 @@ Please provide empathy coaching guidance to help this director implement the man
       const schoolId = user.schoolId || 1;
       
       console.log(`Updating school ${schoolId} with data:`, updateData);
+      console.log('Logo URL in received data:', updateData.logoUrl);
 
       // Build update object with only provided fields
       const updateObject: any = {};

@@ -234,6 +234,8 @@ export default function SchoolSettingsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission - formData being sent:', formData);
+    console.log('Logo URL specifically:', formData.logoUrl);
     updateSchoolMutation.mutate(formData);
   };
 
