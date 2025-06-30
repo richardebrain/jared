@@ -98,7 +98,10 @@ export default function SchoolSettingsPage() {
   const updateSchoolMutation = useMutation({
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
-    onSuccess: () => {
+    onSuccess: (response, updatedData) => {
+      // Update local formData to reflect the saved changes
+      setFormData(prev => ({ ...prev, ...updatedData }));
+      
       // Invalidate both school settings and school info queries
       queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
       queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user?.schoolId}`] });
