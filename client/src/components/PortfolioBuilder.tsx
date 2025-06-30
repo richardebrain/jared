@@ -329,9 +329,13 @@ export default function PortfolioBuilder() {
         </div>
         {/* Main Portfolio Creation Panel */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue={tab} value={tab} onValueChange={(v) => setTab(v as 'create' | 'analyze' | 'voice')} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="create">Create Entry</TabsTrigger>
+          <Tabs defaultValue={tab} value={tab} onValueChange={(v) => setTab(v as 'create' | 'analyze' | 'voice' | 'naeyc')} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="create">Quick Entry</TabsTrigger>
+              <TabsTrigger value="naeyc" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                NAEYC Portfolio
+              </TabsTrigger>
               <TabsTrigger value="voice" className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 Voice Creator
@@ -364,6 +368,51 @@ export default function PortfolioBuilder() {
                 onConfirmVoice={onConfirmVoice}
                 onCancelVoice={onCancelVoice}
               />
+            </TabsContent>
+            <TabsContent value="naeyc" className="space-y-6">
+              {selectedChild ? (
+                <EnhancedPortfolioForm
+                  childId={selectedChild}
+                  onSubmit={(data) => {
+                    // Convert the enhanced form data to our portfolio entry format and save
+                    createEntryMutation.mutate({
+                      childId: selectedChild,
+                      title: data.title,
+                      description: data.description || '',
+                      entryDate: data.entryDate,
+                      entryType: data.entryType,
+                      photoUrl: data.photoUrl,
+                      videoUrl: data.videoUrl,
+                      audioUrl: data.audioUrl,
+                      workSampleType: data.workSampleType,
+                      workSampleDescription: data.workSampleDescription,
+                      teacherObservation: data.teacherObservation,
+                      behaviorObservation: data.behaviorObservation,
+                      socialInteraction: data.socialInteraction,
+                      developmentalDomain: data.developmentalDomain,
+                      conversationTranscript: data.conversationTranscript,
+                      conversationContext: data.conversationContext,
+                      milestoneAchieved: data.milestoneAchieved,
+                      skillsDemonstrated: data.skillsDemonstrated,
+                      familyInput: data.familyInput,
+                      familyFeedback: data.familyFeedback,
+                      learningStandards: data.learningStandards,
+                      headStartStandards: data.headStartStandards || [],
+                      stateStandards: data.stateStandards || [],
+                      eventType: data.eventType,
+                      eventDescription: data.eventDescription,
+                      tags: data.tags,
+                      accessLevel: data.accessLevel,
+                    });
+                  }}
+                  onCancel={() => setTab('create')}
+                  isLoading={createEntryMutation.isPending}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Please select a child to create a portfolio entry.</p>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="voice" className="space-y-6">
               <VoicePortfolioRecorder
