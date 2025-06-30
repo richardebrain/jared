@@ -2166,33 +2166,80 @@ export const insertChildSchema = createInsertSchema(children).omit({
   createdAt: true,
 });
 
-// Portfolio entries for documenting child activities
+// Portfolio entries for documenting child activities (NAEYC & Head Start aligned)
 export const portfolioEntries = pgTable("portfolio_entries", {
   id: serial("id").primaryKey(),
   childId: integer("child_id").notNull().references(() => children.id),
   teacherId: integer("teacher_id").notNull().references(() => users.id),
   schoolId: integer("school_id").notNull().references(() => schools.id),
+  
+  // Basic entry information
   title: text("title").notNull(),
   description: text("description"),
-  photoUrl: text("photo_url"),
-  activityType: text("activity_type"), // AI-detected activity (e.g., "block building", "painting")
-  recognizedObjects: text("recognized_objects").array(), // AI-detected objects in photo
-  aiSummary: text("ai_summary"), // AI-generated description
-  naeyc_standards: text("naeyc_standards").array(), // Aligned NAEYC standards
-  custom_standards: text("custom_standards").array(), // Custom standards
-  learningStandardId: integer("learning_standard_id").references(() => learningStandards.id), // Primary learning standard achieved
-  observationNotes: text("observation_notes"), // Teacher's manual notes
-  tags: text("tags").array(),
   entryDate: date("entry_date").notNull(),
-  isApproved: boolean("is_approved").default(false), // Teacher approval after AI analysis
-  processingStatus: text("processing_status").default("pending"), // pending, processed, error
+  
+  // Portfolio entry type (aligned with NAEYC best practices)
+  entryType: text("entry_type").notNull().default("photograph"), // photograph, work_sample, observation, recording, assessment, family_input, special_event
+  
+  // Media content
+  photoUrl: text("photo_url"),
+  videoUrl: text("video_url"),
+  audioUrl: text("audio_url"),
+  
+  // Work samples and artifacts
+  workSampleType: text("work_sample_type"), // artwork, drawing, writing, craft
+  workSampleDescription: text("work_sample_description"),
+  
+  // Observations and anecdotal notes (core NAEYC requirement)
+  observationNotes: text("observation_notes"),
+  teacherObservation: text("teacher_observation"),
+  behaviorObservation: text("behavior_observation"),
+  socialInteraction: text("social_interaction"),
+  
+  // Developmental domains (Head Start framework)
+  developmentalDomain: text("developmental_domain").array(), // social-emotional, cognitive, language, physical, creative
+  
+  // Conversations and recordings
+  conversationTranscript: text("conversation_transcript"),
+  conversationContext: text("conversation_context"),
+  
+  // Milestone tracking
+  milestoneAchieved: text("milestone_achieved"),
+  skillsDemonstrated: text("skills_demonstrated").array(),
+  
+  // Family input component
+  familyInput: text("family_input"),
+  familyFeedback: text("family_feedback"),
+  
+  // Learning standards alignment
+  learningStandards: text("learning_standards").array(), // Selected from dropdown
+  naeyc_standards: text("naeyc_standards").array(),
+  headStartStandards: text("head_start_standards").array(),
+  stateStandards: text("state_standards").array(),
+  
+  // Special events documentation
+  eventType: text("event_type"), // field_trip, celebration, classroom_activity
+  eventDescription: text("event_description"),
+  
+  // AI analysis data
+  activityType: text("activity_type"),
+  recognizedObjects: text("recognized_objects").array(),
+  aiSummary: text("ai_summary"),
   aiAnalysisData: json("ai_analysis_data").$type<{
     confidence?: number;
     detectedChildren?: string[];
     activities?: string[];
     emotions?: string[];
     learningIndicators?: string[];
+    developmentalMarkers?: string[];
   }>(),
+  
+  // Metadata and processing
+  tags: text("tags").array(),
+  isApproved: boolean("is_approved").default(false),
+  processingStatus: text("processing_status").default("pending"),
+  accessLevel: text("access_level").default("teacher"), // teacher, family, school
+  
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => ({
   childIdx: index("portfolio_entries_child_idx").on(table.childId),

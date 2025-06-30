@@ -26,6 +26,7 @@ import ChildSelector from './ChildSelector';
 import PortfolioEntryList from './PortfolioEntryList';
 import PhotoUploader from './PhotoUploader';
 import PortfolioEntryForm from './PortfolioEntryForm';
+import EnhancedPortfolioForm from './EnhancedPortfolioForm';
 import AIAnalysisPanel from './AIAnalysisPanel';
 import LearningStandardsDropdown from './LearningStandardsDropdown';
 import VoicePortfolioRecorder from './VoicePortfolioRecorder';
