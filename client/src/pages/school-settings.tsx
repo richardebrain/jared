@@ -775,7 +775,7 @@ export default function SchoolSettingsPage() {
                   <Label>Core Values</Label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {(school?.customization?.coreValues || [
-                      'Community', 'Opportunity', 'Resilience', 'Excellence'
+                      'Be Consistent', 'Be Prepared', 'Be Committed', 'Be Positive', 'Be Caring'
                     ]).map((value, index) => (
                       <Badge key={index} variant="outline" className="text-sm">
                         {value}
@@ -783,7 +783,7 @@ export default function SchoolSettingsPage() {
                     ))}
                   </div>
                   <Textarea
-                    placeholder="Enter core values separated by commas (e.g., Community, Opportunity, Resilience, Excellence)"
+                    placeholder="Enter core values separated by commas (e.g., Be Consistent, Be Prepared, Be Committed, Be Positive, Be Caring)"
                     value={formData.customization?.coreValues?.join(', ') || ''}
                     onChange={(e) => handleInputChange('customization', {
                       ...formData.customization,

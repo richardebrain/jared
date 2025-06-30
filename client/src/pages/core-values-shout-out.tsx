@@ -126,8 +126,14 @@ export default function CoreValuesShoutOutPage() {
       });
     }
     
-    // Use default core values as fallback (C.O.R.E for Raising Arizona)
-    return defaultCoreValues;
+    // Use default core values as fallback 
+    return [
+      { value: "Be Consistent", label: "Be Consistent", icon: <Star className="h-5 w-5 text-blue-500" /> },
+      { value: "Be Prepared", label: "Be Prepared", icon: <Trophy className="h-5 w-5 text-amber-500" /> },
+      { value: "Be Committed", label: "Be Committed", icon: <Medal className="h-5 w-5 text-purple-500" /> },
+      { value: "Be Positive", label: "Be Positive", icon: <ThumbsUp className="h-5 w-5 text-green-500" /> },
+      { value: "Be Caring", label: "Be Caring", icon: <Heart className="h-5 w-5 text-red-500" /> }
+    ];
   };
 
   const coreValues = getCoreValues();
