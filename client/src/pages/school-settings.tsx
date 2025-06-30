@@ -252,6 +252,18 @@ export default function SchoolSettingsPage() {
 
   const handleInputChange = (field: keyof School, value: any) => {
     console.log(`Handling input change - field: ${field}, value:`, value);
+    
+    // Validate logoUrl field to prevent data corruption
+    if (field === 'logoUrl' && typeof value === 'string' && value.length > 500) {
+      console.warn('Logo URL too long, rejecting:', value.length);
+      toast({
+        title: "Invalid Logo URL",
+        description: "Logo URL is too long. Please use a shorter URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       console.log('Updated formData:', newData);
