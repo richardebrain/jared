@@ -20,6 +20,8 @@ const INVITE_EXPIRY_DAYS = 7; // Invitations expire after 7 days
 
 // Authentication middleware to verify user is logged in
 const requireAuth = (req, res, next) => {
+  console.log('Authenticating user...',req.isAuthenticated, req.session,req.isAuthenticated(),)
+
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -48,7 +50,8 @@ const requireAuth = (req, res, next) => {
 // Middleware to verify user is a school owner or admin
 const requireOwnerOrAdmin = async (req, res, next) => {
   const user = req.user;
-  
+  console.log('Authenticating user...',user)
+
   if (!user) {
     return res.status(401).json({ message: 'Unauthorized' });
   }

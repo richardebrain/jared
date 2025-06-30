@@ -9,6 +9,7 @@ import { checkAndNotifyExpiringCredentials } from "./services/notificationServic
 import { sendAdminPasswordResetEmail } from "./services/emailService";
 import { MailService } from "@sendgrid/mail";
 import connectPgSimple from "connect-pg-simple";
+import passport from './utils/passport-config'
 
 // Initialize SendGrid
 const mailService = new MailService();
@@ -2029,7 +2030,7 @@ Continue for all 5 questions...
     });
   }
   if (!skipAuthEndpoints) {
-    app.post("/api/auth/login", async (req, res) => {
+    app.post("/api/auth/login",passport.authenticate("local", { failureRedirect: "/auth" }), async (req, res) => {
       console.log("=== LOGIN ROUTE HIT ===");
       console.log("Request body:", req.body);
 

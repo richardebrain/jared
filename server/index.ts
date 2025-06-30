@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { registerRoutes } from './routes.js';
 import { scheduledTaskService } from './services/scheduledTasks.js';
+import passport from './utils/passport-config'
 
 
 const app = express();
@@ -38,6 +39,8 @@ app.use((req, res, next) => {
   
   next();
 });
+
+
 
 // Create HTTP server with stability settings
 const server = createServer(app);
@@ -78,6 +81,10 @@ app.use(session({
     }
   })
 }));
+
+// Initialize passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Session security middleware for idle timeout and activity monitoring
 app.use((req, res, next) => {
