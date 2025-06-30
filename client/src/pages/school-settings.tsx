@@ -97,9 +97,14 @@ export default function SchoolSettingsPage() {
   });
 
   const updateSchoolMutation = useMutation({
-    mutationFn: (data: Partial<School>) => 
-      apiRequest('/api/school/settings', { method: 'PATCH', data }),
+    mutationFn: (data: Partial<School>) => {
+      console.log('SENDING DATA TO API:', data);
+      return apiRequest('/api/school/settings', { method: 'PATCH', data });
+    },
     onSuccess: (response, updatedData) => {
+      console.log('API RESPONSE:', response);
+      console.log('UPDATED DATA:', updatedData);
+      
       // Clear unsaved changes flag since we've successfully saved
       setHasUnsavedChanges(false);
       
