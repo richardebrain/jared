@@ -82,7 +82,9 @@ export default function SchoolSettingsPage() {
 
   // Initialize form data when school data loads, but don't override if user has unsaved changes
   useEffect(() => {
+    console.log('useEffect triggered - school:', school?.logoUrl, 'hasUnsavedChanges:', hasUnsavedChanges);
     if (school && !hasUnsavedChanges) {
+      console.log('Setting formData from school data');
       setFormData(school);
     }
   }, [school, hasUnsavedChanges]);
@@ -100,11 +102,17 @@ export default function SchoolSettingsPage() {
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
     onSuccess: (response, updatedData) => {
+      console.log('Mutation success - updatedData:', updatedData);
+      
       // Clear unsaved changes flag since we've successfully saved
       setHasUnsavedChanges(false);
       
       // Update local formData to reflect the saved changes
-      setFormData(prev => ({ ...prev, ...updatedData }));
+      setFormData(prev => {
+        const newData = { ...prev, ...updatedData };
+        console.log('Updating formData in mutation success:', newData);
+        return newData;
+      });
       
       // Invalidate both school settings and school info queries
       queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
@@ -217,8 +225,14 @@ export default function SchoolSettingsPage() {
   };
 
   const handleInputChange = (field: keyof School, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log(`Handling input change - field: ${field}, value:`, value);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      console.log('Updated formData:', newData);
+      return newData;
+    });
     setHasUnsavedChanges(true);
+    console.log('Set hasUnsavedChanges to true');
   };
 
   // Handle invitation form submission
@@ -591,6 +605,7 @@ export default function SchoolSettingsPage() {
                           src={formData.logoUrl || school?.logoUrl || raisingArizonaLogo} 
                           alt="School Logo" 
                           className="w-full h-full object-contain rounded-lg"
+                          onLoad={() => console.log('Logo loaded:', formData.logoUrl || school?.logoUrl || raisingArizonaLogo)}
                           onError={(e) => {
                             // Fallback to building icon if image fails to load
                             const target = e.target as HTMLImageElement;
