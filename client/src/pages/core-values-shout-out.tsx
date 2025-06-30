@@ -74,10 +74,14 @@ export default function CoreValuesShoutOutPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nominate");
 
-  // Fetch school data to get core values
+  // Fetch school settings to get updated core values with aggressive refresh
   const { data: schoolData } = useQuery({
-    queryKey: ["/api/school/info", user?.schoolId],
+    queryKey: ["/api/school/settings"],
     enabled: !!user?.schoolId,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache the data
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch all teachers/users
