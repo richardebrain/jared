@@ -78,13 +78,14 @@ export default function SchoolSettingsPage() {
   });
 
   const [formData, setFormData] = useState<Partial<School>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Initialize form data when school data loads
+  // Initialize form data when school data loads, but don't override if user has unsaved changes
   useEffect(() => {
-    if (school) {
+    if (school && !hasUnsavedChanges) {
       setFormData(school);
     }
-  }, [school]);
+  }, [school, hasUnsavedChanges]);
 
   // Get the user's school ID
   const schoolId = user?.schoolId;
@@ -99,6 +100,9 @@ export default function SchoolSettingsPage() {
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
     onSuccess: (response, updatedData) => {
+      // Clear unsaved changes flag since we've successfully saved
+      setHasUnsavedChanges(false);
+      
       // Update local formData to reflect the saved changes
       setFormData(prev => ({ ...prev, ...updatedData }));
       
@@ -214,6 +218,7 @@ export default function SchoolSettingsPage() {
 
   const handleInputChange = (field: keyof School, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setHasUnsavedChanges(true);
   };
 
   // Handle invitation form submission
