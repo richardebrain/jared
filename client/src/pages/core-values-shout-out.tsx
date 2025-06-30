@@ -75,11 +75,17 @@ export default function CoreValuesShoutOutPage() {
   const [activeTab, setActiveTab] = useState("nominate");
 
   // Fetch school settings to get updated core values with aggressive refresh
-  const { data: schoolData } = useQuery({
+  const { data: schoolData } = useQuery<{
+    customization?: {
+      coreValues?: string[];
+      primaryColor?: string;
+      secondaryColor?: string;
+    };
+  }>({
     queryKey: ["/api/school/settings"],
     enabled: !!user?.schoolId,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache the data
+    gcTime: 0, // Don't cache the data (renamed from cacheTime in v5)
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -104,6 +110,10 @@ export default function CoreValuesShoutOutPage() {
 
   // Generate core values from school data or use defaults
   const getCoreValues = () => {
+    console.log('School data received:', schoolData);
+    console.log('Customization data:', schoolData?.customization);
+    console.log('Core values array:', schoolData?.customization?.coreValues);
+    
     if (schoolData?.customization?.coreValues && schoolData.customization.coreValues.length > 0) {
       // Use school's custom core values with appropriate icons and colors
       return schoolData.customization.coreValues.map((value: string, index: number) => {

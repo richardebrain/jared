@@ -10087,8 +10087,26 @@ Please provide empathy coaching guidance to help this director implement the man
       `);
 
       const school = schoolQuery.rows[0];
-      res.json(
-        school || {
+      
+      if (school) {
+        // Parse customization JSON if it's a string
+        if (typeof school.customization === 'string') {
+          try {
+            school.customization = JSON.parse(school.customization);
+          } catch (e) {
+            console.error('Error parsing customization JSON:', e);
+            school.customization = {
+              primaryColor: "#3b82f6",
+              secondaryColor: "#10b981",
+              coreValues: ["Be Consistent", "Be Prepared", "Be Committed", "Be Positive", "Be Caring"],
+            };
+          }
+        }
+        console.log('Returning school data:', school);
+        res.json(school);
+      } else {
+        // Create default school record if none exists
+        const defaultSchool = {
           id: 1,
           name: "Raising Arizona Preschool",
           address: "123 Education Street",
@@ -10098,8 +10116,7 @@ Please provide empathy coaching guidance to help this director implement the man
           contactEmail: "info@raisingarizona.com",
           contactPhone: "(555) 123-4567",
           logoUrl: null,
-          description:
-            "A premier early childhood education center focused on nurturing young minds.",
+          description: "A premier early childhood education center focused on nurturing young minds.",
           website: "https://www.raisingarizona.com",
           founded: "2015",
           type: "Private",
@@ -10107,16 +10124,12 @@ Please provide empathy coaching guidance to help this director implement the man
           customization: {
             primaryColor: "#3b82f6",
             secondaryColor: "#10b981",
-            coreValues: [
-              "Respect",
-              "Kindness",
-              "Learning",
-              "Growth",
-              "Community",
-            ],
+            coreValues: ["Be Consistent", "Be Prepared", "Be Committed", "Be Positive", "Be Caring"],
           },
-        },
-      );
+        };
+        console.log('No school found, returning defaults:', defaultSchool);
+        res.json(defaultSchool);
+      }
     } catch (error) {
       console.error("Error fetching school settings:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -10153,7 +10166,11 @@ Please provide empathy coaching guidance to help this director implement the man
       if (updateData.founded !== undefined) updateObject.founded = updateData.founded;
       if (updateData.type !== undefined) updateObject.type = updateData.type;
       if (updateData.capacity !== undefined) updateObject.capacity = updateData.capacity;
-      if (updateData.customization !== undefined) updateObject.customization = JSON.stringify(updateData.customization);
+      if (updateData.customization !== undefined) {
+        updateObject.customization = JSON.stringify(updateData.customization);
+        console.log('Saving customization data:', updateData.customization);
+        console.log('Stringified customization:', updateObject.customization);
+      }
 
       if (Object.keys(updateObject).length === 0) {
         return res.json({ message: "No updates provided" });
