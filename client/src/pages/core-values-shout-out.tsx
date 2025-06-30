@@ -42,13 +42,12 @@ import { Award, ChevronLeft, Heart, Home, Medal, Star, ThumbsUp, Trophy, UserChe
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 
-// Define default core values as fallback
+// Define default core values for Raising Arizona Preschool as fallback
 const defaultCoreValues = [
-  { value: "Be Consistent", label: "Be Consistent", icon: <Star className="h-5 w-5 text-blue-500" /> },
-  { value: "Be Prepared", label: "Be Prepared", icon: <Medal className="h-5 w-5 text-amber-500" /> },
-  { value: "Be Committed", label: "Be Committed", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
-  { value: "Be Caring", label: "Be Caring", icon: <Heart className="h-5 w-5 text-red-500" /> },
-  { value: "Be Positive", label: "Be Positive", icon: <ThumbsUp className="h-5 w-5 text-green-500" /> },
+  { value: "Community", label: "Community", icon: <Home className="h-5 w-5 text-blue-500" /> },
+  { value: "Opportunity", label: "Opportunity", icon: <Star className="h-5 w-5 text-amber-500" /> },
+  { value: "Resilience", label: "Resilience", icon: <Trophy className="h-5 w-5 text-purple-500" /> },
+  { value: "Excellence", label: "Excellence", icon: <Medal className="h-5 w-5 text-red-500" /> },
 ];
 
 // Form schema
@@ -102,28 +101,32 @@ export default function CoreValuesShoutOutPage() {
   // Generate core values from school data or use defaults
   const getCoreValues = () => {
     if (schoolData?.customization?.coreValues && schoolData.customization.coreValues.length > 0) {
-      // Use school's custom core values with appropriate icons
+      // Use school's custom core values with appropriate icons and colors
       return schoolData.customization.coreValues.map((value: string, index: number) => {
-        const icons = [
-          <Star className="h-5 w-5 text-blue-500" />,
-          <Medal className="h-5 w-5 text-amber-500" />,
-          <Trophy className="h-5 w-5 text-purple-500" />,
-          <Heart className="h-5 w-5 text-red-500" />,
-          <ThumbsUp className="h-5 w-5 text-green-500" />,
-          <UserCheck className="h-5 w-5 text-indigo-500" />,
-          <Award className="h-5 w-5 text-orange-500" />,
-          <Home className="h-5 w-5 text-pink-500" />
+        const iconAndColorPairs = [
+          { icon: <Home className="h-5 w-5 text-blue-500" />, color: "text-blue-500" },
+          { icon: <Star className="h-5 w-5 text-amber-500" />, color: "text-amber-500" },
+          { icon: <Trophy className="h-5 w-5 text-purple-500" />, color: "text-purple-500" },
+          { icon: <Medal className="h-5 w-5 text-red-500" />, color: "text-red-500" },
+          { icon: <Heart className="h-5 w-5 text-pink-500" />, color: "text-pink-500" },
+          { icon: <ThumbsUp className="h-5 w-5 text-green-500" />, color: "text-green-500" },
+          { icon: <UserCheck className="h-5 w-5 text-indigo-500" />, color: "text-indigo-500" },
+          { icon: <Award className="h-5 w-5 text-orange-500" />, color: "text-orange-500" },
+          { icon: <ChevronLeft className="h-5 w-5 text-teal-500" />, color: "text-teal-500" },
+          { icon: <Star className="h-5 w-5 text-violet-500" />, color: "text-violet-500" },
         ];
+        
+        const iconPair = iconAndColorPairs[index % iconAndColorPairs.length];
         
         return {
           value: value,
           label: value,
-          icon: icons[index % icons.length] // Cycle through icons if more values than icons
+          icon: iconPair.icon
         };
       });
     }
     
-    // Use default core values as fallback
+    // Use default core values as fallback (C.O.R.E for Raising Arizona)
     return defaultCoreValues;
   };
 
