@@ -10134,7 +10134,7 @@ Please provide empathy coaching guidance to help this director implement the man
       const updateData = req.body;
       const schoolId = user.schoolId || 1;
 
-      // Update school information
+      // Update school information  
       await db.execute(sql`
         UPDATE schools 
         SET 
@@ -10151,7 +10151,7 @@ Please provide empathy coaching guidance to help this director implement the man
           founded = COALESCE(${updateData.founded}, founded),
           type = COALESCE(${updateData.type}, type),
           capacity = COALESCE(${updateData.capacity}, capacity),
-          customization = COALESCE(${JSON.stringify(updateData.customization)}, customization)
+          customization = COALESCE(${updateData.customization ? JSON.stringify(updateData.customization) : null}, customization)
         WHERE id = ${schoolId}
       `);
 
