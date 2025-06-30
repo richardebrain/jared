@@ -52,6 +52,7 @@ interface School {
   zipCode: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  logoUrl: string | null;
   description: string | null;
   website: string | null;
   founded: string | null;
@@ -561,6 +562,76 @@ export default function SchoolSettingsPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* School Logo Section */}
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">School Logo</Label>
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                    {/* Current Logo Display */}
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        {(formData.logoUrl || school?.logoUrl) ? (
+                          <img 
+                            src={formData.logoUrl || school?.logoUrl} 
+                            alt="School Logo" 
+                            className="w-full h-full object-contain rounded-lg"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <Building2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">No logo uploaded</p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 text-center">
+                        Current Logo<br/>
+                        <span className="text-xs">Recommended: 200x200px</span>
+                      </p>
+                    </div>
+
+                    {/* Logo Upload Controls */}
+                    <div className="flex-1 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="logoUrl">Logo URL</Label>
+                        <Input
+                          id="logoUrl"
+                          type="url"
+                          placeholder="https://example.com/logo.png"
+                          value={formData.logoUrl || school?.logoUrl || ''}
+                          onChange={(e) => handleInputChange('logoUrl', e.target.value)}
+                        />
+                        <p className="text-xs text-gray-500">
+                          Enter a direct URL to your school logo image
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleInputChange('logoUrl', '')}
+                        >
+                          Clear Logo
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const url = prompt('Enter logo URL:');
+                            if (url) handleInputChange('logoUrl', url);
+                          }}
+                        >
+                          Add Logo URL
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-6" />
+
+                {/* Color Customization */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="primaryColor">Primary Color</Label>

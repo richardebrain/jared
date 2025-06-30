@@ -10069,6 +10069,7 @@ Please provide empathy coaching guidance to help this director implement the man
           zipCode: "85001",
           contactEmail: "info@raisingarizona.com",
           contactPhone: "(555) 123-4567",
+          logoUrl: null,
           description:
             "A premier early childhood education center focused on nurturing young minds.",
           website: "https://www.raisingarizona.com",
@@ -10117,6 +10118,7 @@ Please provide empathy coaching guidance to help this director implement the man
           zip_code = COALESCE(${updateData.zipCode}, zip_code),
           contact_email = COALESCE(${updateData.contactEmail}, contact_email),
           contact_phone = COALESCE(${updateData.contactPhone}, contact_phone),
+          logo_url = COALESCE(${updateData.logoUrl}, logo_url),
           description = COALESCE(${updateData.description}, description),
           website = COALESCE(${updateData.website}, website),
           founded = COALESCE(${updateData.founded}, founded),
