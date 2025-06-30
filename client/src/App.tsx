@@ -773,6 +773,12 @@ function Router(props: {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/school-settings">
+        <ProtectedRoute schoolAdminOnly={true}>
+          <SchoolSettingsPage />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/certificate-manager">
         <ProtectedRoute adminOnly={true}>
           <CertificateManager />
