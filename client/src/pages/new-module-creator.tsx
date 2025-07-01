@@ -30,7 +30,9 @@ import {
   Calendar,
   Eye,
   Save,
-  Trash2
+  Trash2,
+  Globe,
+  Clock
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -168,6 +170,31 @@ export default function NewModuleCreator() {
       toast({
         title: "Error",
         description: error.response?.data?.error || error.message || "Failed to delete module",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Delete community contribution mutation
+  const deleteCommunityModuleMutation = useMutation({
+    mutationFn: async (communityId: number) => {
+      const result = await apiRequest(`/api/community-modules/${communityId}`, {
+        method: 'DELETE'
+      });
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/modules/community-contributions/${user?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/community-modules'] });
+      toast({
+        title: "Removed from Community",
+        description: "The module has been removed from the community library.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove from community",
         variant: "destructive",
       });
     }
@@ -422,6 +449,115 @@ export default function NewModuleCreator() {
         )}
       </div>
 
+      {/* My Community Contributions Section */}
+      <div className="mb-8">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Globe className="h-6 w-6 text-green-600" />
+            <h2 className="text-2xl font-bold text-gray-900">My Community Contributions</h2>
+          </div>
+          <p className="text-gray-600">Modules you've shared with the community</p>
+        </div>
+
+        {contributionsLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-4">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : contributions.length > 0 ? (
+          <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {contributions.slice(0, 6).map((contribution: any) => (
+              <Card key={contribution.communityId} className="group hover:shadow-lg transition-shadow duration-200">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
+                        {contribution.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                        {contribution.description || "No description available"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {contribution.duration || "Variable"} min
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {contribution.totalCompletions || 0} completed
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                    <span>Shared: {new Date(contribution.sharedDate).toLocaleDateString()}</span>
+                    <span>{contribution.schoolName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewModule(contribution.id)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Globe className="h-3 w-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove from Community?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will remove "{contribution.title}" from the community library. Other users will no longer be able to access this module, but your original module will remain in your personal library.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteCommunityModuleMutation.mutate(contribution.communityId)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Remove from Community
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-8 border-2 border-dashed border-green-200">
+              <Globe className="h-12 w-12 text-green-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No community contributions yet</h3>
+              <p className="text-gray-600 mb-4">Share your modules with the community to help other educators</p>
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                <span>Create and share modules to get started</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
     </div>
   );
