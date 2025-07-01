@@ -32,7 +32,8 @@ import {
   Save,
   Trash2,
   Globe,
-  Clock
+  Clock,
+  GraduationCap
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -355,6 +356,12 @@ export default function NewModuleCreator() {
                           {module.difficulty}
                         </Badge>
                       </div>
+                      {module.eceHours && module.eceHours > 0 && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          <GraduationCap className="h-3 w-3 mr-1" />
+                          {module.eceHours}h ECE
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-1 text-sm">
                       <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-100 to-orange-100 px-2 py-1 rounded-full">
