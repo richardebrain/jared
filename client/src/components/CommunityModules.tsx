@@ -178,7 +178,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
   }
 
   const handleModuleClick = (moduleId: number) => {
-    setLocation(`/modules/${moduleId}`);
+    setLocation(`/learning-module/${moduleId}`);
   };
 
   const toggleView = () => {

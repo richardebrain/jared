@@ -217,7 +217,7 @@ export default function NewModuleCreator() {
   };
 
   const handleViewModule = (moduleId: number) => {
-    setLocation(`/modules/${moduleId}`);
+    setLocation(`/learning-module/${moduleId}`);
   };
 
   const handleDeleteModule = (moduleId: number) => {

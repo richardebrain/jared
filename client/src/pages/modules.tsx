@@ -171,7 +171,7 @@ export default function AllModules() {
   };
 
   const handleViewModule = (moduleId: number) => {
-    setLocation(`/modules/${moduleId}`);
+    setLocation(`/learning-module/${moduleId}`);
   };
 
   const handleDeleteModule = (moduleId: number) => {
@@ -568,7 +568,7 @@ export default function AllModules() {
             asChild 
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
-            <Link href={`/module/${moduleId}`}>
+            <Link href={`/learning-module/${moduleId}`}>
               {progress > 0 && !isCompleted ? (
                 <>
                   <Bookmark className="mr-2 h-4 w-4" /> Continue Learning
