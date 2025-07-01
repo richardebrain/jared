@@ -3768,14 +3768,19 @@ Continue for all 5 questions...
       try {
         // Use direct SQL query to handle schema changes gracefully
         const result = await db.execute(sql`
-        SELECT id, title, description, duration, point_value as "pointValue", 
-               image_url as "imageUrl", featured, difficulty, category, content, 
-               quiz, is_visible as "isVisible", created_at as "createdAt",
-               average_rating as "averageRating", rating_count as "ratingCount",
-               is_shared_to_community as "isSharedToCommunity", school_id as "schoolId",
-               ece_hours as "eceHours", ece_category as "eceCategory"
-        FROM learning_modules
-        ORDER BY created_at DESC
+        SELECT lm.id, lm.title, lm.description, lm.duration, lm.point_value as "pointValue", 
+               lm.image_url as "imageUrl", lm.featured, lm.difficulty, lm.category, lm.content, 
+               lm.quiz, lm.is_visible as "isVisible", lm.created_at as "createdAt",
+               lm.average_rating as "averageRating", lm.rating_count as "ratingCount",
+               lm.is_shared_to_community as "isSharedToCommunity", lm.school_id as "schoolId",
+               lm.ece_hours as "eceHours", lm.ece_category as "eceCategory",
+               lm.creator_id as "creatorId",
+               u.first_name as "creatorFirstName", u.last_name as "creatorLastName",
+               s.name as "schoolName"
+        FROM learning_modules lm
+        LEFT JOIN users u ON lm.creator_id = u.id
+        LEFT JOIN schools s ON lm.school_id = s.id
+        ORDER BY lm.created_at DESC
       `);
         console.log("modules result", result.rows[0]);
 
