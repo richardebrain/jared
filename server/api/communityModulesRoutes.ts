@@ -96,10 +96,15 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
-             s.name as school_name
+             lm.creator_id, lm.point_value, lm.ece_hours, lm.ece_category,
+             lm.created_at as module_created_at,
+             s.name as school_name,
+             u.first_name as creator_first_name, u.last_name as creator_last_name,
+             u.username as creator_username
       FROM community_modules cm
       JOIN learning_modules lm ON cm.module_id = lm.id
       JOIN schools s ON cm.shared_by_school_id = s.id
+      LEFT JOIN users u ON lm.creator_id = u.id
       WHERE cm.status = 'active' 
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
     `);
@@ -128,10 +133,15 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
-             s.name as school_name
+             lm.creator_id, lm.point_value, lm.ece_hours, lm.ece_category,
+             lm.created_at as module_created_at,
+             s.name as school_name,
+             u.first_name as creator_first_name, u.last_name as creator_last_name,
+             u.username as creator_username
       FROM community_modules cm
       JOIN learning_modules lm ON cm.module_id = lm.id
       JOIN schools s ON cm.shared_by_school_id = s.id
+      LEFT JOIN users u ON lm.creator_id = u.id
       WHERE cm.status = 'active' 
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
       LIMIT ${limit}

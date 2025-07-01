@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle, RefreshCw } from "lucide-react";
+import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle, RefreshCw, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,17 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
   const [viewAll, setViewAll] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [activeTab, setActiveTab] = useState("topRated");
+  const queryClient = useQueryClient();
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/community-modules"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/community-modules/top"] });
+    toast({
+      title: "Refreshing Community Modules",
+      description: "Checking for new contributions from other schools...",
+    });
+  };
 
   // For demo purposes - to show UI even when API connection isn't working
   const demoModules = [
@@ -200,9 +211,19 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
               Community Competition
             </span>
           </CardTitle>
-          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
-            May 2025
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="h-8 px-2"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
+              May 2025
+            </Badge>
+          </div>
         </div>
         <CardDescription className="flex items-center gap-1">
           <Star className="h-3.5 w-3.5 text-amber-500" />
@@ -245,9 +266,17 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                   </div>
                   <p className="text-sm text-gray-600 line-clamp-1 mt-1.5">{module.description}</p>
                   <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center text-xs bg-indigo-50 px-2 py-0.5 rounded-full text-indigo-700">
-                      <Clock className="h-3 w-3 mr-1" />
-                      <span>{module.duration} min</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center text-xs bg-indigo-50 px-2 py-0.5 rounded-full text-indigo-700">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <span>{module.duration} min</span>
+                      </div>
+                      {(module.creator_first_name || module.creator_last_name) && (
+                        <div className="flex items-center text-xs bg-green-50 px-2 py-0.5 rounded-full text-green-700">
+                          <User className="h-3 w-3 mr-1" />
+                          <span>By {module.creator_first_name} {module.creator_last_name}</span>
+                        </div>
+                      )}
                     </div>
                     <Badge variant="outline" className="text-xs font-medium bg-white">
                       {module.school_name}
