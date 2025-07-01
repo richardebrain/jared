@@ -3370,6 +3370,86 @@ Continue for all 5 questions...
     }
   });
 
+  // Get user's community contributions
+  app.get("/api/modules/community-contributions/:userId", requireAuth, async (req, res) => {
+    try {
+      const { userId } = req.session;
+      const requestedUserId = parseInt(req.params.userId);
+
+      if (!userId || userId !== requestedUserId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get community modules created by this user
+      const contributions = await db.execute(sql`
+        SELECT cm.id as community_id, cm.shared_date, cm.status, cm.total_completions,
+               lm.id, lm.title, lm.description, lm.duration, lm.difficulty, lm.category, 
+               lm.average_rating as "averageRating", lm.rating_count as "ratingCount", 
+               lm.created_at as "createdAt", lm.image_url as "imageUrl",
+               lm.creator_id as "creatorId", lm.point_value as "pointValue",
+               lm.ece_hours as "eceHours", lm.ece_category as "eceCategory",
+               s.name as school_name
+        FROM community_modules cm
+        JOIN learning_modules lm ON cm.module_id = lm.id
+        JOIN schools s ON cm.shared_by_school_id = s.id
+        WHERE lm.creator_id = ${userId}
+        ORDER BY cm.shared_date DESC
+      `);
+
+      // Transform the results to ensure consistent data format
+      const communityContributions = contributions.rows.map((row) => ({
+        ...row,
+        pointValue: row.pointValue || 5,
+        averageRating: row.averageRating || 0,
+        ratingCount: row.ratingCount || 0,
+        creatorId: row.creatorId || userId,
+        sharedDate: row.shared_date,
+        communityId: row.community_id,
+        totalCompletions: row.total_completions,
+        schoolName: row.school_name
+      }));
+
+      res.status(200).json(communityContributions);
+    } catch (error) {
+      console.error("Error fetching community contributions:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete community module contribution
+  app.delete("/api/community-modules/:communityId", requireAuth, async (req, res) => {
+    try {
+      const { userId } = req.session;
+      const communityId = parseInt(req.params.communityId);
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // First, verify the user owns this community module
+      const verification = await db.execute(sql`
+        SELECT cm.id, lm.creator_id, lm.title
+        FROM community_modules cm
+        JOIN learning_modules lm ON cm.module_id = lm.id
+        WHERE cm.id = ${communityId} AND lm.creator_id = ${userId}
+      `);
+
+      if (verification.rows.length === 0) {
+        return res.status(403).json({ message: "Not authorized to delete this community module" });
+      }
+
+      // Delete the community module entry (this removes it from community but keeps the original module)
+      await db.execute(sql`
+        DELETE FROM community_modules WHERE id = ${communityId}
+      `);
+
+      res.status(200).json({ message: "Community module removed successfully" });
+    } catch (error) {
+      console.error("Error deleting community module:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get teachers from the same school as the current user for the leaderboard
   app.get("/api/teachers-by-school", async (req, res) => {
     try {

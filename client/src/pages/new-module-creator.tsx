@@ -133,8 +133,15 @@ export default function NewModuleCreator() {
     enabled: !!user?.id,
   });
 
+  // Fetch user's community contributions
+  const { data: communityContributions, isLoading: contributionsLoading } = useQuery({
+    queryKey: [`/api/modules/community-contributions/${user?.id}`],
+    enabled: !!user?.id,
+  });
+
   // Type the modules data properly
   const modules = Array.isArray(userModules) ? userModules : [];
+  const contributions = Array.isArray(communityContributions) ? communityContributions : [];
 
   // Delete module mutation
   const deleteModuleMutation = useMutation({
