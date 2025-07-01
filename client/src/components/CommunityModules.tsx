@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle } from "lucide-react";
+import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle, RefreshCw } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -88,8 +88,9 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
       return response.json();
     },
     enabled: !!user && !authError,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 15 * 1000, // 15 seconds - more aggressive refresh for new contributions
     refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds to show new contributions quickly
   });
 
   // Show error state when data cannot be fetched

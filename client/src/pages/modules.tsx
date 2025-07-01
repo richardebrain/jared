@@ -64,6 +64,9 @@ export default function AllModules() {
   // Fetch community modules
   const { data: communityModules = [] } = useQuery<any[]>({
     queryKey: ["/api/community-modules"],
+    staleTime: 30 * 1000, // 30 seconds - refresh more frequently to show new contributions
+    refetchOnWindowFocus: true,
+    refetchInterval: 60 * 1000, // Auto-refresh every minute
   });
 
   // Fetch user's own modules
