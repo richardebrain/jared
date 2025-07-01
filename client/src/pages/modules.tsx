@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye, User, Plus, Calendar } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye, User, Plus, Calendar, Building } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
@@ -371,7 +371,7 @@ export default function AllModules() {
             <Progress value={progress} className="h-2" />
             <span className="text-xs text-muted-foreground">{progress}%</span>
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 mb-3">
             <Badge variant="outline" className="bg-gray-50">{module.category}</Badge>
             {isRecommended && 
               <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
@@ -383,6 +383,28 @@ export default function AllModules() {
                 <GraduationCap className="w-3 h-3 mr-1" />
                 {module.eceHours}h ECE
               </Badge>
+            )}
+          </div>
+          
+          {/* Creator Information and Creation Date */}
+          <div className="space-y-1 text-xs text-gray-500">
+            {(module.creatorFirstName || module.creatorLastName) && (
+              <div className="flex items-center gap-1">
+                <User className="w-3 h-3" />
+                <span>Created by {module.creatorFirstName} {module.creatorLastName}</span>
+              </div>
+            )}
+            {module.createdAt && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                <span>{new Date(module.createdAt).toLocaleDateString()}</span>
+              </div>
+            )}
+            {module.schoolName && (
+              <div className="flex items-center gap-1">
+                <Building className="w-3 h-3" />
+                <span>{module.schoolName}</span>
+              </div>
             )}
           </div>
         </CardContent>

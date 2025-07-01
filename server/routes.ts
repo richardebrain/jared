@@ -3792,6 +3792,10 @@ Continue for all 5 questions...
           ratingCount: row.ratingCount || 0,
           isSharedToCommunity: row.isSharedToCommunity || false,
           schoolId: row.schoolId || null,
+          creatorId: row.creatorId || null,
+          creatorFirstName: row.creatorFirstName || null,
+          creatorLastName: row.creatorLastName || null,
+          schoolName: row.schoolName || null,
         }));
         res.status(200).json(modules);
       } catch (error) {
