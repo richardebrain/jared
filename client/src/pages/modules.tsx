@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { LearningModule, UserProgress } from "@shared/schema";
-import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye, User, Plus } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, Award, Bookmark, Star, Zap, Timer, CheckCircle2, GraduationCap, MessageCircle, Trash2, Edit3, Eye, User, Plus, Calendar } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import AssessmentRequiredDialog from "@/components/AssessmentRequiredDialog";
 import { useState, useEffect } from "react";
@@ -516,14 +516,26 @@ export default function AllModules() {
             )}
           </div>
           
-          {/* School Information */}
-          {(module.school_name || module.schoolName) && (
-            <div className="bg-gray-50 p-3 rounded-lg mb-4">
-              <p className="text-sm text-gray-600">
+          {/* School Information and Creation Date */}
+          <div className="bg-gray-50 p-3 rounded-lg mb-4">
+            {(module.school_name || module.schoolName) && (
+              <p className="text-sm text-gray-600 mb-2">
                 <strong>Shared by:</strong> {module.school_name || module.schoolName}
               </p>
-            </div>
-          )}
+            )}
+            {(module.creator_first_name || module.creator_last_name) && (
+              <p className="text-sm text-gray-600 mb-2">
+                <User className="w-3 h-3 inline mr-1" />
+                <strong>Created by:</strong> {module.creator_first_name} {module.creator_last_name}
+              </p>
+            )}
+            {module.module_created_at && (
+              <p className="text-sm text-gray-600">
+                <Calendar className="w-3 h-3 inline mr-1" />
+                <strong>Created:</strong> {new Date(module.module_created_at).toLocaleDateString()}
+              </p>
+            )}
+          </div>
           
           {/* Recent Comments Section */}
           {ratingCount > 0 && (

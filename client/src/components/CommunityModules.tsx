@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle, RefreshCw, User } from "lucide-react";
+import { Lightbulb, Star, Clock, Building2, ArrowRight, Trophy, Award, Medal, DollarSign, AlertTriangle, RefreshCw, User, Calendar } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -266,7 +266,7 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                   </div>
                   <p className="text-sm text-gray-600 line-clamp-1 mt-1.5">{module.description}</p>
                   <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <div className="flex items-center text-xs bg-indigo-50 px-2 py-0.5 rounded-full text-indigo-700">
                         <Clock className="h-3 w-3 mr-1" />
                         <span>{module.duration} min</span>
@@ -275,6 +275,12 @@ export default function CommunityModules({ limit = 2 }: CommunityModuleProps) {
                         <div className="flex items-center text-xs bg-green-50 px-2 py-0.5 rounded-full text-green-700">
                           <User className="h-3 w-3 mr-1" />
                           <span>By {module.creator_first_name} {module.creator_last_name}</span>
+                        </div>
+                      )}
+                      {module.module_created_at && (
+                        <div className="flex items-center text-xs bg-amber-50 px-2 py-0.5 rounded-full text-amber-700">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          <span>{new Date(module.module_created_at).toLocaleDateString()}</span>
                         </div>
                       )}
                     </div>
