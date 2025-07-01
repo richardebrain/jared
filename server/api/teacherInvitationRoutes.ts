@@ -6,21 +6,24 @@ import { eq, and } from 'drizzle-orm';
 import { teacherInvitations } from '@shared/schema';
 import { db } from '../db';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 const router = express.Router();
 
 // Environment variables for email configuration
-const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '587', 10);
+// Environment variables for email configuration
 const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS;
-const APP_URL = process.env.APP_URL || 'http://localhost:5000';
+const APP_URL = process.env.APP_URL || 'https://9fac84b7-b39a-4102-b631-449a67e3932d-00-1yk3ro8w0zxc5.worf.replit.dev';
 const INVITE_EXPIRY_DAYS = 7; // Invitations expire after 7 days
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
 
 // Authentication middleware to verify user is logged in
 const requireAuth = (req, res, next) => {
-  console.log('Authenticating user...',req.isAuthenticated, req.session,req.isAuthenticated(),)
+
 
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.status(401).json({ message: 'Unauthorized' });
@@ -76,67 +79,53 @@ const requireOwnerOrAdmin = async (req, res, next) => {
 
 // Helper function to create and send email invitations
 async function sendInvitationEmail(invitation, school) {
-  // Use test mode if email credentials are not configured
-  const TEST_MODE = !EMAIL_USER || !EMAIL_PASS;
-  
+  // Use test mode if SendGrid API key is not configured
+  const TEST_MODE = !SENDGRID_API_KEY;
+
+  const inviteUrl = `${APP_URL}/register?token=${invitation.invitationToken}&email=${encodeURIComponent(invitation.email)}`;
+
   if (TEST_MODE) {
-    // In test mode, log the invitation details and pretend it succeeded
-    console.log('Email credentials not found, running in test mode');
+    console.log('SendGrid API key not found, running in test mode');
     console.log('TEST MODE - Would have sent invitation to:', invitation.email);
-    
-    // Invitation URL with token
-    const inviteUrl = `${APP_URL}/register?token=${invitation.invitationToken}&email=${encodeURIComponent(invitation.email)}`;
     console.log('TEST MODE - Invitation link:', inviteUrl);
-    
-    // Return success for test mode
     return { 
       success: true, 
       testMode: true,
       messageId: `test-${Date.now()}`
     };
   }
-  
+
   try {
-    // Create a transporter for real email sending
-    const transporter = nodemailer.createTransport({
-      host: EMAIL_HOST,
-      port: EMAIL_PORT,
-      secure: EMAIL_PORT === 465, // true for 465, false for other ports
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
-    });
-    
-    // Invitation URL with token
-    const inviteUrl = `${APP_URL}/register?token=${invitation.invitationToken}&email=${encodeURIComponent(invitation.email)}`;
-    
-    // Email content
-    const mailOptions = {
-      from: `"MentorMe" <${EMAIL_USER}>`,
-      to: invitation.email,
-      subject: `Join ${school.name} on MentorMe`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4a5568;">You've been invited to join MentorMe</h2>
-          <p>Hello,</p>
-          <p>You've been invited to join <strong>${school.name}</strong> on MentorMe, a professional development platform for early childhood educators.</p>
-          <p>Click the button below to accept this invitation and create your account:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${inviteUrl}" style="background-color: #4299e1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Accept Invitation</a>
-          </div>
-          <p>This invitation will expire in ${INVITE_EXPIRY_DAYS} days. If you have any questions, please contact your administrator.</p>
-          <p>Thank you,<br>The MentorMe Team</p>
-          <p style="font-size: 12px; color: #718096;">If you didn't expect this invitation, you can safely ignore this email.</p>
+    // Custom welcome message
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4a5568;">Welcome to MentorMePreK – Your New Superpower for PreK Teaching!</h2>
+        <p>Hello Super Teachers!</p>
+        <p>Congratulations! You've just received your golden ticket (aka this email invite) to join the MentorMePreK app—your new secret weapon for becoming the absolute best PreK teacher out there.</p>
+        <ul>
+          <li>Personalized support for that one tricky little learner who keeps you on your toes.</li>
+          <li>Classroom music that magically sets the perfect mood.</li>
+          <li>The best, research-backed learning modules in Early Childhood Education.</li>
+        </ul>
+        <p>All this is right at your fingertips, ready to help you grow, shine, and maybe even have a little fun while you're at it.</p>
+        <p><strong>But here's the catch: you need to sign in within 5 days to activate your account and unlock all these superpowers.</strong></p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${inviteUrl}" style="background-color: #4299e1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Activate Your Account</a>
         </div>
-      `,
+        <p>So, what are you waiting for? Click that link, dive in, and let's make this PreK year legendary!</p>
+        <p>Welcome aboard,<br>The MentorMePreK Team</p>
+        <p style="font-size: 12px; color: #718096;">If you didn't expect this invitation, you can safely ignore this email.</p>
+      </div>
+    `;
+    const msg = {
+      to: invitation.email,
+      from: EMAIL_USER || 'jared@mentormeprek.com',
+      subject: 'Welcome to MentorMePreK – Your New Superpower for PreK Teaching!',
+      html,
     };
-    
-    // Send the email
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Invitation email sent:', info.messageId);
-    
-    return { success: true, messageId: info.messageId };
+    const info = await sgMail.send(msg);
+    console.log('Invitation email sent:', info[0]?.headers['x-message-id'] || info[0]?.messageId);
+    return { success: true, messageId: info[0]?.headers['x-message-id'] || info[0]?.messageId };
   } catch (error) {
     console.error('Error sending invitation email:', error);
     return { success: false, message: error.message };
@@ -149,32 +138,32 @@ async function sendInvitationEmail(invitation, school) {
 router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
   try {
     const { emails, schoolId } = req.body;
-    
+
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return res.status(400).json({ message: 'No email addresses provided' });
     }
-    
+
     // Validate school
     if (!schoolId) {
       return res.status(400).json({ message: 'School ID is required' });
     }
-    
+
     const school = await storage.getSchool(schoolId);
     if (!school) {
       return res.status(404).json({ message: 'School not found' });
     }
-    
+
     // Create a unique token for each email address and send invitation
     const results = [];
     const now = new Date();
     const expiryDate = new Date(now.getTime() + (INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
-    
+
     for (const email of emails) {
       try {
         // Validate email
         const emailValidator = z.string().email();
         const validatedEmail = emailValidator.parse(email);
-        
+
         // Check for existing invitations
         const existingInvitations = await db.select()
           .from(teacherInvitations)
@@ -182,7 +171,7 @@ router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
             eq(teacherInvitations.email, validatedEmail),
             eq(teacherInvitations.schoolId, schoolId)
           ));
-        
+
         if (existingInvitations.length > 0) {
           results.push({
             email: validatedEmail,
@@ -191,10 +180,10 @@ router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
           });
           continue;
         }
-        
+
         // Generate a secure token
         const token = crypto.randomBytes(32).toString('hex');
-        
+
         // Create invitation in database
         const invitation = {
           schoolId,
@@ -204,22 +193,22 @@ router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
           status: 'pending',
           expiresAt: expiryDate,
         };
-        
+
         const [insertedInvitation] = await db
           .insert(teacherInvitations)
           .values(invitation)
           .returning();
-        
+
         // Send invitation email
         const emailResult = await sendInvitationEmail(insertedInvitation, school);
-        
+
         // Update invitation status based on email sending result
         if (emailResult.success) {
           await db
             .update(teacherInvitations)
-            .set({ status: 'sent' })
+            .set({status:'sent'})
             .where(eq(teacherInvitations.id, insertedInvitation.id));
-          
+
           results.push({
             email: validatedEmail,
             success: true,
@@ -228,9 +217,9 @@ router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
         } else {
           await db
             .update(teacherInvitations)
-            .set({ status: 'error' })
+            .set({status:'error'})
             .where(eq(teacherInvitations.id, insertedInvitation.id));
-          
+
           results.push({
             email: validatedEmail,
             success: false,
@@ -245,7 +234,7 @@ router.post('/upload', requireAuth, requireOwnerOrAdmin, async (req, res) => {
         });
       }
     }
-    
+
     res.status(200).json({
       success: results.some(r => r.success),
       invitations: results
@@ -505,12 +494,15 @@ router.get('/verify', async (req, res) => {
         message: 'Invitation has expired'
       });
     }
+
+  
     
     // Check if invitation is already accepted
     if (invitation.status === 'accepted') {
+  
       return res.status(400).json({ 
         valid: false,
-        message: 'Invitation has already been accepted'
+        message: 'Invitation has already been accepted',
       });
     }
     

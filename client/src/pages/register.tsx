@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,123 +18,102 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
-import GoogleAuthButton from "@/components/GoogleAuthButton";
 
-
-// Form schema for registration - email is used as username
-const registerSchema = z.object({
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
-  }),
-  firstName: z.string().min(1, {
-    message: "First name is required.",
-  }),
-  lastName: z.string().min(1, {
-    message: "Last name is required.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  schoolId: z.string().min(1, {
-    message: "Please select a school.",
-  }),
-  // Using defaults for removed fields to maintain compatibility with backend
-  language: z.string().default("English"),
-  nativeLanguage: z.string().default("English"),
-  timeZone: z.string().default("UTC-05:00"), // Default to Eastern Time
+// Invite-based registration schema
+const inviteRegisterSchema = z.object({
+  firstName: z.string().min(1, { message: "First name is required." }),
+  lastName: z.string().min(1, { message: "Last name is required." }),
+  username: z.string().min(3, { message: "Username is required (min 3 chars)." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email(),
+  token: z.string().min(1),
+  timeZone: z.string().min(1, { message: "Time zone is required." }),
+  language: z.string().min(1, { message: "Language is required." }),
+  nativeLanguage: z.string().min(1, { message: "Native language is required." }),
 });
 
 export default function Register() {
-  const [_, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const [inviteInfo, setInviteInfo] = useState<{ schoolName: string; email: string } | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(true);
 
-  // Fetch available schools
-  const { data: schools = [], isLoading: schoolsLoading } = useQuery({
-    queryKey: ['/api/schools'],
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    enabled: false, // Temporarily disable to fix the issue
-  });
+  // Parse token and email from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const email = params.get("email");
+    if (!token || !email) {
+      setInviteError("Invalid invitation link. Please check your email link or contact your school admin.");
+      setVerifying(false);
+      return;
+    }
+    // Verify invite
+    apiRequest(`/api/teacher-invitations/verify?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`)
+      .then((data) => {
+        if (data.valid) {
+          setInviteInfo({ schoolName: data.schoolName, email: data.email });
+        } else {
+          setInviteError(data.message || "Invitation is not valid.");
+        }
+      })
+      .catch((err) => {
+        setInviteError("Failed to verify invitation. Please try again later.");
+      })
+      .finally(() => setVerifying(false));
+  }, []);
 
-  // Create form with simplified fields - email is used as username
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+  // Form setup
+  const form = useForm<z.infer<typeof inviteRegisterSchema>>({
+    resolver: zodResolver(inviteRegisterSchema),
     defaultValues: {
-      password: "",
       firstName: "",
       lastName: "",
-      email: "",
-      schoolId: "1", // Default to Raising Arizona
-      // Default values for removed fields
+      username: "",
+      password: "",
+      email: inviteInfo?.email || "",
+      token: "",
+      timeZone: "UTC-05:00",
       language: "English",
       nativeLanguage: "English",
-      timeZone: "UTC-05:00",
     },
   });
+
+  // Update email/token in form when inviteInfo loads
+  useEffect(() => {
+    if (inviteInfo) {
+      form.setValue("email", inviteInfo.email);
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token") || "";
+      form.setValue("token", token);
+    }
+  }, [inviteInfo]);
 
   // Register mutation
   const { mutate: register, isPending } = useMutation({
-    mutationFn: async (data: z.infer<typeof registerSchema>) => {
-      try {
-        // Make sure all form data is clean and trimmed - use email as username
-        const cleanData = {
-          ...data,
-          username: data.email.trim(), // Use email as username
-          password: data.password.trim(),
-          firstName: data.firstName.trim(),
-          lastName: data.lastName.trim(),
-          email: data.email.trim(),
-          schoolId: parseInt(data.schoolId), // Convert string to number
-        };
-        
-        console.log("Sending registration data:", { 
-          ...cleanData, 
-          password: "***" // Don't log actual password
-        });
-        
-        return await apiRequest("/api/auth/register", {
-          method: "POST",
-          data: cleanData
-        });
-      } catch (error) {
-        console.error("Registration error:", error);
-        throw error;
-      }
+    mutationFn: async (data: z.infer<typeof inviteRegisterSchema>) => {
+      // Send to backend endpoint for invite-based registration
+      return await apiRequest("/api/auth/register-invite", {
+        method: "POST",
+        data,
+      });
     },
     onSuccess: (data) => {
-      // Store user data in localStorage as a fallback authentication method
-      localStorage.setItem('user', JSON.stringify(data));
-      localStorage.setItem('isAuthenticated', 'true');
-      
+      localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("isAuthenticated", "true");
       toast({
         title: "Registration successful!",
-        description: "Welcome to MentorMe. Let's start your teacher training journey!",
+        description: "Welcome to MentorMe. Let's start your teacher journey!",
       });
-      
-      // Redirect to dashboard using direct window location for consistent navigation
       window.location.href = "/dashboard";
     },
     onError: (error: any) => {
-      console.error("Registration error details:", error);
-      
-      // Extract more detailed error information if available
       let errorDetails = error.message || "There was an error creating your account.";
-      
-      // Check if there's a more detailed message in the response data
-      if (error.response?.data?.details) {
-        errorDetails = error.response.data.details;
-      } else if (error.response?.data?.message) {
-        // Handle common registration errors
-        const message = error.response.data.message;
-        if (message === "Username already exists") {
-          errorDetails = "This username is already taken. Please try a different username.";
-        } else if (message === "Required fields are missing") {
-          errorDetails = "Please fill in all required fields (username, password, first name, last name, email).";
-        }
+      if (error.response?.data?.message) {
+        errorDetails = error.response.data.message;
       }
-      
       toast({
         title: "Registration failed",
         description: errorDetails,
@@ -143,177 +122,186 @@ export default function Register() {
     },
   });
 
-  // Form submission handler
-  function onSubmit(values: z.infer<typeof registerSchema>) {
-    // Trim values at submission time and use email as username
-    const trimmedValues = {
-      ...values,
-      password: values.password.trim(),
-      firstName: values.firstName.trim(),
-      lastName: values.lastName.trim(),
-      email: values.email.trim()
-    };
-    register(trimmedValues);
+  function onSubmit(values: z.infer<typeof inviteRegisterSchema>) {
+    register(values);
   }
-
-  // No need to manually set defaults anymore as we're using default values
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/90 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
           <div className="mx-auto w-48 h-48 mb-4 animate-float">
-            <img 
-              src={raisingArizonaLogo} 
-              alt="Raising Arizona Preschool" 
+            <img
+              src={raisingArizonaLogo}
+              alt="Raising Arizona Preschool"
               className="w-full h-full object-contain mix-blend-multiply"
             />
           </div>
           <h1 className="text-4xl font-accent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent mb-2 animate-pulse-slow">MentorMe</h1>
-          <p className="text-neutral-800 animate-pop">Create your Raising Arizona teacher account and begin your professional development journey today!</p>
+          <p className="text-neutral-800 animate-pop">Create your teacher account and begin your professional development journey today!</p>
         </div>
-        
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-heading font-bold mb-6 text-center">Sign Up</h2>
-          
-          {/* Direct email signup */}
-          <div className="mb-6">
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold text-primary">Create Account</h3>
-              <p className="text-sm text-gray-600">Sign up with your email to get started</p>
-            </div>
-          </div>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your first name" 
-                          {...field}
-                          // Allow the field to work with password managers
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your last name" 
-                          {...field}
-                          // Allow the field to work with password managers
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {verifying ? (
+            <div className="text-center py-8">Verifying your invitation link...</div>
+          ) : inviteError ? (
+            <div className="text-center text-red-600 font-semibold py-8">{inviteError}</div>
+          ) : inviteInfo ? (
+            <>
+              <div className="mb-4 text-center">
+                <div className="text-lg font-bold text-primary">Invited to: {inviteInfo.schoolName}</div>
+                <div className="text-sm text-gray-600">Your account will be linked to this school.</div>
               </div>
-              
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="email" 
-                        placeholder="Enter your email" 
-                        {...field}
-                        // Allow the field to work with password managers
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Create a password" 
-                        {...field}
-                        // Allow the field to work with password managers
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="schoolId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>School</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your school" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {schoolsLoading ? (
-                          <SelectItem value="loading" disabled>Loading schools...</SelectItem>
-                        ) : Array.isArray(schools) && schools.length > 0 ? (
-                          schools.map((school: any) => (
-                            <SelectItem key={school.id} value={school.id.toString()}>
-                              {school.name} {school.isFreeAccess && "(Free)"}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="1">Raising Arizona Preschool (Free)</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Language and timezone fields removed for simplicity */}
-              
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
-                {isPending ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Creating Account...
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your first name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your last name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                ) : (
-                  "Create Account"
-                )}
-              </Button>
-            </form>
-          </Form>
-          
-          <div className="mt-4 text-center">
-            <p className="text-sm text-neutral-800">
-              Already have an account? <Link href="/login" className="text-primary hover:underline hover-rotate font-bold">Log in</Link>
-            </p>
-          </div>
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Choose a username" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" {...field} disabled />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Create a password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="timeZone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Time Zone</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your time zone" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="UTC-05:00">Eastern Time (UTC-05:00)</SelectItem>
+                            <SelectItem value="UTC-06:00">Central Time (UTC-06:00)</SelectItem>
+                            <SelectItem value="UTC-07:00">Mountain Time (UTC-07:00)</SelectItem>
+                            <SelectItem value="UTC-08:00">Pacific Time (UTC-08:00)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Language</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your language" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="English">English</SelectItem>
+                            <SelectItem value="Spanish">Spanish</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="nativeLanguage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Native Language</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your native language" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="English">English</SelectItem>
+                            <SelectItem value="Spanish">Spanish</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 hover-pop hover-glow" disabled={isPending}>
+                    {isPending ? (
+                      <div className="flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Creating Account...
+                      </div>
+                    ) : (
+                      "Create Account"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </>
+          ) : null}
         </div>
       </div>
     </div>
