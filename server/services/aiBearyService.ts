@@ -187,6 +187,11 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
       message += ` Since you're working on "${moduleContext}", consider how this relates to your current learning objectives.`;
     }
     
+    // Add module recommendations if available
+    if (moduleRecommendations) {
+      message += moduleRecommendations;
+    }
+    
     return {
       message,
       isAppropriate: true,

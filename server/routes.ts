@@ -3597,6 +3597,26 @@ Continue for all 5 questions...
           school_id: user.schoolId,
         };
         savedModule = await storage.createModule(moduleData);
+        
+        // Index the new module for Beary AI
+        if (savedModule && includeInLibrary) {
+          try {
+            const { ModuleIndexingService } = await import("./services/moduleIndexingService");
+            await ModuleIndexingService.indexModule({
+              id: savedModule.id,
+              title: savedModule.title,
+              description: savedModule.description,
+              content: JSON.stringify(module.content),
+              category: savedModule.category,
+              difficulty: savedModule.difficulty,
+              duration: savedModule.duration,
+              eceCategory: savedModule.eceCategory
+            });
+          } catch (error) {
+            console.error('Error indexing module for Beary AI:', error);
+            // Don't fail module creation if indexing fails
+          }
+        }
       }
 
       // Handle different publishing types
@@ -3749,6 +3769,26 @@ Continue for all 5 questions...
             ? approvedTrainerId
             : existingModule.approvedTrainerId,
       });
+
+      // Update module index for Beary AI
+      if (updatedModule) {
+        try {
+          const { ModuleIndexingService } = await import("./services/moduleIndexingService");
+          await ModuleIndexingService.updateModuleIndex({
+            id: updatedModule.id,
+            title: updatedModule.title,
+            description: updatedModule.description,
+            content: JSON.stringify(updatedModule.content),
+            category: updatedModule.category,
+            difficulty: updatedModule.difficulty,
+            duration: updatedModule.duration,
+            eceCategory: updatedModule.eceCategory
+          });
+        } catch (error) {
+          console.error('Error updating module index for Beary AI:', error);
+          // Don't fail module update if indexing fails
+        }
+      }
 
       res.json(updatedModule);
     } catch (error) {
@@ -4143,6 +4183,15 @@ Continue for all 5 questions...
         DELETE FROM learning_modules 
         WHERE id = ${moduleId}
       `);
+
+      // 6. Remove from Beary AI module index
+      try {
+        const { ModuleIndexingService } = await import("./services/moduleIndexingService");
+        ModuleIndexingService.removeFromIndex(moduleId);
+      } catch (error) {
+        console.error('Error removing module from Beary AI index:', error);
+        // Don't fail deletion if indexing removal fails
+      }
 
       console.log(`[DELETE] Successfully deleted module ${moduleId}`);
 
