@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageCircle, Send, Users, User as UserIcon, Clock, BookOpen, Target } from "lucide-react";
+import { MessageCircle, Send, Users, User as UserIcon, Clock, BookOpen, Target, Award } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface DirectorMessage {
@@ -148,10 +148,12 @@ export default function DirectorMessages() {
     }
 
     const assignmentData = {
+      userIds: trainingAssignment.teacherIds.map(id => parseInt(id)),
       moduleId: parseInt(trainingAssignment.moduleId),
-      teacherIds: trainingAssignment.teacherIds.map(id => parseInt(id)),
       dueDate: trainingAssignment.dueDate || null,
-      message: trainingAssignment.message || null,
+      priority: "medium",
+      assignmentMessage: trainingAssignment.message || "You have been assigned a new training module. Please complete it as soon as possible.",
+      isBlocking: true
     };
 
     assignTrainingMutation.mutate(assignmentData);

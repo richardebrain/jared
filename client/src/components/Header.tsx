@@ -507,7 +507,7 @@ export default function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/director-messages")}>
                     <i className="ri-message-line mr-2"></i>
-                    Director Messages
+                    Teacher Communications
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation(`/schools/${user?.schoolId}`)}>
                     <i className="ri-school-line mr-2"></i>

@@ -116,10 +116,12 @@ const directorTools: ToolkitTool[] = [
   // Communication
   {
     id: 'staff-messaging',
-    title: 'Teacher Messaging',
-    description: 'Send announcements, reminders, and personalized messages to your team',
+    title: 'Teacher Communications Hub',
+    description: 'Send messages and assign training modules to your teaching team',
     icon: MessageSquare,
-    route: '/admin/messaging',
+    route: '/director-messages',
+    badge: 'Enhanced',
+    badgeVariant: 'outline',
     category: 'communication'
   },
   {
