@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, BookOpen, Video, CalendarDays, ClipboardCheck, 
   GraduationCap, Lightbulb, Stars, BadgeHelp, PencilRuler, Timer,
-  Heart, Sparkles, UserCheck, Camera
+  Heart, Sparkles, UserCheck, Camera, Music
 } from "lucide-react";
 
 // Example scenarios for parent communication
@@ -248,6 +248,26 @@ export default function ToolsPage() {
       icon: <CalendarDays className="h-6 w-6" />,
       component: (
         <MeetingScheduler />
+      )
+    },
+    {
+      id: "classroom-music",
+      title: "Classroom Music Studio",
+      description: "Access your magical music collection for transitions, activities & classroom fun",
+      icon: <Music className="h-6 w-6" />,
+      component: (
+        <div className="flex flex-col items-center justify-center py-8">
+          <h3 className="text-xl font-semibold mb-4">🎵 Classroom Music Studio 🎵</h3>
+          <p className="text-gray-600 mb-6 text-center max-w-md">
+            Access your complete collection of 19 classroom songs organized by category: cleanup, transitions, meals, rest, sharing, welcome, and core values. Perfect for classroom management and creating a musical learning environment.
+          </p>
+          <Link href="/classroom-music">
+            <Button className="flex items-center gap-2">
+              <Music className="h-4 w-4" />
+              Open Music Studio
+            </Button>
+          </Link>
+        </div>
       )
     }
   ];
