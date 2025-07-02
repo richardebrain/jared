@@ -10401,8 +10401,19 @@ Please provide empathy coaching guidance to help this director implement the man
             };
           }
         }
-        console.log('Returning school data:', school);
-        res.json(school);
+        
+        // Map database field names to frontend field names
+        const mappedSchool = {
+          ...school,
+          logoUrl: school.logo_url,  // Map logo_url to logoUrl for frontend
+          contactEmail: school.contact_email,
+          contactPhone: school.contact_phone,
+          zipCode: school.zip_code,
+          websiteUrl: school.website_url
+        };
+        
+        console.log('Returning school data:', mappedSchool);
+        res.json(mappedSchool);
       } else {
         // Create default school record if none exists
         const defaultSchool = {
@@ -10460,7 +10471,7 @@ Please provide empathy coaching guidance to help this director implement the man
       if (updateData.zipCode !== undefined) updateObject.zipCode = updateData.zipCode;
       if (updateData.contactEmail !== undefined) updateObject.contactEmail = updateData.contactEmail;
       if (updateData.contactPhone !== undefined) updateObject.contactPhone = updateData.contactPhone;
-      if (updateData.logoUrl !== undefined) updateObject.logoUrl = updateData.logoUrl;
+      if (updateData.logoUrl !== undefined) updateObject.logo_url = updateData.logoUrl;
       if (updateData.description !== undefined) updateObject.description = updateData.description;
       if (updateData.website !== undefined) updateObject.website = updateData.website;
       if (updateData.founded !== undefined) updateObject.founded = updateData.founded;

@@ -682,10 +682,10 @@ export default function SchoolSettingsPage() {
                     <div className="flex flex-col items-center space-y-3">
                       <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                         <img 
-                          src={formData.logoUrl || school?.logoUrl || raisingArizonaLogo} 
+                          src={formData.logoUrl || formData.logo_url || school?.logoUrl || raisingArizonaLogo} 
                           alt="School Logo" 
                           className="w-full h-full object-contain rounded-lg"
-                          onLoad={() => console.log('Logo loaded:', formData.logoUrl || school?.logoUrl || raisingArizonaLogo)}
+                          onLoad={() => console.log('Logo loaded:', formData.logoUrl || formData.logo_url || school?.logoUrl || raisingArizonaLogo)}
                           onError={(e) => {
                             // Fallback to building icon if image fails to load
                             const target = e.target as HTMLImageElement;
