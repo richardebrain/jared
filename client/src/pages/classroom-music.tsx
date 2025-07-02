@@ -153,16 +153,29 @@ export default function ClassroomMusic() {
     if (currentSong?.id !== song.id) {
       // Switch to new song
       setCurrentSong(song);
-      audio.src = song.audioUrl;
+      // Properly encode the URL for spaces and special characters
+      const encodedUrl = encodeURI(song.audioUrl);
+      console.log('Loading audio URL:', encodedUrl);
+      audio.src = encodedUrl;
       audio.load();
-      audio.play().then(() => setIsPlaying(true));
+      audio.play()
+        .then(() => setIsPlaying(true))
+        .catch((error) => {
+          console.error('Audio playback failed:', error);
+          console.error('Attempted URL:', encodedUrl);
+          console.error('Original URL:', song.audioUrl);
+        });
     } else {
       // Toggle current song
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
       } else {
-        audio.play().then(() => setIsPlaying(true));
+        audio.play()
+          .then(() => setIsPlaying(true))
+          .catch((error) => {
+            console.error('Audio playback failed:', error);
+          });
       }
     }
   };
