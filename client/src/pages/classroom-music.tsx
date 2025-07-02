@@ -276,7 +276,7 @@ export default function ClassroomMusic() {
           <Button 
             variant="outline" 
             className="absolute left-0 top-0 bg-white/80 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg"
-            onClick={() => setLocation('/')}
+            onClick={() => setLocation('/dashboard')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
@@ -334,6 +334,13 @@ export default function ClassroomMusic() {
                 <p className="text-gray-600">{currentSong.artist}</p>
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handlePlayPause(currentSong)}
+                >
+                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </Button>
                 <Button variant="outline" size="sm" onClick={handleStop}>
                   <Square className="w-4 h-4" />
                 </Button>
