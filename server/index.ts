@@ -180,16 +180,18 @@ async function startServer() {
     await registerRoutes(app, false); // Enable auth endpoints
     await scheduledTaskService.initialize();
 
-    // Initialize Beary AI module knowledge base
-    try {
-      console.log('🧠 Initializing Beary AI module knowledge base...');
-      const { ModuleIndexingService } = await import("./services/moduleIndexingService");
-      const { storage } = await import("./storage");
-      await ModuleIndexingService.initializeFromDatabase(storage);
-      console.log('✅ Beary AI module knowledge base initialized successfully');
-    } catch (error) {
-      console.error('❌ Error initializing Beary AI module knowledge base:', error);
-    }
+    // Initialize Beary AI module knowledge base asynchronously (don't block server startup)
+    console.log('🧠 Starting Beary AI module knowledge base initialization...');
+    setImmediate(async () => {
+      try {
+        const { ModuleIndexingService } = await import("./services/moduleIndexingService");
+        const { storage } = await import("./storage");
+        await ModuleIndexingService.initializeFromDatabase(storage);
+        console.log('✅ Beary AI module knowledge base initialized successfully');
+      } catch (error) {
+        console.error('❌ Error initializing Beary AI module knowledge base:', error);
+      }
+    });
 
 
     // Enhanced error handling middleware

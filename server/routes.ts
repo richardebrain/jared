@@ -2069,7 +2069,102 @@ Continue for all 5 questions...
     });
   }
   if (!skipAuthEndpoints) {
-    app.post("/api/auth/login",passport.authenticate("local", { failureRedirect: "/auth" }), async (req, res) => {
+    // Simple login endpoint without passport middleware for debugging
+    app.post("/api/auth/login", async (req, res) => {
+      console.log("=== SIMPLE LOGIN ROUTE HIT ===");
+      console.log("Request body:", req.body);
+      console.log("Content-Type:", req.headers['content-type']);
+
+      try {
+        // Ensure we're sending valid JSON
+        res.setHeader('Content-Type', 'application/json');
+        
+        // Extract and trim credentials
+        const username = req.body.username?.trim();
+        const password = req.body.password?.trim();
+
+        console.log(`Login attempt for username: "${username}"`);
+
+        if (!username || !password) {
+          return res.status(400).json({ 
+            message: "Username and password are required",
+            error: "MISSING_CREDENTIALS"
+          });
+        }
+
+        // Try to find user by username first, then by email
+        let user;
+        try {
+          user = await storage.getUserByUsername(username);
+          if (!user) {
+            user = await storage.getUserByEmail(username);
+          }
+        } catch (dbError) {
+          console.error("Database error during login:", dbError);
+          return res.status(500).json({
+            message: "Database error",
+            error: "DB_ERROR"
+          });
+        }
+
+        if (!user) {
+          console.log("User not found");
+          return res.status(401).json({ 
+            message: "Invalid credentials",
+            error: "USER_NOT_FOUND"
+          });
+        }
+
+        // Verify password
+        const bcrypt = await import('bcrypt');
+        const passwordMatch = await bcrypt.compare(password, user.password || '');
+        
+        if (!passwordMatch) {
+          console.log("Password mismatch");
+          return res.status(401).json({ 
+            message: "Invalid credentials",
+            error: "INVALID_PASSWORD"
+          });
+        }
+
+        // Set session
+        req.session.userId = user.id;
+        req.session.loginTime = new Date().toISOString();
+
+        // Explicitly save the session to ensure userId persistence
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+          } else {
+            console.log('Session saved successfully with userId:', user.id);
+          }
+        });
+
+        // Update last active
+        await storage.updateUser(user.id, { lastActive: new Date() });
+
+        // Return user data without password
+        const { password: _, ...userWithoutPassword } = user;
+        
+        console.log("Login successful for user:", userWithoutPassword.username);
+        
+        return res.status(200).json({
+          ...userWithoutPassword,
+          message: "Login successful"
+        });
+
+      } catch (error) {
+        console.error("Login error:", error);
+        return res.status(500).json({
+          message: "Internal server error",
+          error: "INTERNAL_ERROR",
+          details: error.message
+        });
+      }
+    });
+
+    // Keep the old passport-based login as backup
+    app.post("/api/auth/login-passport", passport.authenticate("local", { failureRedirect: "/auth" }), async (req, res) => {
       console.log("=== LOGIN ROUTE HIT ===");
       console.log("Request body:", req.body);
 
@@ -12073,6 +12168,54 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       res.status(500).json({ 
         error: "Failed to process voice note", 
         details: error.message 
+      });
+    }
+  });
+
+  // Debug endpoint to check user authentication status
+  app.get("/api/debug/auth", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.json({
+          authenticated: false,
+          session: null,
+          user: null
+        });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.json({
+          authenticated: false,
+          session: { userId },
+          user: null
+        });
+      }
+
+      return res.json({
+        authenticated: true,
+        session: {
+          userId: userId,
+          loginTime: req.session?.loginTime
+        },
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isAdmin: user.isAdmin,
+          isSchoolAdmin: user.isSchoolAdmin,
+          isOwner: user.isOwner,
+          schoolId: user.schoolId
+        }
+      });
+    } catch (error) {
+      console.error("Debug auth error:", error);
+      return res.status(500).json({
+        error: "Debug auth failed",
+        details: error.message
       });
     }
   });
