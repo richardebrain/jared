@@ -259,15 +259,14 @@ export default function ClassroomMusic() {
         {/* Fun Musical Header */}
         <div className="mb-8 text-center relative">
           {/* Return to Dashboard Button */}
-          <Link href="/">
-            <Button 
-              variant="outline" 
-              className="absolute left-0 top-0 bg-white/80 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            className="absolute left-0 top-0 bg-white/80 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg"
+            onClick={() => window.location.href = '/'}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
           
           {/* Musical Header */}
           <div className="relative">
