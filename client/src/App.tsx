@@ -981,13 +981,13 @@ function Router(props: {
       </Route>
 
       <Route path="/podcast-generator">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <PodcastGenerator />
         </ProtectedRoute>
       </Route>
 
       <Route path="/music-maker">
-        <ProtectedRoute adminOnly={true}>
+        <ProtectedRoute schoolAdminOnly={true}>
           <MusicMaker />
         </ProtectedRoute>
       </Route>
