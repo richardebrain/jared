@@ -1,0 +1,54 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bearGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#CD853F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D2B48C;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shadowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#654321;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#8B4513;stop-opacity:0.1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="2" dy="2" result="offset"/>
+      <feFlood flood-color="#000000" flood-opacity="0.2"/>
+      <feComposite in2="offset" operator="in"/>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Bear Head Shadow -->
+  <ellipse cx="62" cy="62" rx="25" ry="23" fill="url(#shadowGradient)" opacity="0.3"/>
+  
+  <!-- Bear Ears -->
+  <circle cx="45" cy="45" r="12" fill="url(#bearGradient)" filter="url(#shadow)"/>
+  <circle cx="75" cy="45" r="12" fill="url(#bearGradient)" filter="url(#shadow)"/>
+  <circle cx="45" cy="45" r="7" fill="#CD853F"/>
+  <circle cx="75" cy="45" r="7" fill="#CD853F"/>
+  
+  <!-- Bear Head -->
+  <ellipse cx="60" cy="60" rx="25" ry="23" fill="url(#bearGradient)" filter="url(#shadow)"/>
+  
+  <!-- Bear Snout -->
+  <ellipse cx="60" cy="68" rx="8" ry="6" fill="#DEB887"/>
+  
+  <!-- Bear Eyes -->
+  <circle cx="52" cy="56" r="3" fill="#000"/>
+  <circle cx="68" cy="56" r="3" fill="#000"/>
+  <circle cx="53" cy="55" r="1" fill="#FFF"/>
+  <circle cx="69" cy="55" r="1" fill="#FFF"/>
+  
+  <!-- Bear Nose -->
+  <ellipse cx="60" cy="65" rx="2" ry="1.5" fill="#000"/>
+  
+  <!-- Bear Mouth -->
+  <path d="M 60 68 Q 56 72 52 70 Q 56 74 60 72 Q 64 74 68 70 Q 64 72 60 68" fill="#000" opacity="0.6"/>
+  
+  <!-- Text -->
+  <text x="60" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#8B4513">MentorMe</text>
+  <text x="60" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#CD853F">AI Bear</text>
+</svg>
