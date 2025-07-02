@@ -260,61 +260,62 @@ export default function PersonalizedStoriesPage() {
       </div>
 
       {/* Book-like container */}
-      <div className="relative max-w-6xl mx-auto p-8">
+      <div className="relative max-w-6xl mx-auto p-4 md:p-8">
         {/* Return to Dashboard Button - styled like a bookmark */}
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10">
           <Link href="/dashboard">
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 bg-red-400 text-white border-red-500 hover:bg-red-500 rounded-t-lg rounded-b-none shadow-lg transform rotate-[-2deg] hover:rotate-0 transition-transform"
+              size="sm"
+              className="flex items-center gap-1 md:gap-2 bg-red-400 text-white border-red-500 hover:bg-red-500 rounded-t-lg rounded-b-none shadow-lg transform rotate-[-2deg] hover:rotate-0 transition-transform text-xs md:text-sm"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back
+              <ArrowLeft className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Back</span>
             </Button>
           </Link>
         </div>
 
         {/* Main book pages */}
-        <div className="bg-white rounded-3xl shadow-2xl border-8 border-amber-200 relative overflow-hidden">
-          {/* Book binding effect */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-amber-300 to-amber-200 border-r-2 border-amber-400"></div>
-          <div className="absolute left-2 top-4 bottom-4 w-1 bg-amber-400 rounded-full"></div>
-          <div className="absolute left-4 top-4 bottom-4 w-1 bg-amber-500 rounded-full"></div>
+        <div className="bg-white rounded-xl md:rounded-3xl shadow-2xl border-4 md:border-8 border-amber-200 relative overflow-hidden">
+          {/* Book binding effect - hidden on mobile */}
+          <div className="hidden md:block absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-amber-300 to-amber-200 border-r-2 border-amber-400"></div>
+          <div className="hidden md:block absolute left-2 top-4 bottom-4 w-1 bg-amber-400 rounded-full"></div>
+          <div className="hidden md:block absolute left-4 top-4 bottom-4 w-1 bg-amber-500 rounded-full"></div>
           
           {/* Page content */}
-          <div className="pl-16 pr-8 py-8">
+          <div className="p-4 md:pl-16 md:pr-8 md:py-8">
             {/* Storybook Header */}
-            <div className="text-center mb-8 relative">
+            <div className="text-center mb-6 md:mb-8 relative">
               <div className="inline-block bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 text-transparent bg-clip-text">
-                <h1 className="text-5xl font-bold font-serif mb-2 drop-shadow-lg">
+                <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold font-serif mb-2 drop-shadow-lg">
                   ✨ Magical Story Creator ✨
                 </h1>
               </div>
-              <p className="text-2xl text-gray-700 font-serif italic">
+              <p className="text-sm sm:text-lg md:text-2xl text-gray-700 font-serif italic px-2">
                 Where every child becomes the hero of their own adventure!
               </p>
               
-              {/* Decorative stars */}
-              <div className="absolute -top-4 -left-4 text-yellow-400 text-2xl animate-pulse">⭐</div>
-              <div className="absolute -top-2 -right-6 text-pink-400 text-xl animate-pulse" style={{animationDelay: '0.5s'}}>🌟</div>
-              <div className="absolute -bottom-2 left-1/4 text-blue-400 text-lg animate-pulse" style={{animationDelay: '1s'}}>✨</div>
-              <div className="absolute -bottom-4 right-1/3 text-green-400 text-xl animate-pulse" style={{animationDelay: '1.5s'}}>⭐</div>
+              {/* Decorative stars - reduced on mobile */}
+              <div className="hidden sm:block absolute -top-4 -left-4 text-yellow-400 text-2xl animate-pulse">⭐</div>
+              <div className="hidden sm:block absolute -top-2 -right-6 text-pink-400 text-xl animate-pulse" style={{animationDelay: '0.5s'}}>🌟</div>
+              <div className="hidden sm:block absolute -bottom-2 left-1/4 text-blue-400 text-lg animate-pulse" style={{animationDelay: '1s'}}>✨</div>
+              <div className="hidden sm:block absolute -bottom-4 right-1/3 text-green-400 text-xl animate-pulse" style={{animationDelay: '1.5s'}}>⭐</div>
             </div>
 
             {/* Story Creation Pages */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-6 md:mb-8">
               {/* Left Page - Story Generator */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border-4 border-purple-200 shadow-lg relative overflow-hidden">
-                {/* Page decoration */}
-                <div className="absolute top-2 right-2 text-purple-300 text-6xl opacity-20 transform rotate-12">🎭</div>
-                <div className="absolute bottom-2 left-2 text-pink-300 text-4xl opacity-20 transform -rotate-12">📖</div>
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl md:rounded-2xl p-4 md:p-6 border-2 md:border-4 border-purple-200 shadow-lg relative overflow-hidden">
+                {/* Page decoration - hidden on mobile */}
+                <div className="hidden md:block absolute top-2 right-2 text-purple-300 text-6xl opacity-20 transform rotate-12">🎭</div>
+                <div className="hidden md:block absolute bottom-2 left-2 text-pink-300 text-4xl opacity-20 transform -rotate-12">📖</div>
                 
                 <div className="relative z-10">
-                  <h2 className="text-3xl font-bold text-purple-800 mb-2 font-serif flex items-center gap-2">
-                    <Wand2 className="h-8 w-8 text-yellow-500" />
+                  <h2 className="text-xl md:text-3xl font-bold text-purple-800 mb-2 font-serif flex items-center gap-2">
+                    <Wand2 className="h-5 w-5 md:h-8 md:w-8 text-yellow-500" />
                     Create Your Story
                   </h2>
-                  <p className="text-purple-600 mb-6 font-serif italic">Let's make magic happen!</p>
+                  <p className="text-sm md:text-base text-purple-600 mb-4 md:mb-6 font-serif italic">Let's make magic happen!</p>
                   
                   <div className="space-y-4">
                     {/* Child's Name */}
@@ -381,16 +382,16 @@ export default function PersonalizedStoriesPage() {
                     <Button
                       onClick={handleGenerateStory}
                       disabled={isGenerating || !childName.trim()}
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xl py-4 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all"
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg md:text-xl py-3 md:py-4 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all"
                     >
                       {isGenerating ? (
                         <>
-                          <Loader2 className="h-6 w-6 mr-2 animate-spin" />
+                          <Loader2 className="h-5 w-5 md:h-6 md:w-6 mr-2 animate-spin" />
                           Creating Magic...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="h-6 w-6 mr-2" />
+                          <Sparkles className="h-5 w-5 md:h-6 md:w-6 mr-2" />
                           Create My Story!
                         </>
                       )}
@@ -408,17 +409,17 @@ export default function PersonalizedStoriesPage() {
               </div>
 
               {/* Right Page - Voice Narration */}
-              <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-6 border-4 border-blue-200 shadow-lg relative overflow-hidden">
-                {/* Page decoration */}
-                <div className="absolute top-2 right-2 text-blue-300 text-6xl opacity-20 transform rotate-12">🎪</div>
-                <div className="absolute bottom-2 left-2 text-green-300 text-4xl opacity-20 transform -rotate-12">🎵</div>
+              <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-xl md:rounded-2xl p-4 md:p-6 border-2 md:border-4 border-blue-200 shadow-lg relative overflow-hidden">
+                {/* Page decoration - hidden on mobile */}
+                <div className="hidden md:block absolute top-2 right-2 text-blue-300 text-6xl opacity-20 transform rotate-12">🎪</div>
+                <div className="hidden md:block absolute bottom-2 left-2 text-green-300 text-4xl opacity-20 transform -rotate-12">🎵</div>
                 
                 <div className="relative z-10">
-                  <h2 className="text-3xl font-bold text-blue-800 mb-2 font-serif flex items-center gap-2">
-                    <Mic className="h-8 w-8 text-yellow-500" />
+                  <h2 className="text-xl md:text-3xl font-bold text-blue-800 mb-2 font-serif flex items-center gap-2">
+                    <Mic className="h-5 w-5 md:h-8 md:w-8 text-yellow-500" />
                     Story Theater
                   </h2>
-                  <p className="text-blue-600 mb-6 font-serif italic">Bring your story to life!</p>
+                  <p className="text-sm md:text-base text-blue-600 mb-4 md:mb-6 font-serif italic">Bring your story to life!</p>
                   
                   <div className="space-y-4">
                     {/* Voice Selection */}
@@ -456,16 +457,16 @@ export default function PersonalizedStoriesPage() {
                     <Button
                       onClick={handleGenerateAudio}
                       disabled={isGeneratingAudio || !generatedStory}
-                      className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-xl py-4 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all"
+                      className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-lg md:text-xl py-3 md:py-4 rounded-xl font-bold shadow-lg transform hover:scale-105 transition-all"
                     >
                       {isGeneratingAudio ? (
                         <>
-                          <Loader2 className="h-6 w-6 mr-2 animate-spin" />
+                          <Loader2 className="h-5 w-5 md:h-6 md:w-6 mr-2 animate-spin" />
                           Recording Story...
                         </>
                       ) : (
                         <>
-                          <Volume2 className="h-6 w-6 mr-2" />
+                          <Volume2 className="h-5 w-5 md:h-6 md:w-6 mr-2" />
                           Record My Story!
                         </>
                       )}
