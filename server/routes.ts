@@ -11097,7 +11097,7 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   // Get user's music favorites
   app.get("/api/music/favorites", requireAuth, async (req, res) => {
     try {
-      const { userId } = req.session;
+      const userId = req.session.userId;
       
       const favorites = await db.execute(sql`
         SELECT f.id, f.song_id as "songId", cs.*
@@ -11117,7 +11117,7 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   // Add song to favorites
   app.post("/api/music/favorites", requireAuth, async (req, res) => {
     try {
-      const { userId } = req.session;
+      const userId = req.session.userId;
       const { songId } = req.body;
       
       if (!songId) {
@@ -11150,7 +11150,7 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   // Remove song from favorites
   app.delete("/api/music/favorites/:songId", requireAuth, async (req, res) => {
     try {
-      const { userId } = req.session;
+      const userId = req.session.userId;
       const songId = parseInt(req.params.songId);
       
       await db.execute(sql`
