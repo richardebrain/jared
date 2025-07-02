@@ -10350,7 +10350,7 @@ Please provide empathy coaching guidance to help this director implement the man
       
       // Get school information from the schools table
       const schoolQuery = await db.execute(sql`
-        SELECT id, name, logoUrl FROM schools WHERE id = ${schoolId} LIMIT 1
+        SELECT id, name, logo_url FROM schools WHERE id = ${schoolId} LIMIT 1
       `);
 
       const school = schoolQuery.rows[0];
@@ -10362,7 +10362,7 @@ Please provide empathy coaching guidance to help this director implement the man
       res.json({
         id: school.id,
         name: school.name,
-        logoUrl: school.logoUrl || "/raising-arizona-logo.jpg"
+        logoUrl: school.logo_url || "/raising-arizona-logo.jpg"
       });
     } catch (error) {
       console.error("Error fetching school info:", error);
@@ -10376,7 +10376,7 @@ Please provide empathy coaching guidance to help this director implement the man
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
 
-      if (!user?.isAdmin) {
+      if (!user?.isAdmin && !user?.isSchoolAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 

@@ -78,10 +78,10 @@ export default function Header() {
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
 
-  // Fetch school data to get custom logo
-  const { data: schoolData } = useQuery({
-    queryKey: ["/api/school/settings"],
-    enabled: !!user?.isAdmin || !!user?.isSchoolAdmin,
+  // Fetch school data to get custom logo - available to all authenticated users
+  const { data: schoolData } = useQuery<{id: number, name: string, logoUrl: string}>({
+    queryKey: ["/api/school/info", user?.schoolId || 1],
+    enabled: !!user, // Enable for all authenticated users
     staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 
