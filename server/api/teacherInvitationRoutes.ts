@@ -13,7 +13,7 @@ const router = express.Router();
 // Environment variables for email configuration
 // Environment variables for email configuration
 const EMAIL_USER = process.env.EMAIL_USER;
-const APP_URL = process.env.APP_URL || 'https://9fac84b7-b39a-4102-b631-449a67e3932d-00-1yk3ro8w0zxc5.worf.replit.dev';
+const APP_URL = process.env.APPURL || 'https://9fac84b7-b39a-4102-b631-449a67e3932d-00-1yk3ro8w0zxc5.worf.replit.dev';
 const INVITE_EXPIRY_DAYS = 7; // Invitations expire after 7 days
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
