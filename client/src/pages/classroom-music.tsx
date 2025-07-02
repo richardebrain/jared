@@ -195,7 +195,7 @@ export default function ClassroomMusic() {
     Array.isArray(favorites) && favorites.some((fav: Favorite) => fav.songId === songId);
 
   const SongCard = ({ song }: { song: Song }) => (
-    <Card className="mb-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-r from-white via-purple-50 to-pink-50 border-purple-200 hover:border-purple-400">
+    <Card className="mb-4 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white via-purple-50 to-pink-50 border-purple-200 hover:border-purple-400">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
@@ -230,7 +230,7 @@ export default function ClassroomMusic() {
               className="hover:bg-pink-100 transition-colors"
             >
               {isFavorite(song.id) ? (
-                <Heart className="w-6 h-6 text-red-500 fill-current animate-pulse" />
+                <Heart className="w-6 h-6 text-red-500 fill-current" />
               ) : (
                 <HeartOff className="w-6 h-6 text-gray-400 hover:text-red-400" />
               )}
@@ -309,13 +309,9 @@ export default function ClassroomMusic() {
         <Card className="mb-6 bg-gradient-to-r from-violet-100 via-purple-100 to-fuchsia-100 border-purple-300 shadow-xl">
           <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
             <CardTitle className="text-xl flex items-center gap-3 font-bold">
-              <div className="animate-spin">
-                <Music className="w-6 h-6" />
-              </div>
+              <Music className="w-6 h-6" />
               🎵 Now Playing 🎵
-              <div className="animate-pulse">
-                <Volume2 className="w-6 h-6" />
-              </div>
+              <Volume2 className="w-6 h-6" />
             </CardTitle>
           </CardHeader>
           <CardContent>
