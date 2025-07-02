@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { 
   Play, 
   Pause, 
@@ -45,6 +45,7 @@ interface Favorite {
 }
 
 export default function ClassroomMusic() {
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -262,7 +263,7 @@ export default function ClassroomMusic() {
           <Button 
             variant="outline" 
             className="absolute left-0 top-0 bg-white/80 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg"
-            onClick={() => window.location.href = '/'}
+            onClick={() => setLocation('/')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
