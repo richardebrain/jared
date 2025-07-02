@@ -200,8 +200,6 @@ export default function Header() {
 
   // Determine which school logo to display
   const schoolLogo = schoolData?.logoUrl || raisingArizonaLogo;
-  console.log('School data:', schoolData);
-  console.log('School logo URL:', schoolLogo);
   
   return (
     <header className="sticky top-0 bg-white shadow-md z-50">

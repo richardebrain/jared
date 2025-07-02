@@ -10425,7 +10425,7 @@ Please provide empathy coaching guidance to help this director implement the man
           zipCode: "85001",
           contactEmail: "info@raisingarizona.com",
           contactPhone: "(555) 123-4567",
-          logoUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAIAAADwf7zUAADiamNhQlgAAOJqanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAANw9qdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmM3NTZkNzMwLTlkN2EtNGU4ZS04Nzk3LWJhZjM1ZTZiMjYzZAAAAAHhanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAABBWp1bWIAAAApanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5hY3Rpb25zLnYyAAAAANRjYm9yoWdhY3Rpb25zgqNmYWN0aW9ubGMycGEuY3JlYXRlZG1zb2Z0d2FyZUFnZW50v2RuYW1lZkdQVC00b/9xZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWGiZmFjdGlvbm5jMnBhLmNvbnZlcnRlZG1zb2Z0d2FyZUFnZW50v2RuYW1lak9wZW5BSSBBUEn/AAAAq2p1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAe2Nib3KlamV4Y2x1c2lvbnOBomVzdGFydBghZmxlbmd0aBk3QWRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggrX5CQBGXXXH5szbWaOOeXH5n8lyCqH2LdnCfCiTcs8tjcGFkSAAAAAAAAAAAAAAB4mp1bWIAAAAjanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAGzY2JvcqZqaW5zdGFuY2VJRHgseG1wOmlpZDo1ODk3NzgyZi1mYzg4LTQ3YWUtOTU4Ni01ZGMxMTMwNTU1ZmNkbmFtZXNNZW50b3JNZSBCZWFyeSBBSSBJY29uZHRjYXJkZGNib3KlZmFjdGlvbmxjMnBhLmF2LWlkaWJpbnN0YW5jZUlEeDF4bXA6aWlkOjI5ZWMwNDM4LTNlMTUtNGQwMC1hZjViLWQwNzk4MjgwMGNiN2BzYWx0WRDQVMEa0k1FudfZqKRxHCtxS5Y=",
+          logoUrl: "/3d-bear-logo.svg",
           description: "A premier early childhood education center focused on nurturing young minds.",
           website: "https://www.raisingarizona.com",
           founded: "2015",

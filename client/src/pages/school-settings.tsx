@@ -115,23 +115,17 @@ export default function SchoolSettingsPage() {
       // Update local formData to reflect the saved changes FIRST
       setFormData(prev => ({ ...prev, ...updatedData }));
       
-      // Invalidate all related queries to ensure all pages get fresh data
-      await queryClient.invalidateQueries({ queryKey: ['/api/school/settings'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/school/info'] });
+      // Force invalidate ALL queries to ensure fresh data everywhere
+      await queryClient.invalidateQueries();
+      
+      // Also specifically clear these query caches
+      queryClient.removeQueries({ queryKey: ['/api/school/settings'] });
+      queryClient.removeQueries({ queryKey: ['/api/school/info'] });
       
       if (user?.schoolId) {
-        await queryClient.invalidateQueries({ queryKey: ['/api/school/info', user.schoolId] });
-        await queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
+        queryClient.removeQueries({ queryKey: ['/api/school/info', user.schoolId] });
+        queryClient.removeQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
       }
-      
-      // Force refresh of any other queries that depend on school settings
-      await queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          return query.queryKey[0] === '/api/school/settings' || 
-                 query.queryKey[0] === '/api/school/info' ||
-                 (typeof query.queryKey[0] === 'string' && query.queryKey[0].includes('school'));
-        }
-      });
       
       // Clear unsaved changes flag AFTER all cache invalidation is complete
       setHasUnsavedChanges(false);
