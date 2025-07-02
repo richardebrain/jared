@@ -362,13 +362,13 @@ import {
   bearBucksTransactions,
   teacherInvitations,
   lessonPlans,
-  moduleDrafts
-,
-teacherSelfAssessments,
-coreValuesShoutOuts,  moduleRatings,
-communityModules,
-assessmentResponses
-
+  moduleDrafts,
+  teacherSelfAssessments,
+  coreValuesShoutOuts,
+  moduleRatings,
+  communityModules,
+  assessmentResponses,
+  classroomSongs
 } from "@shared/schema";
 import { registerWelcomeMessageRoutes } from "./welcomeMessageRoutes";
 import { registerModuleManagementRoutes } from "./module-management/moduleRoutes";
@@ -11048,6 +11048,51 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Classroom Songs API endpoints
+  // Get all classroom songs
+  app.get("/api/songs", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Get all classroom songs (global songs + school-specific songs)
+      const songs = await db.execute(sql`
+        SELECT cs.* 
+        FROM classroom_songs cs
+        WHERE cs.school_id IS NULL OR cs.school_id = ${user.schoolId}
+        ORDER BY cs.category, cs.title
+      `);
+      
+      res.json(songs.rows);
+    } catch (error) {
+      console.error("Error fetching classroom songs:", error);
+      res.status(500).json({ error: "Failed to fetch songs" });
+    }
+  });
+
+  // Add new classroom song (admin only)
+  app.post("/api/songs", requireAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Only admins can add classroom songs
+      if (!user.isAdmin && !user.isSchoolAdmin) {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+
+      const songData = {
+        ...req.body,
+        schoolId: user.schoolId, // Associate with current school
+      };
+
+      const newSong = await db.insert(classroomSongs).values(songData).returning();
+      
+      res.json(newSong[0]);
+    } catch (error) {
+      console.error("Error adding classroom song:", error);
+      res.status(500).json({ error: "Failed to add song" });
+    }
+  });
+
   // Music favorites API endpoints
   // Get user's music favorites
   app.get("/api/music/favorites", requireAuth, async (req, res) => {
@@ -11055,9 +11100,9 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       const { userId } = req.session;
       
       const favorites = await db.execute(sql`
-        SELECT f.id, f.song_id as "songId", s.*
+        SELECT f.id, f.song_id as "songId", cs.*
         FROM music_favorites f
-        JOIN songs s ON f.song_id = s.id
+        JOIN classroom_songs cs ON f.song_id = cs.id
         WHERE f.user_id = ${userId}
         ORDER BY f.created_at DESC
       `);
