@@ -2102,16 +2102,16 @@ Continue for all 5 questions...
         } catch (dbError) {
           console.error("Database error during login:", dbError);
           return res.status(500).json({
-            message: "Database error",
-            error: "DB_ERROR"
+            message: "Server error - please try again",
+            error: "SERVER_ERROR"
           });
         }
 
         if (!user) {
-          console.log("User not found");
+          console.log(`User not found: "${username}"`);
           return res.status(401).json({ 
-            message: "Invalid credentials",
-            error: "USER_NOT_FOUND"
+            message: "Invalid username or password",
+            error: "AUTHENTICATION_FAILED"
           });
         }
 
@@ -2122,8 +2122,8 @@ Continue for all 5 questions...
         if (!passwordMatch) {
           console.log("Password mismatch");
           return res.status(401).json({ 
-            message: "Invalid credentials",
-            error: "INVALID_PASSWORD"
+            message: "Invalid username or password",
+            error: "AUTHENTICATION_FAILED"
           });
         }
 
