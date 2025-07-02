@@ -484,7 +484,7 @@ export default function Header() {
               </DropdownMenuItem>
 
               
-              {isOwner && (
+              {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={() => setLocation("/app-owner-dashboard")}>
