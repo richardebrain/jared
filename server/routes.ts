@@ -10500,9 +10500,9 @@ Please provide empathy coaching guidance to help this director implement the man
       console.log(`School settings updated successfully for school ${schoolId}`, result);
       
       // Verify the update by fetching the school again
-      const updatedSchool = await db.select().from(schools).where(eq(schools.id, schoolId));
+      const updatedSchool = await db.select().from(schools).where(eq(schools.id, schoolId)).execute();
       console.log('Updated school data from database:', updatedSchool[0]);
-      console.log('Logo URL after update:', updatedSchool[0]?.logoUrl);
+      console.log('Logo URL after update:', updatedSchool[0]?.logo_url);
       res.json({ message: "School settings updated successfully" });
     } catch (error) {
       console.error("Error updating school settings:", error);
