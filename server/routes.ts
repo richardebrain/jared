@@ -11120,30 +11120,48 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       const userId = req.session.userId;
       const { songId } = req.body;
       
+      console.log('Add to favorites - userId:', userId);
+      console.log('Add to favorites - songId:', songId);
+      console.log('Add to favorites - req.body:', req.body);
+      
       if (!songId) {
+        console.log('Missing songId in request');
         return res.status(400).json({ error: "Song ID is required" });
       }
       
+      // Validate songId is a number
+      const songIdNum = parseInt(songId);
+      if (isNaN(songIdNum)) {
+        console.log('Invalid songId - not a number:', songId);
+        return res.status(400).json({ error: "Invalid song ID" });
+      }
+      
+      console.log('Checking if song already favorited...');
       // Check if already favorited
       const existing = await db.execute(sql`
         SELECT id FROM music_favorites 
-        WHERE user_id = ${userId} AND song_id = ${songId}
+        WHERE user_id = ${userId} AND song_id = ${songIdNum}
       `);
       
+      console.log('Existing favorites result:', existing.rows);
+      
       if (existing.rows.length > 0) {
+        console.log('Song already in favorites');
         return res.status(400).json({ error: "Song already in favorites" });
       }
       
+      console.log('Adding song to favorites...');
       // Add to favorites
-      await db.execute(sql`
+      const result = await db.execute(sql`
         INSERT INTO music_favorites (user_id, song_id, created_at)
-        VALUES (${userId}, ${songId}, NOW())
+        VALUES (${userId}, ${songIdNum}, NOW())
       `);
       
+      console.log('Insert result:', result);
       res.json({ success: true, message: "Added to favorites" });
     } catch (error) {
       console.error("Error adding to favorites:", error);
-      res.status(500).json({ error: "Failed to add to favorites" });
+      res.status(500).json({ error: "Failed to add to favorites", details: error.message });
     }
   });
 
