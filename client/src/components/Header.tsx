@@ -80,9 +80,9 @@ export default function Header() {
 
   // Fetch school data to get custom logo
   const { data: schoolData } = useQuery({
-    queryKey: ["/api/school/info", user?.schoolId],
-    enabled: !!user?.schoolId,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    queryKey: ["/api/school/settings"],
+    enabled: !!user?.isAdmin || !!user?.isSchoolAdmin,
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 
   // Fetch unread messages count for notification badge - reduced frequency
