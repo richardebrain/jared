@@ -200,6 +200,8 @@ export default function Header() {
 
   // Determine which school logo to display
   const schoolLogo = schoolData?.logoUrl || raisingArizonaLogo;
+  console.log('School data:', schoolData);
+  console.log('School logo URL:', schoolLogo);
   
   return (
     <header className="sticky top-0 bg-white shadow-md z-50">
@@ -207,7 +209,18 @@ export default function Header() {
         <div className="flex items-center">
           <Link href="/">
             <div className="flex items-center">
-              <img src={schoolLogo} alt="School Logo" className="h-12 mr-2 rounded-md" />
+              <img 
+                src={schoolLogo} 
+                alt="School Logo" 
+                className="h-12 mr-2 rounded-md" 
+                onError={(e) => {
+                  console.error('Logo failed to load:', schoolLogo);
+                  console.error('Error event:', e);
+                  // Fallback to Raising Arizona logo if logo fails to load
+                  e.currentTarget.src = raisingArizonaLogo;
+                }}
+                onLoad={() => console.log('Logo loaded successfully:', schoolLogo)}
+              />
               <img src={mentormeLogo} alt="MentorMe" className="h-12 rounded-md" />
             </div>
           </Link>
