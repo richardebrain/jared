@@ -44,6 +44,7 @@ import PersonalizedLearningPath from "@/components/PersonalizedLearningPath";
 import CommunityModules from "@/components/CommunityModules";
 import UserTutorial from "@/components/UserTutorial";
 import { useTutorial } from "@/hooks/useTutorial";
+import AssignedTraining from "@/components/AssignedTraining";
 
 
 export default function Dashboard() {
@@ -727,6 +728,9 @@ export default function Dashboard() {
                 
                 {/* Custom animations are added through global CSS instead */}
               </div>
+              
+              {/* Assigned Training Section */}
+              <AssignedTraining />
               
               {/* Required Onboarding Training Section */}
               <div className="space-y-4">

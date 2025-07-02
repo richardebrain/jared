@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
 import { useAuth, AuthProvider } from "@/lib/auth-context";
+import TrainingBlockingGuard from "@/components/TrainingBlockingGuard";
 // Import session utilities for debugging
 import "@/lib/sessionUtils";
 import NotFound from "@/pages/not-found";
@@ -209,13 +210,23 @@ function Router(props: {
 
       {/* Root path - show landing page or dashboard based on cached auth */}
       <Route path="/">
-        {isAuthenticated ? <Dashboard /> : <LandingPage />}
+        {isAuthenticated ? (
+          <ProtectedRoute>
+            <TrainingBlockingGuard>
+              <Dashboard />
+            </TrainingBlockingGuard>
+          </ProtectedRoute>
+        ) : (
+          <LandingPage />
+        )}
       </Route>
 
       {/* Protected routes */}
       <Route path="/dashboard">
         <ProtectedRoute>
-          <Dashboard />
+          <TrainingBlockingGuard>
+            <Dashboard />
+          </TrainingBlockingGuard>
         </ProtectedRoute>
       </Route>
 
@@ -227,25 +238,33 @@ function Router(props: {
 
       <Route path="/progression-map">
         <ProtectedRoute>
-          <ProgressionMap />
+          <TrainingBlockingGuard>
+            <ProgressionMap />
+          </TrainingBlockingGuard>
         </ProtectedRoute>
       </Route>
 
       <Route path="/initial-assessment">
         <ProtectedRoute>
-          <InitialAssessment />
+          <TrainingBlockingGuard>
+            <InitialAssessment />
+          </TrainingBlockingGuard>
         </ProtectedRoute>
       </Route>
 
       <Route path="/assessment-questions">
         <ProtectedRoute>
-          <AssessmentQuestions />
+          <TrainingBlockingGuard>
+            <AssessmentQuestions />
+          </TrainingBlockingGuard>
         </ProtectedRoute>
       </Route>
 
       <Route path="/assessment-results">
         <ProtectedRoute>
-          <AssessmentResults />
+          <TrainingBlockingGuard>
+            <AssessmentResults />
+          </TrainingBlockingGuard>
         </ProtectedRoute>
       </Route>
 

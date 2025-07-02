@@ -856,6 +856,51 @@ export const moduleDraftsRelations = relations(moduleDrafts, ({ one }) => ({
 export type ModuleDraft = typeof moduleDrafts.$inferSelect;
 export type InsertModuleDraft = z.infer<typeof insertModuleDraftSchema>;
 
+// Training Assignments schema - for mandatory training assignments by administrators
+export const trainingAssignments = pgTable("training_assignments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  moduleId: integer("module_id").notNull().references(() => learningModules.id),
+  assignedBy: integer("assigned_by").notNull().references(() => users.id),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  dueDate: timestamp("due_date"), // Optional deadline
+  completedAt: timestamp("completed_at"), // When user completed the assignment
+  isCompleted: boolean("is_completed").default(false),
+  isBlocking: boolean("is_blocking").default(true), // If true, blocks platform access until completed
+  priority: text("priority").default("medium"), // low, medium, high, urgent
+  assignmentMessage: text("assignment_message"), // Optional message from administrator
+  completionNote: text("completion_note"), // Note added when completed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTrainingAssignmentSchema = createInsertSchema(trainingAssignments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const trainingAssignmentsRelations = relations(trainingAssignments, ({ one }) => ({
+  user: one(users, {
+    fields: [trainingAssignments.userId],
+    references: [users.id]
+  }),
+  module: one(learningModules, {
+    fields: [trainingAssignments.moduleId],
+    references: [learningModules.id]
+  }),
+  assignedBy: one(users, {
+    fields: [trainingAssignments.assignedBy],
+    references: [users.id]
+  }),
+  school: one(schools, {
+    fields: [trainingAssignments.schoolId],
+    references: [schools.id]
+  })
+}));
+
+export type TrainingAssignment = typeof trainingAssignments.$inferSelect;
+export type InsertTrainingAssignment = z.infer<typeof insertTrainingAssignmentSchema>;
+
 export type EducationalGame = typeof educationalGames.$inferSelect;
 export type InsertEducationalGame = z.infer<typeof insertEducationalGameSchema>;
 export type GameCompletion = typeof gameCompletions.$inferSelect;

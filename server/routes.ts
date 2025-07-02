@@ -12220,5 +12220,160 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Training Assignments API Endpoints
+  
+  // Get assigned training modules for current user
+  app.get("/api/training-assignments", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      const assignments = await db.execute(sql`
+        SELECT ta.*, 
+               lm.title as module_title, 
+               lm.description as module_description,
+               lm.duration as module_duration,
+               lm.difficulty as module_difficulty,
+               lm.category as module_category,
+               u.first_name as assigned_by_first_name,
+               u.last_name as assigned_by_last_name
+        FROM training_assignments ta
+        JOIN learning_modules lm ON ta.module_id = lm.id
+        JOIN users u ON ta.assigned_by = u.id
+        WHERE ta.user_id = ${userId} 
+        AND ta.is_completed = false
+        ORDER BY ta.priority DESC, ta.assigned_at ASC
+      `);
+
+      const formattedAssignments = assignments.rows.map(row => ({
+        id: row.id,
+        moduleId: row.module_id,
+        moduleTitle: row.module_title,
+        moduleDescription: row.module_description,
+        moduleDuration: row.module_duration,
+        moduleDifficulty: row.module_difficulty,
+        moduleCategory: row.module_category,
+        assignedAt: row.assigned_at,
+        dueDate: row.due_date,
+        priority: row.priority,
+        assignmentMessage: row.assignment_message,
+        isBlocking: row.is_blocking,
+        assignedBy: `${row.assigned_by_first_name} ${row.assigned_by_last_name}`
+      }));
+
+      res.json(formattedAssignments);
+    } catch (error) {
+      console.error("Error fetching training assignments:", error);
+      res.status(500).json({ message: "Failed to fetch training assignments" });
+    }
+  });
+
+  // Create new training assignment (admin only)
+  app.post("/api/training-assignments", requireAuth, async (req, res) => {
+    try {
+      const assignedBy = req.session.userId as number;
+      const currentUser = await storage.getUser(assignedBy);
+      
+      if (!currentUser || (!currentUser.isAdmin && !currentUser.isSchoolAdmin)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { userIds, moduleId, dueDate, priority, assignmentMessage, isBlocking } = req.body;
+
+      if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: "User IDs array is required" });
+      }
+
+      if (!moduleId) {
+        return res.status(400).json({ message: "Module ID is required" });
+      }
+
+      // Check if module exists
+      const moduleExists = await db.execute(sql`
+        SELECT id FROM learning_modules WHERE id = ${moduleId}
+      `);
+
+      if (!moduleExists.rows.length) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+
+      // Create assignments for each user
+      const assignmentValues = userIds.map(userId => {
+        const parsedUserId = parseInt(userId);
+        const parsedModuleId = parseInt(moduleId);
+        const parsedDueDate = dueDate || null;
+        const assignmentPriority = priority || 'medium';
+        const message = assignmentMessage || null;
+        const blocking = isBlocking !== false; // Default to true unless explicitly set to false
+        
+        return sql`(${parsedUserId}, ${parsedModuleId}, ${assignedBy}, ${currentUser.schoolId}, ${parsedDueDate}, ${assignmentPriority}, ${message}, ${blocking})`;
+      });
+
+      await db.execute(sql`
+        INSERT INTO training_assignments (user_id, module_id, assigned_by, school_id, due_date, priority, assignment_message, is_blocking)
+        VALUES ${sql.join(assignmentValues, sql`, `)}
+      `);
+
+      res.status(201).json({ 
+        message: "Training assignments created successfully",
+        count: userIds.length
+      });
+
+    } catch (error) {
+      console.error("Error creating training assignments:", error);
+      res.status(500).json({ message: "Failed to create training assignments" });
+    }
+  });
+
+  // Mark training assignment as completed
+  app.post("/api/training-assignments/:id/complete", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const assignmentId = parseInt(req.params.id);
+
+      // Verify assignment belongs to current user
+      const assignment = await db.execute(sql`
+        SELECT id, user_id, module_id FROM training_assignments 
+        WHERE id = ${assignmentId} AND user_id = ${userId}
+      `);
+
+      if (!assignment.rows.length) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+
+      // Mark as completed
+      await db.execute(sql`
+        UPDATE training_assignments 
+        SET is_completed = true, completed_at = NOW()
+        WHERE id = ${assignmentId}
+      `);
+
+      res.json({ message: "Training assignment marked as completed" });
+    } catch (error) {
+      console.error("Error completing training assignment:", error);
+      res.status(500).json({ message: "Failed to complete training assignment" });
+    }
+  });
+
+  // Check if user has blocking training assignments
+  app.get("/api/training-assignments/blocking", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+
+      const blockingAssignments = await db.execute(sql`
+        SELECT COUNT(*) as count FROM training_assignments 
+        WHERE user_id = ${userId} 
+        AND is_completed = false 
+        AND is_blocking = true
+      `);
+
+      const hasBlockingAssignments = parseInt(blockingAssignments.rows[0]?.count || '0') > 0;
+
+      res.json({ hasBlockingAssignments });
+    } catch (error) {
+      console.error("Error checking blocking assignments:", error);
+      res.status(500).json({ message: "Failed to check blocking assignments" });
+    }
+  });
+
   // Routes registered successfully
 }
