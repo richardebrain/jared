@@ -253,15 +253,18 @@ export default function SchoolSettingsPage() {
   const handleInputChange = (field: keyof School, value: any) => {
     console.log(`Handling input change - field: ${field}, value:`, value);
     
-    // Validate logoUrl field to prevent data corruption
+    // Validate logoUrl field to prevent data corruption, but allow base64 data URLs from file uploads
     if (field === 'logoUrl' && typeof value === 'string' && value.length > 500) {
-      console.warn('Logo URL too long, rejecting:', value.length);
-      toast({
-        title: "Invalid Logo URL",
-        description: "Logo URL is too long. Please use a shorter URL.",
-        variant: "destructive",
-      });
-      return;
+      // Allow base64 data URLs (they start with 'data:')
+      if (!value.startsWith('data:')) {
+        console.warn('Logo URL too long, rejecting:', value.length);
+        toast({
+          title: "Invalid Logo URL",
+          description: "Logo URL is too long. Please use a shorter URL or upload a file instead.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     setFormData(prev => {
@@ -705,7 +708,7 @@ export default function SchoolSettingsPage() {
                     <div className="flex-1 space-y-4">
                       {/* File Upload Section */}
                       <div className="space-y-2">
-                        <Label htmlFor="logoFile">Upload Logo File</Label>
+                        <Label htmlFor="logoFile">Upload School Logo</Label>
                         <div className="flex items-center gap-3">
                           <Input
                             id="logoFile"
@@ -714,7 +717,16 @@ export default function SchoolSettingsPage() {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                // Convert file to base64 or handle upload
+                                // Check file size (2MB limit)
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast({
+                                    title: "File Too Large",
+                                    description: "Please choose a file smaller than 2MB.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                                // Convert file to base64
                                 const reader = new FileReader();
                                 reader.onload = (event) => {
                                   const result = event.target?.result as string;
@@ -731,35 +743,11 @@ export default function SchoolSettingsPage() {
                             size="sm"
                             onClick={() => document.getElementById('logoFile')?.click()}
                           >
-                            Browse
+                            Choose File
                           </Button>
                         </div>
                         <p className="text-xs text-gray-500">
-                          Upload an image file (PNG, JPG, GIF). Recommended size: 200x200px
-                        </p>
-                      </div>
-
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-background px-2 text-muted-foreground">Or</span>
-                        </div>
-                      </div>
-
-                      {/* URL Input Section */}
-                      <div className="space-y-2">
-                        <Label htmlFor="logoUrl">Logo URL</Label>
-                        <Input
-                          id="logoUrl"
-                          type="url"
-                          placeholder="https://example.com/logo.png"
-                          value={formData.logoUrl || school?.logoUrl || ''}
-                          onChange={(e) => handleInputChange('logoUrl', e.target.value)}
-                        />
-                        <p className="text-xs text-gray-500">
-                          Or enter a direct URL to your school logo image
+                          Supported formats: PNG, JPG, SVG (max 2MB)
                         </p>
                       </div>
                       
@@ -770,18 +758,7 @@ export default function SchoolSettingsPage() {
                           size="sm"
                           onClick={() => handleInputChange('logoUrl', '')}
                         >
-                          Clear Logo
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            const url = prompt('Enter logo URL:');
-                            if (url) handleInputChange('logoUrl', url);
-                          }}
-                        >
-                          Add Logo URL
+                          Remove Logo
                         </Button>
                       </div>
                     </div>
