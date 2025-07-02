@@ -95,7 +95,7 @@ export default function Register() {
   const { mutate: register, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof inviteRegisterSchema>) => {
       // Send to backend endpoint for invite-based registration
-      return await apiRequest("/api/auth/register-invite", {
+      return await apiRequest("/api/auth/register", {
         method: "POST",
         data,
       });

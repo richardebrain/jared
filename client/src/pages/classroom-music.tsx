@@ -93,21 +93,21 @@ export default function ClassroomMusic() {
     },
   });
 
-  // Filter songs based on search and category
-  const filteredSongs = songs.filter((song: Song) => {
+  // Filter songs based on search and category - ensure songs is an array
+  const filteredSongs = Array.isArray(songs) ? songs.filter((song: Song) => {
     const matchesSearch = song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          song.artist.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || song.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   // Get favorite songs
-  const favoriteSongs = songs.filter((song: Song) => 
-    favorites.some((fav: Favorite) => fav.songId === song.id)
-  );
+  const favoriteSongs = Array.isArray(songs) ? songs.filter((song: Song) => 
+    Array.isArray(favorites) && favorites.some((fav: Favorite) => fav.songId === song.id)
+  ) : [];
 
   // Get unique categories
-  const categories = ['all', ...Array.from(new Set(songs.map((song: Song) => song.category)))];
+  const categories = ['all', ...Array.from(new Set(Array.isArray(songs) ? songs.map((song: Song) => song.category) : []))];
 
   // Audio event handlers
   useEffect(() => {
@@ -186,7 +186,7 @@ export default function ClassroomMusic() {
   };
 
   const isFavorite = (songId: number) => 
-    favorites.some((fav: Favorite) => fav.songId === songId);
+    Array.isArray(favorites) && favorites.some((fav: Favorite) => fav.songId === songId);
 
   const SongCard = ({ song }: { song: Song }) => (
     <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -392,25 +392,7 @@ export default function ClassroomMusic() {
         </TabsContent>
       </Tabs>
 
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-        }
-        
-        .slider::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
+
     </div>
   );
 }
