@@ -1697,7 +1697,14 @@ Continue for all 5 questions...
           isOwner: false,
           // createdAt is handled automatically by the schema
         });
-
+        
+        await db
+          .update(teacherInvitations)
+          .set({ status: "accepted", acceptedAt: new Date(), userId: newUser.id })
+          .where(eq(teacherInvitations.id, inviteId));
+        if (storage.incrementSchoolTeacherCount) {
+          await storage.incrementSchoolTeacherCount(schoolId);
+        }
         console.log(
           `Registration successful for user: "${username}" (ID: ${newUser.id})`,
         );
@@ -3458,15 +3465,30 @@ Continue for all 5 questions...
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // First, verify the user owns this community module
+      // Get user details for permission checking
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Check permissions: user owns the module OR is app owner OR school admin within same school
       const verification = await db.execute(sql`
-        SELECT cm.id, lm.creator_id, lm.title
+        SELECT cm.id, lm.creator_id, lm.title, lm.school_id
         FROM community_modules cm
         JOIN learning_modules lm ON cm.module_id = lm.id
-        WHERE cm.id = ${communityId} AND lm.creator_id = ${userId}
+        WHERE cm.id = ${communityId}
       `);
 
       if (verification.rows.length === 0) {
+        return res.status(404).json({ message: "Community module not found" });
+      }
+
+      const module = verification.rows[0];
+      const canDelete = module.creator_id === userId || 
+                       user.isOwner || 
+                       (user.isSchoolAdmin && module.school_id === user.schoolId);
+
+      if (!canDelete) {
         return res.status(403).json({ message: "Not authorized to delete this community module" });
       }
 
@@ -4065,12 +4087,24 @@ Continue for all 5 questions...
         return res.status(401).json({ error: "User not found" });
       }
 
-      // Check permissions: user owns the module OR user is app owner
-      const canDelete = module.creator_id === userId || user.isOwner;
+      // Check permissions: user owns the module OR user is app owner OR school admin within same school
+      let canDelete = module.creator_id === userId || user.isOwner;
+      
+      // Allow school admins to delete modules from their school
+      if (!canDelete && user.isSchoolAdmin) {
+        const moduleSchoolResult = await db.execute(sql`
+          SELECT school_id FROM learning_modules WHERE id = ${moduleId}
+        `);
+        
+        if (moduleSchoolResult.rows.length > 0) {
+          const moduleSchoolId = moduleSchoolResult.rows[0].school_id;
+          canDelete = moduleSchoolId === user.schoolId;
+        }
+      }
 
       if (!canDelete) {
         return res.status(403).json({
-          error: "Access denied. You can only delete your own modules.",
+          error: "Access denied. You can only delete your own modules or modules from your school.",
         });
       }
 
