@@ -269,29 +269,14 @@ export default function ClassroomMusic() {
             </Button>
           </Link>
           
-          {/* Animated Musical Header */}
+          {/* Musical Header */}
           <div className="relative">
             <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="animate-bounce">
-                <Music className="w-12 h-12 text-purple-600" />
-              </div>
+              <Music className="w-12 h-12 text-purple-600" />
               <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
                 🎵 Classroom Music Studio 🎵
               </h1>
-              <div className="animate-bounce delay-300">
-                <Headphones className="w-12 h-12 text-pink-600" />
-              </div>
-            </div>
-            
-            {/* Sparkle Effects */}
-            <div className="absolute -top-2 left-1/4 animate-pulse">
-              <Sparkles className="w-6 h-6 text-yellow-400" />
-            </div>
-            <div className="absolute top-4 right-1/4 animate-pulse delay-500">
-              <Sparkles className="w-8 h-8 text-purple-400" />
-            </div>
-            <div className="absolute -top-1 right-1/3 animate-pulse delay-1000">
-              <Sparkles className="w-5 h-5 text-pink-400" />
+              <Headphones className="w-12 h-12 text-pink-600" />
             </div>
             
             <p className="text-xl text-gray-700 font-medium mb-4">
@@ -388,78 +373,41 @@ export default function ClassroomMusic() {
 
       {/* Search and Filter Controls */}
       <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex gap-4 items-center">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search by title or artist..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="block text-purple-700 font-semibold mb-2 flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                Search Your Music
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Search by title or artist..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-purple-200 focus:border-purple-400"
+                />
+              </div>
             </div>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
-                </option>
-              ))}
-            </select>
+            <div className="md:w-64">
+              <label className="block text-purple-700 font-semibold mb-2">Category Filter</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-purple-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : 
+                     category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Enhanced Search and Filter Section */}
-      <div className="mb-8 p-6 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 rounded-xl shadow-lg border border-purple-200">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <label className="block text-purple-700 font-semibold mb-2 flex items-center gap-2">
-              <Search className="w-4 h-4" />
-              Search Your Music
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="🔍 Search songs by title or artist..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-lg border-purple-300 focus:border-purple-500 focus:ring-purple-500 bg-white/80"
-              />
-            </div>
-          </div>
-          <div className="md:w-64">
-            <label className="block text-purple-700 font-semibold mb-2 flex items-center gap-2">
-              <Music className="w-4 h-4" />
-              Filter by Category
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full h-12 px-4 text-lg border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/80 font-medium"
-            >
-              <option value="all">🎵 All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'cleanup' && '🧹'} 
-                  {category === 'transitions' && '🔄'} 
-                  {category === 'rest' && '😴'} 
-                  {category === 'meals' && '🍽️'} 
-                  {category === 'sharing' && '🤝'} 
-                  {category === 'welcome' && '👋'} 
-                  {category === 'core-values' && '⭐'} 
-                  {category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
 
       {/* Enhanced Tabs for All Music and Favorites */}
       <Tabs defaultValue="all" className="w-full">
