@@ -173,6 +173,9 @@ async function startServer() {
     const __dirname = dirname(__filename);
     app.use('/audio', express.static(path.join(__dirname, "../public/audio")));
     
+    // Serve attached assets (classroom music, etc.)
+    app.use('/attached_assets', express.static(path.join(__dirname, "../attached_assets")));
+    
     // Register all comprehensive routes from routes.ts
     await registerRoutes(app, false); // Enable auth endpoints
     await scheduledTaskService.initialize();
