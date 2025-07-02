@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { MessageCircle, Send, Users, User as UserIcon, Clock, BookOpen, Target, Award, Gift, Star, Trophy, Sparkles } from "lucide-react";
+import { MessageCircle, Send, Users, User as UserIcon, Clock, BookOpen, Target, Award, Gift, Star, Trophy, Sparkles, ArrowLeft } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface DirectorMessage {
@@ -230,9 +231,17 @@ export default function DirectorMessages() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-2 mb-6">
-        <MessageCircle className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Director Communication Hub</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-2">
+          <MessageCircle className="h-6 w-6 text-blue-600" />
+          <h1 className="text-2xl font-bold">Director Communication Hub</h1>
+        </div>
+        <Link href="/dashboard">
+          <Button variant="outline" className="flex items-center space-x-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Return to Dashboard</span>
+          </Button>
+        </Link>
       </div>
 
       <Tabs defaultValue="messages" className="w-full">
