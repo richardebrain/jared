@@ -738,9 +738,24 @@ export default function SchoolSettingsPage() {
                                   const result = await response.json();
                                   handleInputChange('logoUrl', result.logoUrl);
                                   
+                                  // Automatically save the logo URL to the database
+                                  const updatedFormData = { ...formData, logoUrl: result.logoUrl };
+                                  updateSchoolMutation.mutate(updatedFormData, {
+                                    onSuccess: () => {
+                                      // Clear the hasUnsavedChanges flag since we've saved
+                                      setHasUnsavedChanges(false);
+                                      // Refetch the school data to ensure we have the latest logo URL
+                                      refetch();
+                                      // Also invalidate the Header's school info cache so logo updates immediately
+                                      queryClient.invalidateQueries({ 
+                                        queryKey: [`/api/school/info/${user?.schoolId || 1}`] 
+                                      });
+                                    }
+                                  });
+                                  
                                   toast({
-                                    title: "Logo Uploaded",
-                                    description: "Your logo has been uploaded successfully.",
+                                    title: "Logo Uploaded & Saved",
+                                    description: "Your logo has been uploaded and saved successfully.",
                                   });
                                 } catch (error) {
                                   console.error('Logo upload error:', error);
