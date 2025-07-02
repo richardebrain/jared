@@ -722,11 +722,32 @@ export const songsRelations = relations(songs, ({ one }) => ({
 export type Song = typeof songs.$inferSelect;
 export type InsertSong = z.infer<typeof insertSongSchema>;
 
-// Music favorites schema
+// Classroom music library - pre-loaded songs for teachers
+export const classroomSongs = pgTable("classroom_songs", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  duration: integer("duration").notNull(), // in seconds
+  audioUrl: text("audio_url").notNull(),
+  category: text("category").notNull(), // cleanup, transitions, rest, meals, sharing, welcome, core-values
+  description: text("description"),
+  schoolId: integer("school_id").references(() => schools.id), // null means available to all schools
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertClassroomSongSchema = createInsertSchema(classroomSongs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ClassroomSong = typeof classroomSongs.$inferSelect;
+export type InsertClassroomSong = z.infer<typeof insertClassroomSongSchema>;
+
+// Music favorites schema - now references classroom songs
 export const musicFavorites = pgTable("music_favorites", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  songId: integer("song_id").notNull().references(() => songs.id),
+  songId: integer("song_id").notNull().references(() => classroomSongs.id), // Changed to reference classroom_songs
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -735,9 +756,9 @@ export const musicFavoritesRelations = relations(musicFavorites, ({ one }) => ({
     fields: [musicFavorites.userId],
     references: [users.id]
   }),
-  song: one(songs, {
+  song: one(classroomSongs, {
     fields: [musicFavorites.songId],
-    references: [songs.id]
+    references: [classroomSongs.id]
   })
 }));
 

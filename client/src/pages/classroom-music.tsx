@@ -195,43 +195,57 @@ export default function ClassroomMusic() {
     Array.isArray(favorites) && favorites.some((fav: Favorite) => fav.songId === songId);
 
   const SongCard = ({ song }: { song: Song }) => (
-    <Card className="mb-4 hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
+    <Card className="mb-4 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-r from-white via-purple-50 to-pink-50 border-purple-200 hover:border-purple-400">
+      <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg">{song.title}</h3>
-            <p className="text-gray-600">{song.artist}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary">{song.category}</Badge>
-              <span className="text-sm text-gray-500 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+            <h3 className="font-bold text-xl text-purple-800 mb-1">{song.title}</h3>
+            <p className="text-purple-600 font-medium">{song.artist}</p>
+            <div className="flex items-center gap-3 mt-3">
+              <Badge 
+                variant="secondary" 
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold px-3 py-1"
+              >
+                {song.category === 'cleanup' && '🧹 '} 
+                {song.category === 'transitions' && '🔄 '} 
+                {song.category === 'rest' && '😴 '} 
+                {song.category === 'meals' && '🍽️ '} 
+                {song.category === 'sharing' && '🤝 '} 
+                {song.category === 'welcome' && '👋 '} 
+                {song.category === 'core-values' && '⭐ '} 
+                {song.category.charAt(0).toUpperCase() + song.category.slice(1).replace('-', ' ')}
+              </Badge>
+              <span className="text-sm text-purple-600 flex items-center gap-1 font-medium">
+                <Clock className="w-4 h-4" />
                 {formatTime(song.duration)}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
-              size="sm"
+              size="lg"
               onClick={() => toggleFavoriteMutation.mutate(song.id)}
               disabled={toggleFavoriteMutation.isPending}
+              className="hover:bg-pink-100 transition-colors"
             >
               {isFavorite(song.id) ? (
-                <Heart className="w-4 h-4 text-red-500 fill-current" />
+                <Heart className="w-6 h-6 text-red-500 fill-current animate-pulse" />
               ) : (
-                <HeartOff className="w-4 h-4" />
+                <HeartOff className="w-6 h-6 text-gray-400 hover:text-red-400" />
               )}
             </Button>
             <Button
               onClick={() => handlePlayPause(song)}
-              className="bg-blue-600 hover:bg-blue-700"
+              size="lg"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-6 py-3 shadow-lg hover:shadow-xl transition-all"
             >
               {currentSong?.id === song.id && isPlaying ? (
-                <Pause className="w-4 h-4 mr-1" />
+                <Pause className="w-5 h-5 mr-2" />
               ) : (
-                <Play className="w-4 h-4 mr-1" />
+                <Play className="w-5 h-5 mr-2" />
               )}
-              {currentSong?.id === song.id && isPlaying ? 'Pause' : 'Play'}
+              {currentSong?.id === song.id && isPlaying ? '⏸️ Pause' : '▶️ Play'}
             </Button>
           </div>
         </div>
@@ -400,16 +414,69 @@ export default function ClassroomMusic() {
         </CardContent>
       </Card>
 
-      {/* Tabs for All Music and Favorites */}
+      {/* Enhanced Search and Filter Section */}
+      <div className="mb-8 p-6 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 rounded-xl shadow-lg border border-purple-200">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <label className="block text-purple-700 font-semibold mb-2 flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              Search Your Music
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400 w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="🔍 Search songs by title or artist..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 text-lg border-purple-300 focus:border-purple-500 focus:ring-purple-500 bg-white/80"
+              />
+            </div>
+          </div>
+          <div className="md:w-64">
+            <label className="block text-purple-700 font-semibold mb-2 flex items-center gap-2">
+              <Music className="w-4 h-4" />
+              Filter by Category
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full h-12 px-4 text-lg border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/80 font-medium"
+            >
+              <option value="all">🎵 All Categories</option>
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category === 'cleanup' && '🧹'} 
+                  {category === 'transitions' && '🔄'} 
+                  {category === 'rest' && '😴'} 
+                  {category === 'meals' && '🍽️'} 
+                  {category === 'sharing' && '🤝'} 
+                  {category === 'welcome' && '👋'} 
+                  {category === 'core-values' && '⭐'} 
+                  {category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Tabs for All Music and Favorites */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="all" className="flex items-center gap-2">
-            <Music className="w-4 h-4" />
-            All Music ({filteredSongs.length})
+        <TabsList className="grid w-full grid-cols-2 h-14 bg-gradient-to-r from-purple-200 to-pink-200 p-1 rounded-xl">
+          <TabsTrigger 
+            value="all" 
+            className="flex items-center gap-2 h-12 text-lg font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+          >
+            <Music className="w-5 h-5" />
+            🎵 All Music ({filteredSongs.length})
           </TabsTrigger>
-          <TabsTrigger value="favorites" className="flex items-center gap-2">
-            <Heart className="w-4 h-4" />
-            Favorites ({favoriteSongs.length})
+          <TabsTrigger 
+            value="favorites" 
+            className="flex items-center gap-2 h-12 text-lg font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+          >
+            <Heart className="w-5 h-5" />
+            ❤️ Favorites ({favoriteSongs.length})
           </TabsTrigger>
         </TabsList>
 
