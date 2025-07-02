@@ -80,11 +80,22 @@ export default function AdminAssignModulesPage() {
       deadline?: string;
       priority: string;
     }) => {
-      const response = await apiRequest('POST', '/api/admin/assign-modules', assignmentData);
-      if (!response.ok) {
-        throw new Error('Failed to assign modules');
-      }
-      return response.json();
+      const payload = {
+        userIds: assignmentData.teacherIds,
+        moduleId: assignmentData.moduleId,
+        dueDate: assignmentData.deadline,
+        priority: assignmentData.priority,
+        isBlocking: true,
+        assignmentMessage: `You have been assigned a new training module. Please complete it as soon as possible.`
+      };
+      
+      return apiRequest('/api/training-assignments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
     },
     onSuccess: () => {
       toast({
