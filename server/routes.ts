@@ -1570,6 +1570,38 @@ Continue for all 5 questions...
         const nativeLanguage = req.body.nativeLanguage?.trim() || "English";
         const timeZone = req.body.timeZone?.trim() || "UTC-05:00";
 
+        const token = req.body.token?.trim();
+        let schoolId = req.body.schoolId || 1; // Default to Raising Arizona if no school specified
+        let inviteId = null;
+        if(!token){
+          return res.status(400).json({ message: "Invitation token is required." });
+        }
+
+        if (token) {
+          // Find the invitation
+          const [invitation] = await db.select()
+            .from(teacherInvitations)
+            .where(
+              and(
+                eq(teacherInvitations.invitationToken, token),
+                eq(teacherInvitations.email, email)
+              )
+            );
+
+          if (!invitation) {
+            return res.status(400).json({ message: "Invitation not found or invalid." });
+          }
+          if (new Date() > invitation.expiresAt) {
+            return res.status(400).json({ message: "Invitation has expired." });
+          }
+          if (invitation.status === "accepted") {
+            return res.status(400).json({ message: "Invitation has already been accepted." });
+          }
+          // Use schoolId from invitation
+          schoolId = invitation.schoolId;
+          inviteId = invitation.id;
+        }
+
         // Use email as username for all new registrations
         const username = email;
 
