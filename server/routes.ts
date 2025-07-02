@@ -10495,7 +10495,7 @@ Please provide empathy coaching guidance to help this director implement the man
       console.log(`Executing database update for school ${schoolId}:`, updateObject);
       
       // Simple database update without timeout wrapper to avoid race conditions
-      const result = await db.update(schools).set(updateObject).where(eq(schools.id, schoolId));
+      const result = await db.update(schools).set(updateObject).where(eq(schools.id, schoolId)).execute();
       
       console.log(`School settings updated successfully for school ${schoolId}`, result);
       
