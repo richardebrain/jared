@@ -275,7 +275,7 @@ export default function ClassroomMusic() {
           {/* Return to Dashboard Button */}
           <Button 
             variant="outline" 
-            className="absolute left-0 top-0 bg-white/80 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg"
+            className="absolute left-0 top-0 z-50 bg-white/90 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg cursor-pointer"
             onClick={() => setLocation('/dashboard')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
