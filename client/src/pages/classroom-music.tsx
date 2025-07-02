@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'wouter';
 import { 
   Play, 
   Pause, 
@@ -18,7 +19,12 @@ import {
   Volume2,
   VolumeX,
   SkipBack,
-  SkipForward
+  SkipForward,
+  Home,
+  ArrowLeft,
+  Sparkles,
+  RadioIcon,
+  Headphones
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -234,27 +240,83 @@ export default function ClassroomMusic() {
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Music className="w-8 h-8 text-blue-600" />
-          Classroom Music
-        </h1>
-        <p className="text-gray-600">
-          Discover and play music for your classroom activities, transitions, and quiet time.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <div className="container mx-auto p-6 max-w-6xl">
+        {/* Fun Musical Header */}
+        <div className="mb-8 text-center relative">
+          {/* Return to Dashboard Button */}
+          <Link href="/">
+            <Button 
+              variant="outline" 
+              className="absolute left-0 top-0 bg-white/80 hover:bg-white border-purple-200 text-purple-700 hover:text-purple-800 shadow-lg"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          
+          {/* Animated Musical Header */}
+          <div className="relative">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="animate-bounce">
+                <Music className="w-12 h-12 text-purple-600" />
+              </div>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                🎵 Classroom Music Studio 🎵
+              </h1>
+              <div className="animate-bounce delay-300">
+                <Headphones className="w-12 h-12 text-pink-600" />
+              </div>
+            </div>
+            
+            {/* Sparkle Effects */}
+            <div className="absolute -top-2 left-1/4 animate-pulse">
+              <Sparkles className="w-6 h-6 text-yellow-400" />
+            </div>
+            <div className="absolute top-4 right-1/4 animate-pulse delay-500">
+              <Sparkles className="w-8 h-8 text-purple-400" />
+            </div>
+            <div className="absolute -top-1 right-1/3 animate-pulse delay-1000">
+              <Sparkles className="w-5 h-5 text-pink-400" />
+            </div>
+            
+            <p className="text-xl text-gray-700 font-medium mb-4">
+              🎶 Your magical music collection for transitions, activities & classroom fun! 🎶
+            </p>
+            
+            {/* Fun Musical Stats */}
+            <div className="flex justify-center gap-6 mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <RadioIcon className="w-4 h-4 inline mr-2" />
+                {Array.isArray(songs) ? songs.length : 0} Songs Available
+              </div>
+              <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <Heart className="w-4 h-4 inline mr-2" />
+                {Array.isArray(favorites) ? favorites.length : 0} Favorites
+              </div>
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <Volume2 className="w-4 h-4 inline mr-2" />
+                Ready to Play!
+              </div>
+            </div>
+          </div>
+        </div>
 
       {/* Audio Player */}
       <audio ref={audioRef} />
 
-      {/* Now Playing Card */}
+      {/* Now Playing Card - Enhanced */}
       {currentSong && (
-        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Music className="w-5 h-5" />
-              Now Playing
+        <Card className="mb-6 bg-gradient-to-r from-violet-100 via-purple-100 to-fuchsia-100 border-purple-300 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
+            <CardTitle className="text-xl flex items-center gap-3 font-bold">
+              <div className="animate-spin">
+                <Music className="w-6 h-6" />
+              </div>
+              🎵 Now Playing 🎵
+              <div className="animate-pulse">
+                <Volume2 className="w-6 h-6" />
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -391,8 +453,7 @@ export default function ClassroomMusic() {
           )}
         </TabsContent>
       </Tabs>
-
-
+      </div>
     </div>
   );
 }
