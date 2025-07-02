@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { ModuleIndexingService } from "./moduleIndexingService";
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY 
@@ -92,9 +93,13 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
         };
       }
 
+      // Search for relevant modules based on the query
+      const relevantModules = ModuleIndexingService.findRelevantModules(userQuery, 3);
+      const moduleRecommendations = ModuleIndexingService.formatModuleRecommendations(relevantModules);
+
       // Check if OpenAI API key is available
       if (!process.env.OPENAI_API_KEY) {
-        return this.getFallbackResponse(userQuery, moduleContext);
+        return this.getFallbackResponse(userQuery, moduleContext, moduleRecommendations);
       }
 
       // Generate context-aware response
@@ -102,10 +107,15 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
         ? `The teacher is currently working on: ${moduleContext}. Please provide relevant guidance related to this topic when appropriate.`
         : '';
 
+      // Include module recommendations in the system prompt
+      const moduleContextPrompt = relevantModules.length > 0 
+        ? `\n\nIMPORTANT: Based on the user's question, I found ${relevantModules.length} relevant training modules in our platform. Include these module recommendations at the end of your response if they're relevant to the user's question: ${moduleRecommendations}`
+        : '';
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
-          { role: "system", content: `${this.SYSTEM_PROMPT}\n\n${contextPrompt}` },
+          { role: "system", content: `${this.SYSTEM_PROMPT}\n\n${contextPrompt}${moduleContextPrompt}` },
           { role: "user", content: userQuery }
         ],
         max_tokens: 500,
@@ -155,7 +165,7 @@ Respond as AI Beary with helpful, practical advice for preschool teachers.`;
     }
   }
 
-  private static getFallbackResponse(userQuery: string, moduleContext?: string): BearyResponse {
+  private static getFallbackResponse(userQuery: string, moduleContext?: string, moduleRecommendations?: string): BearyResponse {
     const category = this.categorizeQuery(userQuery);
     let message = "🐻 **AI Beary says:** ";
     
