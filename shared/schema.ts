@@ -722,6 +722,27 @@ export const songsRelations = relations(songs, ({ one }) => ({
 export type Song = typeof songs.$inferSelect;
 export type InsertSong = z.infer<typeof insertSongSchema>;
 
+// Music favorites schema
+export const musicFavorites = pgTable("music_favorites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  songId: integer("song_id").notNull().references(() => songs.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const musicFavoritesRelations = relations(musicFavorites, ({ one }) => ({
+  user: one(users, {
+    fields: [musicFavorites.userId],
+    references: [users.id]
+  }),
+  song: one(songs, {
+    fields: [musicFavorites.songId],
+    references: [songs.id]
+  })
+}));
+
+export type MusicFavorite = typeof musicFavorites.$inferSelect;
+
 // Newsletter schema
 export const newsletters = pgTable("newsletters", {
   id: serial("id").primaryKey(),

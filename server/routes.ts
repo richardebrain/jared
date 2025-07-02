@@ -11048,6 +11048,78 @@ Respond as a wise, experienced coach who understands both the challenges of mana
     }
   });
 
+  // Music favorites API endpoints
+  // Get user's music favorites
+  app.get("/api/music/favorites", requireAuth, async (req, res) => {
+    try {
+      const { userId } = req.session;
+      
+      const favorites = await db.execute(sql`
+        SELECT f.id, f.song_id as "songId", s.*
+        FROM music_favorites f
+        JOIN songs s ON f.song_id = s.id
+        WHERE f.user_id = ${userId}
+        ORDER BY f.created_at DESC
+      `);
+      
+      res.json(favorites.rows);
+    } catch (error) {
+      console.error("Error fetching music favorites:", error);
+      res.status(500).json({ error: "Failed to fetch favorites" });
+    }
+  });
+
+  // Add song to favorites
+  app.post("/api/music/favorites", requireAuth, async (req, res) => {
+    try {
+      const { userId } = req.session;
+      const { songId } = req.body;
+      
+      if (!songId) {
+        return res.status(400).json({ error: "Song ID is required" });
+      }
+      
+      // Check if already favorited
+      const existing = await db.execute(sql`
+        SELECT id FROM music_favorites 
+        WHERE user_id = ${userId} AND song_id = ${songId}
+      `);
+      
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ error: "Song already in favorites" });
+      }
+      
+      // Add to favorites
+      await db.execute(sql`
+        INSERT INTO music_favorites (user_id, song_id, created_at)
+        VALUES (${userId}, ${songId}, NOW())
+      `);
+      
+      res.json({ success: true, message: "Added to favorites" });
+    } catch (error) {
+      console.error("Error adding to favorites:", error);
+      res.status(500).json({ error: "Failed to add to favorites" });
+    }
+  });
+
+  // Remove song from favorites
+  app.delete("/api/music/favorites/:songId", requireAuth, async (req, res) => {
+    try {
+      const { userId } = req.session;
+      const songId = parseInt(req.params.songId);
+      
+      await db.execute(sql`
+        DELETE FROM music_favorites 
+        WHERE user_id = ${userId} AND song_id = ${songId}
+      `);
+      
+      res.json({ success: true, message: "Removed from favorites" });
+    } catch (error) {
+      console.error("Error removing from favorites:", error);
+      res.status(500).json({ error: "Failed to remove from favorites" });
+    }
+  });
+
   // Update child sharing permissions - only creator can change sharing
   app.patch("/api/children/:id/sharing", requireAuth, async (req, res) => {
     try {
