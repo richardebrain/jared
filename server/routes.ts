@@ -12270,20 +12270,36 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   // Create new training assignment (admin only)
   app.post("/api/training-assignments", requireAuth, async (req, res) => {
     try {
+      console.log("Training assignment request body:", JSON.stringify(req.body, null, 2));
+      
       const assignedBy = req.session.userId as number;
       const currentUser = await storage.getUser(assignedBy);
       
+      console.log("Current user:", currentUser?.username, "isAdmin:", currentUser?.isAdmin, "isSchoolAdmin:", currentUser?.isSchoolAdmin);
+      
       if (!currentUser || (!currentUser.isAdmin && !currentUser.isSchoolAdmin)) {
+        console.log("Admin access denied for user:", currentUser?.username);
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { userIds, moduleId, dueDate, priority, assignmentMessage, isBlocking } = req.body;
 
+      console.log("Parsed assignment data:", {
+        userIds,
+        moduleId,
+        dueDate,
+        priority,
+        assignmentMessage,
+        isBlocking
+      });
+
       if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        console.log("Invalid userIds:", userIds);
         return res.status(400).json({ message: "User IDs array is required" });
       }
 
       if (!moduleId) {
+        console.log("Missing moduleId");
         return res.status(400).json({ message: "Module ID is required" });
       }
 
