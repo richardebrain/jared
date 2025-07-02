@@ -11056,7 +11056,16 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       
       // Get all classroom songs (global songs + school-specific songs)
       const songs = await db.execute(sql`
-        SELECT cs.* 
+        SELECT 
+          cs.id,
+          cs.title,
+          cs.artist,
+          cs.duration,
+          cs.audio_url as "audioUrl",
+          cs.category,
+          cs.description,
+          cs.school_id as "schoolId",
+          cs.created_at as "createdAt"
         FROM classroom_songs cs
         WHERE cs.school_id IS NULL OR cs.school_id = ${user.schoolId}
         ORDER BY cs.category, cs.title
@@ -11100,7 +11109,18 @@ Respond as a wise, experienced coach who understands both the challenges of mana
       const userId = req.session.userId;
       
       const favorites = await db.execute(sql`
-        SELECT f.id, f.song_id as "songId", cs.*
+        SELECT 
+          f.id, 
+          f.song_id as "songId", 
+          cs.id as "id",
+          cs.title,
+          cs.artist,
+          cs.duration,
+          cs.audio_url as "audioUrl",
+          cs.category,
+          cs.description,
+          cs.school_id as "schoolId",
+          cs.created_at as "createdAt"
         FROM music_favorites f
         JOIN classroom_songs cs ON f.song_id = cs.id
         WHERE f.user_id = ${userId}
