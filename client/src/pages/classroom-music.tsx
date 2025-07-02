@@ -79,7 +79,7 @@ export default function ClassroomMusic() {
       } else {
         return apiRequest('/api/music/favorites', { 
           method: 'POST', 
-          body: { songId } 
+          data: { songId } 
         });
       }
     },
