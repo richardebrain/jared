@@ -10514,6 +10514,36 @@ Please provide empathy coaching guidance to help this director implement the man
     }
   });
 
+  // School logo upload endpoint
+  app.post("/api/school/upload-logo", requireAuth, logoUpload.single('logo'), async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin && !user?.isSchoolAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Return the URL path that can be used to access the uploaded file
+      const logoUrl = `/uploads/school-logos/${req.file.filename}`;
+      
+      console.log(`Logo uploaded for school ${user.schoolId}: ${logoUrl}`);
+      
+      res.json({ 
+        logoUrl: logoUrl,
+        message: "Logo uploaded successfully",
+        filename: req.file.filename
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      res.status(500).json({ message: "Failed to upload logo" });
+    }
+  });
+
   // Seussifier endpoint for transforming text into Dr. Seuss style poems
   app.post("/api/ai/suessify", async (req, res) => {
     try {
@@ -12365,6 +12395,18 @@ Respond as a wise, experienced coach who understands both the challenges of mana
 
       if (!assignment.rows.length) {
         return res.status(404).json({ message: "Assignment not found" });
+      }
+
+      const moduleId = assignment.rows[0].module_id;
+
+      // Check if user has started the module (has progress record)
+      const userProgress = await storage.getUserProgressForModule(userId, moduleId);
+      
+      if (!userProgress || userProgress.progress === 0) {
+        return res.status(400).json({ 
+          message: "You must start the training module before marking it complete",
+          requiresStart: true
+        });
       }
 
       // Mark as completed

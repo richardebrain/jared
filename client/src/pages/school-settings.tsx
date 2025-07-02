@@ -708,7 +708,7 @@ export default function SchoolSettingsPage() {
                             id="logoFile"
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
                                 // Check file size (2MB limit)
@@ -720,13 +720,36 @@ export default function SchoolSettingsPage() {
                                   });
                                   return;
                                 }
-                                // Convert file to base64
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const result = event.target?.result as string;
-                                  handleInputChange('logoUrl', result);
-                                };
-                                reader.readAsDataURL(file);
+                                
+                                // Upload the file to the server
+                                try {
+                                  const formData = new FormData();
+                                  formData.append('logo', file);
+                                  
+                                  const response = await fetch('/api/school/upload-logo', {
+                                    method: 'POST',
+                                    body: formData,
+                                  });
+                                  
+                                  if (!response.ok) {
+                                    throw new Error('Upload failed');
+                                  }
+                                  
+                                  const result = await response.json();
+                                  handleInputChange('logoUrl', result.logoUrl);
+                                  
+                                  toast({
+                                    title: "Logo Uploaded",
+                                    description: "Your logo has been uploaded successfully.",
+                                  });
+                                } catch (error) {
+                                  console.error('Logo upload error:', error);
+                                  toast({
+                                    title: "Upload Failed",
+                                    description: "Failed to upload logo. Please try again.",
+                                    variant: "destructive",
+                                  });
+                                }
                               }
                             }}
                             className="flex-1"

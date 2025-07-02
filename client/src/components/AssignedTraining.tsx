@@ -47,9 +47,12 @@ export default function AssignedTraining() {
       });
     },
     onError: (error: any) => {
+      const isStartRequired = error?.message?.includes("must start the training") || error?.requiresStart;
       toast({
-        title: "Error",
-        description: error.message || "Failed to complete assignment",
+        title: isStartRequired ? "Training Not Started" : "Error",
+        description: isStartRequired 
+          ? "Please start the training module first, then you can mark it complete."
+          : error.message || "Failed to complete assignment",
         variant: "destructive",
       });
     },
