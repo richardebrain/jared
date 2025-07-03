@@ -723,12 +723,12 @@ export default function SchoolSettingsPage() {
                                 
                                 // Upload the file to the server
                                 try {
-                                  const formData = new FormData();
-                                  formData.append('logo', file);
+                                  const uploadFormData = new FormData();
+                                  uploadFormData.append('logo', file);
                                   
                                   const response = await fetch('/api/school/upload-logo', {
                                     method: 'POST',
-                                    body: formData,
+                                    body: uploadFormData,
                                   });
                                   
                                   if (!response.ok) {
