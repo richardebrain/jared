@@ -10362,7 +10362,7 @@ Please provide empathy coaching guidance to help this director implement the man
       res.json({
         id: school.id,
         name: school.name,
-        logoUrl: school.logo_url || "/raising-arizona-logo.jpg"
+        logoUrl: school.logo_url || "/3d-bear-logo.svg"
       });
     } catch (error) {
       console.error("Error fetching school info:", error);
@@ -10458,8 +10458,10 @@ Please provide empathy coaching guidance to help this director implement the man
       const updateData = req.body;
       const schoolId = user.schoolId || 1;
       
+      console.log(`=== SCHOOL UPDATE REQUEST ===`);
       console.log(`Updating school ${schoolId} with data:`, updateData);
       console.log('Logo URL in received data:', updateData.logoUrl);
+      console.log('Raw request body:', req.body);
 
       // Build update object with only provided fields
       const updateObject: any = {};

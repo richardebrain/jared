@@ -82,8 +82,13 @@ export default function Header() {
   const { data: schoolData } = useQuery<{id: number, name: string, logoUrl: string}>({
     queryKey: [`/api/school/info/${user?.schoolId || 1}`],
     enabled: !!user, // Enable for all authenticated users
-    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    staleTime: 0, // Temporarily disable cache to test logo update
   });
+
+  // Temporary: Force cache invalidation to test logo update
+  if (user?.schoolId) {
+    queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
+  }
 
   // Fetch unread messages count for notification badge - reduced frequency
   const { data: unreadMessages } = useQuery({
