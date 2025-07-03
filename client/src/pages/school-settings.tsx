@@ -76,7 +76,7 @@ export default function SchoolSettingsPage() {
   const [emails, setEmails] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  const { data: school, isLoading } = useQuery({
+  const { data: school, isLoading, refetch: refetchSchool } = useQuery({
     queryKey: ['/api/school/settings'],
   });
 
@@ -745,7 +745,7 @@ export default function SchoolSettingsPage() {
                                       // Clear the hasUnsavedChanges flag since we've saved
                                       setHasUnsavedChanges(false);
                                       // Refetch the school data to ensure we have the latest logo URL
-                                      refetch();
+                                      refetchSchool();
                                       // Also invalidate the Header's school info cache so logo updates immediately
                                       queryClient.invalidateQueries({ 
                                         queryKey: [`/api/school/info/${user?.schoolId || 1}`] 
