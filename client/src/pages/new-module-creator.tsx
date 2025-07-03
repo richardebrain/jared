@@ -213,8 +213,8 @@ export default function NewModuleCreator() {
 
   const handleEditModule = (moduleId: number) => {
     console.log(`[EDIT CLICK] Navigating to edit module ${moduleId}`);
-    // Navigate to the comprehensive module creator in edit mode
-    setLocation(`/comprehensive-module-creator?edit=${moduleId}`);
+    // Navigate to the manual module creator in edit mode
+    setLocation(`/module-creator/manual?edit=${moduleId}`);
   };
 
   const handleViewModule = (moduleId: number) => {

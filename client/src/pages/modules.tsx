@@ -167,7 +167,7 @@ export default function AllModules() {
 
   // Handle module actions
   const handleEditModule = (moduleId: number) => {
-    setLocation(`/comprehensive-module-creator?edit=${moduleId}`);
+    setLocation(`/module-creator/manual?edit=${moduleId}`);
   };
 
   const handleViewModule = (moduleId: number) => {
