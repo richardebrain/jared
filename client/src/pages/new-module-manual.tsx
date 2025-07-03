@@ -288,14 +288,8 @@ export default function NewModuleManual() {
         // Update existing module
         response = await apiRequest('PATCH', `/api/modules/${editModuleId}`, moduleData);
       } else {
-        // Create new module
-        response = await fetch('/api/modules', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(moduleData)
-        });
-        
-        if (!response.ok) throw new Error('Failed to save module');
+        // Create new module using apiRequest for proper authentication
+        response = await apiRequest('POST', '/api/modules', moduleData);
       }
 
       toast({
