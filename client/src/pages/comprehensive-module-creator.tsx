@@ -159,18 +159,37 @@ export default function ComprehensiveModuleCreator() {
     enabled: !!editModuleId && isEditMode,
     retry: 3,
     retryDelay: 1000,
-    onSuccess: (data) => {
-      console.log('[EDIT MODE] Module data fetched successfully:', data);
-    },
-    onError: (error) => {
-      console.error('[EDIT MODE] Error fetching module data:', error);
+  });
+
+  // Debug React Query state
+  useEffect(() => {
+    console.log('[DEBUG] React Query State:', {
+      editModuleId,
+      isEditMode,
+      moduleLoading,
+      existingModule: !!existingModule,
+      moduleError: !!moduleError,
+      queryEnabled: !!editModuleId && isEditMode
+    });
+  }, [editModuleId, isEditMode, moduleLoading, existingModule, moduleError]);
+
+  // Handle query success/error in separate useEffect
+  useEffect(() => {
+    if (existingModule && isEditMode) {
+      console.log('[EDIT MODE] Module data fetched successfully:', existingModule);
+    }
+  }, [existingModule, isEditMode]);
+
+  useEffect(() => {
+    if (moduleError && isEditMode) {
+      console.error('[EDIT MODE] Error fetching module data:', moduleError);
       toast({
         title: "Error Loading Module",
         description: "Failed to load module data for editing. Please try again.",
         variant: "destructive",
       });
     }
-  });
+  }, [moduleError, isEditMode, toast]);
 
   // Extract URL parameters for AI-generated module data and edit mode
   useEffect(() => {
