@@ -115,16 +115,9 @@ export default function SchoolSettingsPage() {
       // Update local formData to reflect the saved changes FIRST
       setFormData(prev => ({ ...prev, ...updatedData }));
       
-      // Force invalidate ALL queries to ensure fresh data everywhere
-      await queryClient.invalidateQueries();
-      
-      // Also specifically clear these query caches
-      queryClient.removeQueries({ queryKey: ['/api/school/settings'] });
-      queryClient.removeQueries({ queryKey: ['/api/school/info'] });
-      
+      // Only invalidate specific Header queries to update logo display
       if (user?.schoolId) {
-        queryClient.removeQueries({ queryKey: ['/api/school/info', user.schoolId] });
-        queryClient.removeQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
       }
       
       // Clear unsaved changes flag AFTER all cache invalidation is complete
@@ -744,9 +737,9 @@ export default function SchoolSettingsPage() {
                                     onSuccess: () => {
                                       // Clear the hasUnsavedChanges flag since we've saved
                                       setHasUnsavedChanges(false);
-                                      // Refetch the school data to ensure we have the latest logo URL
-                                      refetchSchool();
-                                      // Also invalidate the Header's school info cache so logo updates immediately
+                                      // Update form data immediately to reflect the change
+                                      setFormData(prev => ({ ...prev, logoUrl: result.logoUrl }));
+                                      // Only invalidate Header's school info cache so logo updates immediately
                                       queryClient.invalidateQueries({ 
                                         queryKey: [`/api/school/info/${user?.schoolId || 1}`] 
                                       });
