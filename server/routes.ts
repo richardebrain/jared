@@ -355,7 +355,7 @@ import {
   commentVotes,
   discussionComments,
   videoRatings,
-  userCompletedAssessments,
+
   discussionThreads,
   assessmentRetakePermissions,
   dailyLogins,

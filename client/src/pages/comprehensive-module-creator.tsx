@@ -156,7 +156,20 @@ export default function ComprehensiveModuleCreator() {
   // Fetch existing module data for edit mode
   const { data: existingModule, isLoading: moduleLoading, error: moduleError } = useQuery({
     queryKey: [`/api/modules/${editModuleId}`],
-    enabled: !!editModuleId && isEditMode
+    enabled: !!editModuleId && isEditMode,
+    retry: 3,
+    retryDelay: 1000,
+    onSuccess: (data) => {
+      console.log('[EDIT MODE] Module data fetched successfully:', data);
+    },
+    onError: (error) => {
+      console.error('[EDIT MODE] Error fetching module data:', error);
+      toast({
+        title: "Error Loading Module",
+        description: "Failed to load module data for editing. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   // Extract URL parameters for AI-generated module data and edit mode
@@ -257,13 +270,18 @@ export default function ComprehensiveModuleCreator() {
       setCreationMethod('manual');
       setAiWorkflowStep('section-builder');
       
+      toast({
+        title: "Module Loaded for Editing",
+        description: `${existingModule.title} is ready for editing with ${sectionsData.length} sections.`,
+      });
+      
       console.log('[EDIT MODE] Module data loaded successfully', {
         moduleId: existingModule.id,
         title: existingModule.title,
         sectionsCount: sectionsData.length
       });
     }
-  }, [existingModule, isEditMode]);
+  }, [existingModule, isEditMode, toast]);
 
   // Handle draft management and other workflow states
   const [draftSaveInterval, setDraftSaveInterval] = useState<NodeJS.Timeout | null>(null);

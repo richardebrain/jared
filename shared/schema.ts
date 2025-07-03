@@ -36,9 +36,9 @@ export const schools = pgTable("schools", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertSchoolSchema = createInsertSchema(schools).omit({
-  id: true,
-  createdAt: true,
+export const insertSchoolSchema = createInsertSchema(schools, {
+  id: z.never(),
+  createdAt: z.never(),
 });
 
 // User schema  
