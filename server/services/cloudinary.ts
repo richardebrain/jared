@@ -3,21 +3,12 @@ import multer from 'multer';
 import { Readable } from 'stream';
 
 // Configure Cloudinary with environment variables
-const CLOUDINARY_CLOUD_NAME  ="dozigrsno"
-const CLOUDINARY_API_KEY='647633784352131'
-const CLOUDINARY_API_SECRET ='ZkWfX2H1ynEOXoNmBMPWev5IPCQ'
-const url="CLOUDINARY_URL=cloudinary://647633784352131:ZkWfX2H1ynEOXoNmBMPWev5IPCQ@dozigrsno"
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-//   secure:true
-// });/api/school/settings
+// Note: Current environment variables appear to be swapped, using correct mapping
 cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
-  secure:true
+  cloud_name: process.env.CLOUDINARY_API_KEY, // Currently contains "dozigrsno"
+  api_key: process.env.CLOUDINARY_API_SECRET, // Currently contains "647633784352131"
+  api_secret: process.env.CLOUDINARY_CLOUD_NAME, // Currently contains "ZkWfX2H1ynEOXoNmBMPWev5IPCQ"
+  secure: true
 });
 
 
