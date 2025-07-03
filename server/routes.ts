@@ -10359,11 +10359,16 @@ Please provide empathy coaching guidance to help this director implement the man
         return res.status(404).json({ message: "School not found" });
       }
 
-      res.json({
+      const result = {
         id: school.id,
         name: school.name,
         logoUrl: school.logo_url || "/3d-bear-logo.svg"
-      });
+      };
+      
+      console.log('School info API returning:', result);
+      console.log('Database logo_url value:', school.logo_url);
+      
+      res.json(result);
     } catch (error) {
       console.error("Error fetching school info:", error);
       res.status(500).json({ message: "Internal server error" });
