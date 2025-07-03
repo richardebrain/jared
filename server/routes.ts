@@ -3786,21 +3786,30 @@ Continue for all 5 questions...
         title,
         description,
         content,
+        editableData,
         category,
         difficulty,
         duration,
         pointValue,
+        isSharedToCommunity
       } = req.body;
 
-      const updatedModule = await storage.updateModule(moduleId, {
+      // Ensure we have both content and editableData for dual storage
+      const moduleData = {
         title,
         description,
         content,
+        editableData: editableData || (content ? { sections: typeof content === 'string' ? JSON.parse(content) : content } : null),
         category,
         difficulty,
         duration: duration || 10,
         pointValue: pointValue || 100,
-      });
+        isSharedToCommunity
+      };
+
+      console.log('[MODULE UPDATE] Updating module with editableData:', moduleData);
+
+      const updatedModule = await storage.updateModule(moduleId, moduleData);
 
       res.json(updatedModule);
     } catch (error) {
@@ -4125,11 +4134,11 @@ Continue for all 5 questions...
         const result = await db.execute(sql`
         INSERT INTO learning_modules (
           title, description, category, difficulty, duration, point_value, 
-          content, school_id, creator_id, is_visible, featured,image_url,quiz,is_shared_to_community
+          content, editable_data, school_id, creator_id, is_visible, featured,image_url,quiz,is_shared_to_community
         ) VALUES (
           ${title}, ${description}, ${category}, 
           ${difficulty}, ${parseInt(estimatedTime)}, ${pointValue},
-          ${JSON.stringify(sections)}, ${user?.schoolId || 1}, ${userId}, ${true}, 
+          ${JSON.stringify({ sections })}, ${JSON.stringify({ sections })}, ${user?.schoolId || 1}, ${userId}, ${true}, 
           ${false}, ${null}, ${null}, ${shareWithCommunity || false}
         ) RETURNING *
       `);

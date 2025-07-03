@@ -246,29 +246,53 @@ export default function ComprehensiveModuleCreator() {
     if (existingModule && isEditMode) {
       console.log('[EDIT MODE] Loading existing module data:', existingModule);
       
-      // Handle both content and sections data structure
+      // First check if we have the new editableData field
       let sectionsData = [];
-      if (existingModule.content) {
-        try {
-          const content = typeof existingModule.content === 'string' 
-            ? JSON.parse(existingModule.content) 
-            : existingModule.content;
-          
-          // Check if content has a sections property
-          if (content && content.sections && Array.isArray(content.sections)) {
-            sectionsData = content.sections;
-          } else if (Array.isArray(content)) {
-            sectionsData = content;
-          }
-        } catch (error) {
-          console.error('[EDIT MODE] Error parsing content:', error);
-          sectionsData = [];
-        }
-      }
       
-      // Check if module has direct sections field as well
-      if (existingModule.sections && Array.isArray(existingModule.sections)) {
-        sectionsData = existingModule.sections;
+      if (existingModule.editableData?.sections) {
+        console.log('[EDIT MODE] Loading from editableData field');
+        sectionsData = existingModule.editableData.sections;
+      } else {
+        console.log('[EDIT MODE] No editableData found, migrating from content field');
+        
+        // Fallback to content field for older modules
+        if (existingModule.content) {
+          try {
+            const content = typeof existingModule.content === 'string' 
+              ? JSON.parse(existingModule.content) 
+              : existingModule.content;
+            
+            // Check if content has a sections property
+            if (content && content.sections && Array.isArray(content.sections)) {
+              sectionsData = content.sections;
+            } else if (Array.isArray(content)) {
+              sectionsData = content;
+            } else {
+              // Create a basic text section for legacy modules
+              sectionsData = [{
+                id: '1',
+                title: existingModule.title || 'Module Content',
+                content: typeof content === 'string' ? content : JSON.stringify(content),
+                type: 'text',
+                duration: existingModule.duration || 10,
+                videoUrl: '',
+                imageUrl: existingModule.imageUrl || ''
+              }];
+            }
+          } catch (error) {
+            console.error('[EDIT MODE] Error parsing content:', error);
+            // Create a basic structure for unparseable content
+            sectionsData = [{
+              id: '1',
+              title: existingModule.title || 'Module Content',
+              content: existingModule.content || '',
+              type: 'text',
+              duration: existingModule.duration || 10,
+              videoUrl: '',
+              imageUrl: existingModule.imageUrl || ''
+            }];
+          }
+        }
       }
       
       console.log('[EDIT MODE] Parsed sections data:', sectionsData);
@@ -1743,16 +1767,16 @@ export default function ComprehensiveModuleCreator() {
         description: newModule.description,
         category: newModule.category,
         difficulty: newModule.difficulty,
-        estimatedTime: newModule.estimatedTime,
-        customPoints: newModule.customPoints,
-        sections: newModule.sections,
-        shareWithCommunity: newModule.shareWithCommunity
+        duration: newModule.estimatedTime || newModule.duration,
+        pointValue: newModule.customPoints || newModule.pointValue,
+        content: JSON.stringify({ sections: newModule.sections }), // Still save processed content for compatibility
+        editableData: { sections: newModule.sections }, // Save original editable structure
+        isSharedToCommunity: newModule.shareWithCommunity || false
       };
 
-      await apiRequest(`/api/modules/${editModuleId}`, {
-        method: 'PUT',
-        data: moduleData
-      });
+      console.log('[EDIT MODE] Saving module with editableData:', moduleData);
+
+      await apiRequest('PUT', `/api/modules/${editModuleId}`, moduleData);
 
       toast({
         title: "Module Updated",

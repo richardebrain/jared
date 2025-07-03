@@ -142,6 +142,27 @@ export const learningModules = pgTable("learning_modules", {
   difficulty: text("difficulty").notNull(), // beginner, intermediate, advanced
   category: text("category").notNull(),
   content: text("content"), // HTML content of the module
+  // Store original editable data structure for easy editing
+  editableData: json("editable_data").$type<{
+    sections?: Array<{
+      id?: string;
+      title: string;
+      content: string;
+      type: 'text' | 'video' | 'quiz' | 'matching' | 'example' | 'slide' | 'triage' | 'mnemonic' | 'simulation' | 'activity' | 'scenario-match' | 'podcast';
+      duration: number;
+      videoUrl?: string;
+      imageUrl?: string;
+      activities?: Array<{
+        type: 'watch' | 'read' | 'practice' | 'reflect' | 'quiz' | 'journal' | 'breathing' | 'recording';
+        title: string;
+        duration: number;
+        content: string;
+        videoUrl?: string;
+        audioUrl?: string;
+        interactionType?: 'timer' | 'recorder' | 'worksheet' | 'form';
+      }>;
+    }>;
+  }>(),
   quiz: json("quiz").$type<{
     questions: {
       question: string;
