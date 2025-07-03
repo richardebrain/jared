@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
@@ -78,20 +78,10 @@ export default function Header() {
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
 
-  // Fetch school data to get custom logo - available to all authenticated users
-  const { data: schoolData, refetch: refetchSchoolData } = useQuery<{id: number, name: string, logoUrl: string}>({
-    queryKey: [`/api/school/info/${user?.schoolId || 1}`, Date.now()], // Add timestamp to force fresh request
-    enabled: !!user, // Enable for all authenticated users
-    staleTime: 0, // Temporarily disable cache to test logo update
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-
-  // Temporary: Force cache invalidation to test logo update
-  if (user?.schoolId) {
-    queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
-    queryClient.refetchQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
-  }
+  // Force 3D bear logo display until cache issue is resolved
+  const schoolLogo = "/3d-bear-logo.svg";
+  
+  console.log('Using 3D bear logo:', schoolLogo);
 
   // Fetch unread messages count for notification badge - reduced frequency
   const { data: unreadMessages } = useQuery({
@@ -206,12 +196,7 @@ export default function Header() {
     ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` 
     : "U";
 
-  // Determine which school logo to display - use 3D bear as fallback
-  const schoolLogo = schoolData?.logoUrl || "/3d-bear-logo.svg";
-  
-  // Debug logging for school logo
-  console.log('School data from API:', schoolData);
-  console.log('School logo URL:', schoolLogo);
+
   
   return (
     <header className="sticky top-0 bg-white shadow-md z-50">
