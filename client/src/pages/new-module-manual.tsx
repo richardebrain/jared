@@ -123,6 +123,7 @@ export default function NewModuleManual() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [currentSectionType, setCurrentSectionType] = useState<string | null>(null);
   const [sections, setSections] = useState<ModuleSection[]>([]);
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
 
   const [moduleConfig, setModuleConfig] = useState({
     title: '',
@@ -168,11 +169,34 @@ export default function NewModuleManual() {
       });
 
       if (content && content.sections) {
-        // Ensure sections have unique IDs for React rendering
-        const sectionsWithIds = content.sections.map((section: any, index: number) => ({
-          ...section,
-          id: section.id || `section-${index}-${Date.now()}`
-        }));
+        // Parse sections and extract content from nested structures
+        const sectionsWithIds = content.sections.map((section: any, index: number) => {
+          let extractedContent = '';
+          
+          // Handle different content structures
+          if (section.content) {
+            if (typeof section.content === 'string') {
+              extractedContent = section.content;
+            } else if (section.content.blocks && Array.isArray(section.content.blocks)) {
+              // Extract content from blocks structure
+              extractedContent = section.content.blocks
+                .map((block: any) => block.content || '')
+                .join('\n\n');
+            } else if (section.content.content) {
+              extractedContent = section.content.content;
+            }
+          }
+
+          return {
+            id: section.id || `section-${index}-${Date.now()}`,
+            title: section.title || `Section ${index + 1}`,
+            content: extractedContent,
+            type: section.type || 'text',
+            duration: section.duration || 5,
+            videoUrl: section.videoUrl || '',
+            imageUrl: section.imageUrl || ''
+          };
+        });
         setSections(sectionsWithIds);
       }
 
@@ -251,6 +275,14 @@ export default function NewModuleManual() {
       title: "Section Removed",
       description: "Section has been removed from your module."
     });
+  };
+
+  const updateSection = (sectionId: string, updates: Partial<ModuleSection>) => {
+    setSections(prev => prev.map(section => 
+      section.id === sectionId 
+        ? { ...section, ...updates }
+        : section
+    ));
   };
 
   const saveModule = async () => {
@@ -625,26 +657,110 @@ export default function NewModuleManual() {
                   <CardContent>
                     <div className="space-y-4">
                       {sections.map((section) => (
-                        <div key={section.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{section.title}</h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {typeof section.content === 'string' 
-                                ? section.content.substring(0, 100) + '...'
-                                : `${section.type} section`}
-                            </p>
-                            <div className="flex gap-2 mt-2">
-                              <Badge variant="outline">{section.type}</Badge>
-                              <Badge variant="outline">{section.duration} min</Badge>
+                        <div key={section.id} className="border rounded-lg">
+                          {editingSectionId === section.id ? (
+                            // Edit mode for this section
+                            <div className="p-4 space-y-4">
+                              <div>
+                                <Label htmlFor={`title-${section.id}`}>Section Title</Label>
+                                <Input
+                                  id={`title-${section.id}`}
+                                  value={section.title}
+                                  onChange={(e) => updateSection(section.id, { title: e.target.value })}
+                                  placeholder="Enter section title"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`content-${section.id}`}>Section Content</Label>
+                                <Textarea
+                                  id={`content-${section.id}`}
+                                  value={section.content}
+                                  onChange={(e) => updateSection(section.id, { content: e.target.value })}
+                                  placeholder="Enter section content..."
+                                  rows={8}
+                                  className="min-h-[200px]"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor={`type-${section.id}`}>Section Type</Label>
+                                  <Select 
+                                    value={section.type} 
+                                    onValueChange={(value) => updateSection(section.id, { type: value })}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="text">Text</SelectItem>
+                                      <SelectItem value="video">Video</SelectItem>
+                                      <SelectItem value="activity">Activity</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`duration-${section.id}`}>Duration (minutes)</Label>
+                                  <Input
+                                    id={`duration-${section.id}`}
+                                    type="number"
+                                    value={section.duration}
+                                    onChange={(e) => updateSection(section.id, { duration: parseInt(e.target.value) || 0 })}
+                                    min="1"
+                                    max="60"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => setEditingSectionId(null)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                                  Save Changes
+                                </Button>
+                                <Button
+                                  onClick={() => setEditingSectionId(null)}
+                                  variant="ghost"
+                                  size="sm"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => removeSection(section.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          ) : (
+                            // View mode for this section
+                            <div className="flex items-center justify-between p-4">
+                              <div className="flex-1">
+                                <h4 className="font-semibold">{section.title}</h4>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {typeof section.content === 'string' 
+                                    ? section.content.substring(0, 100) + '...'
+                                    : `${section.type} section`}
+                                </p>
+                                <div className="flex gap-2 mt-2">
+                                  <Badge variant="outline">{section.type}</Badge>
+                                  <Badge variant="outline">{section.duration} min</Badge>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingSectionId(section.id)}
+                                >
+                                  <FileEdit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeSection(section.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
