@@ -410,6 +410,7 @@ import giphyRoutes from "./api/giphyRoutes";
 import pixabayRoutes from "./routes/pixabay";
 import { setupSecurityMiddleware } from "./middleware/security";
 import { createSchoolDeletionEndpoint } from "./services/cleanSchoolDeletion.js";
+import { uploadFileToCloudinary, uploadToMemory } from "./services/cloudinary.js";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -10531,7 +10532,7 @@ Please provide empathy coaching guidance to help this director implement the man
   });
 
   // School logo upload endpoint
-  app.post("/api/school/upload-logo", requireAuth, logoUpload.single('logo'), async (req, res) => {
+  app.post("/api/school/upload-logo", requireAuth, uploadToMemory.single('logo'), async (req, res) => {
     try {
       const userId = req.session.userId as number;
       const user = await storage.getUser(userId);
@@ -10543,14 +10544,23 @@ Please provide empathy coaching guidance to help this director implement the man
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
+      const schoolQuery = await db.execute(sql`
+        SELECT id, name, logo_url FROM schools WHERE id = ${user?.schoolId} LIMIT 1
+      `);
+
+      const school = schoolQuery.rows[0];
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
 
       // Return the URL path that can be used to access the uploaded file
-      const logoUrl = `/uploads/school-logos/${req.file.filename}`;
+      // const logoUrl = `/uploads/school-logos/${req.file.filename}`;
+      const uploadToCloudinary = await uploadFileToCloudinary(req.file.buffer,school?.name)
       
-      console.log(`Logo uploaded for school ${user.schoolId}: ${logoUrl}`);
+      console.log(`Logo uploaded for school ${user.schoolId}: ${uploadToCloudinary}`);
       
       res.json({ 
-        logoUrl: logoUrl,
+        logoUrl: uploadToCloudinary,
         message: "Logo uploaded successfully",
         filename: req.file.filename
       });

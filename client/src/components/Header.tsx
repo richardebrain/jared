@@ -74,12 +74,22 @@ export default function Header() {
   const { data: user } = useQuery<User>({
     queryKey: ["/api/auth/me"]
   });
+
+  const {data:schoolInfo} = useQuery({
+    queryKey: ["/api/schools"],
+    enabled: !!user?.schoolId,
+    queryFn: async () => {
+      const response = await apiRequest(`/api/schools/${user?.schoolId}`);
+      return response.data;
+    }
+  })
+  console.log(schoolInfo,'school information')
   const isAdmin = user?.isAdmin || false;
   const isSchoolAdmin = user?.isSchoolAdmin || false;
   const isOwner = user?.isOwner || false;
 
   // Force 3D bear logo display until cache issue is resolved
-  const schoolLogo = "/3d-bear-logo.svg";
+  const schoolLogo =  schoolInfo?.logoUrl || "/3d-bear-logo.svg"
   
   console.log('Using 3D bear logo:', schoolLogo);
 
