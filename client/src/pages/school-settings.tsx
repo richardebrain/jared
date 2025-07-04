@@ -69,6 +69,10 @@ interface School {
     primaryColor?: string;
     secondaryColor?: string;
     coreValues?: string[];
+    rewardCurrency?: {
+      name?: string;
+      payouts?: { [key: string]: number };
+    };
   } | null;
 }
 
@@ -93,6 +97,7 @@ export default function SchoolSettingsPage() {
   const [newRewardName, setNewRewardName] = useState('');
   const [newRewardValue, setNewRewardValue] = useState('');
   const [editingReward, setEditingReward] = useState<string | null>(null);
+  const [editingRewardData, setEditingRewardData] = useState<{name: string, value: string}>({name: '', value: ''});
 
   // Track if we just completed a save to prevent form data reset
   const [justSaved, setJustSaved] = useState(false);
@@ -1101,11 +1106,55 @@ export default function SchoolSettingsPage() {
 
               {/* Reward Payouts Section */}
               <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-semibold">Reward Payouts</Label>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Define how many {rewardCurrencyName || 'Bear Bucks'} teachers earn for different achievements
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-semibold">Reward Payouts</Label>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Define how many {rewardCurrencyName || 'Bear Bucks'} teachers earn for different achievements
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Load current Bear Bucks system payouts
+                      const currentSystemPayouts = {
+                        "Points Conversion": 50, // 50 points = 1 Bear Buck
+                        "Leave 15 minutes early": 10,
+                        "30-minute lunch extension": 15,
+                        "Dress down day": 20,
+                        "Raising Arizona swag": 25,
+                        "Leave 30 minutes early": 30,
+                        "Half day off (paid)": 40,
+                        "Full day off (paid)": 50,
+                        "Gift card ($25)": 75,
+                        "Gift card ($50)": 100
+                      };
+                      
+                      const currentCustomization = formData.customization || {};
+                      const currentRewardCurrency = currentCustomization.rewardCurrency || {};
+                      
+                      handleInputChange('customization', {
+                        ...currentCustomization,
+                        rewardCurrency: {
+                          ...currentRewardCurrency,
+                          name: rewardCurrencyName.trim() || 'Bear Bucks',
+                          payouts: {
+                            ...currentRewardCurrency.payouts,
+                            ...currentSystemPayouts
+                          }
+                        }
+                      });
+                      
+                      toast({
+                        title: "Current System Payouts Loaded",
+                        description: "Bear Bucks redemption values from the progression system have been added.",
+                      });
+                    }}
+                    className="shrink-0"
+                  >
+                    Load Current System
+                  </Button>
                 </div>
 
                 {/* Current Reward Payouts */}
