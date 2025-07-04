@@ -31,7 +31,13 @@ export const schools = pgTable("schools", {
   customization: json("customization").$type<{
     primaryColor?: string,
     secondaryColor?: string,
-    coreValues?: string[]
+    coreValues?: string[],
+    rewardCurrency?: {
+      name?: string, // e.g., "Bear Bucks", "Bob's Coins", "Teacher Bucks"
+      payouts?: {
+        [key: string]: number // e.g., "Leave Early": 5, "Extra Break": 3
+      }
+    }
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
 });

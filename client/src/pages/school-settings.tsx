@@ -30,7 +30,10 @@ import {
   Mail as MailIcon,
   Edit2,
   Trash2,
-  Plus
+  Plus,
+  Coins,
+  Gift,
+  DollarSign
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -84,6 +87,12 @@ export default function SchoolSettingsPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editingCoreValue, setEditingCoreValue] = useState<number | null>(null);
   const [newCoreValue, setNewCoreValue] = useState('');
+  
+  // Reward currency settings state
+  const [rewardCurrencyName, setRewardCurrencyName] = useState('');
+  const [newRewardName, setNewRewardName] = useState('');
+  const [newRewardValue, setNewRewardValue] = useState('');
+  const [editingReward, setEditingReward] = useState<string | null>(null);
 
   // Track if we just completed a save to prevent form data reset
   const [justSaved, setJustSaved] = useState(false);
@@ -92,6 +101,12 @@ export default function SchoolSettingsPage() {
   useEffect(() => {
     if (school && !hasUnsavedChanges && !justSaved) {
       setFormData(school);
+      // Initialize reward currency settings
+      if (school.customization?.rewardCurrency) {
+        setRewardCurrencyName(school.customization.rewardCurrency.name || 'Bear Bucks');
+      } else {
+        setRewardCurrencyName('Bear Bucks');
+      }
     }
   }, [school, hasUnsavedChanges, justSaved]);
 
@@ -296,6 +311,80 @@ export default function SchoolSettingsPage() {
     setEditingCoreValue(null);
   };
 
+  // Reward currency management functions
+  const handleUpdateRewardCurrency = () => {
+    const currentCustomization = formData.customization || {};
+    const currentRewardCurrency = currentCustomization.rewardCurrency || {};
+    
+    handleInputChange('customization', {
+      ...currentCustomization,
+      rewardCurrency: {
+        ...currentRewardCurrency,
+        name: rewardCurrencyName.trim() || 'Bear Bucks'
+      }
+    });
+  };
+
+  const handleAddReward = () => {
+    if (newRewardName.trim() && newRewardValue.trim()) {
+      const currentCustomization = formData.customization || {};
+      const currentRewardCurrency = currentCustomization.rewardCurrency || {};
+      const currentPayouts = currentRewardCurrency.payouts || {};
+      
+      handleInputChange('customization', {
+        ...currentCustomization,
+        rewardCurrency: {
+          ...currentRewardCurrency,
+          name: rewardCurrencyName.trim() || 'Bear Bucks',
+          payouts: {
+            ...currentPayouts,
+            [newRewardName.trim()]: parseInt(newRewardValue) || 0
+          }
+        }
+      });
+      
+      setNewRewardName('');
+      setNewRewardValue('');
+    }
+  };
+
+  const handleDeleteReward = (rewardName: string) => {
+    const currentCustomization = formData.customization || {};
+    const currentRewardCurrency = currentCustomization.rewardCurrency || {};
+    const currentPayouts = currentRewardCurrency.payouts || {};
+    
+    const newPayouts = { ...currentPayouts };
+    delete newPayouts[rewardName];
+    
+    handleInputChange('customization', {
+      ...currentCustomization,
+      rewardCurrency: {
+        ...currentRewardCurrency,
+        payouts: newPayouts
+      }
+    });
+  };
+
+  const handleEditReward = (oldName: string, newName: string, newValue: string) => {
+    const currentCustomization = formData.customization || {};
+    const currentRewardCurrency = currentCustomization.rewardCurrency || {};
+    const currentPayouts = currentRewardCurrency.payouts || {};
+    
+    const newPayouts = { ...currentPayouts };
+    delete newPayouts[oldName];
+    newPayouts[newName.trim()] = parseInt(newValue) || 0;
+    
+    handleInputChange('customization', {
+      ...currentCustomization,
+      rewardCurrency: {
+        ...currentRewardCurrency,
+        payouts: newPayouts
+      }
+    });
+    
+    setEditingReward(null);
+  };
+
   // Handle invitation form submission
   const handleInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -459,10 +548,11 @@ export default function SchoolSettingsPage() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className={`grid w-full ${hasInvitePermission ? 'grid-cols-4' : 'grid-cols-3'}`}>
+        <TabsList className={`grid w-full ${hasInvitePermission ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <TabsTrigger value="general">General Information</TabsTrigger>
           <TabsTrigger value="contact">Contact Details</TabsTrigger>
           <TabsTrigger value="branding">Branding & Values</TabsTrigger>
+          <TabsTrigger value="rewards">Rewards</TabsTrigger>
           {hasInvitePermission && (
             <TabsTrigger value="team">Team Management</TabsTrigger>
           )}
