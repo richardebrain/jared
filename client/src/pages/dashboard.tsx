@@ -27,7 +27,8 @@ import {
   Shield,
   Music,
   BrainCircuit as Brain,
-  Sparkles
+  Sparkles,
+  Plus
 } from "lucide-react";
 import { MonthlyNewsletter } from "@/components/MonthlyNewsletter";
 import Leaderboard from "@/components/Leaderboard";
@@ -760,6 +761,15 @@ export default function Dashboard() {
                     <Shield className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                     <p>No onboarding modules have been published yet.</p>
                     <p className="text-sm">Administrators can create and publish onboarding modules for new teacher training.</p>
+                    {(user?.isAdmin || user?.isSchoolAdmin) && (
+                      <Button 
+                        className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white"
+                        onClick={() => setLocation('/module-creator')}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Module
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

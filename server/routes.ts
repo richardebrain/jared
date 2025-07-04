@@ -4336,6 +4336,16 @@ Continue for all 5 questions...
   // Get all onboarding modules (ordered by onboarding_order)
   app.get("/api/onboarding-modules", requireAuth, async (req, res) => {
     try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      const userSchoolId = user.schoolId;
+      console.log(`Filtering onboarding modules for school ID: ${userSchoolId}`);
+
+      // New schools only see their own onboarding modules, not from other schools
       const result = await db.execute(sql`
         SELECT id, title, description, duration, point_value as "pointValue",
                image_url as "imageUrl", featured, difficulty, category, content,
@@ -4345,6 +4355,7 @@ Continue for all 5 questions...
                ece_hours as "eceHours", ece_category as "eceCategory"
         FROM learning_modules
         WHERE is_onboarding_module = true
+        AND school_id = ${userSchoolId}
         ORDER BY onboarding_order ASC NULLS LAST, created_at DESC
       `);
 
