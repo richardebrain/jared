@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { soundManager } from "@/utils/soundManager";
 import type { User } from "@shared/schema";
 import BonusBoxPopup from "@/components/BonusBoxPopup";
+import { useRewardCurrency } from "@/hooks/useRewardCurrency";
 
 interface WelcomeDashboardProps {
   user: User;
@@ -22,6 +23,7 @@ interface StreakReward {
 
 export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
   const { toast } = useToast();
+  const { currencyName } = useRewardCurrency();
   const [showStreakCelebration, setShowStreakCelebration] = useState(false);
   const [directorMessages, setDirectorMessages] = useState<any[]>([]);
   const [todayRewards, setTodayRewards] = useState<StreakReward[]>([]);
@@ -267,7 +269,7 @@ export function WelcomeDashboard({ user, onClose }: WelcomeDashboardProps) {
             <Card className="text-center">
               <CardContent className="pt-4">
                 <div className="text-2xl font-bold text-green-600">{user.bearBucks}</div>
-                <div className="text-sm text-gray-600">Bear Bucks</div>
+                <div className="text-sm text-gray-600">{currencyName}</div>
               </CardContent>
             </Card>
             <Card className="text-center">

@@ -46,10 +46,12 @@ import CommunityModules from "@/components/CommunityModules";
 import UserTutorial from "@/components/UserTutorial";
 import { useTutorial } from "@/hooks/useTutorial";
 import AssignedTraining from "@/components/AssignedTraining";
+import { useRewardCurrency } from "@/hooks/useRewardCurrency";
 
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
+  const { currencyName } = useRewardCurrency();
   
   // Force auth context refresh on dashboard mount
   useEffect(() => {
@@ -664,7 +666,7 @@ export default function Dashboard() {
                       <Coins className="h-5 w-5 text-yellow-600" />
                     </div>
                     <div className="flex flex-col">
-                      <p className="text-sm text-gray-500">Bear Bucks</p>
+                      <p className="text-sm text-gray-500">{currencyName}</p>
                       <div className="flex items-baseline">
                         <p className="text-xl font-bold">{bearBucksInfo.current}</p>
                         <p className="text-xs text-gray-500 ml-2">Next at {bearBucksInfo.nextAtPoints} points</p>
@@ -687,7 +689,7 @@ export default function Dashboard() {
                 {/* Enhanced Points Progress Bar */}
                 <div className="mt-6">
                   <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600">Progress to next Bear Buck</span>
+                    <span className="text-sm font-medium text-gray-600">Progress to next {currencyName.slice(0, -1)}</span>
                     <span className="text-sm font-medium text-gray-600">
                       <span className="font-bold text-primary">{user?.points || 0}</span> / {bearBucksInfo.nextAtPoints} points
                     </span>
@@ -722,7 +724,7 @@ export default function Dashboard() {
                     
                     {/* Points remaining text */}
                     <div className="text-xs text-center mt-4 text-gray-600">
-                      <span className="font-medium text-primary">{bearBucksInfo.pointsToNextBearBuck}</span> more points until your next Bear Buck!
+                      <span className="font-medium text-primary">{bearBucksInfo.pointsToNextBearBuck}</span> more points until your next {currencyName.slice(0, -1)}!
                     </div>
                   </div>
                 </div>

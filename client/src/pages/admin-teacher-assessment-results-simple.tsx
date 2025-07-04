@@ -4,6 +4,7 @@ import { useParams, Link } from 'wouter';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useRewardCurrency } from '@/hooks/useRewardCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -111,6 +112,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
   const { toast } = useToast();
   const params = useParams<{ teacherId: string }>();
   const queryClient = useQueryClient();
+  const { currencyName } = useRewardCurrency();
   const [adjustAmount, setAdjustAmount] = useState<number>(-1);
   
   const teacherId = params?.teacherId;
@@ -133,7 +135,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
     onError: (error: any) => {
       toast({
         title: "Cash Out Failed",
-        description: error.message || "Failed to cash out Bear Bucks",
+        description: error.message || `Failed to cash out ${currencyName}`,
         variant: "destructive",
       });
     }
@@ -155,7 +157,7 @@ export default function AdminTeacherAssessmentResultsSimple() {
     onError: (error: any) => {
       toast({
         title: "Zero Out Failed",
-        description: error.message || "Failed to zero out Bear Bucks",
+        description: error.message || `Failed to zero out ${currencyName}`,
         variant: "destructive",
       });
     }

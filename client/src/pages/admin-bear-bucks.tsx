@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { SoundManager } from "@/lib/sounds";
+import { useRewardCurrency } from "@/hooks/useRewardCurrency";
 
 interface Teacher {
   id: number;
@@ -53,6 +54,7 @@ export default function AdminBearBucksPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currencyName } = useRewardCurrency();
 
   const { data: teachers = [], isLoading: loadingTeachers } = useQuery<Teacher[]>({
     queryKey: ['/api/users'],
@@ -161,7 +163,7 @@ export default function AdminBearBucksPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Coins className="h-8 w-8 text-amber-600" />
-              <h1 className="text-3xl font-bold text-gray-800">Bear Bucks Management</h1>
+              <h1 className="text-3xl font-bold text-gray-800">{currencyName} Management</h1>
             </div>
             <Link href="/director-toolkit">
               <Button variant="outline" className="flex items-center gap-2">
@@ -170,7 +172,7 @@ export default function AdminBearBucksPage() {
               </Button>
             </Link>
           </div>
-          <p className="text-gray-600">Award Bear Bucks to recognize and motivate your team</p>
+          <p className="text-gray-600">Award {currencyName} to recognize and motivate your team</p>
         </div>
 
         {/* Statistics Cards */}
@@ -182,7 +184,7 @@ export default function AdminBearBucksPage() {
                   <Coins className="h-6 w-6 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total Bear Bucks</p>
+                  <p className="text-sm text-gray-600">Total {currencyName}</p>
                   <p className="text-2xl font-bold text-gray-800">{totalBearBucks.toLocaleString()}</p>
                 </div>
               </div>
@@ -246,12 +248,12 @@ export default function AdminBearBucksPage() {
                 <DialogTrigger asChild>
                   <Button className="bg-amber-600 hover:bg-amber-700">
                     <Gift className="h-4 w-4 mr-2" />
-                    Award Bear Bucks
+                    Award {currencyName}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Award Bear Bucks</DialogTitle>
+                    <DialogTitle>Award {currencyName}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -274,7 +276,7 @@ export default function AdminBearBucksPage() {
                     </div>
 
                     <div>
-                      <Label>Amount (1-3 Bear Bucks daily limit per teacher)</Label>
+                      <Label>Amount (1-3 {currencyName} daily limit per teacher)</Label>
                       <Input
                         type="number"
                         min="1"
@@ -305,7 +307,7 @@ export default function AdminBearBucksPage() {
                       <Textarea
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        placeholder="Why are you awarding these Bear Bucks?"
+                        placeholder={`Why are you awarding these ${currencyName}?`}
                         rows={3}
                       />
                     </div>
@@ -315,7 +317,7 @@ export default function AdminBearBucksPage() {
                       disabled={awardBearBucksMutation.isPending}
                       className="w-full bg-amber-600 hover:bg-amber-700"
                     >
-                      {awardBearBucksMutation.isPending ? "Awarding..." : "Award Bear Bucks"}
+                      {awardBearBucksMutation.isPending ? "Awarding..." : `Award ${currencyName}`}
                     </Button>
                   </div>
                 </DialogContent>
@@ -356,7 +358,7 @@ export default function AdminBearBucksPage() {
                         <Coins className="h-4 w-4" />
                         {teacher.bearBucks || 0}
                       </div>
-                      <div className="text-xs text-gray-500">Bear Bucks</div>
+                      <div className="text-xs text-gray-500">{currencyName}</div>
                     </div>
                   </div>
                 ))}

@@ -254,7 +254,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Bear Bucks</TableHead>
+                  <TableHead>{currencyName}</TableHead>
                   <TableHead>Reward</TableHead>
                   <TableHead className="hidden md:table-cell">Description</TableHead>
                 </TableRow>
