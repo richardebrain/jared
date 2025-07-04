@@ -3979,46 +3979,11 @@ Continue for all 5 questions...
           return res.status(400).json({ message: "User not associated with a school" });
         }
 
-        const userSchoolId = user.schoolId;
-        console.log(`Filtering modules for school ID: ${userSchoolId}`);
+        // Use centralized visibility service
+        const { SchoolModuleVisibilityService } = await import("./services/schoolModuleVisibility");
+        const schoolModules = await SchoolModuleVisibilityService.getSchoolModules(user.schoolId);
 
-        // Use direct SQL query with school-based filtering
-        // For new schools: Only show modules from their own school
-        // For established schools: Also show community modules
-        const result = await db.execute(sql`
-        SELECT lm.id, lm.title, lm.description, lm.duration, lm.point_value as "pointValue", 
-               lm.image_url as "imageUrl", lm.featured, lm.difficulty, lm.category, lm.content, 
-               lm.quiz, lm.is_visible as "isVisible", lm.created_at as "createdAt",
-               lm.average_rating as "averageRating", lm.rating_count as "ratingCount",
-               lm.is_shared_to_community as "isSharedToCommunity", lm.school_id as "schoolId",
-               lm.ece_hours as "eceHours", lm.ece_category as "eceCategory",
-               lm.creator_id as "creatorId",
-               u.first_name as "creatorFirstName", u.last_name as "creatorLastName",
-               s.name as "schoolName"
-        FROM learning_modules lm
-        LEFT JOIN users u ON lm.creator_id = u.id
-        LEFT JOIN schools s ON lm.school_id = s.id
-        WHERE lm.school_id = ${userSchoolId}
-        AND lm.is_visible = true
-        AND (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL OR lm.school_id = ${userSchoolId})
-        ORDER BY lm.created_at DESC
-      `);
-        console.log("Filtered modules result count:", result.rows.length);
-
-        // Transform the results to ensure consistent data format
-        const modules = result.rows.map((row) => ({
-          ...row,
-          pointValue: row.pointValue || 5, // Default pointValue if null
-          averageRating: row.averageRating || 0,
-          ratingCount: row.ratingCount || 0,
-          isSharedToCommunity: row.isSharedToCommunity || false,
-          schoolId: row.schoolId || null,
-          creatorId: row.creatorId || null,
-          creatorFirstName: row.creatorFirstName || null,
-          creatorLastName: row.creatorLastName || null,
-          schoolName: row.schoolName || null,
-        }));
-        res.status(200).json(modules);
+        res.status(200).json(schoolModules);
       } catch (error) {
         console.error("Error fetching modules:", error);
         res.status(500).json({ message: "Internal server error" });

@@ -92,33 +92,11 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
       return res.status(400).json({ message: "User not associated with a school" });
     }
 
-    const userSchoolId = user.schoolId;
-    console.log(`Filtering community modules for school ID: ${userSchoolId}`);
-    
-    // Get shared modules with filtering to exclude onboarding modules from other schools
-    // Community modules are meant to be shared, but exclude other schools' onboarding content
-    const result = await db.execute(sql`
-      SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
-             lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
-             lm.creator_id, lm.point_value, lm.ece_hours, lm.ece_category,
-             lm.created_at as module_created_at,
-             s.name as school_name,
-             u.first_name as creator_first_name, u.last_name as creator_last_name,
-             u.username as creator_username
-      FROM community_modules cm
-      JOIN learning_modules lm ON cm.module_id = lm.id
-      JOIN schools s ON cm.shared_by_school_id = s.id
-      LEFT JOIN users u ON lm.creator_id = u.id
-      WHERE cm.status = 'active' 
-      AND (
-        cm.shared_by_school_id = ${userSchoolId}
-        OR (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL)
-      )
-      ORDER BY lm.average_rating DESC, cm.shared_date DESC
-    `);
-    
-    console.log(`Community modules filtered result count: ${result.rows.length}`);
-    return res.status(200).json(result.rows);
+    // Use centralized visibility service
+    const { SchoolModuleVisibilityService } = await import("../services/schoolModuleVisibility");
+    const communityModules = await SchoolModuleVisibilityService.getCommunityModules(user.schoolId);
+
+    return res.status(200).json(communityModules);
   } catch (error) {
     console.error("Error retrieving community modules:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -138,34 +116,11 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
       return res.status(400).json({ message: "User not associated with a school" });
     }
 
-    const userSchoolId = user.schoolId;
-    console.log(`Filtering top community modules for school ID: ${userSchoolId}`);
-    
-    // Get top rated shared modules with filtering to exclude onboarding modules from other schools
-    // Community modules are meant to be shared, but exclude other schools' onboarding content
-    const result = await db.execute(sql`
-      SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
-             lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
-             lm.creator_id, lm.point_value, lm.ece_hours, lm.ece_category,
-             lm.created_at as module_created_at,
-             s.name as school_name,
-             u.first_name as creator_first_name, u.last_name as creator_last_name,
-             u.username as creator_username
-      FROM community_modules cm
-      JOIN learning_modules lm ON cm.module_id = lm.id
-      JOIN schools s ON cm.shared_by_school_id = s.id
-      LEFT JOIN users u ON lm.creator_id = u.id
-      WHERE cm.status = 'active' 
-      AND (
-        cm.shared_by_school_id = ${userSchoolId}
-        OR (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL)
-      )
-      ORDER BY lm.average_rating DESC, cm.shared_date DESC
-      LIMIT ${limit}
-    `);
-    
-    console.log(`Top community modules filtered result count: ${result.rows.length}`);
-    return res.status(200).json(result.rows);
+    // Use centralized visibility service
+    const { SchoolModuleVisibilityService } = await import("../services/schoolModuleVisibility");
+    const topCommunityModules = await SchoolModuleVisibilityService.getCommunityModules(user.schoolId, limit);
+
+    return res.status(200).json(topCommunityModules);
   } catch (error) {
     console.error("Error retrieving top community modules:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -443,8 +398,8 @@ router.post("/:moduleId/rate", requireAuth, requirePaidAccess, async (req, res) 
       WHERE module_id = ${moduleId}
     `);
     
-    const avgRating = parseFloat(ratingStats.rows[0].avg_rating || '0');
-    const ratingCount = parseInt(ratingStats.rows[0].rating_count || '0');
+    const avgRating = parseFloat(String(ratingStats.rows[0]?.avg_rating || '0'));
+    const ratingCount = parseInt(String(ratingStats.rows[0]?.rating_count || '0'));
     
     await db.execute(sql`
       UPDATE learning_modules 
