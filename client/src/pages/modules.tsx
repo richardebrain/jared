@@ -189,7 +189,12 @@ export default function AllModules() {
       <Card key={module.id} className="h-full flex flex-col hover:shadow-md transition-shadow">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <CardTitle className="text-lg font-semibold leading-tight">{module.title}</CardTitle>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="secondary" className="text-xs">#{module.id}</Badge>
+                <CardTitle className="text-lg font-semibold leading-tight">{module.title}</CardTitle>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               {isCompleted && (
                 <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
@@ -230,7 +235,12 @@ export default function AllModules() {
             )}
           </div>
           <div className="text-xs text-gray-500">
-            Created: {new Date(module.createdAt || module.created_at).toLocaleDateString()}
+            Created: {(() => {
+              const dateValue = module.createdAt || module.created_at;
+              if (!dateValue) return 'Unknown';
+              const date = new Date(dateValue);
+              return isNaN(date.getTime()) ? 'Unknown' : date.toLocaleDateString();
+            })()}
           </div>
         </CardContent>
         <CardFooter className="pt-2">
@@ -340,7 +350,12 @@ export default function AllModules() {
       <Card key={module.id} className="h-full flex flex-col hover:shadow-md transition-shadow">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <CardTitle className="text-lg font-semibold leading-tight">{module.title}</CardTitle>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="secondary" className="text-xs">#{module.id}</Badge>
+                <CardTitle className="text-lg font-semibold leading-tight">{module.title}</CardTitle>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               {isCompleted && (
                 <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
@@ -397,7 +412,10 @@ export default function AllModules() {
             {module.createdAt && (
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                <span>{new Date(module.createdAt).toLocaleDateString()}</span>
+                <span>{(() => {
+                  const date = new Date(module.createdAt);
+                  return isNaN(date.getTime()) ? 'Unknown' : date.toLocaleDateString();
+                })()}</span>
               </div>
             )}
             {module.schoolName && (
@@ -473,7 +491,12 @@ export default function AllModules() {
       <Card key={moduleId} className="h-full flex flex-col hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start mb-3">
-            <CardTitle className="text-xl font-bold leading-tight text-gray-900">{module.title}</CardTitle>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="text-xs">#{moduleId}</Badge>
+                <CardTitle className="text-xl font-bold leading-tight text-gray-900">{module.title}</CardTitle>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               {isCompleted && (
                 <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
