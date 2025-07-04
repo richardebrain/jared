@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useRewardCurrency } from "@/hooks/useRewardCurrency";
 
 interface BearBucksRewardsProps {
   bearBucks?: number;
@@ -34,6 +35,9 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
   points = 0,
   className = "",
 }) => {
+  // Get custom currency name from school settings
+  const { currencyName } = useRewardCurrency();
+  
   // Define the conversion rate: 50 points = 1 Bear Buck
   const conversionRate = 50;
   
@@ -159,9 +163,9 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
       <CardHeader className="bg-gradient-to-r from-amber-100 to-amber-50">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl text-amber-800">Bear Bucks Rewards</CardTitle>
+            <CardTitle className="text-xl text-amber-800">{currencyName} Rewards</CardTitle>
             <CardDescription>
-              Convert your points into Bear Bucks to redeem for rewards
+              Convert your points into {currencyName} to redeem for rewards
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 bg-amber-200 px-4 py-2 rounded-lg">
@@ -173,7 +177,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
       
       <CardContent className="p-4">
         <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
-          <h3 className="font-medium text-blue-800 mb-2">Points to Bear Bucks Conversion</h3>
+          <h3 className="font-medium text-blue-800 mb-2">Points to {currencyName} Conversion</h3>
           <div className="flex items-center justify-center gap-4 p-3">
             <div className="text-center p-3 bg-white rounded-lg shadow border border-blue-100">
               <span className="block text-xl font-bold text-gray-700">50 Points</span>
@@ -181,7 +185,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
             </div>
             <div className="text-2xl text-blue-500">→</div>
             <div className="text-center p-3 bg-white rounded-lg shadow border border-amber-200">
-              <span className="block text-xl font-bold text-amber-700">1 Bear Buck</span>
+              <span className="block text-xl font-bold text-amber-700">1 {currencyName.slice(-1) === 's' ? currencyName.slice(0, -1) : currencyName}</span>
               <span className="text-gray-500 text-sm">for rewards</span>
             </div>
           </div>
@@ -192,7 +196,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
               Your Progression is Protected
             </h4>
             <p className="text-sm text-green-700 mb-2">
-              <span className="font-medium">Don't worry!</span> Converting points to Bear Bucks only reduces your current balance. 
+              <span className="font-medium">Don't worry!</span> Converting points to {currencyName} only reduces your current balance. 
               Your <span className="font-medium">lifetime points stay unchanged</span> and continue counting toward your teacher progression levels.
             </p>
             <p className="text-xs text-green-600">
@@ -215,7 +219,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
           <div className="mt-4 text-center">
             <p className="text-sm text-blue-700">
               You currently have <span className="font-bold">{points} points</span>, 
-              which could convert to <span className="font-bold">{potentialBearBucks} Bear Bucks</span>
+              which could convert to <span className="font-bold">{potentialBearBucks} {currencyName}</span>
             </p>
             
             {showConversionSuccess && (
@@ -223,7 +227,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
                 <AlertCircle className="h-4 w-4 text-green-500" />
                 <AlertTitle className="text-green-700">Conversion Successful!</AlertTitle>
                 <AlertDescription className="text-green-600 text-sm">
-                  You converted points to Bear Bucks. Your balances have been updated.
+                  You converted points to {currencyName}. Your balances have been updated.
                 </AlertDescription>
               </Alert>
             )}
@@ -234,7 +238,7 @@ const BearBucksRewards: React.FC<BearBucksRewardsProps> = ({
               disabled={points < conversionRate || isConverting}
               onClick={convertPointsToBearBucks}
             >
-              {isConverting ? "Converting..." : "Convert Points to Bear Bucks"}
+              {isConverting ? "Converting..." : `Convert Points to ${currencyName}`}
             </Button>
           </div>
         </div>
