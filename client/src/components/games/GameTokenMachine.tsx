@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from '@/lib/queryClient';
 import BounceAwayBlocks from './BounceAwayBlocks';
 import PacHealGame from './PacHealGameWorking';
-import PreschoolDash from './PreschoolDash';
+
 import { GameRenderer } from './GameRenderer';
 
 interface GameTokenMachineProps {
@@ -52,17 +52,6 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
       levels: 3,
       maxPoints: 6,
       features: ['Emotional Skills', 'Self-Regulation', 'Mindfulness', 'Calm Techniques']
-    },
-    {
-      id: 'dash',
-      title: 'Preschool Dash',
-      description: 'Sprint through Early Learning Lane collecting best practices',
-      icon: Target,
-      color: 'from-orange-500 to-red-600',
-      borderColor: 'border-orange-300',
-      levels: 'Endless',
-      maxPoints: 'Distance-based',
-      features: ['ECE Best Practices', 'Endless Runner', 'Power-ups', 'Real-time Learning']
     }
   ];
 
@@ -130,9 +119,6 @@ export default function GameTokenMachine({ userPoints, onPointsUpdate }: GameTok
             break;
           case 'pacheal':
             GameComponent = PacHealGame;
-            break;
-          case 'dash':
-            GameComponent = PreschoolDash;
             break;
           default:
             return;

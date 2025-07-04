@@ -543,15 +543,20 @@ export default function PacHealGame() {
       });
     }
 
-    // Check ghost collision
-    const collision = ghosts.some(ghost => 
-      ghost.position.x === playerPos.x && ghost.position.y === playerPos.y
-    );
+    // Check ghost collision with proximity detection
+    const collision = ghosts.some(ghost => {
+      const dx = Math.abs(ghost.position.x - playerPos.x);
+      const dy = Math.abs(ghost.position.y - playerPos.y);
+      // Consider collision if ghost is in same cell or adjacent (within 1 unit)
+      return dx <= 0.5 && dy <= 0.5;
+    });
 
     if (collision) {
-      const collidingGhost = ghosts.find(ghost => 
-        ghost.position.x === playerPos.x && ghost.position.y === playerPos.y
-      );
+      const collidingGhost = ghosts.find(ghost => {
+        const dx = Math.abs(ghost.position.x - playerPos.x);
+        const dy = Math.abs(ghost.position.y - playerPos.y);
+        return dx <= 0.5 && dy <= 0.5;
+      });
 
       if (collidingGhost?.type === 'freeze') {
         // Play ghost collision sound
