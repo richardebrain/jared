@@ -3965,7 +3965,19 @@ Continue for all 5 questions...
       console.log("fetching modules result");
 
       try {
-        // Use direct SQL query to handle schema changes gracefully
+        // Get the current user's school ID for filtering
+        const userId = req.session.userId as number;
+        const user = await storage.getUser(userId);
+        
+        if (!user || !user.schoolId) {
+          return res.status(400).json({ message: "User not associated with a school" });
+        }
+
+        const userSchoolId = user.schoolId;
+        console.log(`Filtering modules for school ID: ${userSchoolId}`);
+
+        // Use direct SQL query with school-based filtering
+        // Only show: 1) Modules from user's school, 2) Community modules (shared modules)
         const result = await db.execute(sql`
         SELECT lm.id, lm.title, lm.description, lm.duration, lm.point_value as "pointValue", 
                lm.image_url as "imageUrl", lm.featured, lm.difficulty, lm.category, lm.content, 
@@ -3979,9 +3991,20 @@ Continue for all 5 questions...
         FROM learning_modules lm
         LEFT JOIN users u ON lm.creator_id = u.id
         LEFT JOIN schools s ON lm.school_id = s.id
+        WHERE (
+          lm.school_id = ${userSchoolId} 
+          OR lm.is_shared_to_community = true 
+          OR lm.id IN (
+            SELECT cm.module_id 
+            FROM community_modules cm 
+            WHERE cm.status = 'active'
+          )
+        )
+        AND lm.is_visible = true
+        AND (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL OR lm.school_id = ${userSchoolId})
         ORDER BY lm.created_at DESC
       `);
-        console.log("modules result", result.rows[0]);
+        console.log("Filtered modules result count:", result.rows.length);
 
         // Transform the results to ensure consistent data format
         const modules = result.rows.map((row) => ({

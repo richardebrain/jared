@@ -46,15 +46,15 @@ interface UserTutorialProps {
   userRole: 'teacher' | 'admin' | 'school_admin';
 }
 
-// Import correct screenshots based on content
-import dashboardScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.36_1749935018429.png";
-import moduleCreatorScreenshot from "@assets/Screenshot 2025-06-14 at 13.12.55_1749903179794.png";
-import moduleOutlineScreenshot from "@assets/Screenshot 2025-06-14 at 15.05.03_1749909906126.png";
+// Import current screenshots that match tutorial content
+import dashboardScreenshot from "@assets/Dashboard_1750717282945.png";
+import welcomePageScreenshot from "@assets/WELCOME PAGE points, levels etc_1750717282945.png";
+import communityModulesScreenshot from "@assets/Community Modules_1750717282945.png";
 import assessmentScreenshot from "@assets/Screenshot 2025-06-15 at 14.38.41_1749994726716.png";
-import directorToolkitScreenshot from "@assets/Screenshot 2025-06-14 at 16.11.11_1749913887467.png";
-import teacherManagementScreenshot from "@assets/Screenshot 2025-06-14 at 22.03.17_1749935001943.png";
-import videoLibraryScreenshot from "@assets/Screenshot 2025-06-14 at 12.29.16_1749900559890.png";
-import eceTrackingScreenshot from "@assets/Screenshot 2025-06-15 at 14.39.44_1749994787827.png";
+import teacherToolkitScreenshot from "@assets/Teacher Toolkit_1750717282945.png";
+import progressionMapScreenshot from "@assets/Progression Map_1750717282945.png";
+import videoLibraryScreenshot from "@assets/Video Library_1750717282946.png";
+import audioLibraryScreenshot from "@assets/Audio Library_1750717282946.png";
 
 const tutorialSteps: TutorialStep[] = [
   {
@@ -62,7 +62,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Welcome to MentorMe ECE',
     description: 'Your professional development platform for early childhood education. Let\'s explore the key features that will enhance your teaching journey.',
     icon: <GraduationCap className="h-6 w-6 text-blue-600" />,
-    screenshot: dashboardScreenshot,
+    screenshot: welcomePageScreenshot,
     userTypes: ['teacher', 'admin', 'school_admin']
   },
   {
@@ -82,7 +82,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Interactive Learning Modules',
     description: 'Explore our comprehensive library of training modules organized by topic and duration. From quick 5-minute micro-modules to comprehensive courses.',
     icon: <BookOpen className="h-6 w-6 text-purple-600" />,
-    screenshot: moduleOutlineScreenshot,
+    screenshot: communityModulesScreenshot,
     action: {
       text: 'Browse Modules',
       href: '/modules'
@@ -106,7 +106,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'ECE Hours Tracking',
     description: 'Automatically track your professional development hours for ECE compliance. View your progress toward certification requirements.',
     icon: <Clock className="h-6 w-6 text-emerald-600" />,
-    screenshot: eceTrackingScreenshot,
+    screenshot: progressionMapScreenshot,
     action: {
       text: 'View ECE Progress',
       href: '/dashboard'
@@ -138,7 +138,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Director Toolkit',
     description: 'Access powerful administrative tools including teacher management, ECE tracking, Perfect Manager coaching system, and comprehensive reporting.',
     icon: <Settings className="h-6 w-6 text-indigo-600" />,
-    screenshot: directorToolkitScreenshot,
+    screenshot: teacherToolkitScreenshot,
     action: {
       text: 'Open Director Toolkit',
       href: '/admin'
@@ -150,7 +150,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Teacher Profiles & Progress',
     description: 'Monitor your team\'s professional development, track ECE hours, generate certificates, and manage user roles and permissions.',
     icon: <Users className="h-6 w-6 text-cyan-600" />,
-    screenshot: eceTrackingScreenshot,
+    screenshot: progressionMapScreenshot,
     action: {
       text: 'Manage Teachers',
       href: '/admin/teachers'
@@ -162,7 +162,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Perfect Manager AI Coach',
     description: 'Get personalized leadership coaching for challenging workplace situations. AI-powered advice from top leadership experts for ECE directors.',
     icon: <MessageSquare className="h-6 w-6 text-pink-600" />,
-    screenshot: directorToolkitScreenshot,
+    screenshot: teacherToolkitScreenshot,
     action: {
       text: 'Try Perfect Manager',
       href: '/admin/perfect-manager'
@@ -174,7 +174,7 @@ const tutorialSteps: TutorialStep[] = [
     title: 'Create Custom Modules',
     description: 'Build your own training modules using AI assistance, manual creation, or PowerPoint import. Share with your team or the community.',
     icon: <Zap className="h-6 w-6 text-violet-600" />,
-    screenshot: moduleCreatorScreenshot,
+    screenshot: audioLibraryScreenshot,
     action: {
       text: 'Create Module',
       href: '/new-module-creator'
