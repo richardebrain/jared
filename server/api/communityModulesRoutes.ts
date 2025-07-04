@@ -96,7 +96,7 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
     console.log(`Filtering community modules for school ID: ${userSchoolId}`);
     
     // Get shared modules with school-based filtering
-    // For new schools, exclude onboarding modules from other schools
+    // New schools only see their own community modules, not from other schools
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
@@ -110,10 +110,7 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
       JOIN schools s ON cm.shared_by_school_id = s.id
       LEFT JOIN users u ON lm.creator_id = u.id
       WHERE cm.status = 'active' 
-      AND (
-        cm.shared_by_school_id = ${userSchoolId}
-        OR (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL)
-      )
+      AND cm.shared_by_school_id = ${userSchoolId}
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
     `);
     
@@ -142,7 +139,7 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
     console.log(`Filtering top community modules for school ID: ${userSchoolId}`);
     
     // Get top rated shared modules with school-based filtering
-    // For new schools, exclude onboarding modules from other schools
+    // New schools only see their own community modules, not from other schools
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
@@ -156,10 +153,7 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
       JOIN schools s ON cm.shared_by_school_id = s.id
       LEFT JOIN users u ON lm.creator_id = u.id
       WHERE cm.status = 'active' 
-      AND (
-        cm.shared_by_school_id = ${userSchoolId}
-        OR (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL)
-      )
+      AND cm.shared_by_school_id = ${userSchoolId}
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
       LIMIT ${limit}
     `);
