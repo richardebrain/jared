@@ -121,44 +121,35 @@ export default function Header() {
   
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
   const performLogout = async () => {
-    console.log("Starting force logout process...");
+    console.log("Starting fast logout process...");
     
-    // Immediately clear all client-side data
+    // Start server logout immediately (don't wait)
+    fetch("/api/auth/logout", { 
+      method: "POST", 
+      credentials: "include",
+      keepalive: true 
+    }).catch(() => {}); // Ignore errors
+    
+    // Clear client-side data immediately
     try {
       localStorage.clear();
       sessionStorage.clear();
-      
-      // Clear all cookies by setting them to expire
-      document.cookie.split(";").forEach(cookie => {
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-      });
-      
       queryClient.clear();
+      
+      // Clear cookies
+      document.cookie = "connect.sid=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
     } catch (error) {
-      console.warn("Client data clear error:", error);
+      console.warn("Client cleanup error:", error);
     }
     
-    try {
-      // Clear server sessions
-      await fetch("/api/auth/clear-all-sessions", { method: "POST", credentials: "include" });
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      console.log("Server logout completed");
-    } catch (error) {
-      console.warn("Server logout error (continuing anyway):", error);
-    }
-    
-    // Show success message
+    // Show success and redirect immediately
     toast({
       title: "Logged out",
-      description: "Session cleared, redirecting to login...",
+      description: "Redirecting to login...",
     });
     
-    // Force complete navigation to login page
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 500);
+    // Immediate redirect (don't wait for server)
+    window.location.href = "/login";
   };
 
   const handleLogout = () => {

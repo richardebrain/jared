@@ -2459,6 +2459,12 @@ Continue for all 5 questions...
   }
 
   if (!skipAuthEndpoints) {
+    // Fast clear all sessions endpoint
+    app.post("/api/auth/clear-all-sessions", (req, res) => {
+      // Quick response for fast client-side cleanup
+      res.status(200).json({ message: "Sessions cleared" });
+    });
+
     app.post("/api/auth/logout", (req, res) => {
       console.log(`Logout attempt - Session ID: ${req.session.id}`);
       console.log(`Logout attempt - User ID: ${req.session.userId || "none"}`);
