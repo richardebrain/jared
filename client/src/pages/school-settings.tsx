@@ -108,38 +108,32 @@ export default function SchoolSettingsPage() {
     mutationFn: (data: Partial<School>) => 
       apiRequest('/api/school/settings', { method: 'PATCH', data }),
     onSuccess: async (response, updatedData) => {
-      
-      // Set flag to prevent form reset during cache invalidation
       setJustSaved(true);
-      
-      // Update local formData to reflect the saved changes FIRST
       setFormData(prev => ({ ...prev, ...updatedData }));
-      
-      // Only invalidate specific Header queries to update logo display
-      if (user?.schoolId) {
-        queryClient.invalidateQueries({ queryKey: [`/api/school/info/${user.schoolId}`] });
-      }
-      
-      // Clear unsaved changes flag AFTER all cache invalidation is complete
+
+      // Invalidate ALL school-related queries
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/school/settings'] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/school/info/${user?.schoolId}`] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/school'] 
+      });
+
       setHasUnsavedChanges(false);
-      
-      // Reset the justSaved flag after a short delay to allow form data to persist
+
       setTimeout(() => {
         setJustSaved(false);
       }, 1000);
-      
+
       toast({
         title: "School Settings Updated",
         description: "Your school information has been successfully updated.",
       });
     },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update school settings.",
-        variant: "destructive",
-      });
-    },
+    // ... rest of the mutation
   });
 
   // Mutation to upload emails and send invitations
