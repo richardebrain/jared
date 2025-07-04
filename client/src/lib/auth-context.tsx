@@ -235,11 +235,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       handleNavigation();
     };
     
+    // Listen for session timeout events from API requests
+    const handleSessionTimeout = () => {
+      console.log('Session timeout event received, clearing auth state');
+      setUser(null);
+      setAuthFailed(true);
+      AuthStorage.clearAuthData();
+      queryClient.clear();
+    };
+    
     window.addEventListener('auth-refresh', handleAuthRefresh);
+    window.addEventListener('session-timeout', handleSessionTimeout);
     
     return () => {
       window.removeEventListener('popstate', handleNavigation);
       window.removeEventListener('auth-refresh', handleAuthRefresh);
+      window.removeEventListener('session-timeout', handleSessionTimeout);
     };
   }, [user, queryClient]);
 
@@ -263,24 +274,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [isLoading, initialLoadComplete]);
 
-  // Handle auth errors
+  // Handle auth errors and session timeouts
   useEffect(() => {
     if (isError && error) {
       const errorStatus = (error as any)?.response?.status;
       if (errorStatus === 401 || errorStatus === 403) {
-        console.log('Authentication failed, marking auth as failed');
+        console.log('Authentication failed, clearing auth and redirecting to login');
         setAuthFailed(true);
+        setUser(null);
         
-        // Clear any stored auth state
+        // Clear all stored auth state
         try {
           localStorage.removeItem('isAuthenticated');
           sessionStorage.removeItem('laura_login_success');
+          AuthStorage.clearAuthData();
+          queryClient.clear();
         } catch (e) {
           console.warn("Could not clear storage on auth failure:", e);
         }
+
+        // Check if it's a session timeout
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('IDLE_TIMEOUT') || errorMessage.includes('Session expired')) {
+          toast({
+            title: "Session Expired",
+            description: "Your session has expired due to inactivity. Please log in again.",
+            variant: "destructive",
+          });
+        }
+
+        // Redirect to login page after clearing state
+        setTimeout(() => {
+          if (window.location.pathname !== '/login') {
+            console.log('Redirecting to login due to auth failure');
+            window.location.replace('/login');
+          }
+        }, 100);
       }
     }
-  }, [isError, error]);
+  }, [isError, error, toast]);
 
   // Reset auth failed state when user data is successfully retrieved
   useEffect(() => {

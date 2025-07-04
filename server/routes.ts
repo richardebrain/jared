@@ -2071,101 +2071,101 @@ Continue for all 5 questions...
   }
   if (!skipAuthEndpoints) {
     // Simple login endpoint without passport middleware for debugging
-    app.post("/api/auth/login", async (req, res) => {
-      console.log("=== SIMPLE LOGIN ROUTE HIT ===");
-      console.log("Request body:", req.body);
-      console.log("Content-Type:", req.headers['content-type']);
+    // app.post("/api/auth/login", async (req, res) => {
+    //   console.log("=== SIMPLE LOGIN ROUTE HIT ===");
+    //   console.log("Request body:", req.body);
+    //   console.log("Content-Type:", req.headers['content-type']);
 
-      try {
-        // Ensure we're sending valid JSON
-        res.setHeader('Content-Type', 'application/json');
+    //   try {
+    //     // Ensure we're sending valid JSON
+    //     res.setHeader('Content-Type', 'application/json');
         
-        // Extract and trim credentials
-        const username = req.body.username?.trim();
-        const password = req.body.password?.trim();
+    //     // Extract and trim credentials
+    //     const username = req.body.username?.trim();
+    //     const password = req.body.password?.trim();
 
-        console.log(`Login attempt for username: "${username}"`);
+    //     console.log(`Login attempt for username: "${username}"`);
 
-        if (!username || !password) {
-          return res.status(400).json({ 
-            message: "Username and password are required",
-            error: "MISSING_CREDENTIALS"
-          });
-        }
+    //     if (!username || !password) {
+    //       return res.status(400).json({ 
+    //         message: "Username and password are required",
+    //         error: "MISSING_CREDENTIALS"
+    //       });
+    //     }
 
-        // Try to find user by username first, then by email
-        let user;
-        try {
-          user = await storage.getUserByUsername(username);
-          if (!user) {
-            user = await storage.getUserByEmail(username);
-          }
-        } catch (dbError) {
-          console.error("Database error during login:", dbError);
-          return res.status(500).json({
-            message: "Server error - please try again",
-            error: "SERVER_ERROR"
-          });
-        }
+    //     // Try to find user by username first, then by email
+    //     let user;
+    //     try {
+    //       user = await storage.getUserByUsername(username);
+    //       if (!user) {
+    //         user = await storage.getUserByEmail(username);
+    //       }
+    //     } catch (dbError) {
+    //       console.error("Database error during login:", dbError);
+    //       return res.status(500).json({
+    //         message: "Server error - please try again",
+    //         error: "SERVER_ERROR"
+    //       });
+    //     }
 
-        if (!user) {
-          console.log(`User not found: "${username}"`);
-          return res.status(401).json({ 
-            message: "Invalid username or password",
-            error: "AUTHENTICATION_FAILED"
-          });
-        }
+    //     if (!user) {
+    //       console.log(`User not found: "${username}"`);
+    //       return res.status(401).json({ 
+    //         message: "Invalid username or password",
+    //         error: "AUTHENTICATION_FAILED"
+    //       });
+    //     }
 
-        // Verify password
-        const bcrypt = await import('bcrypt');
-        const passwordMatch = await bcrypt.compare(password, user.password || '');
+    //     // Verify password
+    //     const bcrypt = await import('bcrypt');
+    //     const passwordMatch = await bcrypt.compare(password, user.password || '');
         
-        if (!passwordMatch) {
-          console.log("Password mismatch");
-          return res.status(401).json({ 
-            message: "Invalid username or password",
-            error: "AUTHENTICATION_FAILED"
-          });
-        }
+    //     if (!passwordMatch) {
+    //       console.log("Password mismatch");
+    //       return res.status(401).json({ 
+    //         message: "Invalid username or password",
+    //         error: "AUTHENTICATION_FAILED"
+    //       });
+    //     }
 
-        // Set session
-        req.session.userId = user.id;
-        req.session.loginTime = new Date().toISOString();
+    //     // Set session
+    //     req.session.userId = user.id;
+    //     req.session.loginTime = new Date().toISOString();
 
-        // Explicitly save the session to ensure userId persistence
-        req.session.save((err) => {
-          if (err) {
-            console.error('Session save error:', err);
-          } else {
-            console.log('Session saved successfully with userId:', user.id);
-          }
-        });
+    //     // Explicitly save the session to ensure userId persistence
+    //     req.session.save((err) => {
+    //       if (err) {
+    //         console.error('Session save error:', err);
+    //       } else {
+    //         console.log('Session saved successfully with userId:', user.id);
+    //       }
+    //     });
 
-        // Update last active
-        await storage.updateUser(user.id, { lastActive: new Date() });
+    //     // Update last active
+    //     await storage.updateUser(user.id, { lastActive: new Date() });
 
-        // Return user data without password
-        const { password: _, ...userWithoutPassword } = user;
+    //     // Return user data without password
+    //     const { password: _, ...userWithoutPassword } = user;
         
-        console.log("Login successful for user:", userWithoutPassword.username);
+    //     console.log("Login successful for user:", userWithoutPassword.username);
         
-        return res.status(200).json({
-          ...userWithoutPassword,
-          message: "Login successful"
-        });
+    //     return res.status(200).json({
+    //       ...userWithoutPassword,
+    //       message: "Login successful"
+    //     });
 
-      } catch (error) {
-        console.error("Login error:", error);
-        return res.status(500).json({
-          message: "Internal server error",
-          error: "INTERNAL_ERROR",
-          details: error.message
-        });
-      }
-    });
+    //   } catch (error) {
+    //     console.error("Login error:", error);
+    //     return res.status(500).json({
+    //       message: "Internal server error",
+    //       error: "INTERNAL_ERROR",
+    //       details: error.message
+    //     });
+    //   }
+    // });
 
     // Keep the old passport-based login as backup
-    app.post("/api/auth/login-passport", passport.authenticate("local", { failureRedirect: "/auth" }), async (req, res) => {
+    app.post("/api/auth/login", passport.authenticate("local", { failureRedirect: "/auth" }), async (req, res) => {
       console.log("=== LOGIN ROUTE HIT ===");
       console.log("Request body:", req.body);
 

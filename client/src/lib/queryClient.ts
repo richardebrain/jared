@@ -116,8 +116,37 @@ export async function apiRequest<T = any>(
   try {
     const response = await axios(finalConfig);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("API Error:", error);
+    
+    // Handle session timeout responses
+    if (error.response?.status === 401) {
+      const responseData = error.response?.data;
+      
+      // Check if it's a session timeout specifically
+      if (responseData?.code === 'IDLE_TIMEOUT' || 
+          responseData?.message?.includes('Session expired') ||
+          responseData?.message?.includes('inactivity')) {
+        
+        console.log('Session timeout detected in API request, redirecting to login');
+        
+        // Clear all auth data
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          // Trigger auth context cleanup
+          window.dispatchEvent(new CustomEvent('session-timeout'));
+        } catch (e) {
+          console.warn('Error clearing storage on session timeout:', e);
+        }
+        
+        // Redirect to login page if not already there
+        if (window.location.pathname !== '/login') {
+          window.location.replace('/login');
+        }
+      }
+    }
+    
     throw error;
   }
 }

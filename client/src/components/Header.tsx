@@ -80,7 +80,7 @@ export default function Header() {
     enabled: !!user?.schoolId,
     queryFn: async () => {
       const response = await apiRequest(`/api/schools/${user?.schoolId}`);
-      return response.data;
+      return response?.school;
     }
   })
   console.log(schoolInfo,'school information')
@@ -120,7 +120,6 @@ export default function Header() {
   const totalNotifications = messageCount + credentialCount;
   
   console.log(isAdmin,isSchoolAdmin,isOwner,'isAdmin,isSchoolAdmin,isOwner from header')
-  console.log(user,'user from header')
   const performLogout = async () => {
     console.log("Starting force logout process...");
     
