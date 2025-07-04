@@ -121,9 +121,9 @@ export default function Login() {
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to dashboard");
-      window.location.href = "/dashboard";
+      setLocation("/dashboard");
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, setLocation]);
 
   // If still loading auth state, show loading spinner
   if (isLoading) {

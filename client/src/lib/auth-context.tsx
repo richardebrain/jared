@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await response.json();
         console.log('Manual auth successful:', userData);
         const normalizedUser = normalizeUserData(userData as User);
-        setCurrentUser(normalizedUser);
+        setUser(normalizedUser);
         AuthStorage.setAuthData(normalizedUser);
         setAuthFailed(false);
         return userData;
