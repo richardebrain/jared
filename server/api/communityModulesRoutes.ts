@@ -91,8 +91,12 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
     if (!user || !user.schoolId) {
       return res.status(400).json({ message: "User not associated with a school" });
     }
+
+    const userSchoolId = user.schoolId;
+    console.log(`Filtering community modules for school ID: ${userSchoolId}`);
     
-    // Get all shared modules including those from user's own school
+    // Get shared modules with school-based filtering
+    // For new schools, exclude onboarding modules from other schools
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
@@ -106,9 +110,14 @@ router.get("/", requireAuth, requirePaidAccess, async (req, res) => {
       JOIN schools s ON cm.shared_by_school_id = s.id
       LEFT JOIN users u ON lm.creator_id = u.id
       WHERE cm.status = 'active' 
+      AND (
+        cm.shared_by_school_id = ${userSchoolId}
+        OR (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL)
+      )
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
     `);
     
+    console.log(`Community modules filtered result count: ${result.rows.length}`);
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error retrieving community modules:", error);
@@ -128,8 +137,12 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
     if (!user || !user.schoolId) {
       return res.status(400).json({ message: "User not associated with a school" });
     }
+
+    const userSchoolId = user.schoolId;
+    console.log(`Filtering top community modules for school ID: ${userSchoolId}`);
     
-    // Get top rated shared modules including those from user's own school
+    // Get top rated shared modules with school-based filtering
+    // For new schools, exclude onboarding modules from other schools
     const result = await db.execute(sql`
       SELECT cm.*, lm.title, lm.description, lm.duration, lm.image_url, 
              lm.difficulty, lm.category, lm.average_rating, lm.rating_count,
@@ -143,9 +156,15 @@ router.get("/top", requireAuth, requirePaidAccess, async (req, res) => {
       JOIN schools s ON cm.shared_by_school_id = s.id
       LEFT JOIN users u ON lm.creator_id = u.id
       WHERE cm.status = 'active' 
+      AND (
+        cm.shared_by_school_id = ${userSchoolId}
+        OR (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL)
+      )
       ORDER BY lm.average_rating DESC, cm.shared_date DESC
       LIMIT ${limit}
     `);
+    
+    console.log(`Top community modules filtered result count: ${result.rows.length}`);
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error retrieving top community modules:", error);
