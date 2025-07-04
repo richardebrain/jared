@@ -3977,7 +3977,8 @@ Continue for all 5 questions...
         console.log(`Filtering modules for school ID: ${userSchoolId}`);
 
         // Use direct SQL query with school-based filtering
-        // Only show: 1) Modules from user's school, 2) Community modules (shared modules)
+        // For new schools: Only show modules from their own school
+        // For established schools: Also show community modules
         const result = await db.execute(sql`
         SELECT lm.id, lm.title, lm.description, lm.duration, lm.point_value as "pointValue", 
                lm.image_url as "imageUrl", lm.featured, lm.difficulty, lm.category, lm.content, 
@@ -3991,15 +3992,7 @@ Continue for all 5 questions...
         FROM learning_modules lm
         LEFT JOIN users u ON lm.creator_id = u.id
         LEFT JOIN schools s ON lm.school_id = s.id
-        WHERE (
-          lm.school_id = ${userSchoolId} 
-          OR lm.is_shared_to_community = true 
-          OR lm.id IN (
-            SELECT cm.module_id 
-            FROM community_modules cm 
-            WHERE cm.status = 'active'
-          )
-        )
+        WHERE lm.school_id = ${userSchoolId}
         AND lm.is_visible = true
         AND (lm.is_onboarding_module = false OR lm.is_onboarding_module IS NULL OR lm.school_id = ${userSchoolId})
         ORDER BY lm.created_at DESC
