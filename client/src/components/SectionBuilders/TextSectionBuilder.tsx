@@ -9,6 +9,8 @@ import ModuleImageGenerator from '@/components/ModuleImageGenerator';
 import MemeFinder from '@/components/MemeFinder';
 import VoiceInputTextarea from '@/components/VoiceInputTextarea';
 import { useToast } from '@/hooks/use-toast';
+import ModuleVoiceInput from '@/components/ModuleVoiceInput';
+
 
 interface TextSectionBuilderProps {
   content: any;
@@ -280,12 +282,28 @@ export default function TextSectionBuilder({ content, onContentChange, isEditing
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="text-content">Educational Content</Label>
-            <VoiceInputTextarea
+            {/* <VoiceInputTextarea
               value={textContent}
               onChange={(value) => setTextContent(value)}
               placeholder="Enter your educational content here. You can include key concepts, explanations, examples, and important information for teachers..."
               className="mt-1 min-h-[300px] resize-none"
-            />
+            /> */}
+            <div className="mt-1 space-y-3">
+              <Textarea
+                id="text-content"
+                value={textContent}
+                onChange={(e) => setTextContent(e.target.value)}
+                placeholder="Enter your educational content here. You can include key concepts, explanations, examples, and important information for teachers..."
+                className="min-h-[300px] resize-none"
+              />
+              <ModuleVoiceInput
+                onResult={(text) => setTextContent(prev => prev + (prev ? '\n\n' : '') + text)}
+                placeholder="Add content via voice input"
+                continuous={true}
+                autoFormat={true}
+                pauseThreshold={3000}
+              />
+            </div>
           </div>
 
           {/* Image Generation Section */}
