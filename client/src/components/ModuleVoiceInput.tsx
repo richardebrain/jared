@@ -15,6 +15,7 @@ interface ModuleVoiceInputProps {
   continuous?: boolean;
   autoFormat?: boolean;
   pauseThreshold?: number;
+  debug?: boolean;
 }
 
 export default function ModuleVoiceInput({
@@ -26,7 +27,8 @@ export default function ModuleVoiceInput({
   variant = 'outline',
   continuous = true,
   autoFormat = true,
-  pauseThreshold = 2500 // Slightly longer for module content
+  pauseThreshold = 2500, // Slightly longer for module content
+  debug = false
 }: ModuleVoiceInputProps) {
   const { toast } = useToast();
   const [showPreview, setShowPreview] = useState(false);
@@ -51,7 +53,8 @@ export default function ModuleVoiceInput({
     },
     continuous,
     autoFormat,
-    pauseThreshold
+    pauseThreshold,
+    debug
   });
 
   if (!isSupported) {
@@ -130,7 +133,7 @@ export default function ModuleVoiceInput({
               </div>
             )}
           </div>
-          
+
           <div className="bg-white p-3 rounded border min-h-[60px]">
             {transcript ? (
               <p className="text-sm text-gray-800 whitespace-pre-wrap">{transcript}</p>
@@ -171,6 +174,17 @@ export default function ModuleVoiceInput({
                   <li>• Recording will auto-stop after {pauseThreshold/1000} seconds of silence</li>
                 )}
               </ul>
+
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                <p className="font-medium text-blue-800 mb-1">Smart Features:</p>
+                <ul className="text-blue-700 space-y-0.5">
+                  <li>• Auto-detects questions and adds question marks</li>
+                  <li>• Smart comma insertion for natural speech</li>
+                  <li>• Fixes common contractions (don't, can't, etc.)</li>
+                  <li>• Converts spoken numbers to digits</li>
+                  <li>• Removes filler words automatically</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

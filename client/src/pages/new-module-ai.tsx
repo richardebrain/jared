@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import CloudinaryMarkdownEditor from '@/components/CloudinaryMarkdownEditor';
+import '@uiw/react-markdown-preview/markdown.css';
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -62,6 +63,8 @@ import VideoSectionBuilder from "@/components/SectionBuilders/VideoSectionBuilde
 import TextSectionBuilder from "@/components/SectionBuilders/TextSectionBuilder";
 import VoiceInputTextarea from "@/components/VoiceInputTextarea";
 import VoiceEnabledInput from "@/components/VoiceEnabledInput";
+import ModuleVoiceInput from "@/components/ModuleVoiceInput";
+
 
 // Proven Templates - The foundation for AI-driven content creation
 const PROVEN_TEMPLATES = [
@@ -154,6 +157,7 @@ const PROVEN_TEMPLATES = [
       { title: "Scenario Assessment", type: "quiz", duration: 3 },
     ],
   },
+
 ];
 
 type Step = "template" | "topic" | "sections" | "preview" | "publish";
@@ -458,6 +462,8 @@ export default function NewModuleAI() {
       setCurrentStep("sections");
     }
   };
+
+
 
 
 
@@ -861,17 +867,29 @@ export default function NewModuleAI() {
 
               <div>
                 <Label htmlFor="topic">Module Topic</Label>
-                <div className="mt-1">
-                  <VoiceEnabledInput
+                <div className="mt-1 space-y-3">
+                  <Input
                     id="topic"
                     value={moduleConfig.topic}
-                    onChange={(value) =>
+                    onChange={(e) =>
                       setModuleConfig((prev) => ({
                         ...prev,
-                        topic: value,
+                        topic: e.target.value,
                       }))
                     }
-                    placeholder="e.g., Positive Behavior Support, Classroom Management, Social-Emotional Learning... (Click microphone for voice input)"
+                    placeholder="e.g., Positive Behavior Support, Classroom Management, Social-Emotional Learning..."
+                  />
+                  <ModuleVoiceInput
+                    onResult={(text) =>
+                      setModuleConfig((prev) => ({
+                        ...prev,
+                        topic: prev.topic ? `${prev.topic} ${text}` : text,
+                      }))
+                    }
+                    placeholder="Set topic via voice input"
+                    continuous={false}
+                    autoFormat={true}
+                    pauseThreshold={2000}
                   />
                 </div>
               </div>
@@ -880,17 +898,28 @@ export default function NewModuleAI() {
                 <Label htmlFor="description">
                   Brief Description (Optional)
                 </Label>
-                <div className="mt-1">
-                  <VoiceInputTextarea
+                <div className="mt-1 space-y-3">
+                  <CloudinaryMarkdownEditor
                     value={moduleConfig.description}
                     onChange={(value) =>
                       setModuleConfig((prev) => ({
                         ...prev,
-                        description: value,
+                        description: value || '',
                       }))
                     }
-                    placeholder="Describe what this module should cover... (Click the microphone to use voice input)"
-                    minHeight="min-h-[80px]"
+                    height={120}
+                  />
+                  <ModuleVoiceInput
+                    onResult={(text) =>
+                      setModuleConfig((prev) => ({
+                        ...prev,
+                        description: prev.description ? `${prev.description}\n\n${text}` : text,
+                      }))
+                    }
+                    placeholder="Add description via voice input"
+                    continuous={true}
+                    autoFormat={true}
+                    pauseThreshold={3000}
                   />
                 </div>
               </div>
@@ -1823,13 +1852,10 @@ export default function NewModuleAI() {
                 <Label htmlFor="regenerate-guidance">
                   How would you like this section to be different?
                 </Label>
-                <Textarea
-                  id="regenerate-guidance"
+                <CloudinaryMarkdownEditor
                   value={regenerateGuidance}
-                  onChange={(e) => setRegenerateGuidance(e.target.value)}
-                  placeholder="e.g., Make it more interactive, focus on practical examples, include more case studies, simplify the language..."
-                  className="mt-2"
-                  rows={4}
+                  onChange={(value) => setRegenerateGuidance(value || '')}
+                  height={150}
                 />
               </div>
               <div className="text-xs text-gray-500">

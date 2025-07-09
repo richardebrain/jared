@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import CloudinaryMarkdownEditor from '@/components/CloudinaryMarkdownEditor';
+import '@uiw/react-markdown-preview/markdown.css';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
@@ -369,7 +370,11 @@ export default function NewModuleManual() {
               </div>
               <div>
                 <Label>Content</Label>
-                <Textarea placeholder="Enter section content..." rows={6} />
+                <CloudinaryMarkdownEditor
+                  value=""
+                  onChange={() => {}}
+                  height={200}
+                />
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setCurrentSectionType(null)}>
@@ -526,12 +531,10 @@ export default function NewModuleManual() {
 
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
+                <CloudinaryMarkdownEditor
                   value={moduleConfig.description}
-                  onChange={(e) => setModuleConfig(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe what learners will gain from this module..."
-                  rows={3}
+                  onChange={(value) => setModuleConfig(prev => ({ ...prev, description: value || '' }))}
+                  height={120}
                 />
               </div>
 
@@ -672,13 +675,10 @@ export default function NewModuleManual() {
                               </div>
                               <div>
                                 <Label htmlFor={`content-${section.id}`}>Section Content</Label>
-                                <Textarea
-                                  id={`content-${section.id}`}
+                                <CloudinaryMarkdownEditor
                                   value={section.content}
-                                  onChange={(e) => updateSection(section.id, { content: e.target.value })}
-                                  placeholder="Enter section content..."
-                                  rows={8}
-                                  className="min-h-[200px]"
+                                  onChange={(value) => updateSection(section.id, { content: value || '' })}
+                                  height={300}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-4">

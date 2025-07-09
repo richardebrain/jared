@@ -929,7 +929,7 @@ function Router(props: {
         )}
       </Route>
 
-      <Route path="/comprehensive-module-creator">
+      {/* <Route path="/comprehensive-module-creator">
         {!isAuthenticated && !isLoading ? (
           <Redirect to="/login" />
         ) : isLoading ? (
@@ -939,7 +939,7 @@ function Router(props: {
         ) : (
           <ComprehensiveModuleCreator />
         )}
-      </Route>
+      </Route> */}
 
       <Route path="/messages">
         {!isAuthenticated && !isLoading ? (

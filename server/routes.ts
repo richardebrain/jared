@@ -411,6 +411,7 @@ import pixabayRoutes from "./routes/pixabay";
 import { setupSecurityMiddleware } from "./middleware/security";
 import { createSchoolDeletionEndpoint } from "./services/cleanSchoolDeletion.js";
 import { uploadFileToCloudinary, uploadToMemory } from "./services/cloudinary.js";
+import markdownUploadRoutes from "./api/markdownUploadRoutes.js";
 
 // For ESM __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -4033,9 +4034,10 @@ Continue for all 5 questions...
       const result = await db.execute(sql`
         SELECT id, title, description, duration, point_value as "pointValue", 
                image_url as "imageUrl", featured, difficulty, category, content, 
-               quiz, is_visible as "isVisible", created_at as "createdAt",
-               average_rating as "averageRating", rating_count as "ratingCount",
-               is_shared_to_community as "isSharedToCommunity", school_id as "schoolId"
+               editable_data as "editableData", quiz, is_visible as "isVisible", 
+               created_at as "createdAt", average_rating as "averageRating", 
+               rating_count as "ratingCount", is_shared_to_community as "isSharedToCommunity", 
+               school_id as "schoolId", creator_id as "creatorId"
         FROM learning_modules
         WHERE id = ${moduleId}
       `);
@@ -11047,6 +11049,9 @@ Respond as a wise, experienced coach who understands both the challenges of mana
   } catch (error) {
     console.error("Failed to register behavior plan routes:", error);
   }
+
+  // Markdown editor file upload routes
+  app.use("/api/markdown", markdownUploadRoutes);
 
   // Module drafts API endpoints
   app.get("/api/module-drafts", requireAuth, async (req, res) => {

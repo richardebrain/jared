@@ -45,7 +45,7 @@ export default function VoiceEnabledInput({
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        onChange(transcript);
+        onChange(value + transcript);
         toast({
           title: "Voice input complete",
           description: "Text has been added to the field.",

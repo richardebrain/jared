@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import CloudinaryMarkdownEditor from '@/components/CloudinaryMarkdownEditor';
+import MarkdownPreview from '@uiw/react-markdown-preview';
+import '@uiw/react-markdown-preview/markdown.css';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Wand2, Edit, Save, Plus, Trash2, RotateCcw } from 'lucide-react';
@@ -277,12 +279,10 @@ export default function ScenarioMatchSectionBuilder({
 
                       <div>
                         <Label htmlFor={`explanation-${index}`}>Explanation</Label>
-                        <Textarea
-                          id={`explanation-${index}`}
+                        <CloudinaryMarkdownEditor
                           value={scenario.explanation}
-                          onChange={(e) => updateScenario(index, 'explanation', e.target.value)}
-                          placeholder="Explain why this is the best response..."
-                          className="mt-1"
+                          onChange={(value) => updateScenario(index, 'explanation', value || '')}
+                          height={150}
                         />
                       </div>
                     </>
@@ -318,7 +318,9 @@ export default function ScenarioMatchSectionBuilder({
                       {scenario.explanation && (
                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                           <h4 className="font-medium text-amber-900 mb-2">Explanation:</h4>
-                          <p className="text-amber-800 text-sm">{scenario.explanation}</p>
+                          <div className="text-amber-800 text-sm">
+                            <MarkdownPreview source={scenario.explanation} />
+                          </div>
                         </div>
                       )}
                     </>

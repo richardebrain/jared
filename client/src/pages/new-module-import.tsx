@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import CloudinaryMarkdownEditor from '@/components/CloudinaryMarkdownEditor';
+import '@uiw/react-markdown-preview/markdown.css';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
@@ -491,12 +492,10 @@ export default function NewModuleImport() {
 
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
+                <CloudinaryMarkdownEditor
                   value={moduleConfig.description}
-                  onChange={(e) => setModuleConfig(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe what learners will gain from this module..."
-                  rows={3}
+                  onChange={(value) => setModuleConfig(prev => ({ ...prev, description: value || '' }))}
+                  height={120}
                 />
               </div>
 

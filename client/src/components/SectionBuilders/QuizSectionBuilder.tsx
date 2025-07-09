@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import VoiceInputTextarea from "@/components/VoiceInputTextarea";
+import CloudinaryMarkdownEditor from '@/components/CloudinaryMarkdownEditor';
+import MarkdownPreview from '@uiw/react-markdown-preview';
+import '@uiw/react-markdown-preview/markdown.css';
 import VoiceEnabledInput from "@/components/VoiceEnabledInput";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -258,7 +260,7 @@ export default function QuizSectionBuilder({
                       Explanation:
                     </div>
                     <div className="text-sm text-blue-600">
-                      {question.explanation}
+                      <MarkdownPreview source={question.explanation} />
                     </div>
                   </div>
                 )}
@@ -359,15 +361,12 @@ export default function QuizSectionBuilder({
               <Label htmlFor={`explanation-${question.id}`}>
                 Explanation (Optional)
               </Label>
-              <Textarea
-                id={`explanation-${question.id}`}
+                            <CloudinaryMarkdownEditor
                 value={question.explanation || ""}
-                onChange={(e) =>
-                  updateQuestion(question.id, "explanation", e.target.value)
+                onChange={(value) =>
+                  updateQuestion(question.id, "explanation", value || "")
                 }
-                placeholder="Explain why this answer is correct..."
-                className="mt-1"
-                rows={2}
+                height={150}
               />
             </div>
           </CardContent>

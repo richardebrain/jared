@@ -122,11 +122,9 @@ export async function apiRequest<T = any>(
     // Handle session timeout responses
     if (error.response?.status === 401) {
       const responseData = error.response?.data;
-      
+      console.log(responseData,'res data for session timeout')
       // Check if it's a session timeout specifically
-      if (responseData?.code === 'IDLE_TIMEOUT' || 
-          responseData?.message?.includes('Session expired') ||
-          responseData?.message?.includes('inactivity')) {
+      if (responseData?.code === 'IDLE_TIMEOUT') {
         
         console.log('Session timeout detected in API request, redirecting to login');
         

@@ -1,7 +1,48 @@
 import { Router } from 'express';
 import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
+import yauzl from 'yauzl';
+import multer from 'multer';
 
 const router = Router();
+
+// Configure multer for PowerPoint file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads/powerpoint';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ];
+    
+    const allowedExtensions = ['.ppt', '.pptx'];
+    const fileExtension = file.originalname.toLowerCase().substr(file.originalname.lastIndexOf('.'));
+    
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PowerPoint files are allowed.'));
+    }
+  },
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  }
+});
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -479,57 +520,53 @@ Make content specific, actionable, and engaging for the target audience.`;
 });
 
 // Process PowerPoint presentations and extract content
-router.post('/process-powerpoint', async (req, res) => {
+router.post('/process-powerpoint', upload.single('presentation'), async (req, res) => {
   try {
-    // Note: This would typically use a library like mammoth or officegen
-    // For now, we'll simulate the extraction process
-    
-    const mockSlides = [
-      {
-        title: "Introduction",
-        content: "Welcome to this learning module. Today we'll explore key concepts and practical applications.",
-        text: "Learning objectives and overview",
-        hasQuestions: false,
-        image: null
-      },
-      {
-        title: "Key Concepts",
-        content: "Understanding the fundamental principles and how they apply in real-world scenarios.",
-        text: "Core concepts explanation with examples",
-        hasQuestions: false,
-        image: null
-      },
-      {
-        title: "Practical Application",
-        content: "How to implement these concepts in your daily practice with specific strategies.",
-        text: "Implementation strategies and best practices",
-        hasQuestions: true,
-        questions: [
-          {
-            question: "What is the most important factor when implementing these concepts?",
-            answers: ["Planning", "Execution", "Evaluation", "All of the above"],
-            correctAnswer: 3,
-            explanation: "All factors are equally important for successful implementation."
-          }
-        ]
-      },
-      {
-        title: "Summary and Next Steps",
-        content: "Review of key takeaways and action items for continued learning and improvement.",
-        text: "Conclusion and follow-up activities",
-        hasQuestions: false,
-        image: null
+    // Check if we have a file in the request
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'No PowerPoint file provided',
+        details: 'Please upload a .ppt or .pptx file'
+      });
+    }
+
+    const filePath = req.file.path;
+
+    try {
+      // Extract content from PowerPoint file
+      const slides = await extractPowerPointContent(filePath);
+      
+      // Clean up uploaded file
+      fs.unlinkSync(filePath);
+      
+      // Convert slides to module format
+      const moduleSlides = slides.map((slide, index) => ({
+        title: slide.title || `Slide ${index + 1}`,
+        content: slide.content || slide.text || 'Content from presentation slide',
+        type: slide.hasQuestions ? 'quiz' : 'text',
+        videoUrl: slide.videoLinks?.[0] || '',
+        questions: slide.questions || [],
+        imageUrl: slide.image || '',
+        notes: slide.notes || ''
+      }));
+
+      const result = {
+        title: req.file.originalname.replace(/\.(ppt|pptx)$/i, ''),
+        description: `Module created from PowerPoint presentation: ${req.file.originalname}`,
+        category: "Imported Content",
+        slides: moduleSlides,
+        estimatedTime: Math.max(10, slides.length * 2).toString(),
+        pointValue: Math.max(20, slides.length * 5)
+      };
+
+      res.json(result);
+    } catch (parseError) {
+      // Clean up file on error
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
       }
-    ];
-
-    const result = {
-      title: "Imported Learning Module",
-      description: "Interactive module created from PowerPoint presentation",
-      category: "Professional Development",
-      slides: mockSlides
-    };
-
-    res.json(result);
+      throw parseError;
+    }
   } catch (error) {
     console.error('Error processing PowerPoint:', error);
     res.status(500).json({ 
@@ -538,5 +575,201 @@ router.post('/process-powerpoint', async (req, res) => {
     });
   }
 });
+
+// Helper function to extract PowerPoint content
+async function extractPowerPointContent(filePath: string): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    const slides: any[] = [];
+    
+    yauzl.open(filePath, { lazyEntries: true }, (err, zipfile) => {
+      if (err) {
+        reject(new Error(`Failed to open PowerPoint file: ${err.message}`));
+        return;
+      }
+
+      const slideFiles: { [key: string]: Buffer } = {};
+      const noteFiles: { [key: string]: Buffer } = {};
+      const relationshipFiles: { [key: string]: Buffer } = {};
+      
+      zipfile.readEntry();
+
+      zipfile.on('entry', (entry) => {
+        const fileName = entry.fileName;
+
+        // Extract slide content files
+        if (fileName.match(/ppt\/slides\/slide\d+\.xml$/)) {
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err) {
+              zipfile.readEntry();
+              return;
+            }
+
+            const chunks: Buffer[] = [];
+            readStream.on('data', (chunk) => chunks.push(chunk));
+            readStream.on('end', () => {
+              slideFiles[fileName] = Buffer.concat(chunks);
+              zipfile.readEntry();
+            });
+          });
+        }
+        // Extract notes content
+        else if (fileName.match(/ppt\/notesSlides\/notesSlide\d+\.xml$/)) {
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err) {
+              zipfile.readEntry();
+              return;
+            }
+
+            const chunks: Buffer[] = [];
+            readStream.on('data', (chunk) => chunks.push(chunk));
+            readStream.on('end', () => {
+              noteFiles[fileName] = Buffer.concat(chunks);
+              zipfile.readEntry();
+            });
+          });
+        }
+        // Extract relationship files for video links
+        else if (fileName.match(/ppt\/slides\/_rels\/slide\d+\.xml\.rels$/)) {
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err) {
+              zipfile.readEntry();
+              return;
+            }
+
+            const chunks: Buffer[] = [];
+            readStream.on('data', (chunk) => chunks.push(chunk));
+            readStream.on('end', () => {
+              relationshipFiles[fileName] = Buffer.concat(chunks);
+              zipfile.readEntry();
+            });
+          });
+        }
+        else {
+          zipfile.readEntry();
+        }
+      });
+
+      zipfile.on('end', () => {
+        try {
+          // Process extracted content
+          const slideNumbers = Object.keys(slideFiles)
+            .map(f => parseInt(f.match(/slide(\d+)\.xml$/)?.[1] || '0'))
+            .filter(n => n > 0)
+            .sort((a, b) => a - b);
+
+          for (const slideNum of slideNumbers) {
+            const slideFile = `ppt/slides/slide${slideNum}.xml`;
+            const noteFile = `ppt/notesSlides/notesSlide${slideNum}.xml`;
+            const relsFile = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+
+            const slideContent = slideFiles[slideFile];
+            const noteContent = noteFiles[noteFile];
+            const relsContent = relationshipFiles[relsFile];
+
+            if (slideContent) {
+              const slide = parseSlideContent(slideContent.toString(), slideNum);
+              
+              // Add notes if available
+              if (noteContent) {
+                slide.notes = parseNotesContent(noteContent.toString());
+              }
+
+              // Extract video links if available
+              if (relsContent) {
+                slide.videoLinks = extractVideoLinks(relsContent.toString());
+              }
+
+              slides.push(slide);
+            }
+          }
+
+          resolve(slides);
+        } catch (parseError) {
+          reject(new Error(`Failed to parse PowerPoint content: ${parseError.message}`));
+        }
+      });
+
+      zipfile.on('error', (err) => {
+        reject(new Error(`Error reading PowerPoint file: ${err.message}`));
+      });
+    });
+  });
+}
+
+// Helper function to parse slide XML content
+function parseSlideContent(xmlContent: string, slideNumber: number) {
+  // Extract title from slide
+  const titleMatch = xmlContent.match(/<a:t[^>]*>([^<]+)<\/a:t>/);
+  let title = titleMatch ? titleMatch[1].trim() : `Slide ${slideNumber}`;
+
+  // Extract all text content
+  const textMatches = xmlContent.match(/<a:t[^>]*>([^<]+)<\/a:t>/g) || [];
+  const allText = textMatches
+    .map(match => match.replace(/<\/?[^>]+>/g, '').trim())
+    .filter(text => text.length > 0)
+    .join(' ');
+
+  // If we have multiple text elements, use the first as title and rest as content
+  if (textMatches.length > 1) {
+    const texts = textMatches
+      .map(match => match.replace(/<\/?[^>]+>/g, '').trim())
+      .filter(text => text.length > 0);
+    
+    title = texts[0];
+    const content = texts.slice(1).join(' ');
+    
+    return {
+      slideNumber,
+      title,
+      content: content || allText,
+      notes: '',
+      videoLinks: []
+    };
+  }
+
+  return {
+    slideNumber,
+    title,
+    content: allText,
+    notes: '',
+    videoLinks: []
+  };
+}
+
+// Helper function to parse notes XML content
+function parseNotesContent(xmlContent: string): string {
+  const textMatches = xmlContent.match(/<a:t[^>]*>([^<]+)<\/a:t>/g) || [];
+  return textMatches
+    .map(match => match.replace(/<\/?[^>]+>/g, '').trim())
+    .filter(text => text.length > 0)
+    .join(' ');
+}
+
+// Helper function to extract video links from relationship files
+function extractVideoLinks(relsContent: string): string[] {
+  const videoLinks: string[] = [];
+  
+  // Look for external links that might be videos
+  const linkMatches = relsContent.match(/Target="([^"]*(?:youtube|vimeo|video)[^"]*)"/gi) || [];
+  
+  for (const match of linkMatches) {
+    const url = match.replace(/Target="([^"]*)"/, '$1');
+    if (url && (url.includes('youtube') || url.includes('vimeo') || url.includes('video'))) {
+      videoLinks.push(url);
+    }
+  }
+
+  // Look for hyperlinks in the main content
+  const hyperlinkMatches = relsContent.match(/Type="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/hyperlink"[^>]*Target="([^"]*)"/gi) || [];
+  
+  for (const match of hyperlinkMatches) {
+    const url = match.match(/Target="([^"]*)"/)?.[1];
+    if (url && (url.includes('youtube') || url.includes('vimeo') || url.includes('.mp4') || url.includes('.mov'))) {
+      videoLinks.push(url);
+    }
+  }
+
+  return [...new Set(videoLinks)]; // Remove duplicates
+}
 
 export default router;

@@ -224,7 +224,7 @@ async function startServer() {
     }
 
     // Start server with enhanced error handling
-    const port = parseInt(process.env.PORT || "5000", 10);
+    const port = parseInt(process.env.PORT || "5003", 10);
     
     server.on('error', (error: any) => {
       console.error('Server error:', error);
