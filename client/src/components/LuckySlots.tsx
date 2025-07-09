@@ -74,15 +74,15 @@ export default function LuckySlots({
         // All three symbols match (jackpot)
         const symbol = newSymbols[0];
         if (symbol === "diamond") {
-          points = 20; // Jackpot
+          points = 5; // Jackpot
         } else if (symbol === "sparkles") {
-          points = 10; // High value
+          points = 4; // High value
         } else if (symbol === "award") {
-          points = 7; // Medium-high value
+          points = 3; // Medium-high value
         } else if (symbol === "gem") {
-          points = 5; // Medium value
+          points = 2; // Medium value
         } else {
-          points = 3; // Basic match
+          points = 1; // Basic match
         }
       } else if (uniqueSymbols.size === 2) {
         // Two symbols match
@@ -210,35 +210,35 @@ export default function LuckySlots({
               <Diamond className="h-6 w-6 text-cyan-500 mr-2 filter drop-shadow" />
               <div>
                 <span className="text-gray-800 font-medium">3× Diamonds</span>
-                <div className="text-amber-600 font-bold">20 POINTS</div>
+                <div className="text-amber-600 font-bold">5 POINTS</div>
               </div>
             </div>
             <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
               <Sparkles className="h-6 w-6 text-pink-500 mr-2 filter drop-shadow" />
               <div>
                 <span className="text-gray-800 font-medium">3× Sparkles</span>
-                <div className="text-amber-600 font-bold">10 POINTS</div>
+                <div className="text-amber-600 font-bold">4 POINTS</div>
               </div>
             </div>
             <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
               <Award className="h-6 w-6 text-amber-500 mr-2 filter drop-shadow" />
               <div>
                 <span className="text-gray-800 font-medium">3× Awards</span>
-                <div className="text-amber-600 font-bold">7 POINTS</div>
+                <div className="text-amber-600 font-bold">3 POINTS</div>
               </div>
             </div>
             <div className="flex items-center bg-white p-2 rounded-md shadow-sm transition-transform hover:scale-105">
               <Gem className="h-6 w-6 text-purple-500 mr-2 filter drop-shadow" />
               <div>
                 <span className="text-gray-800 font-medium">3× Gems</span>
-                <div className="text-amber-600 font-bold">5 POINTS</div>
+                <div className="text-amber-600 font-bold">2 POINTS</div>
               </div>
             </div>
             <div className="flex items-center bg-white p-2 rounded-md shadow-sm col-span-2 transition-transform hover:scale-105">
               <Star className="h-6 w-6 text-yellow-500 mr-2 filter drop-shadow" />
               <div>
                 <span className="text-gray-800 font-medium">Any 2 matching symbols</span>
-                <div className="text-amber-600 font-bold">1-3 POINTS</div>
+                <div className="text-amber-600 font-bold">1 POINT</div>
               </div>
             </div>
           </div>

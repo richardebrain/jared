@@ -48,7 +48,7 @@ const PRIZES: Prize[] = [
     name: "1 Point", 
     type: "points", 
     value: 1, 
-    probability: 30, 
+    probability: 35, 
     icon: Star, 
     color: "bg-yellow-500",
     textColor: "text-white",
@@ -59,7 +59,7 @@ const PRIZES: Prize[] = [
     name: "2 Points", 
     type: "points", 
     value: 2, 
-    probability: 25, 
+    probability: 30, 
     icon: Star, 
     color: "bg-yellow-500",
     textColor: "text-white",
@@ -78,10 +78,10 @@ const PRIZES: Prize[] = [
   },
   { 
     id: 4, 
-    name: "5 Points", 
+    name: "4 Points", 
     type: "points", 
-    value: 5, 
-    probability: 15, 
+    value: 4, 
+    probability: 10, 
     icon: Star, 
     color: "bg-yellow-600",
     textColor: "text-white",
@@ -89,10 +89,10 @@ const PRIZES: Prize[] = [
   },
   { 
     id: 5, 
-    name: "7 Points", 
+    name: "5 Points", 
     type: "points", 
-    value: 7, 
-    probability: 5, 
+    value: 5, 
+    probability: 4, 
     icon: Star, 
     color: "bg-yellow-600",
     textColor: "text-white",
@@ -103,34 +103,12 @@ const PRIZES: Prize[] = [
     name: "Try Again", 
     type: "points", 
     value: 0, 
-    probability: 3, 
+    probability: 1, 
     icon: Star, 
     color: "bg-gray-500",
     textColor: "text-white",
     description: "Better luck next time! Try again tomorrow."
   },
-  { 
-    id: 7, 
-    name: "10 Points", 
-    type: "points", 
-    value: 10, 
-    probability: 1.5, 
-    icon: StarIcon, 
-    color: "bg-yellow-700",
-    textColor: "text-white",
-    description: "Bonus points! You got lucky today."
-  },
-  { 
-    id: 8, 
-    name: "20 Points", 
-    type: "points", 
-    value: 20, 
-    probability: 0.5, 
-    icon: Sparkles, 
-    color: "bg-orange-500",
-    textColor: "text-white",
-    description: "JACKPOT! You won the maximum reward!"
-  }
 ];
 
 const getTotalProbability = () => PRIZES.reduce((acc, prize) => acc + prize.probability, 0);

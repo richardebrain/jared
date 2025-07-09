@@ -84,34 +84,32 @@ const BOX_TYPES = [
 // Rewards definitions by box type
 const REWARDS = {
   basic: [
-    { id: 'points_5', type: 'points', value: 5, probability: 0.5, label: '5 Points', icon: <Gift className="h-5 w-5" /> },
-    { id: 'points_10', type: 'points', value: 10, probability: 0.3, label: '10 Points', icon: <Gift className="h-5 w-5" /> },
-    { id: 'points_25', type: 'points', value: 25, probability: 0.15, label: '25 Points!', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_2', type: 'points', value: 2, probability: 0.5, label: '2 Points', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_3', type: 'points', value: 3, probability: 0.3, label: '3 Points', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_5', type: 'points', value: 5, probability: 0.15, label: '5 Points!', icon: <Gift className="h-5 w-5" /> },
     { id: 'bear_1', type: 'bearBucks', value: 1, probability: 0.05, label: '1 Bear Buck!', icon: <Coins className="h-5 w-5" /> },
   ],
   silver: [
-    { id: 'points_25', type: 'points', value: 25, probability: 0.45, label: '25 Points', icon: <Gift className="h-5 w-5" /> },
-    { id: 'points_50', type: 'points', value: 50, probability: 0.3, label: '50 Points!', icon: <Gift className="h-5 w-5" /> },
-    { id: 'bear_1', type: 'bearBucks', value: 1, probability: 0.15, label: '1 Bear Buck', icon: <Coins className="h-5 w-5" /> },
-    { id: 'bear_2', type: 'bearBucks', value: 2, probability: 0.08, label: '2 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
+    { id: 'points_3', type: 'points', value: 3, probability: 0.45, label: '3 Points', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_5', type: 'points', value: 5, probability: 0.3, label: '5 Points!', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_7', type: 'points', value: 7, probability: 0.15, label: '7 Points!', icon: <Gift className="h-5 w-5" /> },
+    { id: 'bear_1', type: 'bearBucks', value: 1, probability: 0.08, label: '1 Bear Buck!', icon: <Coins className="h-5 w-5" /> },
     { id: 'streak_shield', type: 'item', value: 1, probability: 0.02, label: 'Streak Shield', icon: <ShieldCheck className="h-5 w-5" /> },
   ],
   gold: [
-    { id: 'points_50', type: 'points', value: 50, probability: 0.4, label: '50 Points', icon: <Gift className="h-5 w-5" /> },
-    { id: 'points_100', type: 'points', value: 100, probability: 0.3, label: '100 Points!', icon: <Gift className="h-5 w-5" /> },
-    { id: 'bear_2', type: 'bearBucks', value: 2, probability: 0.15, label: '2 Bear Bucks', icon: <Coins className="h-5 w-5" /> },
-    { id: 'bear_5', type: 'bearBucks', value: 5, probability: 0.1, label: '5 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
-    { id: 'streak_shield', type: 'item', value: 1, probability: 0.03, label: 'Streak Shield', icon: <ShieldCheck className="h-5 w-5" /> },
-    { id: 'double_xp', type: 'item', value: 1, probability: 0.02, label: 'Double XP Boost (24h)', icon: <Zap className="h-5 w-5" /> },
+    { id: 'points_5', type: 'points', value: 5, probability: 0.4, label: '5 Points', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_7', type: 'points', value: 7, probability: 0.3, label: '7 Points!', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_10', type: 'points', value: 10, probability: 0.2, label: '10 Points!', icon: <Gift className="h-5 w-5" /> },
+    { id: 'bear_2', type: 'bearBucks', value: 2, probability: 0.08, label: '2 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
+    { id: 'streak_shield', type: 'item', value: 1, probability: 0.02, label: 'Streak Shield', icon: <ShieldCheck className="h-5 w-5" /> },
   ],
   diamond: [
-    { id: 'points_100', type: 'points', value: 100, probability: 0.35, label: '100 Points', icon: <Gift className="h-5 w-5" /> },
-    { id: 'points_200', type: 'points', value: 200, probability: 0.2, label: '200 Points!', icon: <Gift className="h-5 w-5" /> },
-    { id: 'bear_3', type: 'bearBucks', value: 3, probability: 0.2, label: '3 Bear Bucks', icon: <Coins className="h-5 w-5" /> },
-    { id: 'bear_5', type: 'bearBucks', value: 5, probability: 0.15, label: '5 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
-    { id: 'bear_10', type: 'bearBucks', value: 10, probability: 0.05, label: '10 Bear Bucks!!', icon: <Coins className="h-5 w-5" /> },
+    { id: 'points_7', type: 'points', value: 7, probability: 0.35, label: '7 Points', icon: <Gift className="h-5 w-5" /> },
+    { id: 'points_10', type: 'points', value: 10, probability: 0.3, label: '10 Points!', icon: <Gift className="h-5 w-5" /> },
+    { id: 'bear_2', type: 'bearBucks', value: 2, probability: 0.2, label: '2 Bear Bucks', icon: <Coins className="h-5 w-5" /> },
+    { id: 'bear_3', type: 'bearBucks', value: 3, probability: 0.1, label: '3 Bear Bucks!', icon: <Coins className="h-5 w-5" /> },
     { id: 'streak_shield', type: 'item', value: 2, probability: 0.03, label: '2 Streak Shields', icon: <ShieldCheck className="h-5 w-5" /> },
-    { id: 'double_xp', type: 'item', value: 1, probability: 0.02, label: 'Double XP Boost (48h)', icon: <Zap className="h-5 w-5" /> },
+    { id: 'double_xp', type: 'item', value: 1, probability: 0.02, label: 'Double XP Boost (24h)', icon: <Zap className="h-5 w-5" /> },
   ]
 };
 
@@ -173,8 +171,8 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
       return;
     }
     
-    // Check if user reached daily point limit (20 points)
-    const dailyPointLimit = 20;
+    // Check if user reached daily point limit (10 points)
+    const dailyPointLimit = 10;
     const currentPoints = user?.points || 0;
     
     if (currentPoints >= dailyPointLimit) {
@@ -339,7 +337,7 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
       
       // For better rewards, add additional confetti effects with different colors and patterns
       if (
-        (currentReward.type === 'points' && currentReward.value >= 50) || 
+        (currentReward.type === 'points' && currentReward.value >= 7) || 
         (currentReward.type === 'bearBucks' && currentReward.value >= 2) || 
         currentReward.type === 'item'
       ) {
@@ -368,7 +366,7 @@ export default function MysteryBox({ maxDailyBoxes = 2, freeStreak5SilverBox = t
       
       // For premium rewards, add even more spectacular effects
       if (
-        (currentReward.type === 'points' && currentReward.value >= 100) || 
+        (currentReward.type === 'points' && currentReward.value >= 10) || 
         (currentReward.type === 'bearBucks' && currentReward.value >= 5) || 
         (currentReward.type === 'item' && (currentReward.id === 'streak_shield' || currentReward.id === 'double_xp'))
       ) {

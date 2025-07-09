@@ -40,14 +40,11 @@ interface ScratchCardProps {
 }
 
 const REWARDS = [
-  { id: 'small_1', type: 'points', value: 1, probability: 0.30, label: '1 Point', icon: <Gift className="h-5 w-5" /> },
-  { id: 'small_2', type: 'points', value: 2, probability: 0.25, label: '2 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'small_1', type: 'points', value: 1, probability: 0.35, label: '1 Point', icon: <Gift className="h-5 w-5" /> },
+  { id: 'small_2', type: 'points', value: 2, probability: 0.30, label: '2 Points', icon: <Gift className="h-5 w-5" /> },
   { id: 'small_3', type: 'points', value: 3, probability: 0.20, label: '3 Points', icon: <Gift className="h-5 w-5" /> },
-  { id: 'medium_5', type: 'points', value: 5, probability: 0.15, label: '5 Points', icon: <Gift className="h-5 w-5" /> },
-  { id: 'medium_7', type: 'points', value: 7, probability: 0.05, label: '7 Points', icon: <Gift className="h-5 w-5" /> },
-  { id: 'large', type: 'points', value: 10, probability: 0.03, label: '10 Points!', icon: <Award className="h-5 w-5" /> },
-  { id: 'xl', type: 'points', value: 15, probability: 0.015, label: '15 Points!!', icon: <Sparkles className="h-5 w-5" /> },
-  { id: 'jackpot', type: 'points', value: 20, probability: 0.005, label: '20 Points!!!', icon: <Award className="h-5 w-5" /> },
+  { id: 'medium_4', type: 'points', value: 4, probability: 0.10, label: '4 Points', icon: <Gift className="h-5 w-5" /> },
+  { id: 'large', type: 'points', value: 5, probability: 0.05, label: '5 Points!', icon: <Award className="h-5 w-5" /> },
 ];
 
 export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardProps) {
@@ -123,7 +120,7 @@ export default function ScratchCard({ maxDailyScratchCards = 3 }: ScratchCardPro
       });
       
       // Trigger confetti for significant rewards (10+ points)
-      if (currentReward?.type === 'points' && currentReward.value >= 10) {
+              if (currentReward?.type === 'points' && currentReward.value >= 4) {
         confetti({
           particleCount: currentReward.value >= 15 ? 200 : 100,
           spread: 70,

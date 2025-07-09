@@ -13,17 +13,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 // Game rewards
 const REWARDS = [
-  { type: "points", value: 5, label: "5 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
-  { type: "points", value: 10, label: "10 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
-  { type: "points", value: 25, label: "25 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
+  { type: "points", value: 1, label: "1 Achievement Point", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
+  { type: "points", value: 2, label: "2 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
+  { type: "points", value: 3, label: "3 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
   { type: "bearBucks", value: 1, label: "1 Redeemable Point", icon: <Coins className="h-5 w-5" />, color: "bg-green-500" },
   { type: "bearBucks", value: 2, label: "2 Redeemable Points", icon: <Coins className="h-5 w-5" />, color: "bg-green-500" },
   { type: "bearBucks", value: 5, label: "5 Redeemable Points", icon: <Coins className="h-5 w-5" />, color: "bg-green-500" },
   { type: "item", value: "badge", label: "Achievement Badge", icon: <Award className="h-5 w-5" />, color: "bg-purple-500" },
   { type: "item", value: "gift", label: "Mystery Gift", icon: <Gift className="h-5 w-5" />, color: "bg-pink-500" },
-  { type: "jackpot", value: 50, label: "JACKPOT!", icon: <Trophy className="h-5 w-5" />, color: "bg-orange-500" },
+  { type: "jackpot", value: 5, label: "JACKPOT!", icon: <Trophy className="h-5 w-5" />, color: "bg-orange-500" },
   { type: "hearts", value: 3, label: "Extra Lives", icon: <Heart className="h-5 w-5" />, color: "bg-red-500" },
-  { type: "points", value: 15, label: "15 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
+  { type: "points", value: 4, label: "4 Achievement Points", icon: <Star className="h-5 w-5" />, color: "bg-yellow-500" },
   { type: "bearBucks", value: 3, label: "3 Redeemable Points", icon: <Coins className="h-5 w-5" />, color: "bg-green-500" },
 ];
 
@@ -73,7 +73,7 @@ export default function GiftBoxGame({ canOpen = true, onComplete }: GiftBoxGameP
       
       const response = await apiRequest(`/api/users/${user?.id}/rewards`, {
         method: "POST",
-        body: {
+        data: {
           type: data.type,
           value: data.value,
           source: "gift_box"
@@ -116,7 +116,7 @@ export default function GiftBoxGame({ canOpen = true, onComplete }: GiftBoxGameP
       if (costTier === 'premium') {
         await apiRequest(`/api/users/${user?.id}`, {
           method: "PATCH",
-          body: { bearBucks: (user?.bearBucks || 0) - 5 }
+          data: { bearBucks: (user?.bearBucks || 0) - 5 }
         });
       }
       
@@ -142,12 +142,12 @@ export default function GiftBoxGame({ canOpen = true, onComplete }: GiftBoxGameP
           if (reward.type === "points" || reward.type === "bearBucks") {
             await addPointsMutation.mutateAsync({
               type: reward.type,
-              value: reward.value
+              value: typeof reward.value === 'number' ? reward.value : 1
             });
           } else if (reward.type === "jackpot") {
             // Special handling for jackpot
-            await addPointsMutation.mutateAsync({ type: "points", value: 25 });
-            await addPointsMutation.mutateAsync({ type: "bearBucks", value: 10 });
+                    await addPointsMutation.mutateAsync({ type: "points", value: 5 });
+        await addPointsMutation.mutateAsync({ type: "bearBucks", value: 3 });
           }
           
           // Set reward and show dialog
@@ -186,16 +186,16 @@ export default function GiftBoxGame({ canOpen = true, onComplete }: GiftBoxGameP
     if (costTier === 'free') {
       rewardPool = rewardPool.filter(r => 
         r.type !== "jackpot" && 
-        !(r.type === "points" && r.value > 10) && 
-        !(r.type === "bearBucks" && r.value > 2)
+        !(r.type === "points" && typeof r.value === 'number' && r.value > 5) && 
+        !(r.type === "bearBucks" && typeof r.value === 'number' && r.value > 2)
       );
     }
     // Premium tier - Better odds for good rewards
     else if (costTier === 'premium') {
       // Weighted selection for premium tier
       rewardPool = [
-        ...rewardPool.filter(r => r.type === "points" && r.value >= 10),
-        ...rewardPool.filter(r => r.type === "bearBucks" && r.value >= 2),
+        ...rewardPool.filter(r => r.type === "points" && typeof r.value === 'number' && r.value >= 3),
+        ...rewardPool.filter(r => r.type === "bearBucks" && typeof r.value === 'number' && r.value >= 2),
         ...rewardPool.filter(r => r.type === "item"),
         ...Array(3).fill(rewardPool.find(r => r.type === "jackpot")), // Higher chance for jackpot
       ];
