@@ -32,11 +32,20 @@ import {
   Gamepad,
   Play,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Clock,
+  Type,
+  Edit,
+  AlertTriangle
 } from 'lucide-react';
 
 // Import reusable section handlers
 import ExampleSectionHandler from '@/components/ExampleSectionHandler';
+import QuizSectionBuilder from "@/components/SectionBuilders/QuizSectionBuilder";
+import MatchingSectionBuilder from "@/components/SectionBuilders/MatchingSectionBuilder";
+import ScenarioMatchSectionBuilder from "@/components/SectionBuilders/ScenarioMatchSectionBuilder";
+import VideoSectionBuilder from "@/components/SectionBuilders/VideoSectionBuilder";
+import TextSectionBuilder from "@/components/SectionBuilders/TextSectionBuilder";
 
 const moduleTemplates = [
   {
@@ -106,6 +115,8 @@ interface ModuleSection {
   imageUrl?: string;
 }
 
+type Step = 'template' | 'config' | 'build' | 'preview';
+
 export default function NewModuleManual() {
   const { user, isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
@@ -120,11 +131,14 @@ export default function NewModuleManual() {
   console.log(`[EDIT MODE] Edit module ID: ${editModuleId}, isEditMode: ${isEditMode}`);
   console.log(`[EDIT MODE] Query will be enabled: ${isEditMode && !!editModuleId}`);
 
-  const [currentStep, setCurrentStep] = useState<'template' | 'config' | 'build' | 'preview'>('template');
+  const [currentStep, setCurrentStep] = useState<Step>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [currentSectionType, setCurrentSectionType] = useState<string | null>(null);
   const [sections, setSections] = useState<ModuleSection[]>([]);
-  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [editingSections, setEditingSections] = useState<{ [key: number]: boolean }>({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
+  const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
 
   const [moduleConfig, setModuleConfig] = useState({
     title: '',
@@ -140,6 +154,11 @@ export default function NewModuleManual() {
   const { data: existingModule, isLoading: moduleLoading, error: moduleError } = useQuery({
     queryKey: [`/api/modules/${editModuleId}`],
     enabled: isEditMode && !!editModuleId,
+    queryFn: async () => {
+      const response = await fetch(`/api/modules/${editModuleId}`);
+      if (!response.ok) throw new Error('Failed to fetch module');
+      return response.json();
+    },
   });
 
   // Log query results
@@ -155,18 +174,19 @@ export default function NewModuleManual() {
   // Load existing module data when available
   useEffect(() => {
     if (existingModule && isEditMode) {
-      const content = typeof existingModule.content === 'string' 
-        ? JSON.parse(existingModule.content) 
-        : existingModule.content;
+      const moduleData = existingModule as any;
+      const content = typeof moduleData.content === 'string' 
+        ? JSON.parse(moduleData.content) 
+        : moduleData.content;
 
       setModuleConfig({
-        title: existingModule.title || '',
-        description: existingModule.description || '',
-        category: existingModule.category || 'professional-development',
-        difficulty: existingModule.difficulty || 'intermediate',
-        estimatedTime: existingModule.duration?.toString() || '15',
-        pointValue: existingModule.pointValue || 10,
-        shareWithCommunity: existingModule.isShared || false
+        title: moduleData.title || '',
+        description: moduleData.description || '',
+        category: moduleData.category || 'professional-development',
+        difficulty: moduleData.difficulty || 'intermediate',
+        estimatedTime: moduleData.duration?.toString() || '15',
+        pointValue: moduleData.pointValue || 10,
+        shareWithCommunity: moduleData.isShared || false
       });
 
       if (content && content.sections) {
@@ -250,40 +270,196 @@ export default function NewModuleManual() {
     setCurrentStep('build');
   };
 
-  const handleSectionSave = (sectionData: any) => {
+  const addSection = (type: string, title: string, duration: number) => {
     const newSection: ModuleSection = {
       id: Date.now().toString(),
-      title: sectionData.title,
-      content: sectionData.content || JSON.stringify(sectionData),
-      type: sectionData.type,
-      duration: sectionData.duration || 10,
-      videoUrl: sectionData.videoUrl || '',
-      imageUrl: sectionData.imageUrl || ''
+      title,
+      content: '',
+      type,
+      duration
     };
-
     setSections(prev => [...prev, newSection]);
-    setCurrentSectionType(null);
+    setCurrentSectionIndex(sections.length);
+    setShowAddSectionDialog(false);
     
     toast({
       title: "Section Added",
-      description: `${sectionData.title} has been added to your module.`
+      description: `${title} has been added to your module.`
     });
   };
 
-  const removeSection = (sectionId: string) => {
-    setSections(prev => prev.filter(s => s.id !== sectionId));
+  const handleDeleteSection = (sectionIndex: number) => {
+    setSectionToDelete(sectionIndex);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteSection = () => {
+    if (sectionToDelete !== null) {
+      const updatedSections = sections.filter((_, index) => index !== sectionToDelete);
+      setSections(updatedSections);
+      
+      // Adjust current section index if needed
+      if (currentSectionIndex >= updatedSections.length) {
+        setCurrentSectionIndex(Math.max(0, updatedSections.length - 1));
+      } else if (currentSectionIndex > sectionToDelete) {
+        setCurrentSectionIndex(currentSectionIndex - 1);
+      }
+    }
+    setShowDeleteDialog(false);
+    setSectionToDelete(null);
     toast({
-      title: "Section Removed",
-      description: "Section has been removed from your module."
+      title: "Section Deleted",
+      description: "The section has been removed from your module.",
     });
   };
 
-  const updateSection = (sectionId: string, updates: Partial<ModuleSection>) => {
-    setSections(prev => prev.map(section => 
-      section.id === sectionId 
+  const updateSection = (sectionIndex: number, updates: Partial<ModuleSection>) => {
+    setSections(prev => prev.map((section, index) => 
+      index === sectionIndex 
         ? { ...section, ...updates }
         : section
     ));
+  };
+
+  const toggleSectionEdit = (sectionIndex: number) => {
+    setEditingSections(prev => ({
+      ...prev,
+      [sectionIndex]: !prev[sectionIndex],
+    }));
+  };
+
+  const getSectionIcon = (sectionType: string) => {
+    switch (sectionType) {
+      case "text":
+        return "📝";
+      case "example":
+        return "💡";
+      case "scenario":
+        return "🎭";
+      case "quiz":
+        return "❓";
+      case "video":
+        return "🎬";
+      case "matching":
+        return "🔗";
+      case "story":
+        return "📖";
+      case "mnemonic":
+        return "🧠";
+      case "simulation":
+        return "⚡";
+      case "triage":
+        return "🎯";
+      default:
+        return "📋";
+    }
+  };
+
+  const renderSectionBuilder = (section: ModuleSection, index: number) => {
+    const isEditing = editingSections[index] !== false;
+
+    const handleContentChange = (updatedContent: any) => {
+      updateSection(index, { content: updatedContent });
+    };
+
+    const handleEditToggle = () => {
+      toggleSectionEdit(index);
+    };
+
+    const handleRegenerateAI = () => {
+      // For manual builder, we don't have AI regeneration, so this is a no-op
+      // or could show a toast message that AI features are not available in manual mode
+      toast({
+        title: "Manual Mode",
+        description: "AI regeneration is not available in manual builder mode. Please edit content manually.",
+      });
+    };
+
+    // Route to appropriate builder based on section type
+    switch (section.type) {
+      case "quiz":
+        return (
+          <QuizSectionBuilder
+            key={`quiz-${index}`}
+            content={section.content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
+          />
+        );
+
+      case "matching":
+        return (
+          <MatchingSectionBuilder
+            key={`matching-${index}`}
+            content={section.content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
+          />
+        );
+
+      case "scenario-match":
+        return (
+          <ScenarioMatchSectionBuilder
+            key={`scenario-match-${index}`}
+            content={section.content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
+          />
+        );
+
+      case "video":
+        return (
+          <VideoSectionBuilder
+            key={`video-${index}`}
+            content={section.content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+          />
+        );
+
+      case "example":
+        return (
+          <ExampleSectionHandler
+            key={`example-${index}`}
+            moduleTitle={moduleConfig.title}
+            moduleDescription={moduleConfig.description}
+            sectionTitle={section.title}
+            onSave={(sectionData) => {
+              updateSection(index, {
+                title: sectionData.title,
+                content: sectionData.content || JSON.stringify(sectionData),
+                type: sectionData.type,
+                duration: sectionData.duration || 10
+              });
+            }}
+          />
+        );
+
+      case "text":
+      case "scenario":
+      case "story":
+      case "mnemonic":
+      case "simulation":
+      case "triage":
+      default:
+        return (
+          <TextSectionBuilder
+            key={`text-${index}`}
+            content={section.content}
+            onContentChange={handleContentChange}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onRegenerateAI={handleRegenerateAI}
+          />
+        );
+    }
   };
 
   const saveModule = async () => {
@@ -319,10 +495,16 @@ export default function NewModuleManual() {
       let response;
       if (isEditMode && editModuleId) {
         // Update existing module
-        response = await apiRequest('PATCH', `/api/modules/${editModuleId}`, moduleData);
+        response = await apiRequest(`/api/modules/${editModuleId}`, {
+          method: 'PATCH',
+          data: moduleData
+        });
       } else {
         // Create new module using apiRequest for proper authentication
-        response = await apiRequest('POST', '/api/modules', moduleData);
+        response = await apiRequest('/api/modules', {
+          method: 'POST',
+          data: moduleData
+        });
       }
 
       toast({
@@ -337,64 +519,6 @@ export default function NewModuleManual() {
         description: isEditMode ? "Failed to update module. Please try again." : "Failed to save module. Please try again.",
         variant: "destructive"
       });
-    }
-  };
-
-  const renderSectionHandler = () => {
-    if (!currentSectionType) return null;
-
-    switch (currentSectionType) {
-      case 'example':
-        return (
-          <ExampleSectionHandler
-            moduleTitle={moduleConfig.title}
-            moduleDescription={moduleConfig.description}
-            sectionTitle="Examples"
-            onSave={handleSectionSave}
-          />
-        );
-      default:
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Section Builder</CardTitle>
-              <CardDescription>
-                Manual builder for {currentSectionType} sections is coming soon. 
-                For now, you can add basic content below.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Section Title</Label>
-                <Input placeholder="Enter section title..." />
-              </div>
-              <div>
-                <Label>Content</Label>
-                <CloudinaryMarkdownEditor
-                  value=""
-                  onChange={() => {}}
-                  height={200}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setCurrentSectionType(null)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => {
-                  // Basic section save for unsupported types
-                  handleSectionSave({
-                    title: `${currentSectionType} Section`,
-                    content: 'Basic content placeholder',
-                    type: currentSectionType,
-                    duration: 10
-                  });
-                }}>
-                  Add Section
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
     }
   };
 
@@ -601,189 +725,436 @@ export default function NewModuleManual() {
         </div>
       )}
 
-      {/* Step 3: Build */}
+      {/* Step 3: Build - Sidebar Layout */}
       {currentStep === 'build' && (
+        <div className="flex gap-6 h-[calc(100vh-200px)]">
+          {/* Left Sidebar - Module Outline */}
+          <div className="w-80 flex-shrink-0">
+            <Card className="h-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Module Outline</CardTitle>
+                <CardDescription className="text-sm">
+                  Manual Builder
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-1">
+                  {sections.map((section, index) => (
+                    <div
+                      key={section.id}
+                      className={`p-3 mx-4 mb-2 rounded-lg border cursor-pointer transition-all ${
+                        currentSectionIndex === index
+                          ? "bg-green-100 border-green-300"
+                          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                      }`}
+                      onClick={() => setCurrentSectionIndex(index)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium ${
+                            currentSectionIndex === index
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-300 text-gray-600"
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-gray-900 truncate">
+                            {section.title}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {section.type}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {section.content && section.content.trim() && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSection(index);
+                            }}
+                            disabled={sections.length <= 1}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Add Section Button */}
+                  <div className="mx-4 mb-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-green-600 border-green-200 hover:bg-green-50"
+                      onClick={() => setShowAddSectionDialog(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Section
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Content Area - Section Builder */}
+          <div className="flex-1 min-w-0">
+            <Card className="h-full">
+              <CardHeader className="pb-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl">
+                      {sections.length > 0 ? (
+                        <>
+                          Build Section {currentSectionIndex + 1}:{" "}
+                          {sections[currentSectionIndex]?.title}
+                        </>
+                      ) : (
+                        "Add Your First Section"
+                      )}
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      {sections.length > 0 
+                        ? "Add content to this section of your module"
+                        : "Start building your module by adding sections"
+                      }
+                    </CardDescription>
+                  </div>
+                  {sections.length > 0 && (
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 text-green-700 border-green-200"
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      {sections[currentSectionIndex]?.duration || 5} min
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6 overflow-y-auto">
+                {sections.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => toggleSectionEdit(currentSectionIndex)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Type className="h-4 w-4 mr-1" />
+                          Edit Content
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      {renderSectionBuilder(sections[currentSectionIndex], currentSectionIndex)}
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    <div className="flex justify-between pt-6 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (currentSectionIndex > 0) {
+                            setCurrentSectionIndex(currentSectionIndex - 1);
+                          }
+                        }}
+                        disabled={currentSectionIndex === 0}
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Previous Section
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Section
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            if (currentSectionIndex < sections.length - 1) {
+                              setCurrentSectionIndex(currentSectionIndex + 1);
+                            } else {
+                              setCurrentStep("preview");
+                            }
+                          }}
+                          disabled={currentSectionIndex >= sections.length - 1}
+                        >
+                          {currentSectionIndex === sections.length - 1
+                            ? "Preview Module"
+                            : "Save & Next Section"}
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 mb-4">
+                      <FileEdit className="h-16 w-16 mx-auto" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No Sections Yet
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Start building your module by adding your first section
+                    </p>
+                    <Button
+                      onClick={() => setShowAddSectionDialog(true)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Section
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Preview */}
+      {currentStep === 'preview' && (
         <div className="space-y-6">
-          {currentSectionType ? (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setCurrentSectionType(null)}
+          <Card>
+            <CardHeader>
+              <CardTitle>Module Preview</CardTitle>
+              <CardDescription>
+                Review your manual module before saving it
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {moduleConfig.title}
+                </h3>
+                <p className="text-gray-700 mb-4">
+                  {moduleConfig.description}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-600">Category:</span>
+                    <div className="text-gray-800 capitalize">
+                      {moduleConfig.category.replace("-", " ")}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Difficulty:</span>
+                    <div className="text-gray-800 capitalize">
+                      {moduleConfig.difficulty}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Sections:</span>
+                    <div className="text-gray-800">
+                      {sections.length} sections
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Module Sections:</h4>
+                {sections.map((section, index) => (
+                  <div key={section.id} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="flex items-center justify-center w-6 h-6 bg-green-100 text-green-600 rounded-full text-sm font-medium">
+                        {index + 1}
+                      </span>
+                      <span className="font-medium">{section.title}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {section.type}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {section.duration}m
+                      </Badge>
+                      {section.content && section.content.trim() && (
+                        <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />
+                      )}
+                    </div>
+                    {section.content && (
+                      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                        {section.content.substring(0, 150) + "..."}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between pt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep("build")}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Section Types
+                  Back to Builder
                 </Button>
-              </div>
-              {renderSectionHandler()}
-            </div>
-          ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add Content Sections</CardTitle>
-                  <CardDescription>
-                    Choose the type of content you want to add to your module
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {sectionTypes.map((sectionType) => {
-                      const IconComponent = sectionType.icon;
-                      return (
-                        <Card 
-                          key={sectionType.type}
-                          className="cursor-pointer transition-all hover:shadow-md hover:bg-gray-50"
-                          onClick={() => setCurrentSectionType(sectionType.type)}
-                        >
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center gap-3">
-                              <IconComponent className="h-5 w-5 text-green-600" />
-                              <CardTitle className="text-base">{sectionType.title}</CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-0">
-                            <p className="text-sm text-gray-600">{sectionType.description}</p>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {sections.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Module Sections ({sections.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {sections.map((section) => (
-                        <div key={section.id} className="border rounded-lg">
-                          {editingSectionId === section.id ? (
-                            // Edit mode for this section
-                            <div className="p-4 space-y-4">
-                              <div>
-                                <Label htmlFor={`title-${section.id}`}>Section Title</Label>
-                                <Input
-                                  id={`title-${section.id}`}
-                                  value={section.title}
-                                  onChange={(e) => updateSection(section.id, { title: e.target.value })}
-                                  placeholder="Enter section title"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor={`content-${section.id}`}>Section Content</Label>
-                                <CloudinaryMarkdownEditor
-                                  value={section.content}
-                                  onChange={(value) => updateSection(section.id, { content: value || '' })}
-                                  height={300}
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor={`type-${section.id}`}>Section Type</Label>
-                                  <Select 
-                                    value={section.type} 
-                                    onValueChange={(value) => updateSection(section.id, { type: value })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="text">Text</SelectItem>
-                                      <SelectItem value="video">Video</SelectItem>
-                                      <SelectItem value="activity">Activity</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label htmlFor={`duration-${section.id}`}>Duration (minutes)</Label>
-                                  <Input
-                                    id={`duration-${section.id}`}
-                                    type="number"
-                                    value={section.duration}
-                                    onChange={(e) => updateSection(section.id, { duration: parseInt(e.target.value) || 0 })}
-                                    min="1"
-                                    max="60"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={() => setEditingSectionId(null)}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Save Changes
-                                </Button>
-                                <Button
-                                  onClick={() => setEditingSectionId(null)}
-                                  variant="ghost"
-                                  size="sm"
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            // View mode for this section
-                            <div className="flex items-center justify-between p-4">
-                              <div className="flex-1">
-                                <h4 className="font-semibold">{section.title}</h4>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {typeof section.content === 'string' 
-                                    ? section.content.substring(0, 100) + '...'
-                                    : `${section.type} section`}
-                                </p>
-                                <div className="flex gap-2 mt-2">
-                                  <Badge variant="outline">{section.type}</Badge>
-                                  <Badge variant="outline">{section.duration} min</Badge>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setEditingSectionId(section.id)}
-                                >
-                                  <FileEdit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeSection(section.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep('config')}>
-                  Back to Configuration
-                </Button>
-                <Button 
+                <Button
                   onClick={saveModule}
-                  disabled={sections.length === 0}
+                  className="bg-green-600 hover:bg-green-700"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isEditMode ? 'Update Module' : 'Save Module'}
                 </Button>
               </div>
-            </>
-          )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Section Deletion Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Section</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete "{sections[sectionToDelete || 0]?.title}"? 
+              All content for this section will be permanently removed.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setSectionToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteSection}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Section
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Section Dialog */}
+      {showAddSectionDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Add New Section</h3>
+            <AddSectionForm
+              onAdd={(type, title, duration) => {
+                addSection(type, title, duration);
+                setShowAddSectionDialog(false);
+              }}
+              onCancel={() => setShowAddSectionDialog(false)}
+            />
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+// Add Section Form Component
+function AddSectionForm({ onAdd, onCancel }: {
+  onAdd: (type: string, title: string, duration: number) => void;
+  onCancel: () => void;
+}) {
+  const [sectionType, setSectionType] = useState('text');
+  const [sectionTitle, setSectionTitle] = useState('');
+  const [sectionDuration, setSectionDuration] = useState(5);
+
+  const sectionTypes = [
+    { value: 'text', label: 'Text Content' },
+    { value: 'video', label: 'Video Section' },
+    { value: 'quiz', label: 'Quiz/Assessment' },
+    { value: 'matching', label: 'Matching Activity' },
+    { value: 'scenario', label: 'Scenario Practice' },
+    { value: 'example', label: 'Examples' },
+    { value: 'story', label: 'Story/Case Study' },
+    { value: 'triage', label: 'Triage Activity' },
+    { value: 'mnemonic', label: 'Memory Techniques' },
+    { value: 'simulation', label: 'Simulation' }
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sectionTitle.trim()) {
+      onAdd(sectionType, sectionTitle.trim(), sectionDuration);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-2">Section Type</label>
+        <select
+          value={sectionType}
+          onChange={(e) => setSectionType(e.target.value)}
+          className="w-full p-2 border rounded-lg"
+        >
+          {sectionTypes.map(type => (
+            <option key={type.value} value={type.value}>
+              {type.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-2">Section Title</label>
+        <input
+          type="text"
+          value={sectionTitle}
+          onChange={(e) => setSectionTitle(e.target.value)}
+          placeholder="Enter section title..."
+          className="w-full p-2 border rounded-lg"
+          required
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+        <input
+          type="number"
+          value={sectionDuration}
+          onChange={(e) => setSectionDuration(parseInt(e.target.value) || 5)}
+          min="1"
+          max="60"
+          className="w-full p-2 border rounded-lg"
+        />
+      </div>
+      
+      <div className="flex justify-end gap-2 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          Add Section
+        </button>
+      </div>
+    </form>
   );
 }
